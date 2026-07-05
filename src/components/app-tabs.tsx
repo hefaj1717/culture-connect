@@ -1,82 +1,187 @@
-import { Tabs } from 'expo-router';
 import { Compass, Home, User } from 'lucide-react-native';
-import { View } from 'react-native';
+import { useMemo, useState } from 'react';
+import { Pressable, Text, useWindowDimensions, View } from 'react-native';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import Animated, {
+  runOnJS,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from 'react-native-reanimated';
+
+import ExploreScreen from '@/app/explore';
+import HomeScreen from '@/app/index';
+import ProfileScreen from '@/app/profile';
+import { useAuth } from '@/providers/auth-provider';
 
 const ACTIVE = '#24458F';
 const INACTIVE = '#7D8594';
-const CENTER_BG = '#E8EEF9';
+const TAB_COUNT = 3;
 
 export default function AppTabs() {
+  const { width } = useWindowDimensions();
+  const { user } = useAuth();
+  const [activeIndex, setActiveIndex] = useState(0);
+  const translateX = useSharedValue(-activeIndex * width);
+  const startX = useSharedValue(0);
+  const metadataName = [user?.user_metadata?.first_name, user?.user_metadata?.last_name]
+    .filter(Boolean)
+    .join(' ');
+  const avatarInitials = getUserInitials(
+    user?.user_metadata?.full_name || metadataName || user?.email,
+  );
+
+  function goToTab(index: number) {
+    setActiveIndex(index);
+    translateX.value = withTiming(-index * width, { duration: 220 });
+  }
+
+  const gesture = useMemo(
+    () =>
+      Gesture.Pan()
+        .activeOffsetX([-12, 12])
+        .failOffsetY([-35, 35])
+        .onBegin(() => {
+          startX.value = translateX.value;
+        })
+        .onUpdate((event) => {
+          const minTranslate = -(TAB_COUNT - 1) * width;
+          const maxTranslate = 0;
+          const nextTranslate = startX.value + event.translationX;
+          translateX.value = Math.max(minTranslate, Math.min(maxTranslate, nextTranslate));
+        })
+        .onEnd((event) => {
+          const projected = translateX.value + event.velocityX * 0.12;
+          const nextIndex = Math.min(
+            TAB_COUNT - 1,
+            Math.max(0, Math.round(Math.abs(projected) / width)),
+          );
+
+          translateX.value = withTiming(-nextIndex * width, { duration: 180 });
+          runOnJS(setActiveIndex)(nextIndex);
+        }),
+    [startX, translateX, width],
+  );
+
+  const pagerStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: translateX.value }],
+  }));
+
   return (
-    <Tabs
-      screenOptions={{
-        headerShown: false,
-        tabBarActiveTintColor: ACTIVE,
-        tabBarInactiveTintColor: INACTIVE,
-        tabBarHideOnKeyboard: true,
-        sceneStyle: {
-          backgroundColor: '#FFFFFF',
-        },
-        tabBarLabelStyle: {
-          fontSize: 10,
-          fontWeight: '600',
-        },
-        tabBarStyle: {
-          height: 88,
-          paddingTop: 10,
-          paddingBottom: 20,
-          backgroundColor: '#FFFFFF',
-          borderTopColor: '#E5E7EB',
+    <View className="flex-1 bg-white">
+      <GestureDetector gesture={gesture}>
+        <Animated.View
+          style={[
+            {
+              flex: 1,
+              width: width * TAB_COUNT,
+              flexDirection: 'row',
+            },
+            pagerStyle,
+          ]}
+        >
+          <View style={{ width }}>
+            <HomeScreen
+              avatarInitials={avatarInitials}
+              onOpenDiscover={() => goToTab(1)}
+              onOpenProfile={() => goToTab(2)}
+            />
+          </View>
+          <View style={{ width }}>
+            <ExploreScreen />
+          </View>
+          <View style={{ width }}>
+            <ProfileScreen />
+          </View>
+        </Animated.View>
+      </GestureDetector>
+
+      <View
+        style={{
+          height: 84,
+          paddingTop: 8,
+          paddingBottom: 18,
           borderTopWidth: 1,
-        },
-      }}
-    >
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: 'Home',
-          tabBarIcon: ({ color, focused }) => (
-            <Home size={22} color={color} strokeWidth={focused ? 2.5 : 1.8} />
-          ),
+          borderTopColor: '#E5E7EB',
+          backgroundColor: '#FFFFFF',
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'space-around',
         }}
-      />
-      <Tabs.Screen
-        name="explore"
-        options={{
-          title: 'Discover',
-          tabBarLabel: () => null,
-          tabBarIconStyle: {
-            marginTop: 8,
-          },
-          tabBarIcon: ({ focused }) => <CenterTabIcon focused={focused} />,
-        }}
-      />
-      <Tabs.Screen
-        name="profile"
-        options={{
-          title: 'Profile',
-          tabBarIcon: ({ focused }) => (
-            <User size={22} color={focused ? ACTIVE : INACTIVE} strokeWidth={focused ? 2.5 : 1.8} />
-          ),
-        }}
-      />
-    </Tabs>
+      >
+        <TabButton
+          active={activeIndex === 0}
+          icon={<Home size={24} color={activeIndex === 0 ? ACTIVE : INACTIVE} />}
+          label="Home"
+          onPress={() => goToTab(0)}
+        />
+        <Pressable
+          onPress={() => goToTab(1)}
+          style={{
+            width: 60,
+            height: 60,
+            transform: [{ translateY: -14 }],
+            alignItems: 'center',
+            justifyContent: 'center',
+            borderRadius: 22,
+            backgroundColor: ACTIVE,
+            shadowColor: ACTIVE,
+            shadowOpacity: 0.14,
+            shadowRadius: 12,
+            shadowOffset: { width: 0, height: 6 },
+          }}
+        >
+          <Compass size={31} color="#FFFFFF" strokeWidth={2.45} />
+        </Pressable>
+        <TabButton
+          active={activeIndex === 2}
+          icon={<User size={24} color={activeIndex === 2 ? ACTIVE : INACTIVE} />}
+          label="Profile"
+          onPress={() => goToTab(2)}
+        />
+      </View>
+    </View>
   );
 }
 
-function CenterTabIcon({ focused }: { focused: boolean }) {
+function getUserInitials(value?: string | null) {
+  if (!value) return null;
+
+  const name = value.includes('@') ? value.split('@')[0] : value;
+  const parts = name
+    .replace(/[^a-zA-Z0-9_\s.-]/g, '')
+    .split(/[\s._-]+/)
+    .filter(Boolean);
+
+  if (parts.length === 0) return null;
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+
+  return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
+}
+
+function TabButton({
+  active,
+  icon,
+  label,
+  onPress,
+}: {
+  active: boolean;
+  icon: React.ReactNode;
+  label: string;
+  onPress: () => void;
+}) {
   return (
-    <View
-      style={{
-        width: 56,
-        height: 56,
-        alignItems: 'center',
-        justifyContent: 'center',
-        borderRadius: 22,
-        backgroundColor: focused ? CENTER_BG : CENTER_BG,
-      }}
-    >
-      <Compass size={30} color={ACTIVE} strokeWidth={focused ? 2.7 : 2.2} />
-    </View>
+    <Pressable onPress={onPress} className="min-w-[88px] items-center justify-center gap-1">
+      {icon}
+      <Text
+        style={{
+          color: active ? ACTIVE : INACTIVE,
+          fontSize: 13,
+          fontWeight: '700',
+        }}
+      >
+        {label}
+      </Text>
+    </Pressable>
   );
 }

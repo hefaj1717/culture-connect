@@ -8,6 +8,7 @@ import {
   ScrollView,
   Text,
   TextInput,
+  View,
 } from 'react-native';
 
 import { useAuth } from '@/providers/auth-provider';
@@ -21,7 +22,8 @@ export function AuthScreen({ onCancel }: AuthScreenProps) {
   const [mode, setMode] = useState<'signIn' | 'signUp'>('signIn');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [username, setUsername] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -31,9 +33,14 @@ export function AuthScreen({ onCancel }: AuthScreenProps) {
     setNotice(null);
 
     const normalizedEmail = email.trim();
-    const normalizedUsername = username.trim();
+    const normalizedFirstName = firstName.trim();
+    const normalizedLastName = lastName.trim();
 
-    if (!normalizedEmail || !password || (mode === 'signUp' && !normalizedUsername)) {
+    if (
+      !normalizedEmail ||
+      !password ||
+      (mode === 'signUp' && (!normalizedFirstName || !normalizedLastName))
+    ) {
       setError('Please fill in all fields.');
       return;
     }
@@ -48,7 +55,7 @@ export function AuthScreen({ onCancel }: AuthScreenProps) {
     const result =
       mode === 'signIn'
         ? await signIn(normalizedEmail, password)
-        : await signUp(normalizedEmail, password, normalizedUsername);
+        : await signUp(normalizedEmail, password, normalizedFirstName, normalizedLastName);
     setLoading(false);
 
     if (result.error) {
@@ -72,7 +79,7 @@ export function AuthScreen({ onCancel }: AuthScreenProps) {
         keyboardDismissMode="interactive"
         keyboardShouldPersistTaps="handled"
       >
-        <Pressable onPress={Keyboard.dismiss} className="flex-1 justify-center">
+        <View className="flex-1 justify-center">
           {onCancel && (
             <Pressable onPress={onCancel} className="absolute right-0 top-0 rounded-full px-3 py-2">
               <Text className="text-[14px] font-semibold text-primary">Cancel</Text>
@@ -85,15 +92,30 @@ export function AuthScreen({ onCancel }: AuthScreenProps) {
           </Text>
 
           {mode === 'signUp' && (
-            <TextInput
-              value={username}
-              onChangeText={setUsername}
-              placeholder="Username"
-              placeholderTextColor="#8B909A"
-              autoCapitalize="none"
-              returnKeyType="next"
-              className="mb-3 rounded-xl border border-gray-300 px-4 py-3 text-[15px] text-black"
-            />
+            <>
+              <TextInput
+                value={firstName}
+                onChangeText={setFirstName}
+                placeholder="First name"
+                placeholderTextColor="#8B909A"
+                autoCapitalize="words"
+                textContentType="givenName"
+                autoComplete="given-name"
+                returnKeyType="next"
+                className="mb-3 rounded-xl border border-gray-300 px-4 py-3 text-[15px] text-black"
+              />
+              <TextInput
+                value={lastName}
+                onChangeText={setLastName}
+                placeholder="Last name"
+                placeholderTextColor="#8B909A"
+                autoCapitalize="words"
+                textContentType="familyName"
+                autoComplete="family-name"
+                returnKeyType="next"
+                className="mb-3 rounded-xl border border-gray-300 px-4 py-3 text-[15px] text-black"
+              />
+            </>
           )}
 
           <TextInput
@@ -160,7 +182,7 @@ export function AuthScreen({ onCancel }: AuthScreenProps) {
               </Text>
             </Pressable>
           )}
-        </Pressable>
+        </View>
       </ScrollView>
     </KeyboardAvoidingView>
   );

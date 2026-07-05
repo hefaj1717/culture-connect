@@ -1,7 +1,15 @@
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Link } from 'expo-router';
-import { ArrowRight, Bell, Flame, Globe, MapPin, Sparkles, TrendingUp } from 'lucide-react-native';
+import {
+  ArrowRight,
+  Bell,
+  Flame,
+  Globe,
+  MapPin,
+  Sparkles,
+  TrendingUp,
+  User,
+} from 'lucide-react-native';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -9,7 +17,17 @@ import { events, languageLabels } from '@/data/culture';
 
 const happeningNow = events.slice(0, 3);
 
-export default function HomeScreen() {
+type HomeScreenProps = {
+  avatarInitials?: string | null;
+  onOpenDiscover?: () => void;
+  onOpenProfile?: () => void;
+};
+
+export default function HomeScreen({
+  avatarInitials,
+  onOpenDiscover,
+  onOpenProfile,
+}: HomeScreenProps) {
   return (
     <View className="flex-1 bg-white">
       <ScrollView
@@ -30,16 +48,28 @@ export default function HomeScreen() {
           />
 
           <SafeAreaView edges={['top']} className="absolute left-0 right-0 top-0 z-20 px-5">
-            <View className="flex-row items-center justify-between pt-2">
-              <Text className="text-[18px] font-extrabold text-white">CultureQuest</Text>
+            <View className="flex-row items-center justify-between pt-3">
+              <Text
+                className="text-[23px] font-extrabold text-white"
+                style={{ fontFamily: 'Georgia' }}
+              >
+                CultureQuest
+              </Text>
               <View className="flex-row items-center gap-3">
-                <View className="relative h-9 w-9 items-center justify-center rounded-full bg-white/15">
-                  <Bell size={19} color="rgba(255,255,255,0.95)" />
-                  <View className="absolute right-2 top-2 h-2 w-2 rounded-full bg-destructive" />
+                <View className="relative h-11 w-11 items-center justify-center rounded-full bg-white/15">
+                  <Bell size={24} color="rgba(255,255,255,0.96)" strokeWidth={2.1} />
+                  <View className="absolute right-2.5 top-2.5 h-2.5 w-2.5 rounded-full bg-destructive" />
                 </View>
-                <View className="h-9 w-9 items-center justify-center rounded-full bg-primary">
-                  <Text className="text-[11px] font-bold text-white">ME</Text>
-                </View>
+                <Pressable
+                  onPress={onOpenProfile}
+                  className="h-11 w-11 items-center justify-center rounded-full bg-primary active:opacity-85"
+                >
+                  {avatarInitials ? (
+                    <Text className="text-[13px] font-extrabold text-white">{avatarInitials}</Text>
+                  ) : (
+                    <User size={22} color="white" strokeWidth={2.4} />
+                  )}
+                </Pressable>
               </View>
             </View>
 
@@ -54,7 +84,10 @@ export default function HomeScreen() {
           </SafeAreaView>
 
           <View className="absolute bottom-0 left-0 right-0 px-6 pb-7">
-            <Text className="mb-2 text-[38px] font-extrabold leading-[41px] text-white">
+            <Text
+              className="mb-2 text-[42px] font-extrabold leading-[45px] text-white"
+              style={{ fontFamily: 'Georgia' }}
+            >
               Your city.{'\n'}Your adventure.
             </Text>
             <Text className="mb-4 max-w-[310px] text-[15px] leading-5 text-white/75">
@@ -67,12 +100,13 @@ export default function HomeScreen() {
               </Text>
             </View>
 
-            <Link href="/explore" asChild>
-              <Pressable className="h-[52px] flex-row items-center justify-center gap-2 rounded-xl bg-primary active:opacity-85">
-                <Text className="text-[16px] font-semibold text-white">Start Exploring</Text>
-                <ArrowRight size={17} color="white" />
-              </Pressable>
-            </Link>
+            <Pressable
+              onPress={onOpenDiscover}
+              className="h-[52px] flex-row items-center justify-center gap-2 rounded-xl bg-primary active:opacity-85"
+            >
+              <Text className="text-[16px] font-semibold text-white">Start Exploring</Text>
+              <ArrowRight size={17} color="white" />
+            </Pressable>
           </View>
         </View>
 
@@ -112,38 +146,38 @@ export default function HomeScreen() {
             contentContainerStyle={{ paddingHorizontal: 20, gap: 12 }}
           >
             {happeningNow.map((event) => (
-              <Link href="/explore" asChild key={event.id}>
-                <Pressable className="w-[178px] rounded-2xl border border-gray-200 bg-white p-4 active:opacity-85">
-                  <View className="mb-3 h-10 w-10 items-center justify-center rounded-xl bg-primary/15">
-                    <MapPin size={16} color="#24458F" />
+              <Pressable
+                onPress={onOpenDiscover}
+                className="w-[178px] rounded-2xl border border-gray-200 bg-white p-4 active:opacity-85"
+                key={event.id}
+              >
+                <View className="mb-3 h-10 w-10 items-center justify-center rounded-xl bg-primary/15">
+                  <MapPin size={16} color="#24458F" />
+                </View>
+                <Text className="mb-0.5 text-[14px] font-semibold text-black" numberOfLines={2}>
+                  {event.title}
+                </Text>
+                <Text className="mb-2 text-[12px] text-muted" numberOfLines={1}>
+                  {event.venueName}
+                </Text>
+                <View className="flex-row flex-wrap items-center gap-2">
+                  <View className="flex-row items-center gap-0.5">
+                    <Sparkles size={12} color="#22C55E" />
+                    <Text className="text-[12px] font-bold text-success">+{event.xpBonus} XP</Text>
                   </View>
-                  <Text className="mb-0.5 text-[14px] font-semibold text-black" numberOfLines={2}>
-                    {event.title}
-                  </Text>
-                  <Text className="mb-2 text-[12px] text-muted" numberOfLines={1}>
-                    {event.venueName}
-                  </Text>
-                  <View className="flex-row flex-wrap items-center gap-2">
-                    <View className="flex-row items-center gap-0.5">
-                      <Sparkles size={12} color="#22C55E" />
-                      <Text className="text-[12px] font-bold text-success">
-                        +{event.xpBonus} XP
-                      </Text>
+                  {event.isFree && (
+                    <View className="rounded-full bg-success/10 px-1.5 py-0.5">
+                      <Text className="text-[10px] font-bold text-success">Free</Text>
                     </View>
-                    {event.isFree && (
-                      <View className="rounded-full bg-success/10 px-1.5 py-0.5">
-                        <Text className="text-[10px] font-bold text-success">Free</Text>
-                      </View>
-                    )}
-                  </View>
-                  <View className="mt-1.5 flex-row items-center gap-1">
-                    <Globe size={12} color="#24458F" />
-                    <Text className="text-[11px] font-medium text-primary">
-                      {languageLabels[event.language]}
-                    </Text>
-                  </View>
-                </Pressable>
-              </Link>
+                  )}
+                </View>
+                <View className="mt-1.5 flex-row items-center gap-1">
+                  <Globe size={12} color="#24458F" />
+                  <Text className="text-[11px] font-medium text-primary">
+                    {languageLabels[event.language]}
+                  </Text>
+                </View>
+              </Pressable>
             ))}
           </ScrollView>
         </View>
