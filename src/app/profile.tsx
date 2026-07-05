@@ -16,7 +16,13 @@ export default function ProfileScreen() {
   }
 
   const email = session.user.email ?? 'Student';
-  const username = session.user.user_metadata?.username ?? email.split('@')[0];
+  const metadataName = [
+    session.user.user_metadata?.first_name,
+    session.user.user_metadata?.last_name,
+  ]
+    .filter(Boolean)
+    .join(' ');
+  const fullName = session.user.user_metadata?.full_name || metadataName || email.split('@')[0];
 
   return (
     <SafeAreaView className="flex-1 bg-white" edges={['top']}>
@@ -33,7 +39,7 @@ export default function ProfileScreen() {
             </View>
             <View className="min-w-0 flex-1">
               <Text className="text-[20px] font-bold text-black" numberOfLines={1}>
-                {username}
+                {fullName}
               </Text>
               <Text className="text-[13px] text-muted" numberOfLines={1}>
                 {email}
