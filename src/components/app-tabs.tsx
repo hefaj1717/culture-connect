@@ -1,44 +1,82 @@
 import { Tabs } from 'expo-router';
-import { Image, useColorScheme } from 'react-native';
+import { Compass, Home, User } from 'lucide-react-native';
+import { View } from 'react-native';
 
-import { Colors } from '@/constants/theme';
+const ACTIVE = '#24458F';
+const INACTIVE = '#7D8594';
+const CENTER_BG = '#E8EEF9';
 
 export default function AppTabs() {
-  const scheme = useColorScheme();
-  const colors = Colors[scheme === 'unspecified' || !scheme ? 'light' : scheme];
-
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: colors.text,
-        tabBarStyle: { backgroundColor: colors.background },
+        tabBarActiveTintColor: ACTIVE,
+        tabBarInactiveTintColor: INACTIVE,
+        tabBarHideOnKeyboard: true,
+        sceneStyle: {
+          backgroundColor: '#FFFFFF',
+        },
+        tabBarLabelStyle: {
+          fontSize: 10,
+          fontWeight: '600',
+        },
+        tabBarStyle: {
+          height: 88,
+          paddingTop: 10,
+          paddingBottom: 20,
+          backgroundColor: '#FFFFFF',
+          borderTopColor: '#E5E7EB',
+          borderTopWidth: 1,
+        },
       }}
     >
       <Tabs.Screen
         name="index"
         options={{
           title: 'Home',
-          tabBarIcon: ({ focused }) => (
-            <Image
-              source={require('@/assets/images/tabIcons/home.png')}
-              style={{ width: 24, height: 24, tintColor: focused ? colors.text : undefined }}
-            />
+          tabBarIcon: ({ color, focused }) => (
+            <Home size={22} color={color} strokeWidth={focused ? 2.5 : 1.8} />
           ),
         }}
       />
       <Tabs.Screen
         name="explore"
         options={{
-          title: 'Explore',
+          title: 'Discover',
+          tabBarLabel: () => null,
+          tabBarIconStyle: {
+            marginTop: 8,
+          },
+          tabBarIcon: ({ focused }) => <CenterTabIcon focused={focused} />,
+        }}
+      />
+      <Tabs.Screen
+        name="profile"
+        options={{
+          title: 'Profile',
           tabBarIcon: ({ focused }) => (
-            <Image
-              source={require('@/assets/images/tabIcons/explore.png')}
-              style={{ width: 24, height: 24, tintColor: focused ? colors.text : undefined }}
-            />
+            <User size={22} color={focused ? ACTIVE : INACTIVE} strokeWidth={focused ? 2.5 : 1.8} />
           ),
         }}
       />
     </Tabs>
+  );
+}
+
+function CenterTabIcon({ focused }: { focused: boolean }) {
+  return (
+    <View
+      style={{
+        width: 56,
+        height: 56,
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderRadius: 22,
+        backgroundColor: focused ? CENTER_BG : CENTER_BG,
+      }}
+    >
+      <Compass size={30} color={ACTIVE} strokeWidth={focused ? 2.7 : 2.2} />
+    </View>
   );
 }
