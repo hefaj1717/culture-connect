@@ -54,10 +54,18 @@ export function AuthScreen({ onCancel }: AuthScreenProps) {
 
     Keyboard.dismiss();
     setLoading(true);
-    const result =
-      mode === 'signIn'
-        ? await signIn(normalizedEmail, password)
-        : await signUp(normalizedEmail, password, normalizedFirstName, normalizedLastName);
+
+    if (mode === 'signIn') {
+      const result = await signIn(normalizedEmail, password);
+      setLoading(false);
+
+      if (result.error) {
+        setError(result.error);
+      }
+      return;
+    }
+
+    const result = await signUp(normalizedEmail, password, normalizedFirstName, normalizedLastName);
     setLoading(false);
 
     if (result.error) {
@@ -65,11 +73,14 @@ export function AuthScreen({ onCancel }: AuthScreenProps) {
       return;
     }
 
-    if (mode === 'signUp') {
+    if (result.needsConfirmation) {
       setPendingEmail(normalizedEmail);
       setMode('confirmSignUp');
       setNotice('Check your inbox and enter the confirmation code.');
+      return;
     }
+
+    setNotice('Account created. You are now logged in.');
   }
 
   async function handleConfirmCode() {
