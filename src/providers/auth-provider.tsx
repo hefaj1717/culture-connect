@@ -20,6 +20,9 @@ type AuthContextValue = {
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
+const authCallbackUrl =
+  process.env.EXPO_PUBLIC_AUTH_REDIRECT_URL ?? 'cultureconnectrn://auth/callback';
+
 function getUrlParam(url: string, key: string) {
   const match = url.match(new RegExp(`[?#&]${key}=([^&#]+)`));
   return match ? decodeURIComponent(match[1]) : null;
@@ -82,7 +85,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       email,
       password,
       options: {
-        emailRedirectTo: Linking.createURL('/auth/callback'),
+        emailRedirectTo: authCallbackUrl,
         data: {
           first_name: firstName,
           last_name: lastName,
