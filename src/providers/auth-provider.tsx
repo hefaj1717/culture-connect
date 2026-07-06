@@ -15,13 +15,12 @@ type AuthContextValue = {
     firstName: string,
     lastName: string,
   ) => Promise<{ error: string | null }>;
+  verifySignUpCode: (email: string, token: string) => Promise<{ error: string | null }>;
+  resendSignUpCode: (email: string) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
-
-const authCallbackUrl =
-  process.env.EXPO_PUBLIC_AUTH_REDIRECT_URL ?? 'cultureconnectrn://auth/callback';
 
 function getUrlParam(url: string, key: string) {
   const match = url.match(new RegExp(`[?#&]${key}=([^&#]+)`));
@@ -85,7 +84,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       email,
       password,
       options: {
-        emailRedirectTo: authCallbackUrl,
         data: {
           first_name: firstName,
           last_name: lastName,
@@ -96,13 +94,39 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { error: error?.message ?? null };
   }
 
+  async function verifySignUpCode(email: string, token: string) {
+    const { error } = await supabase.auth.verifyOtp({
+      email,
+      token,
+      type: 'signup',
+    });
+    return { error: error?.message ?? null };
+  }
+
+  async function resendSignUpCode(email: string) {
+    const { error } = await supabase.auth.resend({
+      email,
+      type: 'signup',
+    });
+    return { error: error?.message ?? null };
+  }
+
   async function signOut() {
     await supabase.auth.signOut();
   }
 
   return (
     <AuthContext.Provider
-      value={{ session, user: session?.user ?? null, loading, signIn, signUp, signOut }}
+      value={{
+        session,
+        user: session?.user ?? null,
+        loading,
+        signIn,
+        signUp,
+        verifySignUpCode,
+        resendSignUpCode,
+        signOut,
+      }}
     >
       {children}
     </AuthContext.Provider>
