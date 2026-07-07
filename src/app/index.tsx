@@ -5,6 +5,7 @@ import {
   Bell,
   CalendarDays,
   CheckCircle2,
+  CircleAlert,
   Flame,
   Gift,
   Globe,
@@ -70,22 +71,30 @@ export default function HomeScreen({
 }: HomeScreenProps) {
   const happeningNow = cityData.events.slice(0, 3);
   const visibleNotifications = useMemo(() => {
-    if (organizerApplicationStatus !== 'approved') {
-      return notifications;
-    }
+    const organizerNotification =
+      organizerApplicationStatus === 'approved'
+        ? {
+            id: 'organizer-approved',
+            title: 'Organizer approved',
+            message: 'Your institution has been approved. Event creation tools are next.',
+            time: 'Now',
+            unread: true,
+            icon: CheckCircle2,
+            color: '#22C55E',
+          }
+        : organizerApplicationStatus === 'rejected'
+          ? {
+              id: 'organizer-rejected',
+              title: 'Organizer application rejected',
+              message: 'Your organizer request was not approved. Check your profile for details.',
+              time: 'Now',
+              unread: true,
+              icon: CircleAlert,
+              color: '#EF4444',
+            }
+          : null;
 
-    return [
-      {
-        id: 'organizer-approved',
-        title: 'Organizer approved',
-        message: 'Your institution has been approved. Event creation tools are next.',
-        time: 'Now',
-        unread: true,
-        icon: CheckCircle2,
-        color: '#22C55E',
-      },
-      ...notifications,
-    ];
+    return organizerNotification ? [organizerNotification, ...notifications] : notifications;
   }, [organizerApplicationStatus]);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [hasUnreadNotifications, setHasUnreadNotifications] = useState(
@@ -93,7 +102,7 @@ export default function HomeScreen({
   );
 
   useEffect(() => {
-    if (organizerApplicationStatus === 'approved') {
+    if (organizerApplicationStatus === 'approved' || organizerApplicationStatus === 'rejected') {
       setHasUnreadNotifications(true);
     }
   }, [organizerApplicationStatus]);
