@@ -17,6 +17,11 @@ type AuthContextValue = {
   ) => Promise<{ error: string | null; needsConfirmation: boolean }>;
   verifySignUpCode: (email: string, token: string) => Promise<{ error: string | null }>;
   resendSignUpCode: (email: string) => Promise<{ error: string | null }>;
+  updateProfile: (profile: {
+    firstName: string;
+    lastName: string;
+    avatarUrl?: string | null;
+  }) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
 };
 
@@ -114,6 +119,44 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { error: error?.message ?? null };
   }
 
+  async function updateProfile({
+    firstName,
+    lastName,
+    avatarUrl,
+  }: {
+    firstName: string;
+    lastName: string;
+    avatarUrl?: string | null;
+  }) {
+    if (!session?.user.id) {
+      return { error: 'You must be logged in to update your profile.' };
+    }
+
+    const fullName = `${firstName} ${lastName}`.trim();
+    const { error } = await supabase.auth.updateUser({
+      data: {
+        first_name: firstName,
+        last_name: lastName,
+        full_name: fullName,
+        avatar_url: avatarUrl ?? null,
+      },
+    });
+    if (error) {
+      return { error: error.message };
+    }
+
+    const { error: profileError } = await supabase.from('profiles').upsert(
+      {
+        id: session.user.id,
+        username: fullName,
+        avatar_url: avatarUrl ?? null,
+      },
+      { onConflict: 'id' },
+    );
+
+    return { error: profileError?.message ?? null };
+  }
+
   async function signOut() {
     await supabase.auth.signOut();
   }
@@ -128,6 +171,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         signUp,
         verifySignUpCode,
         resendSignUpCode,
+        updateProfile,
         signOut,
       }}
     >
