@@ -47,6 +47,7 @@ import {
   getCultureCityData,
   languageLabels,
 } from '@/data/culture';
+import { fetchOrganizerEvents } from '@/lib/organizer-events';
 
 const audienceFilters = [
   { key: 'all', label: 'All Events' },
@@ -59,16 +60,41 @@ const EVENT_CHECK_IN_RADIUS_METERS = 500;
 
 type ExploreScreenProps = {
   cityData?: CultureCityData;
+  eventsRefreshKey?: number;
 };
 
-export default function ExploreScreen({ cityData = getCultureCityData() }: ExploreScreenProps) {
+export default function ExploreScreen({
+  cityData = getCultureCityData(),
+  eventsRefreshKey = 0,
+}: ExploreScreenProps) {
   const [search, setSearch] = useState('');
   const [tab, setTab] = useState<'events' | 'venues'>('events');
   const [audienceFilter, setAudienceFilter] = useState('all');
   const [selectedEvent, setSelectedEvent] = useState<CultureEvent | null>(null);
   const [eventStatuses, setEventStatuses] = useState<Record<string, 'interested' | 'going'>>({});
   const [confirmedCheckIns, setConfirmedCheckIns] = useState<Record<string, boolean>>({});
+  const [organizerEvents, setOrganizerEvents] = useState<CultureEvent[]>([]);
+  const [organizerEventsError, setOrganizerEventsError] = useState<string | null>(null);
   const { events, venues } = cityData;
+  const allEvents = useMemo(() => [...organizerEvents, ...events], [events, organizerEvents]);
+
+  useEffect(() => {
+    let active = true;
+
+    async function loadOrganizerEvents() {
+      const result = await fetchOrganizerEvents(cityData.id);
+      if (!active) return;
+
+      setOrganizerEvents(result.events);
+      setOrganizerEventsError(result.error);
+    }
+
+    loadOrganizerEvents();
+
+    return () => {
+      active = false;
+    };
+  }, [cityData.id, eventsRefreshKey]);
 
   const normalizedSearch = search.trim().toLowerCase();
 
@@ -84,7 +110,7 @@ export default function ExploreScreen({ cityData = getCultureCityData() }: Explo
 
   const filteredEvents = useMemo(
     () =>
-      events.filter((event) => {
+      allEvents.filter((event) => {
         const matchesSearch =
           event.title.toLowerCase().includes(normalizedSearch) ||
           event.venueName.toLowerCase().includes(normalizedSearch);
@@ -104,10 +130,10 @@ export default function ExploreScreen({ cityData = getCultureCityData() }: Explo
 
         return matchesSearch && matchesAudience;
       }),
-    [audienceFilter, events, normalizedSearch],
+    [allEvents, audienceFilter, normalizedSearch],
   );
 
-  const featuredEvent = events.find((event) => event.isFlashQuest);
+  const featuredEvent = allEvents.find((event) => event.isFlashQuest);
 
   return (
     <SafeAreaView className="flex-1 bg-white" edges={['top']}>
@@ -249,6 +275,15 @@ export default function ExploreScreen({ cityData = getCultureCityData() }: Explo
             )}
 
             <View className="px-5">
+              {organizerEventsError && (
+                <View className="mb-3 rounded-xl bg-secondary/10 p-3">
+                  <Text className="text-[12px] leading-4 text-muted">
+                    Organizer events could not load yet. Apply the latest Supabase migration if you
+                    have not done it.
+                  </Text>
+                </View>
+              )}
+
               <Text className="mb-3 text-[11px] font-semibold uppercase tracking-wide text-muted">
                 {audienceFilter === 'international'
                   ? 'International Events'

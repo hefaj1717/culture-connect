@@ -23,6 +23,7 @@ export default function AppTabs() {
   const { width } = useWindowDimensions();
   const { organizerApplicationStatus, user } = useAuth();
   const [activeIndex, setActiveIndex] = useState(0);
+  const [organizerEventsVersion, setOrganizerEventsVersion] = useState(0);
   const translateX = useSharedValue(-activeIndex * width);
   const startX = useSharedValue(0);
   const metadataName = [user?.user_metadata?.first_name, user?.user_metadata?.last_name]
@@ -94,10 +95,15 @@ export default function AppTabs() {
             />
           </View>
           <View style={{ width }}>
-            <ExploreScreen cityData={cityData} />
+            <ExploreScreen cityData={cityData} eventsRefreshKey={organizerEventsVersion} />
           </View>
           <View style={{ width }}>
-            <ProfileScreen />
+            <ProfileScreen
+              onEventCreated={() => {
+                setOrganizerEventsVersion((version) => version + 1);
+                goToTab(1);
+              }}
+            />
           </View>
         </Animated.View>
       </GestureDetector>
