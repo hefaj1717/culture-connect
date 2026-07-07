@@ -87,6 +87,12 @@ const monthNames = [
 const weekdayLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 const timeHours = Array.from({ length: 24 }, (_, index) => index);
 const timeMinutes = [0, 15, 30, 45];
+const rewardRedeemWindowMs = 5 * 60 * 1000;
+
+type RedeemedRewardState = {
+  redeemedAt: number;
+  used: boolean;
+};
 
 const achievementBadges = [
   {
@@ -219,7 +225,8 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
   const [creatingEvent, setCreatingEvent] = useState(false);
   const [badgesOpen, setBadgesOpen] = useState(false);
   const [selectedReward, setSelectedReward] = useState<RewardPartner | null>(null);
-  const [redeemedRewards, setRedeemedRewards] = useState<Record<string, boolean>>({});
+  const [redeemedRewards, setRedeemedRewards] = useState<Record<string, RedeemedRewardState>>({});
+  const [rewardNow, setRewardNow] = useState(() => Date.now());
   const [datePickerOpen, setDatePickerOpen] = useState(false);
   const [timePickerOpen, setTimePickerOpen] = useState(false);
   const [calendarMonth, setCalendarMonth] = useState(() => startOfMonth(new Date()));
@@ -364,6 +371,30 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
   }, [rewardTranslateX, selectedReward]);
 
   useEffect(() => {
+    if (!selectedReward) return;
+
+    const interval = setInterval(() => {
+      const nextNow = Date.now();
+      setRewardNow(nextNow);
+      setRedeemedRewards((current) => {
+        const rewardState = current[selectedReward.id];
+        if (!rewardState || rewardState.used) return current;
+        if (nextNow - rewardState.redeemedAt < rewardRedeemWindowMs) return current;
+
+        return {
+          ...current,
+          [selectedReward.id]: {
+            ...rewardState,
+            used: true,
+          },
+        };
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [selectedReward]);
+
+  useEffect(() => {
     let active = true;
 
     async function loadPlaceSuggestions() {
@@ -393,6 +424,14 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
       active = false;
     };
   }, [placeQuery, savedCityId, selectedPlace]);
+
+  const selectedRewardState = selectedReward ? redeemedRewards[selectedReward.id] : undefined;
+  const selectedRewardIsUsed = !!selectedRewardState?.used;
+  const selectedRewardIsActive = !!selectedRewardState && !selectedRewardIsUsed;
+  const selectedRewardRemainingMs =
+    selectedRewardState && !selectedRewardIsUsed
+      ? Math.max(0, rewardRedeemWindowMs - (rewardNow - selectedRewardState.redeemedAt))
+      : 0;
 
   if (!session) {
     return <AuthScreen onCancel={() => router.replace('/')} />;
@@ -1217,20 +1256,36 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
                           Pickup screen
                         </Text>
                         <Text className="mt-1 text-[15px] font-bold text-black">
-                          Show this to staff
+                          {selectedRewardIsUsed
+                            ? 'Coupon already used'
+                            : selectedRewardIsActive
+                              ? 'Show this to staff'
+                              : 'Redeem with staff'}
                         </Text>
                       </View>
                       <View
                         className={`rounded-full px-3 py-1 ${
-                          redeemedRewards[selectedReward.id] ? 'bg-success/10' : 'bg-white'
+                          selectedRewardIsUsed
+                            ? 'bg-gray-200'
+                            : selectedRewardIsActive
+                              ? 'bg-success/10'
+                              : 'bg-white'
                         }`}
                       >
                         <Text
                           className={`text-[11px] font-bold ${
-                            redeemedRewards[selectedReward.id] ? 'text-success' : 'text-muted'
+                            selectedRewardIsUsed
+                              ? 'text-muted'
+                              : selectedRewardIsActive
+                                ? 'text-success'
+                                : 'text-muted'
                           }`}
                         >
-                          {redeemedRewards[selectedReward.id] ? 'Ready' : 'Locked'}
+                          {selectedRewardIsUsed
+                            ? 'Used'
+                            : selectedRewardIsActive
+                              ? formatRewardTime(selectedRewardRemainingMs)
+                              : 'Not redeemed'}
                         </Text>
                       </View>
                     </View>
@@ -1242,34 +1297,60 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
                       <Text className="text-center text-[20px] font-extrabold text-black">
                         {selectedReward.discount}
                       </Text>
-                      <Text className="mt-3 text-center text-[30px] font-extrabold tracking-widest text-primary">
-                        {getRewardPickupCode(selectedReward)}
-                      </Text>
+                      {selectedRewardIsActive && (
+                        <Text className="mt-3 text-center text-[30px] font-extrabold tracking-widest text-primary">
+                          {getRewardPickupCode(selectedReward)}
+                        </Text>
+                      )}
+                      {!selectedRewardState && (
+                        <Text className="mt-4 text-center text-[16px] font-bold text-muted">
+                          Code hidden until redeem
+                        </Text>
+                      )}
+                      {selectedRewardIsUsed && (
+                        <Text className="mt-4 text-center text-[16px] font-bold text-muted">
+                          This coupon has already been used.
+                        </Text>
+                      )}
                       <Text className="mt-2 text-center text-[12px] leading-4 text-muted">
-                        Valid today at {selectedReward.name}. Staff confirms before applying the
-                        reward.
+                        {selectedRewardIsActive
+                          ? `Valid for ${formatRewardTime(selectedRewardRemainingMs)} at ${
+                              selectedReward.name
+                            }. Staff confirms before applying the reward.`
+                          : selectedRewardIsUsed
+                            ? 'The reward code is no longer visible after use.'
+                            : 'Tap Redeem only when you are ready to show this screen to staff.'}
                       </Text>
                     </View>
                   </View>
 
                   <Pressable
-                    onPress={() =>
+                    onPress={() => {
+                      const redeemedAt = Date.now();
+                      setRewardNow(redeemedAt);
                       setRedeemedRewards((current) => ({
                         ...current,
-                        [selectedReward.id]: true,
-                      }))
-                    }
-                    disabled={!!redeemedRewards[selectedReward.id]}
+                        [selectedReward.id]: {
+                          redeemedAt,
+                          used: false,
+                        },
+                      }));
+                    }}
+                    disabled={!!selectedRewardState}
                     className={`h-[52px] items-center justify-center rounded-xl active:opacity-85 ${
-                      redeemedRewards[selectedReward.id] ? 'bg-gray-200' : 'bg-primary'
+                      selectedRewardState ? 'bg-gray-200' : 'bg-primary'
                     }`}
                   >
                     <Text
                       className={`text-[15px] font-semibold ${
-                        redeemedRewards[selectedReward.id] ? 'text-muted' : 'text-white'
+                        selectedRewardState ? 'text-muted' : 'text-white'
                       }`}
                     >
-                      {redeemedRewards[selectedReward.id] ? 'Reward ready to show' : 'Redeem'}
+                      {selectedRewardIsUsed
+                        ? 'Coupon already used'
+                        : selectedRewardIsActive
+                          ? 'Coupon active'
+                          : 'Redeem'}
                     </Text>
                   </Pressable>
                 </ScrollView>
@@ -1289,6 +1370,14 @@ function getRewardPickupCode(reward: RewardPartner) {
       .slice(-4)
       .toUpperCase() || 'REWD'
   }`;
+}
+
+function formatRewardTime(milliseconds: number) {
+  const totalSeconds = Math.max(0, Math.ceil(milliseconds / 1000));
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+
+  return `${minutes}:${seconds.toString().padStart(2, '0')}`;
 }
 
 function ChoicePill({
