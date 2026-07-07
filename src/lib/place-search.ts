@@ -42,6 +42,8 @@ type GooglePlaceDetailsResponse = {
 
 const GOOGLE_PLACES_API_KEY = process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY;
 
+export const hasGooglePlacesApiKey = !!GOOGLE_PLACES_API_KEY;
+
 const citySearchContext: Record<
   CityId,
   { countryCode: string; latitude: number; longitude: number }

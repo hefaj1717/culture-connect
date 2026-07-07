@@ -60,7 +60,7 @@ import {
   languageLabels,
 } from '@/data/culture';
 import { createOrganizerEvent } from '@/lib/organizer-events';
-import { type PlaceSuggestion, searchPlaces } from '@/lib/place-search';
+import { hasGooglePlacesApiKey, type PlaceSuggestion, searchPlaces } from '@/lib/place-search';
 import { useAuth } from '@/providers/auth-provider';
 
 const eventCategories: EventCategory[] = [
@@ -788,6 +788,11 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
                       />
                       {searchingPlaces && <ActivityIndicator color="#24458F" size="small" />}
                     </View>
+                    <Text className="mt-2 text-[11px] leading-4 text-muted">
+                      {hasGooglePlacesApiKey
+                        ? 'Powered by Google Places suggestions.'
+                        : 'Google Places key is missing, so only saved city venues are shown.'}
+                    </Text>
 
                     {selectedPlace && (
                       <View className="mt-2 flex-row gap-3 rounded-xl border border-success/25 bg-success/10 p-3">
@@ -938,33 +943,32 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
                 </ScrollView>
               </KeyboardAvoidingView>
             </SafeAreaView>
+            <DatePickerModal
+              month={calendarMonth}
+              onChangeMonth={setCalendarMonth}
+              onClose={() => setDatePickerOpen(false)}
+              onSelectDate={(date) => {
+                setEventDate(formatEventDate(date));
+                setDatePickerOpen(false);
+              }}
+              visible={datePickerOpen}
+            />
+
+            <TimePickerModal
+              hour={selectedHour}
+              minute={selectedMinute}
+              onChangeHour={setSelectedHour}
+              onChangeMinute={setSelectedMinute}
+              onClose={() => setTimePickerOpen(false)}
+              onConfirm={() => {
+                setEventTime(`${formatTimeUnit(selectedHour)}:${formatTimeUnit(selectedMinute)}`);
+                setTimePickerOpen(false);
+              }}
+              visible={timePickerOpen}
+            />
           </Animated.View>
         </GestureDetector>
       </Modal>
-
-      <DatePickerModal
-        month={calendarMonth}
-        onChangeMonth={setCalendarMonth}
-        onClose={() => setDatePickerOpen(false)}
-        onSelectDate={(date) => {
-          setEventDate(formatEventDate(date));
-          setDatePickerOpen(false);
-        }}
-        visible={datePickerOpen}
-      />
-
-      <TimePickerModal
-        hour={selectedHour}
-        minute={selectedMinute}
-        onChangeHour={setSelectedHour}
-        onChangeMinute={setSelectedMinute}
-        onClose={() => setTimePickerOpen(false)}
-        onConfirm={() => {
-          setEventTime(`${formatTimeUnit(selectedHour)}:${formatTimeUnit(selectedMinute)}`);
-          setTimePickerOpen(false);
-        }}
-        visible={timePickerOpen}
-      />
 
       <Modal animationType="slide" onRequestClose={closeBadgesWithAnimation} visible={badgesOpen}>
         <GestureDetector gesture={badgesSwipeGesture}>
@@ -1105,66 +1109,66 @@ function DatePickerModal({
 }) {
   const days = getCalendarDays(month);
 
+  if (!visible) {
+    return null;
+  }
+
   return (
-    <Modal animationType="fade" onRequestClose={onClose} transparent visible={visible}>
-      <Pressable className="flex-1 justify-center bg-black/35 px-5" onPress={onClose}>
-        <Pressable
-          className="rounded-2xl bg-white p-4"
-          onPress={(event) => event.stopPropagation()}
-        >
-          <View className="mb-4 flex-row items-center justify-between">
-            <Pressable
-              onPress={() => onChangeMonth(addMonths(month, -1))}
-              className="h-9 w-9 items-center justify-center rounded-full bg-gray-100"
+    <View className="absolute inset-0 z-50 justify-center bg-black/35 px-5">
+      <Pressable className="absolute inset-0" onPress={onClose} />
+      <View className="rounded-2xl bg-white p-4">
+        <View className="mb-4 flex-row items-center justify-between">
+          <Pressable
+            onPress={() => onChangeMonth(addMonths(month, -1))}
+            className="h-9 w-9 items-center justify-center rounded-full bg-gray-100"
+          >
+            <Text className="text-[20px] font-bold text-primary">‹</Text>
+          </Pressable>
+          <Text className="text-[17px] font-extrabold text-black">
+            {monthNames[month.getMonth()]} {month.getFullYear()}
+          </Text>
+          <Pressable
+            onPress={() => onChangeMonth(addMonths(month, 1))}
+            className="h-9 w-9 items-center justify-center rounded-full bg-gray-100"
+          >
+            <Text className="text-[20px] font-bold text-primary">›</Text>
+          </Pressable>
+        </View>
+
+        <View className="mb-2 flex-row">
+          {weekdayLabels.map((day) => (
+            <Text
+              className="flex-1 text-center text-[11px] font-bold uppercase text-muted"
+              key={day}
             >
-              <Text className="text-[20px] font-bold text-primary">‹</Text>
-            </Pressable>
-            <Text className="text-[17px] font-extrabold text-black">
-              {monthNames[month.getMonth()]} {month.getFullYear()}
+              {day}
             </Text>
-            <Pressable
-              onPress={() => onChangeMonth(addMonths(month, 1))}
-              className="h-9 w-9 items-center justify-center rounded-full bg-gray-100"
-            >
-              <Text className="text-[20px] font-bold text-primary">›</Text>
-            </Pressable>
-          </View>
+          ))}
+        </View>
 
-          <View className="mb-2 flex-row">
-            {weekdayLabels.map((day) => (
-              <Text
-                className="flex-1 text-center text-[11px] font-bold uppercase text-muted"
-                key={day}
+        <View className="flex-row flex-wrap">
+          {days.map((date, index) => {
+            const disabled = !date || isBeforeToday(date);
+
+            return (
+              <Pressable
+                disabled={disabled}
+                key={date ? date.toISOString() : `empty-${index}`}
+                onPress={() => date && onSelectDate(date)}
+                style={{ width: '14.2857%' }}
+                className="aspect-square items-center justify-center p-1 disabled:opacity-35"
               >
-                {day}
-              </Text>
-            ))}
-          </View>
-
-          <View className="flex-row flex-wrap">
-            {days.map((date, index) => {
-              const disabled = !date || isBeforeToday(date);
-
-              return (
-                <Pressable
-                  disabled={disabled}
-                  key={date ? date.toISOString() : `empty-${index}`}
-                  onPress={() => date && onSelectDate(date)}
-                  style={{ width: '14.2857%' }}
-                  className="aspect-square items-center justify-center p-1 disabled:opacity-35"
-                >
-                  {date && (
-                    <View className="h-9 w-9 items-center justify-center rounded-full bg-primary/10">
-                      <Text className="text-[13px] font-bold text-primary">{date.getDate()}</Text>
-                    </View>
-                  )}
-                </Pressable>
-              );
-            })}
-          </View>
-        </Pressable>
-      </Pressable>
-    </Modal>
+                {date && (
+                  <View className="h-9 w-9 items-center justify-center rounded-full bg-primary/10">
+                    <Text className="text-[13px] font-bold text-primary">{date.getDate()}</Text>
+                  </View>
+                )}
+              </Pressable>
+            );
+          })}
+        </View>
+      </View>
+    </View>
   );
 }
 
@@ -1185,71 +1189,71 @@ function TimePickerModal({
   onConfirm: () => void;
   visible: boolean;
 }) {
+  if (!visible) {
+    return null;
+  }
+
   return (
-    <Modal animationType="fade" onRequestClose={onClose} transparent visible={visible}>
-      <Pressable className="flex-1 justify-center bg-black/35 px-5" onPress={onClose}>
+    <View className="absolute inset-0 z-50 justify-center bg-black/35 px-5">
+      <Pressable className="absolute inset-0" onPress={onClose} />
+      <View className="rounded-2xl bg-white p-4">
+        <View className="mb-4 flex-row items-center justify-between">
+          <Text className="text-[19px] font-extrabold text-black">Choose time</Text>
+          <Text className="text-[17px] font-extrabold text-primary">
+            {formatTimeUnit(hour)}:{formatTimeUnit(minute)}
+          </Text>
+        </View>
+
+        <View className="mb-4 flex-row gap-3">
+          <ScrollView className="max-h-[220px] flex-1 rounded-xl bg-gray-100">
+            {timeHours.map((nextHour) => (
+              <Pressable
+                key={nextHour}
+                onPress={() => onChangeHour(nextHour)}
+                className={`items-center py-3 ${
+                  hour === nextHour ? 'bg-primary' : 'border-b border-white'
+                }`}
+              >
+                <Text
+                  className={`text-[16px] font-bold ${
+                    hour === nextHour ? 'text-white' : 'text-black'
+                  }`}
+                >
+                  {formatTimeUnit(nextHour)}
+                </Text>
+              </Pressable>
+            ))}
+          </ScrollView>
+
+          <ScrollView className="max-h-[220px] flex-1 rounded-xl bg-gray-100">
+            {timeMinutes.map((nextMinute) => (
+              <Pressable
+                key={nextMinute}
+                onPress={() => onChangeMinute(nextMinute)}
+                className={`items-center py-3 ${
+                  minute === nextMinute ? 'bg-primary' : 'border-b border-white'
+                }`}
+              >
+                <Text
+                  className={`text-[16px] font-bold ${
+                    minute === nextMinute ? 'text-white' : 'text-black'
+                  }`}
+                >
+                  {formatTimeUnit(nextMinute)}
+                </Text>
+              </Pressable>
+            ))}
+          </ScrollView>
+        </View>
+
         <Pressable
-          className="rounded-2xl bg-white p-4"
-          onPress={(event) => event.stopPropagation()}
+          onPress={onConfirm}
+          className="h-12 items-center justify-center rounded-xl bg-primary active:opacity-85"
         >
-          <View className="mb-4 flex-row items-center justify-between">
-            <Text className="text-[19px] font-extrabold text-black">Choose time</Text>
-            <Text className="text-[17px] font-extrabold text-primary">
-              {formatTimeUnit(hour)}:{formatTimeUnit(minute)}
-            </Text>
-          </View>
-
-          <View className="mb-4 flex-row gap-3">
-            <ScrollView className="max-h-[220px] flex-1 rounded-xl bg-gray-100">
-              {timeHours.map((nextHour) => (
-                <Pressable
-                  key={nextHour}
-                  onPress={() => onChangeHour(nextHour)}
-                  className={`items-center py-3 ${
-                    hour === nextHour ? 'bg-primary' : 'border-b border-white'
-                  }`}
-                >
-                  <Text
-                    className={`text-[16px] font-bold ${
-                      hour === nextHour ? 'text-white' : 'text-black'
-                    }`}
-                  >
-                    {formatTimeUnit(nextHour)}
-                  </Text>
-                </Pressable>
-              ))}
-            </ScrollView>
-
-            <ScrollView className="max-h-[220px] flex-1 rounded-xl bg-gray-100">
-              {timeMinutes.map((nextMinute) => (
-                <Pressable
-                  key={nextMinute}
-                  onPress={() => onChangeMinute(nextMinute)}
-                  className={`items-center py-3 ${
-                    minute === nextMinute ? 'bg-primary' : 'border-b border-white'
-                  }`}
-                >
-                  <Text
-                    className={`text-[16px] font-bold ${
-                      minute === nextMinute ? 'text-white' : 'text-black'
-                    }`}
-                  >
-                    {formatTimeUnit(nextMinute)}
-                  </Text>
-                </Pressable>
-              ))}
-            </ScrollView>
-          </View>
-
-          <Pressable
-            onPress={onConfirm}
-            className="h-12 items-center justify-center rounded-xl bg-primary active:opacity-85"
-          >
-            <Text className="text-[14px] font-semibold text-white">Set time</Text>
-          </Pressable>
+          <Text className="text-[14px] font-semibold text-white">Set time</Text>
         </Pressable>
-      </Pressable>
-    </Modal>
+      </View>
+    </View>
   );
 }
 
