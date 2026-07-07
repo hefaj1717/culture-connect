@@ -56,6 +56,10 @@ export type CultureEvent = {
   language: EventLanguage;
   isInternational: boolean;
   isFree: boolean;
+  attendeeCount: number;
+  organizerName: string;
+  organizerImage: 'museum' | 'cafe' | 'theater';
+  checkInCode: string;
 };
 
 export type RewardPartner = {
@@ -165,6 +169,10 @@ export const cultureByCity: Record<CityId, CultureCityData> = {
         language: 'en',
         isInternational: true,
         isFree: true,
+        attendeeCount: 128,
+        organizerName: 'STUK Student Arts Team',
+        organizerImage: 'theater',
+        checkInCode: 'culturequest:event:e1',
       },
       {
         id: 'e2',
@@ -182,6 +190,10 @@ export const cultureByCity: Record<CityId, CultureCityData> = {
         language: 'en',
         isInternational: true,
         isFree: false,
+        attendeeCount: 96,
+        organizerName: 'M-Museum Leuven',
+        organizerImage: 'museum',
+        checkInCode: 'culturequest:event:e2',
       },
       {
         id: 'e3',
@@ -198,6 +210,10 @@ export const cultureByCity: Record<CityId, CultureCityData> = {
         language: 'multilingual',
         isInternational: true,
         isFree: true,
+        attendeeCount: 74,
+        organizerName: '30CC Student Stage',
+        organizerImage: 'theater',
+        checkInCode: 'culturequest:event:e3',
       },
       {
         id: 'e4',
@@ -216,6 +232,10 @@ export const cultureByCity: Record<CityId, CultureCityData> = {
         language: 'en',
         isInternational: true,
         isFree: false,
+        attendeeCount: 53,
+        organizerName: 'Cinema ZED at STUK',
+        organizerImage: 'theater',
+        checkInCode: 'culturequest:event:e4',
       },
       {
         id: 'e5',
@@ -233,6 +253,10 @@ export const cultureByCity: Record<CityId, CultureCityData> = {
         language: 'multilingual',
         isInternational: true,
         isFree: true,
+        attendeeCount: 182,
+        organizerName: 'M-Museum Leuven',
+        organizerImage: 'museum',
+        checkInCode: 'culturequest:event:e5',
       },
     ],
     rewardPartners: [
@@ -351,6 +375,10 @@ export const cultureByCity: Record<CityId, CultureCityData> = {
         language: 'en',
         isInternational: true,
         isFree: true,
+        attendeeCount: 88,
+        organizerName: 'Lublin Castle Culture Team',
+        organizerImage: 'museum',
+        checkInCode: 'culturequest:event:lu-e1',
       },
       {
         id: 'lu-e2',
@@ -368,6 +396,10 @@ export const cultureByCity: Record<CityId, CultureCityData> = {
         language: 'multilingual',
         isInternational: true,
         isFree: false,
+        attendeeCount: 146,
+        organizerName: 'CSK Rooftop Crew',
+        organizerImage: 'theater',
+        checkInCode: 'culturequest:event:lu-e2',
       },
       {
         id: 'lu-e3',
@@ -385,6 +417,10 @@ export const cultureByCity: Record<CityId, CultureCityData> = {
         language: 'en',
         isInternational: true,
         isFree: true,
+        attendeeCount: 41,
+        organizerName: 'Heca Cafe Sketch Club',
+        organizerImage: 'cafe',
+        checkInCode: 'culturequest:event:lu-e3',
       },
       {
         id: 'lu-e4',
@@ -403,6 +439,10 @@ export const cultureByCity: Record<CityId, CultureCityData> = {
         language: 'en',
         isInternational: true,
         isFree: false,
+        attendeeCount: 67,
+        organizerName: 'CSK Cinema Students',
+        organizerImage: 'theater',
+        checkInCode: 'culturequest:event:lu-e4',
       },
       {
         id: 'lu-e5',
@@ -419,6 +459,10 @@ export const cultureByCity: Record<CityId, CultureCityData> = {
         language: 'pl',
         isInternational: false,
         isFree: true,
+        attendeeCount: 119,
+        organizerName: 'National Museum in Lublin',
+        organizerImage: 'museum',
+        checkInCode: 'culturequest:event:lu-e5',
       },
     ],
     rewardPartners: [
