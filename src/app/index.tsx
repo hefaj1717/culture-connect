@@ -1,19 +1,6 @@
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
-import {
-  ArrowRight,
-  Bell,
-  CalendarDays,
-  CheckCircle2,
-  CircleAlert,
-  Flame,
-  Gift,
-  Globe,
-  Sparkles,
-  TrendingUp,
-  User,
-  X,
-} from 'lucide-react-native';
+import { ArrowRight, Bell, Flame, Globe, Sparkles, TrendingUp, User, X } from 'lucide-react-native';
 import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useEffect, useMemo, useState } from 'react';
 import MapView, { Circle as MapCircle, Marker } from 'react-native-maps';
@@ -29,8 +16,6 @@ const notifications = [
     message: 'Start exploring today and earn your first XP reward.',
     time: 'Now',
     unread: true,
-    icon: Sparkles,
-    color: '#F59E0B',
   },
   {
     id: 'dance-night',
@@ -38,8 +23,6 @@ const notifications = [
     message: 'Student Dance Night starts at STUK Arts Centre.',
     time: 'Today',
     unread: true,
-    icon: CalendarDays,
-    color: '#24458F',
   },
   {
     id: 'coffee-reward',
@@ -47,8 +30,6 @@ const notifications = [
     message: 'A cafe reward unlocks after two more check-ins.',
     time: 'This week',
     unread: false,
-    icon: Gift,
-    color: '#22C55E',
   },
 ];
 
@@ -124,8 +105,6 @@ export default function HomeScreen({
             message: 'Your institution has been approved. Event creation tools are next.',
             time: 'Now',
             unread: true,
-            icon: CheckCircle2,
-            color: '#22C55E',
           }
         : organizerApplicationStatus === 'rejected'
           ? {
@@ -134,8 +113,6 @@ export default function HomeScreen({
               message: 'Your organizer request was not approved. Check your profile for details.',
               time: 'Now',
               unread: true,
-              icon: CircleAlert,
-              color: '#EF4444',
             }
           : null;
 
@@ -419,62 +396,70 @@ export default function HomeScreen({
         visible={notificationsOpen}
       >
         <Pressable
-          className="flex-1 bg-black/35 px-5 pt-14"
+          className="flex-1 justify-end bg-black/30 px-4 pb-5"
           onPress={() => setNotificationsOpen(false)}
         >
           <Pressable
-            className="rounded-2xl bg-white p-4 shadow-lg"
+            className="overflow-hidden rounded-[26px] bg-white shadow-lg"
             onPress={(event) => event.stopPropagation()}
           >
-            <View className="mb-4 flex-row items-center justify-between">
+            <View className="items-center pt-3">
+              <View className="h-1 w-10 rounded-full bg-gray-300" />
+            </View>
+
+            <View className="flex-row items-start justify-between px-5 pb-4 pt-4">
               <View>
-                <Text className="text-[19px] font-extrabold text-black">Notifications</Text>
-                <Text className="mt-0.5 text-[12px] font-medium text-muted">
-                  Updates from CultureQuest
+                <Text className="text-[22px] font-bold tracking-tight text-black">
+                  Notifications
+                </Text>
+                <Text className="mt-1 text-[13px] text-muted">
+                  {visibleNotifications.filter((notification) => notification.unread).length} new
+                  updates
                 </Text>
               </View>
               <Pressable
                 onPress={() => setNotificationsOpen(false)}
-                className="h-9 w-9 items-center justify-center rounded-full bg-gray-100 active:opacity-80"
+                className="h-8 w-8 items-center justify-center rounded-full bg-gray-100 active:opacity-80"
                 accessibilityRole="button"
                 accessibilityLabel="Close notifications"
               >
-                <X size={18} color="#5F6675" strokeWidth={2.4} />
+                <X size={17} color="#5F6675" strokeWidth={2.3} />
               </Pressable>
             </View>
 
-            <View className="gap-3">
-              {visibleNotifications.map((notification) => {
-                const Icon = notification.icon;
-
-                return (
-                  <Pressable
-                    key={notification.id}
-                    className="flex-row gap-3 rounded-xl border border-gray-100 bg-gray-50 p-3 active:opacity-85"
-                    onPress={() => setNotificationsOpen(false)}
-                  >
+            <View className="border-t border-gray-100">
+              {visibleNotifications.map((notification, index) => (
+                <Pressable
+                  key={notification.id}
+                  className="flex-row gap-3 px-5 py-4 active:bg-gray-50"
+                  onPress={() => setNotificationsOpen(false)}
+                >
+                  <View className="pt-1.5">
                     <View
-                      className="h-10 w-10 items-center justify-center rounded-xl"
-                      style={{ backgroundColor: `${notification.color}18` }}
-                    >
-                      <Icon size={18} color={notification.color} strokeWidth={2.4} />
-                    </View>
-                    <View className="flex-1">
-                      <View className="mb-0.5 flex-row items-center justify-between gap-2">
-                        <Text className="flex-1 text-[14px] font-bold text-black">
-                          {notification.title}
-                        </Text>
-                        <Text className="text-[11px] font-semibold text-muted">
-                          {notification.time}
-                        </Text>
-                      </View>
-                      <Text className="text-[12px] leading-4 text-muted">
-                        {notification.message}
+                      className={`h-2.5 w-2.5 rounded-full ${
+                        notification.unread ? 'bg-primary' : 'bg-gray-300'
+                      }`}
+                    />
+                  </View>
+                  <View
+                    className={`min-w-0 flex-1 ${
+                      index === visibleNotifications.length - 1
+                        ? ''
+                        : 'border-b border-gray-100 pb-4'
+                    }`}
+                  >
+                    <View className="mb-1 flex-row items-start justify-between gap-3">
+                      <Text className="min-w-0 flex-1 text-[15px] font-semibold text-black">
+                        {notification.title}
+                      </Text>
+                      <Text className="text-[12px] font-medium text-muted">
+                        {notification.time}
                       </Text>
                     </View>
-                  </Pressable>
-                );
-              })}
+                    <Text className="text-[13px] leading-5 text-muted">{notification.message}</Text>
+                  </View>
+                </Pressable>
+              ))}
             </View>
           </Pressable>
         </Pressable>
