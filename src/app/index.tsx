@@ -124,6 +124,10 @@ export default function HomeScreen({
   );
 
   useEffect(() => {
+    setSelectedActivityId(null);
+  }, [cityData.id]);
+
+  useEffect(() => {
     if (organizerApplicationStatus === 'approved' || organizerApplicationStatus === 'rejected') {
       setHasUnreadNotifications(true);
     }
@@ -298,6 +302,7 @@ export default function HomeScreen({
               <View className="h-[210px]">
                 <MapView
                   initialRegion={activityMapRegion}
+                  key={cityData.id}
                   mapType="standard"
                   pitchEnabled={false}
                   rotateEnabled={false}
