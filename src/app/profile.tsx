@@ -50,6 +50,7 @@ import {
   type CityId,
   type EventCategory,
   type EventLanguage,
+  type RewardPartner,
   defaultCityId,
   eventCategoryLabels,
   getCultureCityData,
@@ -217,6 +218,8 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
   const [createEventError, setCreateEventError] = useState<string | null>(null);
   const [creatingEvent, setCreatingEvent] = useState(false);
   const [badgesOpen, setBadgesOpen] = useState(false);
+  const [selectedReward, setSelectedReward] = useState<RewardPartner | null>(null);
+  const [redeemedRewards, setRedeemedRewards] = useState<Record<string, boolean>>({});
   const [datePickerOpen, setDatePickerOpen] = useState(false);
   const [timePickerOpen, setTimePickerOpen] = useState(false);
   const [calendarMonth, setCalendarMonth] = useState(() => startOfMonth(new Date()));
@@ -239,6 +242,7 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
   const savedAvatarUrl = session?.user.user_metadata?.avatar_url || null;
   const createEventTranslateX = useSharedValue(0);
   const badgesTranslateX = useSharedValue(0);
+  const rewardTranslateX = useSharedValue(0);
 
   const createEventSwipeGesture = useMemo(
     () =>
@@ -298,6 +302,35 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
     transform: [{ translateX: badgesTranslateX.value }],
   }));
 
+  const rewardSwipeGesture = useMemo(
+    () =>
+      Gesture.Pan()
+        .activeOffsetX([-999, 18])
+        .failOffsetY([-35, 35])
+        .onUpdate((event) => {
+          rewardTranslateX.value = Math.max(0, event.translationX);
+        })
+        .onEnd((event) => {
+          const shouldClose = rewardTranslateX.value > width * 0.28 || event.velocityX > 700;
+
+          if (shouldClose) {
+            rewardTranslateX.value = withTiming(width, { duration: 180 }, (finished) => {
+              if (finished) {
+                runOnJS(setSelectedReward)(null);
+              }
+            });
+            return;
+          }
+
+          rewardTranslateX.value = withTiming(0, { duration: 180 });
+        }),
+    [rewardTranslateX, width],
+  );
+
+  const rewardSwipeStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: rewardTranslateX.value }],
+  }));
+
   useEffect(() => {
     setFirstName(savedFirstName);
     setLastName(savedLastName);
@@ -323,6 +356,12 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
       badgesTranslateX.value = 0;
     }
   }, [badgesOpen, badgesTranslateX]);
+
+  useEffect(() => {
+    if (selectedReward) {
+      rewardTranslateX.value = 0;
+    }
+  }, [rewardTranslateX, selectedReward]);
 
   useEffect(() => {
     let active = true;
@@ -437,6 +476,14 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
     badgesTranslateX.value = withTiming(width, { duration: 180 }, (finished) => {
       if (finished) {
         runOnJS(setBadgesOpen)(false);
+      }
+    });
+  }
+
+  function closeRewardWithAnimation() {
+    rewardTranslateX.value = withTiming(width, { duration: 180 }, (finished) => {
+      if (finished) {
+        runOnJS(setSelectedReward)(null);
       }
     });
   }
@@ -611,36 +658,36 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
             <Text className="text-[11px] font-semibold text-primary">{cityData.name}</Text>
           </View>
 
-          <View className="gap-3">
-            {cityData.rewardPartners.map((reward) => (
-              <View key={reward.id} className="rounded-2xl border border-gray-200 bg-white p-4">
-                <View className="flex-row items-start gap-3">
-                  <View
-                    className="h-12 w-12 items-center justify-center rounded-xl"
-                    style={{ backgroundColor: `${reward.color}20` }}
-                  >
-                    <Gift size={20} color={reward.color} />
-                  </View>
+          <View className="overflow-hidden rounded-2xl border border-gray-200 bg-white">
+            {cityData.rewardPartners.map((reward, index) => (
+              <Pressable
+                key={reward.id}
+                onPress={() => setSelectedReward(reward)}
+                className={`px-4 py-4 active:bg-gray-50 ${
+                  index === cityData.rewardPartners.length - 1 ? '' : 'border-b border-gray-100'
+                }`}
+              >
+                <View className="mb-2 flex-row items-start justify-between gap-3">
                   <View className="min-w-0 flex-1">
-                    <View className="mb-1 flex-row items-center gap-2">
-                      <Text className="shrink text-[15px] font-bold text-black" numberOfLines={1}>
-                        {reward.name}
-                      </Text>
-                      {!!reward.badge && (
-                        <View className="rounded-full bg-secondary/10 px-2 py-0.5">
-                          <Text className="text-[10px] font-bold text-secondary">
-                            {reward.badge}
-                          </Text>
-                        </View>
-                      )}
-                    </View>
-                    <Text className="mb-1 text-[13px] text-muted">{reward.discount}</Text>
-                    <Text className="text-[12px] font-semibold text-success">
-                      {reward.xpCost} XP
+                    <Text className="text-[15px] font-bold text-black" numberOfLines={1}>
+                      {reward.name}
+                    </Text>
+                    <Text className="mt-0.5 text-[12px] text-muted" numberOfLines={1}>
+                      {reward.location}
                     </Text>
                   </View>
+                  <Text className="text-[12px] font-bold text-primary">{reward.xpCost} XP</Text>
                 </View>
-              </View>
+
+                <Text className="mb-2 text-[13px] leading-5 text-black">{reward.discount}</Text>
+
+                <View className="flex-row items-center justify-between">
+                  <Text className="text-[12px] text-muted" numberOfLines={1}>
+                    {reward.condition}
+                  </Text>
+                  <Text className="text-[12px] font-semibold text-primary">View</Text>
+                </View>
+              </Pressable>
             ))}
           </View>
         </View>
@@ -1094,8 +1141,154 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
           </Animated.View>
         </GestureDetector>
       </Modal>
+
+      <Modal
+        animationType="slide"
+        onRequestClose={closeRewardWithAnimation}
+        visible={!!selectedReward}
+      >
+        {selectedReward && (
+          <GestureDetector gesture={rewardSwipeGesture}>
+            <Animated.View className="flex-1 bg-white" style={rewardSwipeStyle}>
+              <SafeAreaView className="flex-1 bg-white" edges={['top', 'bottom']}>
+                <ScrollView
+                  className="flex-1"
+                  contentContainerStyle={{ padding: 20, paddingBottom: 36 }}
+                  showsVerticalScrollIndicator={false}
+                >
+                  <Pressable
+                    onPress={closeRewardWithAnimation}
+                    className="mb-5 h-10 w-10 items-center justify-center rounded-full bg-gray-100 active:opacity-80"
+                    accessibilityRole="button"
+                    accessibilityLabel="Close reward"
+                  >
+                    <ArrowLeft size={21} color="#5F6675" strokeWidth={2.6} />
+                  </Pressable>
+
+                  <View className="mb-5">
+                    <Text className="text-[28px] font-extrabold text-black">
+                      {selectedReward.name}
+                    </Text>
+                    <Text className="mt-1 text-[13px] leading-5 text-muted">
+                      {selectedReward.location}
+                    </Text>
+                  </View>
+
+                  <View className="mb-5 rounded-2xl border border-gray-200 bg-white p-5">
+                    <Text className="mb-2 text-[12px] font-semibold uppercase tracking-wide text-muted">
+                      Reward
+                    </Text>
+                    <Text className="text-[22px] font-extrabold text-black">
+                      {selectedReward.discount}
+                    </Text>
+                    <Text className="mt-3 text-[13px] leading-5 text-muted">
+                      Unlock this reward with CultureQuest XP, then show the pickup screen to staff
+                      before ordering or paying.
+                    </Text>
+                  </View>
+
+                  <View className="mb-5 overflow-hidden rounded-2xl border border-gray-200 bg-white">
+                    <View className="border-b border-gray-100 p-4">
+                      <Text className="mb-1 text-[13px] font-bold text-black">How to redeem</Text>
+                      <Text className="text-[13px] leading-5 text-muted">
+                        1. Visit {selectedReward.name}.
+                      </Text>
+                      <Text className="text-[13px] leading-5 text-muted">
+                        2. Tap Redeem when you are with staff.
+                      </Text>
+                      <Text className="text-[13px] leading-5 text-muted">
+                        3. Show the confirmation card before the reward is applied.
+                      </Text>
+                    </View>
+                    <View className="p-4">
+                      <Text className="mb-1 text-[13px] font-bold text-black">
+                        Unlock condition
+                      </Text>
+                      <Text className="text-[13px] leading-5 text-muted">
+                        {selectedReward.condition}
+                      </Text>
+                    </View>
+                  </View>
+
+                  <View className="mb-5 rounded-2xl bg-gray-100 p-5">
+                    <View className="mb-4 flex-row items-center justify-between">
+                      <View>
+                        <Text className="text-[12px] font-semibold uppercase tracking-wide text-muted">
+                          Pickup screen
+                        </Text>
+                        <Text className="mt-1 text-[15px] font-bold text-black">
+                          Show this to staff
+                        </Text>
+                      </View>
+                      <View
+                        className={`rounded-full px-3 py-1 ${
+                          redeemedRewards[selectedReward.id] ? 'bg-success/10' : 'bg-white'
+                        }`}
+                      >
+                        <Text
+                          className={`text-[11px] font-bold ${
+                            redeemedRewards[selectedReward.id] ? 'text-success' : 'text-muted'
+                          }`}
+                        >
+                          {redeemedRewards[selectedReward.id] ? 'Ready' : 'Locked'}
+                        </Text>
+                      </View>
+                    </View>
+
+                    <View className="rounded-2xl border border-dashed border-gray-300 bg-white p-5">
+                      <Text className="mb-2 text-center text-[12px] font-semibold uppercase tracking-wide text-muted">
+                        CultureQuest reward
+                      </Text>
+                      <Text className="text-center text-[20px] font-extrabold text-black">
+                        {selectedReward.discount}
+                      </Text>
+                      <Text className="mt-3 text-center text-[30px] font-extrabold tracking-widest text-primary">
+                        {getRewardPickupCode(selectedReward)}
+                      </Text>
+                      <Text className="mt-2 text-center text-[12px] leading-4 text-muted">
+                        Valid today at {selectedReward.name}. Staff confirms before applying the
+                        reward.
+                      </Text>
+                    </View>
+                  </View>
+
+                  <Pressable
+                    onPress={() =>
+                      setRedeemedRewards((current) => ({
+                        ...current,
+                        [selectedReward.id]: true,
+                      }))
+                    }
+                    disabled={!!redeemedRewards[selectedReward.id]}
+                    className={`h-[52px] items-center justify-center rounded-xl active:opacity-85 ${
+                      redeemedRewards[selectedReward.id] ? 'bg-gray-200' : 'bg-primary'
+                    }`}
+                  >
+                    <Text
+                      className={`text-[15px] font-semibold ${
+                        redeemedRewards[selectedReward.id] ? 'text-muted' : 'text-white'
+                      }`}
+                    >
+                      {redeemedRewards[selectedReward.id] ? 'Reward ready to show' : 'Redeem'}
+                    </Text>
+                  </Pressable>
+                </ScrollView>
+              </SafeAreaView>
+            </Animated.View>
+          </GestureDetector>
+        )}
+      </Modal>
     </SafeAreaView>
   );
+}
+
+function getRewardPickupCode(reward: RewardPartner) {
+  return `CQ-${
+    reward.id
+      .replace(/[^a-z0-9]/gi, '')
+      .slice(-4)
+      .toUpperCase() || 'REWD'
+  }`;
 }
 
 function ChoicePill({
