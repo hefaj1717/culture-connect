@@ -114,26 +114,7 @@ export default function HomeScreen({
   const [selectedActivityId, setSelectedActivityId] = useState<string | null>(null);
   const selectedActivitySpot =
     activitySpots.find((spot) => spot.id === selectedActivityId) ?? activitySpots[0];
-  const activityMapRegion = useMemo(() => {
-    const cityCenter =
-      activitySpots.length > 0
-        ? {
-            latitude:
-              activitySpots.reduce((total, spot) => total + spot.coordinates.latitude, 0) /
-              activitySpots.length,
-            longitude:
-              activitySpots.reduce((total, spot) => total + spot.coordinates.longitude, 0) /
-              activitySpots.length,
-          }
-        : cityData.venues[0]?.coordinates;
-
-    return {
-      latitude: cityCenter?.latitude ?? 50.879,
-      longitude: cityCenter?.longitude ?? 4.703,
-      latitudeDelta: cityData.id === 'lublin' ? 0.045 : 0.028,
-      longitudeDelta: cityData.id === 'lublin' ? 0.045 : 0.028,
-    };
-  }, [activitySpots, cityData]);
+  const activityMapRegion = useMemo(() => getCityMapRegion(cityData), [cityData]);
   const visibleNotifications = useMemo(() => {
     const organizerNotification =
       organizerApplicationStatus === 'approved'
@@ -528,4 +509,33 @@ function getActivityColor(intensity: number) {
   if (intensity >= 0.78) return '#C2410C';
   if (intensity >= 0.52) return '#F97316';
   return '#FDBA38';
+}
+
+function getCityMapRegion(cityData: CultureCityData) {
+  if (cityData.id === 'lublin') {
+    return {
+      latitude: 51.2479,
+      longitude: 22.5662,
+      latitudeDelta: 0.055,
+      longitudeDelta: 0.055,
+    };
+  }
+
+  if (cityData.id === 'leuven') {
+    return {
+      latitude: 50.8798,
+      longitude: 4.7005,
+      latitudeDelta: 0.035,
+      longitudeDelta: 0.035,
+    };
+  }
+
+  const fallbackCenter = cityData.venues[0]?.coordinates;
+
+  return {
+    latitude: fallbackCenter?.latitude ?? 50.8798,
+    longitude: fallbackCenter?.longitude ?? 4.7005,
+    latitudeDelta: 0.045,
+    longitudeDelta: 0.045,
+  };
 }
