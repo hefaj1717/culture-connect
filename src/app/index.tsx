@@ -227,7 +227,7 @@ export default function HomeScreen({
           </View>
         </View>
 
-        <View className="pb-8 pt-1">
+        <View className="pb-5 pt-6">
           <View className="mb-4 flex-row items-center gap-1.5 px-5">
             <Flame size={14} color="#F59E0B" />
             <Text className="text-[11px] font-semibold uppercase tracking-wide text-muted">
@@ -396,18 +396,14 @@ export default function HomeScreen({
         visible={notificationsOpen}
       >
         <Pressable
-          className="flex-1 justify-end bg-black/30 px-4 pb-5"
+          className="flex-1 justify-start bg-black/30 px-4 pt-14"
           onPress={() => setNotificationsOpen(false)}
         >
           <Pressable
             className="overflow-hidden rounded-[26px] bg-white shadow-lg"
             onPress={(event) => event.stopPropagation()}
           >
-            <View className="items-center pt-3">
-              <View className="h-1 w-10 rounded-full bg-gray-300" />
-            </View>
-
-            <View className="flex-row items-start justify-between px-5 pb-4 pt-4">
+            <View className="flex-row items-start justify-between px-5 pb-4 pt-5">
               <View>
                 <Text className="text-[22px] font-bold tracking-tight text-black">
                   Notifications
