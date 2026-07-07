@@ -12,6 +12,7 @@ import Animated, {
 import ExploreScreen from '@/app/explore';
 import HomeScreen from '@/app/index';
 import ProfileScreen from '@/app/profile';
+import { getCultureCityData } from '@/data/culture';
 import { useAuth } from '@/providers/auth-provider';
 
 const ACTIVE = '#24458F';
@@ -30,6 +31,8 @@ export default function AppTabs() {
   const avatarInitials = getUserInitials(
     user?.user_metadata?.full_name || metadataName || user?.email,
   );
+  const avatarUrl = user?.user_metadata?.avatar_url ?? null;
+  const cityData = getCultureCityData(user?.user_metadata?.city_id);
 
   function goToTab(index: number) {
     setActiveIndex(index);
@@ -83,12 +86,14 @@ export default function AppTabs() {
           <View style={{ width }}>
             <HomeScreen
               avatarInitials={avatarInitials}
+              avatarUrl={avatarUrl}
+              cityData={cityData}
               onOpenDiscover={() => goToTab(1)}
               onOpenProfile={() => goToTab(2)}
             />
           </View>
           <View style={{ width }}>
-            <ExploreScreen />
+            <ExploreScreen cityData={cityData} />
           </View>
           <View style={{ width }}>
             <ProfileScreen />

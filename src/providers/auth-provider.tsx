@@ -2,6 +2,7 @@ import type { Session, User } from '@supabase/supabase-js';
 import * as Linking from 'expo-linking';
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
 
+import { type CityId, defaultCityId } from '@/data/culture';
 import { supabase } from '@/lib/supabase';
 
 type AuthContextValue = {
@@ -14,12 +15,14 @@ type AuthContextValue = {
     password: string,
     firstName: string,
     lastName: string,
+    cityId: CityId,
   ) => Promise<{ error: string | null; needsConfirmation: boolean }>;
   verifySignUpCode: (email: string, token: string) => Promise<{ error: string | null }>;
   resendSignUpCode: (email: string) => Promise<{ error: string | null }>;
   updateProfile: (profile: {
     firstName: string;
     lastName: string;
+    cityId: CityId;
     avatarUrl?: string | null;
   }) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
@@ -82,7 +85,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { error: error?.message ?? null };
   }
 
-  async function signUp(email: string, password: string, firstName: string, lastName: string) {
+  async function signUp(
+    email: string,
+    password: string,
+    firstName: string,
+    lastName: string,
+    cityId: CityId,
+  ) {
     const fullName = `${firstName} ${lastName}`.trim();
 
     const { data, error } = await supabase.auth.signUp({
@@ -93,6 +102,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           first_name: firstName,
           last_name: lastName,
           full_name: fullName,
+          city_id: cityId,
         },
       },
     });
@@ -122,10 +132,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   async function updateProfile({
     firstName,
     lastName,
+    cityId,
     avatarUrl,
   }: {
     firstName: string;
     lastName: string;
+    cityId: CityId;
     avatarUrl?: string | null;
   }) {
     if (!session?.user.id) {
@@ -138,6 +150,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         first_name: firstName,
         last_name: lastName,
         full_name: fullName,
+        city_id: cityId || defaultCityId,
         avatar_url: avatarUrl ?? null,
       },
     });

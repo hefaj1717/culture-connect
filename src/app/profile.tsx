@@ -18,7 +18,8 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AuthScreen } from '@/components/auth-screen';
-import { rewardPartners } from '@/data/culture';
+import { CitySelector } from '@/components/city-selector';
+import { type CityId, defaultCityId, getCultureCityData } from '@/data/culture';
 import { useAuth } from '@/providers/auth-provider';
 
 export default function ProfileScreen() {
@@ -27,6 +28,7 @@ export default function ProfileScreen() {
   const [editOpen, setEditOpen] = useState(false);
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
+  const [cityId, setCityId] = useState<CityId>(defaultCityId);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [profileError, setProfileError] = useState<string | null>(null);
   const [savingProfile, setSavingProfile] = useState(false);
@@ -41,13 +43,17 @@ export default function ProfileScreen() {
   const fullName = session?.user.user_metadata?.full_name || metadataName || email.split('@')[0];
   const savedFirstName = session?.user.user_metadata?.first_name || '';
   const savedLastName = session?.user.user_metadata?.last_name || '';
+  const savedCityId: CityId =
+    session?.user.user_metadata?.city_id === 'lublin' ? 'lublin' : defaultCityId;
+  const cityData = getCultureCityData(savedCityId);
   const savedAvatarUrl = session?.user.user_metadata?.avatar_url || null;
 
   useEffect(() => {
     setFirstName(savedFirstName);
     setLastName(savedLastName);
+    setCityId(savedCityId);
     setAvatarUrl(savedAvatarUrl);
-  }, [savedAvatarUrl, savedFirstName, savedLastName]);
+  }, [savedAvatarUrl, savedCityId, savedFirstName, savedLastName]);
 
   if (!session) {
     return <AuthScreen onCancel={() => router.replace('/')} />;
@@ -88,6 +94,7 @@ export default function ProfileScreen() {
     const result = await updateProfile({
       firstName: normalizedFirstName,
       lastName: normalizedLastName,
+      cityId,
       avatarUrl,
     });
     setSavingProfile(false);
@@ -118,6 +125,9 @@ export default function ProfileScreen() {
               <Text className="text-[13px] text-muted" numberOfLines={1}>
                 {email}
               </Text>
+              <Text className="mt-1 text-[12px] font-semibold text-primary" numberOfLines={1}>
+                {cityData.label}
+              </Text>
             </View>
           </View>
 
@@ -126,6 +136,7 @@ export default function ProfileScreen() {
               setProfileError(null);
               setFirstName(savedFirstName);
               setLastName(savedLastName);
+              setCityId(savedCityId);
               setAvatarUrl(savedAvatarUrl);
               setEditOpen(true);
             }}
@@ -173,7 +184,7 @@ export default function ProfileScreen() {
           </View>
 
           <View className="gap-3">
-            {rewardPartners.map((reward) => (
+            {cityData.rewardPartners.map((reward) => (
               <View key={reward.id} className="rounded-2xl border border-gray-200 bg-white p-4">
                 <View className="flex-row items-start gap-3">
                   <View
@@ -270,6 +281,11 @@ export default function ProfileScreen() {
                 className="mb-4 rounded-xl border border-gray-300 px-4 py-3 text-[15px] text-black"
               />
 
+              <Text className="mb-2 text-[13px] font-semibold text-black">City</Text>
+              <View className="mb-5">
+                <CitySelector value={cityId} onChange={setCityId} />
+              </View>
+
               <Text className="mb-6 text-[12px] leading-4 text-muted">
                 Profile photos are stored on this device for now. Cloud avatar uploads will be added
                 when we set up production storage.
@@ -300,15 +316,7 @@ export default function ProfileScreen() {
   );
 }
 
-function Avatar({
-  uri,
-  size,
-  iconSize,
-}: {
-  uri?: string | null;
-  size: number;
-  iconSize: number;
-}) {
+function Avatar({ uri, size, iconSize }: { uri?: string | null; size: number; iconSize: number }) {
   return (
     <View
       className="items-center justify-center overflow-hidden rounded-full bg-primary"
