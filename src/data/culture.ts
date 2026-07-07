@@ -63,6 +63,7 @@ export type CultureEvent = {
   attendeeCount: number;
   organizerName: string;
   organizerImage: 'museum' | 'cafe' | 'theater';
+  imageUrl?: string;
   checkInCode: string;
   venueAddress?: string;
   venueCoordinates?: {

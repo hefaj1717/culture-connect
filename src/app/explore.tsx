@@ -579,7 +579,11 @@ function EventDetailModal({
             >
               <View className="relative h-[260px] bg-gray-200">
                 <Image
-                  source={getOrganizerImageSource(event.organizerImage)}
+                  source={
+                    event.imageUrl
+                      ? { uri: event.imageUrl }
+                      : getOrganizerImageSource(event.organizerImage)
+                  }
                   contentFit="cover"
                   style={StyleSheet.absoluteFillObject}
                 />
