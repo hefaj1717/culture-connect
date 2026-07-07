@@ -38,6 +38,10 @@ export type Venue = {
   isLive?: boolean;
   tags: string[];
   color: string;
+  coordinates: {
+    latitude: number;
+    longitude: number;
+  };
 };
 
 export type CultureEvent = {
@@ -119,6 +123,7 @@ export const cultureByCity: Record<CityId, CultureCityData> = {
         isLive: true,
         tags: ['Theatre', 'Music', 'Student-friendly'],
         color: '#EC4899',
+        coordinates: { latitude: 50.87662, longitude: 4.70092 },
       },
       {
         id: 'm-museum',
@@ -134,6 +139,7 @@ export const cultureByCity: Record<CityId, CultureCityData> = {
         isPartner: true,
         tags: ['Art', 'Museum', 'Free first Sunday'],
         color: '#6366F1',
+        coordinates: { latitude: 50.87925, longitude: 4.70339 },
       },
       {
         id: '30cc',
@@ -149,6 +155,7 @@ export const cultureByCity: Record<CityId, CultureCityData> = {
         isPartner: true,
         tags: ['Events', 'Culture', 'Multilingual'],
         color: '#F59E0B',
+        coordinates: { latitude: 50.88095, longitude: 4.70504 },
       },
     ],
     events: [
@@ -310,6 +317,7 @@ export const cultureByCity: Record<CityId, CultureCityData> = {
         isLive: true,
         tags: ['Castle', 'Museum', 'Old Town'],
         color: '#24458F',
+        coordinates: { latitude: 51.25013, longitude: 22.57243 },
       },
       {
         id: 'cs-kultura',
@@ -325,6 +333,7 @@ export const cultureByCity: Record<CityId, CultureCityData> = {
         isPartner: true,
         tags: ['Concerts', 'Cinema', 'Rooftop'],
         color: '#6366F1',
+        coordinates: { latitude: 51.24633, longitude: 22.54761 },
       },
       {
         id: 'heca-cafe',
@@ -340,6 +349,7 @@ export const cultureByCity: Record<CityId, CultureCityData> = {
         isPartner: true,
         tags: ['Coffee', 'Study spot', 'Old Town'],
         color: '#F59E0B',
+        coordinates: { latitude: 51.24868, longitude: 22.56869 },
       },
       {
         id: 'perlowy-browar',
@@ -355,6 +365,7 @@ export const cultureByCity: Record<CityId, CultureCityData> = {
         isPartner: false,
         tags: ['Food', 'Evening', 'Courtyard'],
         color: '#22C55E',
+        coordinates: { latitude: 51.24582, longitude: 22.5655 },
       },
     ],
     events: [
