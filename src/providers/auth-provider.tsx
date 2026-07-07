@@ -1,6 +1,6 @@
 import type { Session, User } from '@supabase/supabase-js';
 import * as Linking from 'expo-linking';
-import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
 
 import { type CityId, defaultCityId } from '@/data/culture';
 import { supabase } from '@/lib/supabase';
@@ -13,10 +13,14 @@ export type OrganizerApplicationInput = {
   note?: string;
 };
 
+export type OrganizerApplicationStatus = 'none' | 'pending' | 'approved' | 'rejected';
+
 type AuthContextValue = {
   session: Session | null;
   user: User | null;
   loading: boolean;
+  organizerApplicationStatus: OrganizerApplicationStatus;
+  refreshOrganizerApplicationStatus: () => Promise<void>;
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
   signUp: (
     email: string,
@@ -47,6 +51,8 @@ function getUrlParam(url: string, key: string) {
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [organizerApplicationStatus, setOrganizerApplicationStatus] =
+    useState<OrganizerApplicationStatus>('none');
 
   useEffect(() => {
     async function handleAuthUrl(url: string | null) {
@@ -88,6 +94,48 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       subscription.subscription.unsubscribe();
     };
   }, []);
+
+  const refreshOrganizerApplicationStatus = useCallback(async () => {
+    if (!session?.user.id) {
+      setOrganizerApplicationStatus('none');
+      return;
+    }
+
+    const metadataFallback =
+      session.user.user_metadata?.requested_role === 'organizer_pending' ? 'pending' : 'none';
+
+    const { data, error } = await supabase
+      .from('organizer_applications')
+      .select('status')
+      .eq('user_id', session.user.id)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (error) {
+      setOrganizerApplicationStatus(metadataFallback);
+      return;
+    }
+
+    if (data?.status === 'pending' || data?.status === 'approved' || data?.status === 'rejected') {
+      setOrganizerApplicationStatus(data.status);
+      return;
+    }
+
+    setOrganizerApplicationStatus(metadataFallback);
+  }, [session?.user.id, session?.user.user_metadata?.requested_role]);
+
+  useEffect(() => {
+    if (!session?.user.id) {
+      setOrganizerApplicationStatus('none');
+      return undefined;
+    }
+
+    refreshOrganizerApplicationStatus();
+    const refreshInterval = setInterval(refreshOrganizerApplicationStatus, 15000);
+
+    return () => clearInterval(refreshInterval);
+  }, [refreshOrganizerApplicationStatus, session?.user.id]);
 
   async function signIn(email: string, password: string) {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
@@ -201,6 +249,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         session,
         user: session?.user ?? null,
         loading,
+        organizerApplicationStatus,
+        refreshOrganizerApplicationStatus,
         signIn,
         signUp,
         verifySignUpCode,

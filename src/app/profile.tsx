@@ -5,6 +5,8 @@ import {
   Award,
   Building2,
   Camera,
+  CheckCircle2,
+  CircleAlert,
   Flame,
   Gift,
   LogOut,
@@ -34,7 +36,13 @@ import { type CityId, defaultCityId, getCultureCityData } from '@/data/culture';
 import { useAuth } from '@/providers/auth-provider';
 
 export default function ProfileScreen() {
-  const { session, signOut, updateProfile } = useAuth();
+  const {
+    organizerApplicationStatus,
+    refreshOrganizerApplicationStatus,
+    session,
+    signOut,
+    updateProfile,
+  } = useAuth();
   const router = useRouter();
   const [editOpen, setEditOpen] = useState(false);
   const [firstName, setFirstName] = useState('');
@@ -58,8 +66,6 @@ export default function ProfileScreen() {
     session?.user.user_metadata?.city_id === 'lublin' ? 'lublin' : defaultCityId;
   const cityData = getCultureCityData(savedCityId);
   const savedAvatarUrl = session?.user.user_metadata?.avatar_url || null;
-  const hasPendingOrganizerApplication =
-    session?.user.user_metadata?.requested_role === 'organizer_pending';
 
   useEffect(() => {
     setFirstName(savedFirstName);
@@ -67,6 +73,12 @@ export default function ProfileScreen() {
     setCityId(savedCityId);
     setAvatarUrl(savedAvatarUrl);
   }, [savedAvatarUrl, savedCityId, savedFirstName, savedLastName]);
+
+  useEffect(() => {
+    if (session?.user.id) {
+      refreshOrganizerApplicationStatus();
+    }
+  }, [refreshOrganizerApplicationStatus, session?.user.id]);
 
   if (!session) {
     return <AuthScreen onCancel={() => router.replace('/')} />;
@@ -159,20 +171,8 @@ export default function ProfileScreen() {
             <Text className="text-[14px] font-semibold text-white">Edit profile</Text>
           </Pressable>
 
-          {hasPendingOrganizerApplication && (
-            <View className="mb-3 flex-row gap-3 rounded-xl border border-secondary/20 bg-secondary/10 p-3">
-              <View className="h-9 w-9 items-center justify-center rounded-full bg-secondary/20">
-                <Building2 size={17} color="#F59E0B" strokeWidth={2.4} />
-              </View>
-              <View className="flex-1">
-                <Text className="text-[13px] font-bold text-black">
-                  Organizer application pending
-                </Text>
-                <Text className="mt-0.5 text-[12px] leading-4 text-muted">
-                  CultureQuest admin must approve the institution before event creation is enabled.
-                </Text>
-              </View>
-            </View>
+          {organizerApplicationStatus !== 'none' && (
+            <OrganizerStatusCard status={organizerApplicationStatus} />
           )}
 
           <View className="mb-5 flex-row rounded-2xl bg-gray-100 p-4">
@@ -342,6 +342,44 @@ export default function ProfileScreen() {
         </SafeAreaView>
       </Modal>
     </SafeAreaView>
+  );
+}
+
+function OrganizerStatusCard({ status }: { status: 'pending' | 'approved' | 'rejected' }) {
+  const isApproved = status === 'approved';
+  const isRejected = status === 'rejected';
+  const color = isApproved ? '#22C55E' : isRejected ? '#EF4444' : '#F59E0B';
+  const Icon = isApproved ? CheckCircle2 : isRejected ? CircleAlert : Building2;
+  const title = isApproved
+    ? 'Organizer approved'
+    : isRejected
+      ? 'Organizer application rejected'
+      : 'Organizer application pending';
+  const message = isApproved
+    ? 'Your institution has been approved. Event creation tools are next.'
+    : isRejected
+      ? 'Your organizer request was not approved. Contact CultureQuest support before applying again.'
+      : 'CultureQuest admin must approve the institution before event creation is enabled.';
+
+  return (
+    <View
+      className="mb-3 flex-row gap-3 rounded-xl border p-3"
+      style={{
+        backgroundColor: `${color}14`,
+        borderColor: `${color}35`,
+      }}
+    >
+      <View
+        className="h-9 w-9 items-center justify-center rounded-full"
+        style={{ backgroundColor: `${color}20` }}
+      >
+        <Icon size={17} color={color} strokeWidth={2.4} />
+      </View>
+      <View className="flex-1">
+        <Text className="text-[13px] font-bold text-black">{title}</Text>
+        <Text className="mt-0.5 text-[12px] leading-4 text-muted">{message}</Text>
+      </View>
+    </View>
   );
 }
 

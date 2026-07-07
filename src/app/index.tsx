@@ -4,6 +4,7 @@ import {
   ArrowRight,
   Bell,
   CalendarDays,
+  CheckCircle2,
   Flame,
   Gift,
   Globe,
@@ -14,10 +15,11 @@ import {
   X,
 } from 'lucide-react-native';
 import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { type CultureCityData, getCultureCityData, languageLabels } from '@/data/culture';
+import type { OrganizerApplicationStatus } from '@/providers/auth-provider';
 
 const notifications = [
   {
@@ -53,6 +55,7 @@ type HomeScreenProps = {
   avatarInitials?: string | null;
   avatarUrl?: string | null;
   cityData?: CultureCityData;
+  organizerApplicationStatus?: OrganizerApplicationStatus;
   onOpenDiscover?: () => void;
   onOpenProfile?: () => void;
 };
@@ -61,14 +64,39 @@ export default function HomeScreen({
   avatarInitials,
   avatarUrl,
   cityData = getCultureCityData(),
+  organizerApplicationStatus = 'none',
   onOpenDiscover,
   onOpenProfile,
 }: HomeScreenProps) {
   const happeningNow = cityData.events.slice(0, 3);
+  const visibleNotifications = useMemo(() => {
+    if (organizerApplicationStatus !== 'approved') {
+      return notifications;
+    }
+
+    return [
+      {
+        id: 'organizer-approved',
+        title: 'Organizer approved',
+        message: 'Your institution has been approved. Event creation tools are next.',
+        time: 'Now',
+        unread: true,
+        icon: CheckCircle2,
+        color: '#22C55E',
+      },
+      ...notifications,
+    ];
+  }, [organizerApplicationStatus]);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [hasUnreadNotifications, setHasUnreadNotifications] = useState(
-    notifications.some((notification) => notification.unread),
+    visibleNotifications.some((notification) => notification.unread),
   );
+
+  useEffect(() => {
+    if (organizerApplicationStatus === 'approved') {
+      setHasUnreadNotifications(true);
+    }
+  }, [organizerApplicationStatus]);
 
   function openNotifications() {
     setNotificationsOpen(true);
@@ -283,7 +311,7 @@ export default function HomeScreen({
             </View>
 
             <View className="gap-3">
-              {notifications.map((notification) => {
+              {visibleNotifications.map((notification) => {
                 const Icon = notification.icon;
 
                 return (

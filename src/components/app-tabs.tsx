@@ -21,7 +21,7 @@ const TAB_COUNT = 3;
 
 export default function AppTabs() {
   const { width } = useWindowDimensions();
-  const { user } = useAuth();
+  const { organizerApplicationStatus, user } = useAuth();
   const [activeIndex, setActiveIndex] = useState(0);
   const translateX = useSharedValue(-activeIndex * width);
   const startX = useSharedValue(0);
@@ -88,6 +88,7 @@ export default function AppTabs() {
               avatarInitials={avatarInitials}
               avatarUrl={avatarUrl}
               cityData={cityData}
+              organizerApplicationStatus={organizerApplicationStatus}
               onOpenDiscover={() => goToTab(1)}
               onOpenProfile={() => goToTab(2)}
             />
