@@ -1,4 +1,7 @@
+import { CameraView, useCameraPermissions, type BarcodeScanningResult } from 'expo-camera';
+import { Image } from 'expo-image';
 import {
+  BellRing,
   Calendar,
   CheckCircle2,
   ChevronRight,
@@ -6,16 +9,20 @@ import {
   Flame,
   Globe,
   MapPin,
+  QrCode,
   Search,
   Sparkles,
   Star,
+  Users,
+  X,
 } from 'lucide-react-native';
 import { useMemo, useState } from 'react';
-import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import {
   categoryLabels,
+  type CultureEvent,
   type CultureCityData,
   eventCategoryLabels,
   getCultureCityData,
@@ -38,6 +45,9 @@ export default function ExploreScreen({ cityData = getCultureCityData() }: Explo
   const [search, setSearch] = useState('');
   const [tab, setTab] = useState<'events' | 'venues'>('events');
   const [audienceFilter, setAudienceFilter] = useState('all');
+  const [selectedEvent, setSelectedEvent] = useState<CultureEvent | null>(null);
+  const [eventStatuses, setEventStatuses] = useState<Record<string, 'interested' | 'going'>>({});
+  const [confirmedCheckIns, setConfirmedCheckIns] = useState<Record<string, boolean>>({});
   const { events, venues } = cityData;
 
   const normalizedSearch = search.trim().toLowerCase();
@@ -161,7 +171,10 @@ export default function ExploreScreen({ cityData = getCultureCityData() }: Explo
                   </Text>
                 </View>
 
-                <View className="overflow-hidden rounded-2xl border border-gray-200 bg-gray-100 p-5">
+                <Pressable
+                  onPress={() => setSelectedEvent(featuredEvent)}
+                  className="overflow-hidden rounded-2xl border border-gray-200 bg-gray-100 p-5 active:opacity-90"
+                >
                   <View className="mb-2 flex-row flex-wrap items-center gap-2">
                     <View className="rounded-full bg-secondary px-2.5 py-1">
                       <Text className="text-[11px] font-bold text-white">Flash Quest</Text>
@@ -204,11 +217,14 @@ export default function ExploreScreen({ cityData = getCultureCityData() }: Explo
                       </Text>
                     )}
                   </View>
-                  <Pressable className="h-11 flex-row items-center justify-center gap-2 rounded-xl bg-primary active:opacity-80">
+                  <Pressable
+                    onPress={() => setSelectedEvent(featuredEvent)}
+                    className="h-11 flex-row items-center justify-center gap-2 rounded-xl bg-primary active:opacity-80"
+                  >
                     <CheckCircle2 size={16} color="white" />
-                    <Text className="text-[14px] font-semibold text-white">Check In Here</Text>
+                    <Text className="text-[14px] font-semibold text-white">Open Event</Text>
                   </Pressable>
-                </View>
+                </Pressable>
               </View>
             )}
 
@@ -230,8 +246,9 @@ export default function ExploreScreen({ cityData = getCultureCityData() }: Explo
               ) : (
                 <View className="gap-3">
                   {filteredEvents.map((event) => (
-                    <View
+                    <Pressable
                       key={event.id}
+                      onPress={() => setSelectedEvent(event)}
                       className="flex-row items-start gap-3 rounded-2xl border border-gray-200 bg-white p-4"
                     >
                       <View className="h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-primary/10">
@@ -266,11 +283,14 @@ export default function ExploreScreen({ cityData = getCultureCityData() }: Explo
                           )}
                         </View>
                       </View>
-                      <Pressable className="h-9 flex-row items-center justify-center gap-1 rounded-full bg-primary/10 px-3 active:opacity-80">
+                      <Pressable
+                        onPress={() => setSelectedEvent(event)}
+                        className="h-9 flex-row items-center justify-center gap-1 rounded-full bg-primary/10 px-3 active:opacity-80"
+                      >
                         <CheckCircle2 size={14} color="#3B82F6" />
-                        <Text className="text-[12px] font-semibold text-primary">Check In</Text>
+                        <Text className="text-[12px] font-semibold text-primary">Open</Text>
                       </Pressable>
-                    </View>
+                    </Pressable>
                   ))}
                 </View>
               )}
@@ -322,6 +342,293 @@ export default function ExploreScreen({ cityData = getCultureCityData() }: Explo
           </View>
         )}
       </ScrollView>
+
+      <EventDetailModal
+        checkedIn={!!(selectedEvent && confirmedCheckIns[selectedEvent.id])}
+        event={selectedEvent}
+        onCheckIn={(eventId) =>
+          setConfirmedCheckIns((current) => ({
+            ...current,
+            [eventId]: true,
+          }))
+        }
+        onClose={() => setSelectedEvent(null)}
+        onSetStatus={(eventId, status) =>
+          setEventStatuses((current) => ({
+            ...current,
+            [eventId]: status,
+          }))
+        }
+        status={selectedEvent ? eventStatuses[selectedEvent.id] : undefined}
+      />
     </SafeAreaView>
   );
+}
+
+function EventDetailModal({
+  checkedIn,
+  event,
+  onCheckIn,
+  onClose,
+  onSetStatus,
+  status,
+}: {
+  checkedIn: boolean;
+  event: CultureEvent | null;
+  onCheckIn: (eventId: string) => void;
+  onClose: () => void;
+  onSetStatus: (eventId: string, status: 'interested' | 'going') => void;
+  status?: 'interested' | 'going';
+}) {
+  const [scannerOpen, setScannerOpen] = useState(false);
+  const [scanLocked, setScanLocked] = useState(false);
+  const [scanMessage, setScanMessage] = useState<string | null>(null);
+  const [permission, requestPermission] = useCameraPermissions();
+
+  if (!event) return null;
+
+  function openScanner() {
+    setScanLocked(false);
+    setScanMessage(null);
+    setScannerOpen(true);
+  }
+
+  function handleBarcodeScanned(result: BarcodeScanningResult) {
+    if (scanLocked || !event) return;
+
+    setScanLocked(true);
+    if (result.data === event.checkInCode) {
+      onCheckIn(event.id);
+      setScannerOpen(false);
+      setScanMessage(null);
+      return;
+    }
+
+    setScanMessage('This QR code does not match this event.');
+    setTimeout(() => setScanLocked(false), 1200);
+  }
+
+  return (
+    <Modal animationType="slide" onRequestClose={onClose} visible>
+      <SafeAreaView className="flex-1 bg-white" edges={['top', 'bottom']}>
+        <ScrollView
+          className="flex-1"
+          contentContainerStyle={{ paddingBottom: 30 }}
+          showsVerticalScrollIndicator={false}
+        >
+          <View className="relative h-[260px] bg-gray-200">
+            <Image
+              source={getOrganizerImageSource(event.organizerImage)}
+              contentFit="cover"
+              style={StyleSheet.absoluteFillObject}
+            />
+            <View className="absolute inset-0 bg-black/25" />
+            <Pressable
+              onPress={onClose}
+              className="absolute right-5 top-4 h-10 w-10 items-center justify-center rounded-full bg-black/30 active:opacity-80"
+            >
+              <X size={20} color="white" strokeWidth={2.4} />
+            </Pressable>
+            <View className="absolute bottom-5 left-5 right-5">
+              <View className="mb-2 flex-row flex-wrap items-center gap-2">
+                <View className="rounded-full bg-white/90 px-2.5 py-1">
+                  <Text className="text-[11px] font-bold text-primary">
+                    {eventCategoryLabels[event.category]}
+                  </Text>
+                </View>
+                {checkedIn && (
+                  <View className="rounded-full bg-success px-2.5 py-1">
+                    <Text className="text-[11px] font-bold text-white">Attendance confirmed</Text>
+                  </View>
+                )}
+              </View>
+              <Text className="text-[28px] font-extrabold leading-8 text-white" numberOfLines={3}>
+                {event.title}
+              </Text>
+            </View>
+          </View>
+
+          <View className="px-5 pt-5">
+            <View className="mb-5 flex-row gap-2">
+              <StatusButton
+                active={status === 'interested'}
+                icon={<BellRing size={17} color={status === 'interested' ? 'white' : '#24458F'} />}
+                label="Interested"
+                onPress={() => onSetStatus(event.id, 'interested')}
+              />
+              <StatusButton
+                active={status === 'going'}
+                icon={<CheckCircle2 size={17} color={status === 'going' ? 'white' : '#24458F'} />}
+                label="Going"
+                onPress={() => onSetStatus(event.id, 'going')}
+              />
+            </View>
+
+            {!!status && (
+              <View className="mb-5 rounded-xl border border-primary/10 bg-primary/5 p-3">
+                <Text className="text-[13px] font-semibold text-primary">
+                  Event notifications enabled
+                </Text>
+                <Text className="mt-1 text-[12px] leading-4 text-muted">
+                  You will be notified when the organiser changes time, location, or important
+                  details.
+                </Text>
+              </View>
+            )}
+
+            <View className="mb-5 gap-3 rounded-2xl border border-gray-200 bg-white p-4">
+              <InfoRow icon={<MapPin size={17} color="#24458F" />} label={event.venueName} />
+              <InfoRow
+                icon={<Clock size={17} color="#24458F" />}
+                label={`${event.date}, ${event.time}`}
+              />
+              <InfoRow
+                icon={<Users size={17} color="#24458F" />}
+                label={`${event.attendeeCount} people taking part`}
+              />
+              <InfoRow
+                icon={<Sparkles size={17} color="#22C55E" />}
+                label={`+${event.xpBonus} XP after confirmed attendance`}
+              />
+            </View>
+
+            <Text className="mb-2 text-[16px] font-extrabold text-black">About this event</Text>
+            <Text className="mb-5 text-[14px] leading-5 text-black/75">{event.description}</Text>
+
+            <View className="mb-5 rounded-2xl border border-gray-200 bg-gray-50 p-4">
+              <Text className="text-[12px] font-semibold uppercase tracking-wide text-muted">
+                Organiser
+              </Text>
+              <Text className="mt-1 text-[15px] font-bold text-black">{event.organizerName}</Text>
+              <Text className="mt-1 text-[12px] leading-4 text-muted">
+                This organiser can post updates to everyone marked Interested or Going.
+              </Text>
+            </View>
+
+            {checkedIn ? (
+              <View className="rounded-2xl bg-success/10 p-4">
+                <Text className="text-[15px] font-extrabold text-success">
+                  Attendance confirmed
+                </Text>
+                <Text className="mt-1 text-[13px] leading-5 text-black/75">
+                  You earned {event.xpBonus} XP for this event.
+                </Text>
+              </View>
+            ) : (
+              <Pressable
+                onPress={openScanner}
+                className="h-[52px] flex-row items-center justify-center gap-2 rounded-xl bg-primary active:opacity-85"
+              >
+                <QrCode size={19} color="white" strokeWidth={2.4} />
+                <Text className="text-[15px] font-semibold text-white">Scan event QR</Text>
+              </Pressable>
+            )}
+          </View>
+        </ScrollView>
+
+        <Modal
+          animationType="slide"
+          onRequestClose={() => setScannerOpen(false)}
+          visible={scannerOpen}
+        >
+          <SafeAreaView className="flex-1 bg-black" edges={['top', 'bottom']}>
+            <View className="flex-row items-center justify-between px-5 py-4">
+              <Text className="text-[18px] font-extrabold text-white">Scan QR code</Text>
+              <Pressable
+                onPress={() => setScannerOpen(false)}
+                className="h-10 w-10 items-center justify-center rounded-full bg-white/15"
+              >
+                <X size={20} color="white" />
+              </Pressable>
+            </View>
+
+            {!permission ? (
+              <View className="flex-1 items-center justify-center px-6">
+                <Text className="text-center text-[14px] text-white/80">Loading camera...</Text>
+              </View>
+            ) : !permission.granted ? (
+              <View className="flex-1 items-center justify-center px-6">
+                <Text className="mb-4 text-center text-[15px] leading-5 text-white">
+                  Camera access is needed to scan the organiser QR code.
+                </Text>
+                <Pressable
+                  onPress={requestPermission}
+                  className="h-12 items-center justify-center rounded-xl bg-white px-5"
+                >
+                  <Text className="text-[14px] font-bold text-black">Allow camera access</Text>
+                </Pressable>
+              </View>
+            ) : (
+              <View className="flex-1">
+                <CameraView
+                  barcodeScannerSettings={{ barcodeTypes: ['qr'] }}
+                  onBarcodeScanned={scanLocked ? undefined : handleBarcodeScanned}
+                  style={{ flex: 1 }}
+                />
+                <View className="absolute bottom-0 left-0 right-0 bg-black/60 px-5 py-5">
+                  <Text className="text-center text-[14px] font-semibold text-white">
+                    Ask the organiser for the event QR code.
+                  </Text>
+                  <Text className="mt-1 text-center text-[12px] text-white/70">
+                    Demo payload: {event.checkInCode}
+                  </Text>
+                  {scanMessage && (
+                    <Text className="mt-3 text-center text-[13px] font-semibold text-destructive">
+                      {scanMessage}
+                    </Text>
+                  )}
+                </View>
+              </View>
+            )}
+          </SafeAreaView>
+        </Modal>
+      </SafeAreaView>
+    </Modal>
+  );
+}
+
+function StatusButton({
+  active,
+  icon,
+  label,
+  onPress,
+}: {
+  active: boolean;
+  icon: React.ReactNode;
+  label: string;
+  onPress: () => void;
+}) {
+  return (
+    <Pressable
+      onPress={onPress}
+      className={`h-11 flex-1 flex-row items-center justify-center gap-2 rounded-xl ${
+        active ? 'bg-primary' : 'border border-primary/20 bg-primary/5'
+      }`}
+    >
+      {icon}
+      <Text className={`text-[14px] font-semibold ${active ? 'text-white' : 'text-primary'}`}>
+        {label}
+      </Text>
+    </Pressable>
+  );
+}
+
+function InfoRow({ icon, label }: { icon: React.ReactNode; label: string }) {
+  return (
+    <View className="flex-row items-center gap-3">
+      <View className="h-8 w-8 items-center justify-center rounded-full bg-primary/10">{icon}</View>
+      <Text className="flex-1 text-[13px] font-medium text-black/75">{label}</Text>
+    </View>
+  );
+}
+
+function getOrganizerImageSource(image: CultureEvent['organizerImage']) {
+  if (image === 'cafe') {
+    return require('@/assets/images/culture/venue-cafe.jpg');
+  }
+  if (image === 'theater') {
+    return require('@/assets/images/culture/venue-theater.jpg');
+  }
+
+  return require('@/assets/images/culture/venue-museum.jpg');
 }
