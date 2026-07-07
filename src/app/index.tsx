@@ -16,6 +16,7 @@ import {
 } from 'lucide-react-native';
 import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useEffect, useMemo, useState } from 'react';
+import Svg, { Circle, Path, Rect, Text as SvgText } from 'react-native-svg';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { type CultureCityData, getCultureCityData, languageLabels } from '@/data/culture';
@@ -265,25 +266,108 @@ export default function HomeScreen({
               <Text className="text-[11px] font-semibold text-primary">Now + upcoming</Text>
             </View>
 
-            <View className="overflow-hidden rounded-3xl border border-gray-200 bg-[#EEF3FA]">
+            <View className="overflow-hidden rounded-3xl border border-gray-200 bg-[#EAF0F7]">
               <View className="h-[210px]">
-                <LinearGradient
-                  colors={['#F8FBFF', '#EEF4FB', '#E5EDF7']}
-                  style={StyleSheet.absoluteFillObject}
-                />
-                <View className="absolute left-5 right-5 top-9 h-px bg-white" />
-                <View className="absolute left-4 right-8 top-24 h-px bg-white/80" />
-                <View className="absolute left-10 right-3 top-40 h-px bg-white/80" />
-                <View className="absolute bottom-6 left-12 top-4 w-px bg-white/90" />
-                <View className="absolute bottom-8 right-16 top-5 w-px bg-white/70" />
-                <View
-                  className="absolute left-[-30px] top-[132px] h-[34px] w-[430px] rounded-full bg-[#CBD8EA]/70"
-                  style={{ transform: [{ rotate: '-9deg' }] }}
-                />
-                <View
-                  className="absolute left-[28px] top-[62px] h-[18px] w-[320px] rounded-full bg-white/75"
-                  style={{ transform: [{ rotate: '18deg' }] }}
-                />
+                <Svg height="100%" style={StyleSheet.absoluteFillObject} viewBox="0 0 360 210">
+                  <Rect fill="#EAF0F7" height="210" width="360" x="0" y="0" />
+                  <Path
+                    d="M-18 158 C46 128 92 138 149 111 C215 80 260 82 384 38"
+                    fill="none"
+                    stroke="#B8D3EA"
+                    strokeLinecap="round"
+                    strokeWidth="24"
+                  />
+                  <Path
+                    d="M-14 158 C48 130 94 141 151 113 C217 82 262 84 382 40"
+                    fill="none"
+                    stroke="#D8ECFA"
+                    strokeLinecap="round"
+                    strokeWidth="13"
+                  />
+                  <Rect fill="#F7F9FC" height="42" rx="8" width="74" x="22" y="24" />
+                  <Rect fill="#F7F9FC" height="34" rx="8" width="86" x="118" y="18" />
+                  <Rect fill="#F7F9FC" height="46" rx="8" width="74" x="236" y="20" />
+                  <Rect fill="#F7F9FC" height="42" rx="8" width="78" x="54" y="82" />
+                  <Rect fill="#F7F9FC" height="50" rx="8" width="88" x="161" y="70" />
+                  <Rect fill="#F7F9FC" height="40" rx="8" width="68" x="274" y="92" />
+                  <Rect fill="#F7F9FC" height="44" rx="8" width="90" x="22" y="144" />
+                  <Rect fill="#F7F9FC" height="38" rx="8" width="88" x="141" y="150" />
+                  <Rect fill="#F7F9FC" height="42" rx="8" width="72" x="262" y="150" />
+
+                  <Path
+                    d="M18 40 C80 57 118 62 168 54 C231 44 280 48 346 68"
+                    fill="none"
+                    stroke="#FFFFFF"
+                    strokeLinecap="round"
+                    strokeWidth="8"
+                  />
+                  <Path
+                    d="M34 185 C76 147 119 126 162 103 C217 75 263 51 326 19"
+                    fill="none"
+                    stroke="#FFFFFF"
+                    strokeLinecap="round"
+                    strokeWidth="8"
+                  />
+                  <Path
+                    d="M-8 108 C58 101 108 108 156 128 C211 151 264 154 368 132"
+                    fill="none"
+                    stroke="#FFFFFF"
+                    strokeLinecap="round"
+                    strokeWidth="8"
+                  />
+                  <Path
+                    d="M95 -5 C106 42 114 80 131 116 C151 158 176 184 206 220"
+                    fill="none"
+                    stroke="#FFFFFF"
+                    strokeLinecap="round"
+                    strokeWidth="7"
+                  />
+                  <Path
+                    d="M245 -5 C235 34 229 73 236 112 C244 154 270 184 302 218"
+                    fill="none"
+                    stroke="#FFFFFF"
+                    strokeLinecap="round"
+                    strokeWidth="7"
+                  />
+
+                  <Path
+                    d="M18 40 C80 57 118 62 168 54 C231 44 280 48 346 68"
+                    fill="none"
+                    stroke="#CBD5E1"
+                    strokeDasharray="1 14"
+                    strokeLinecap="round"
+                    strokeWidth="2"
+                  />
+                  <Path
+                    d="M34 185 C76 147 119 126 162 103 C217 75 263 51 326 19"
+                    fill="none"
+                    stroke="#CBD5E1"
+                    strokeDasharray="1 14"
+                    strokeLinecap="round"
+                    strokeWidth="2"
+                  />
+                  <Path
+                    d="M-8 108 C58 101 108 108 156 128 C211 151 264 154 368 132"
+                    fill="none"
+                    stroke="#CBD5E1"
+                    strokeDasharray="1 14"
+                    strokeLinecap="round"
+                    strokeWidth="2"
+                  />
+
+                  <Circle cx="61" cy="52" fill="#DDE7F3" r="6" />
+                  <Circle cx="294" cy="112" fill="#DDE7F3" r="5" />
+                  <Circle cx="180" cy="170" fill="#DDE7F3" r="5" />
+                  <SvgText fill="#6B7280" fontSize="10" fontWeight="700" x="26" y="83">
+                    Centre
+                  </SvgText>
+                  <SvgText fill="#6B7280" fontSize="10" fontWeight="700" x="242" y="52">
+                    Campus
+                  </SvgText>
+                  <SvgText fill="#6B7280" fontSize="10" fontWeight="700" x="228" y="184">
+                    Culture route
+                  </SvgText>
+                </Svg>
                 <View className="absolute left-5 top-5 rounded-full bg-white/80 px-3 py-1">
                   <Text className="text-[11px] font-bold text-primary">{cityData.name}</Text>
                 </View>
