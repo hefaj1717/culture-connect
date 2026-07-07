@@ -216,6 +216,7 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
   const [eventDate, setEventDate] = useState('');
   const [eventTime, setEventTime] = useState('');
   const [eventDescription, setEventDescription] = useState('');
+  const [eventImageUri, setEventImageUri] = useState<string | null>(null);
   const [eventIsFree, setEventIsFree] = useState(true);
   const [createEventError, setCreateEventError] = useState<string | null>(null);
   const [creatingEvent, setCreatingEvent] = useState(false);
@@ -420,6 +421,7 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
     setEventDate('');
     setEventTime('');
     setEventDescription('');
+    setEventImageUri(null);
     setEventIsFree(true);
     setCreateEventError(null);
     setCalendarMonth(startOfMonth(new Date()));
@@ -474,6 +476,7 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
       time: normalizedTime,
       language: eventLanguage,
       isFree: eventIsFree,
+      imageUri: eventImageUri,
     });
     setCreatingEvent(false);
 
@@ -486,6 +489,27 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
     resetEventForm();
     onEventCreated?.();
     Alert.alert('Event published', 'Your event is now visible in Discover.');
+  }
+
+  async function pickEventImage() {
+    setCreateEventError(null);
+
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) {
+      Alert.alert('Photo access needed', 'Allow photo access to choose an event photo.');
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      aspect: [16, 9],
+      quality: 0.82,
+    });
+
+    if (!result.canceled) {
+      setEventImageUri(result.assets[0]?.uri ?? null);
+    }
   }
 
   return (
@@ -769,6 +793,41 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
                     placeholderTextColor="#8B909A"
                     className="mb-4 rounded-xl border border-gray-300 px-4 py-3 text-[15px] text-black"
                   />
+
+                  <Text className="mb-2 text-[13px] font-semibold text-black">Event photo</Text>
+                  <Pressable
+                    onPress={pickEventImage}
+                    className="mb-4 overflow-hidden rounded-2xl border border-gray-200 bg-gray-100 active:opacity-85"
+                  >
+                    {eventImageUri ? (
+                      <Image
+                        source={{ uri: eventImageUri }}
+                        contentFit="cover"
+                        style={{ height: 150, width: '100%' }}
+                      />
+                    ) : (
+                      <View className="h-[150px] items-center justify-center px-5">
+                        <View className="mb-3 h-11 w-11 items-center justify-center rounded-full bg-primary/10">
+                          <Camera size={20} color="#24458F" strokeWidth={2.4} />
+                        </View>
+                        <Text className="text-center text-[14px] font-bold text-black">
+                          Add event photo
+                        </Text>
+                        <Text className="mt-1 text-center text-[12px] leading-4 text-muted">
+                          Optional. If you skip it, CultureQuest will use a default event image.
+                        </Text>
+                      </View>
+                    )}
+                  </Pressable>
+
+                  {eventImageUri && (
+                    <Pressable
+                      onPress={() => setEventImageUri(null)}
+                      className="mb-4 h-10 items-center justify-center rounded-xl border border-gray-200 active:opacity-80"
+                    >
+                      <Text className="text-[13px] font-semibold text-muted">Remove photo</Text>
+                    </Pressable>
+                  )}
 
                   <Text className="mb-2 text-[13px] font-semibold text-black">
                     Place or address

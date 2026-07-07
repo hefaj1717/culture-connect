@@ -18,6 +18,7 @@ export type CreateOrganizerEventInput = {
   time: string;
   language: EventLanguage;
   isFree: boolean;
+  imageUri?: string | null;
 };
 
 type OrganizerEventRow = {
@@ -39,14 +40,17 @@ type OrganizerEventRow = {
   is_international: boolean;
   attendee_count: number;
   image_kind: CultureEvent['organizerImage'];
+  image_url: string | null;
   check_in_code: string;
 };
+
+const EVENT_IMAGES_BUCKET = 'event-images';
 
 export async function fetchOrganizerEvents(cityId: CityId) {
   const { data, error } = await supabase
     .from('organizer_events')
     .select(
-      'id, city_key, venue_key, venue_name, venue_address, venue_latitude, venue_longitude, title, description, category, date_label, time_label, xp_bonus, language, is_free, is_international, attendee_count, image_kind, check_in_code',
+      'id, city_key, venue_key, venue_name, venue_address, venue_latitude, venue_longitude, title, description, category, date_label, time_label, xp_bonus, language, is_free, is_international, attendee_count, image_kind, image_url, check_in_code',
     )
     .eq('city_key', cityId)
     .eq('status', 'published')
@@ -63,6 +67,14 @@ export async function fetchOrganizerEvents(cityId: CityId) {
 }
 
 export async function createOrganizerEvent(userId: string, input: CreateOrganizerEventInput) {
+  const uploadedImage = input.imageUri
+    ? await uploadOrganizerEventImage(userId, input.imageUri)
+    : null;
+
+  if (uploadedImage?.error) {
+    return { error: uploadedImage.error };
+  }
+
   const { error } = await supabase.from('organizer_events').insert({
     organizer_user_id: userId,
     city_key: input.cityId,
@@ -81,6 +93,7 @@ export async function createOrganizerEvent(userId: string, input: CreateOrganize
     is_free: input.isFree,
     is_international: input.language !== 'pl',
     image_kind: getImageKind(input.category),
+    image_url: uploadedImage?.url ?? null,
     status: 'published',
   });
 
@@ -106,6 +119,7 @@ function mapOrganizerEventRow(row: OrganizerEventRow): CultureEvent {
     attendeeCount: row.attendee_count,
     organizerName: 'Verified CultureQuest organizer',
     organizerImage: row.image_kind,
+    imageUrl: row.image_url ?? undefined,
     checkInCode: row.check_in_code,
     venueAddress: row.venue_address ?? undefined,
     venueCoordinates:
@@ -116,6 +130,42 @@ function mapOrganizerEventRow(row: OrganizerEventRow): CultureEvent {
           }
         : undefined,
   };
+}
+
+async function uploadOrganizerEventImage(userId: string, imageUri: string) {
+  try {
+    const response = await fetch(imageUri);
+    const arrayBuffer = await response.arrayBuffer();
+    const extension = getImageExtension(imageUri);
+    const contentType = getImageContentType(extension);
+    const path = `${userId}/${Date.now()}.${extension}`;
+
+    const { error } = await supabase.storage.from(EVENT_IMAGES_BUCKET).upload(path, arrayBuffer, {
+      contentType,
+      upsert: false,
+    });
+
+    if (error) {
+      return { url: null, error: error.message };
+    }
+
+    const { data } = supabase.storage.from(EVENT_IMAGES_BUCKET).getPublicUrl(path);
+    return { url: data.publicUrl, error: null };
+  } catch {
+    return { url: null, error: 'Could not upload the event photo.' };
+  }
+}
+
+function getImageExtension(uri: string) {
+  const match = uri.toLowerCase().match(/\.(jpg|jpeg|png|webp)(?:\?|$)/);
+  if (!match) return 'jpg';
+  return match[1] === 'jpeg' ? 'jpg' : match[1];
+}
+
+function getImageContentType(extension: string) {
+  if (extension === 'png') return 'image/png';
+  if (extension === 'webp') return 'image/webp';
+  return 'image/jpeg';
 }
 
 function getImageKind(category: VenueCategory | EventCategory): CultureEvent['organizerImage'] {
