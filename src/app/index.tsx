@@ -269,8 +269,66 @@ export default function HomeScreen({
           </View>
         </View>
 
+        <View className="pb-8 pt-1">
+          <View className="mb-4 flex-row items-center gap-1.5 px-5">
+            <Flame size={14} color="#F59E0B" />
+            <Text className="text-[11px] font-semibold uppercase tracking-wide text-muted">
+              Happening Now
+            </Text>
+          </View>
+
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ paddingHorizontal: 20, gap: 12 }}
+          >
+            {happeningNow.map((event) => (
+              <Pressable
+                onPress={onOpenDiscover}
+                className="w-[220px] overflow-hidden rounded-2xl border border-gray-200 bg-white active:opacity-85"
+                key={event.id}
+              >
+                <View className="h-[112px] bg-gray-200">
+                  <Image
+                    source={getEventImageSource(event)}
+                    contentFit="cover"
+                    style={StyleSheet.absoluteFillObject}
+                  />
+                </View>
+                <View className="p-3">
+                  <Text className="mb-1 text-[14px] font-bold text-black" numberOfLines={2}>
+                    {event.title}
+                  </Text>
+                  <Text className="mb-2 text-[12px] text-muted" numberOfLines={1}>
+                    {event.date} · {event.venueName}
+                  </Text>
+                  <View className="flex-row flex-wrap items-center gap-2">
+                    <View className="flex-row items-center gap-0.5">
+                      <Sparkles size={12} color="#22C55E" />
+                      <Text className="text-[12px] font-bold text-success">
+                        +{event.xpBonus} XP
+                      </Text>
+                    </View>
+                    {event.isFree && (
+                      <View className="rounded-full bg-success/10 px-1.5 py-0.5">
+                        <Text className="text-[10px] font-bold text-success">Free</Text>
+                      </View>
+                    )}
+                    <View className="flex-row items-center gap-1">
+                      <Globe size={12} color="#60646C" />
+                      <Text className="text-[11px] font-medium text-muted">
+                        {languageLabels[event.language]}
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+              </Pressable>
+            ))}
+          </ScrollView>
+        </View>
+
         {activitySpots.length > 0 && (
-          <View className="bg-white px-5 py-5">
+          <View className="bg-white px-5 pb-8">
             <View className="mb-3 flex-row items-center justify-between">
               <Text className="text-[11px] font-semibold uppercase tracking-wide text-muted">
                 City activity
@@ -361,64 +419,6 @@ export default function HomeScreen({
             </View>
           </View>
         )}
-
-        <View className="pb-8 pt-1">
-          <View className="mb-4 flex-row items-center gap-1.5 px-5">
-            <Flame size={14} color="#F59E0B" />
-            <Text className="text-[11px] font-semibold uppercase tracking-wide text-muted">
-              Happening Now
-            </Text>
-          </View>
-
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ paddingHorizontal: 20, gap: 12 }}
-          >
-            {happeningNow.map((event) => (
-              <Pressable
-                onPress={onOpenDiscover}
-                className="w-[220px] overflow-hidden rounded-2xl border border-gray-200 bg-white active:opacity-85"
-                key={event.id}
-              >
-                <View className="h-[112px] bg-gray-200">
-                  <Image
-                    source={getEventImageSource(event)}
-                    contentFit="cover"
-                    style={StyleSheet.absoluteFillObject}
-                  />
-                </View>
-                <View className="p-3">
-                  <Text className="mb-1 text-[14px] font-bold text-black" numberOfLines={2}>
-                    {event.title}
-                  </Text>
-                  <Text className="mb-2 text-[12px] text-muted" numberOfLines={1}>
-                    {event.date} · {event.venueName}
-                  </Text>
-                  <View className="flex-row flex-wrap items-center gap-2">
-                    <View className="flex-row items-center gap-0.5">
-                      <Sparkles size={12} color="#22C55E" />
-                      <Text className="text-[12px] font-bold text-success">
-                        +{event.xpBonus} XP
-                      </Text>
-                    </View>
-                    {event.isFree && (
-                      <View className="rounded-full bg-success/10 px-1.5 py-0.5">
-                        <Text className="text-[10px] font-bold text-success">Free</Text>
-                      </View>
-                    )}
-                    <View className="flex-row items-center gap-1">
-                      <Globe size={12} color="#60646C" />
-                      <Text className="text-[11px] font-medium text-muted">
-                        {languageLabels[event.language]}
-                      </Text>
-                    </View>
-                  </View>
-                </View>
-              </Pressable>
-            ))}
-          </ScrollView>
-        </View>
 
         <View className="px-5">
           <View className="rounded-2xl border border-primary/10 bg-primary/5 p-5">
