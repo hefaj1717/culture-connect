@@ -24,6 +24,10 @@ export default function AppTabs() {
   const { organizerApplicationStatus, user } = useAuth();
   const [activeIndex, setActiveIndex] = useState(0);
   const [organizerEventsVersion, setOrganizerEventsVersion] = useState(0);
+  const [eventOpenRequest, setEventOpenRequest] = useState<{
+    eventId: string;
+    nonce: number;
+  } | null>(null);
   const translateX = useSharedValue(-activeIndex * width);
   const startX = useSharedValue(0);
   const metadataName = [user?.user_metadata?.first_name, user?.user_metadata?.last_name]
@@ -38,6 +42,11 @@ export default function AppTabs() {
   function goToTab(index: number) {
     setActiveIndex(index);
     translateX.value = withTiming(-index * width, { duration: 220 });
+  }
+
+  function openDiscoverEvent(eventId: string) {
+    setEventOpenRequest({ eventId, nonce: Date.now() });
+    goToTab(1);
   }
 
   const gesture = useMemo(
@@ -91,11 +100,17 @@ export default function AppTabs() {
               cityData={cityData}
               organizerApplicationStatus={organizerApplicationStatus}
               onOpenDiscover={() => goToTab(1)}
+              onOpenEvent={openDiscoverEvent}
               onOpenProfile={() => goToTab(2)}
             />
           </View>
           <View style={{ width }}>
-            <ExploreScreen cityData={cityData} eventsRefreshKey={organizerEventsVersion} />
+            <ExploreScreen
+              cityData={cityData}
+              eventsRefreshKey={organizerEventsVersion}
+              openEventId={eventOpenRequest?.eventId}
+              openEventNonce={eventOpenRequest?.nonce}
+            />
           </View>
           <View style={{ width }}>
             <ProfileScreen

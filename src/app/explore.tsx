@@ -60,11 +60,15 @@ const EVENT_CHECK_IN_RADIUS_METERS = 500;
 type ExploreScreenProps = {
   cityData?: CultureCityData;
   eventsRefreshKey?: number;
+  openEventId?: string;
+  openEventNonce?: number;
 };
 
 export default function ExploreScreen({
   cityData = getCultureCityData(),
   eventsRefreshKey = 0,
+  openEventId,
+  openEventNonce,
 }: ExploreScreenProps) {
   const [search, setSearch] = useState('');
   const [tab, setTab] = useState<'events' | 'venues'>('events');
@@ -133,6 +137,16 @@ export default function ExploreScreen({
   );
 
   const featuredEvent = allEvents.find((event) => event.isFlashQuest);
+
+  useEffect(() => {
+    if (!openEventId) return;
+
+    const eventToOpen = allEvents.find((event) => event.id === openEventId);
+    if (!eventToOpen) return;
+
+    setTab('events');
+    setSelectedEvent(eventToOpen);
+  }, [allEvents, openEventId, openEventNonce]);
 
   return (
     <SafeAreaView className="flex-1 bg-white" edges={['top']}>
