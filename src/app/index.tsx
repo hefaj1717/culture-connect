@@ -3,19 +3,52 @@ import { LinearGradient } from 'expo-linear-gradient';
 import {
   ArrowRight,
   Bell,
+  CalendarDays,
   Flame,
+  Gift,
   Globe,
   MapPin,
   Sparkles,
   TrendingUp,
   User,
+  X,
 } from 'lucide-react-native';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { events, languageLabels } from '@/data/culture';
 
 const happeningNow = events.slice(0, 3);
+const notifications = [
+  {
+    id: 'pilot-live',
+    title: 'Leuven Pilot is live',
+    message: 'Start exploring today and earn your first XP reward.',
+    time: 'Now',
+    unread: true,
+    icon: Sparkles,
+    color: '#F59E0B',
+  },
+  {
+    id: 'dance-night',
+    title: 'Event tonight',
+    message: 'Student Dance Night starts at STUK Arts Centre.',
+    time: 'Today',
+    unread: true,
+    icon: CalendarDays,
+    color: '#24458F',
+  },
+  {
+    id: 'coffee-reward',
+    title: 'Reward nearby',
+    message: 'A cafe reward unlocks after two more check-ins.',
+    time: 'This week',
+    unread: false,
+    icon: Gift,
+    color: '#22C55E',
+  },
+];
 
 type HomeScreenProps = {
   avatarInitials?: string | null;
@@ -28,6 +61,16 @@ export default function HomeScreen({
   onOpenDiscover,
   onOpenProfile,
 }: HomeScreenProps) {
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [hasUnreadNotifications, setHasUnreadNotifications] = useState(
+    notifications.some((notification) => notification.unread),
+  );
+
+  function openNotifications() {
+    setNotificationsOpen(true);
+    setHasUnreadNotifications(false);
+  }
+
   return (
     <View className="flex-1 bg-white">
       <ScrollView
@@ -56,10 +99,17 @@ export default function HomeScreen({
                 CultureQuest
               </Text>
               <View className="flex-row items-center gap-3">
-                <View className="relative h-11 w-11 items-center justify-center rounded-full bg-white/15">
+                <Pressable
+                  onPress={openNotifications}
+                  className="relative h-11 w-11 items-center justify-center rounded-full bg-white/15 active:opacity-80"
+                  accessibilityRole="button"
+                  accessibilityLabel="Open notifications"
+                >
                   <Bell size={24} color="rgba(255,255,255,0.96)" strokeWidth={2.1} />
-                  <View className="absolute right-2.5 top-2.5 h-2.5 w-2.5 rounded-full bg-destructive" />
-                </View>
+                  {hasUnreadNotifications && (
+                    <View className="absolute right-2.5 top-2.5 h-2.5 w-2.5 rounded-full bg-destructive" />
+                  )}
+                </Pressable>
                 <Pressable
                   onPress={onOpenProfile}
                   className="h-11 w-11 items-center justify-center rounded-full bg-primary active:opacity-85"
@@ -195,6 +245,74 @@ export default function HomeScreen({
           </View>
         </View>
       </ScrollView>
+
+      <Modal
+        animationType="fade"
+        onRequestClose={() => setNotificationsOpen(false)}
+        transparent
+        visible={notificationsOpen}
+      >
+        <Pressable
+          className="flex-1 bg-black/35 px-5 pt-14"
+          onPress={() => setNotificationsOpen(false)}
+        >
+          <Pressable
+            className="rounded-2xl bg-white p-4 shadow-lg"
+            onPress={(event) => event.stopPropagation()}
+          >
+            <View className="mb-4 flex-row items-center justify-between">
+              <View>
+                <Text className="text-[19px] font-extrabold text-black">Notifications</Text>
+                <Text className="mt-0.5 text-[12px] font-medium text-muted">
+                  Updates from CultureQuest
+                </Text>
+              </View>
+              <Pressable
+                onPress={() => setNotificationsOpen(false)}
+                className="h-9 w-9 items-center justify-center rounded-full bg-gray-100 active:opacity-80"
+                accessibilityRole="button"
+                accessibilityLabel="Close notifications"
+              >
+                <X size={18} color="#5F6675" strokeWidth={2.4} />
+              </Pressable>
+            </View>
+
+            <View className="gap-3">
+              {notifications.map((notification) => {
+                const Icon = notification.icon;
+
+                return (
+                  <Pressable
+                    key={notification.id}
+                    className="flex-row gap-3 rounded-xl border border-gray-100 bg-gray-50 p-3 active:opacity-85"
+                    onPress={() => setNotificationsOpen(false)}
+                  >
+                    <View
+                      className="h-10 w-10 items-center justify-center rounded-xl"
+                      style={{ backgroundColor: `${notification.color}18` }}
+                    >
+                      <Icon size={18} color={notification.color} strokeWidth={2.4} />
+                    </View>
+                    <View className="flex-1">
+                      <View className="mb-0.5 flex-row items-center justify-between gap-2">
+                        <Text className="flex-1 text-[14px] font-bold text-black">
+                          {notification.title}
+                        </Text>
+                        <Text className="text-[11px] font-semibold text-muted">
+                          {notification.time}
+                        </Text>
+                      </View>
+                      <Text className="text-[12px] leading-4 text-muted">
+                        {notification.message}
+                      </Text>
+                    </View>
+                  </Pressable>
+                );
+              })}
+            </View>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </View>
   );
 }
