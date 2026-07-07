@@ -16,7 +16,7 @@ import {
 } from 'lucide-react-native';
 import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useEffect, useMemo, useState } from 'react';
-import Svg, { Circle, Path, Rect, Text as SvgText } from 'react-native-svg';
+import MapView, { Circle as MapCircle, Marker } from 'react-native-maps';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { type CultureCityData, getCultureCityData, languageLabels } from '@/data/culture';
@@ -89,14 +89,6 @@ export default function HomeScreen({
 
     if (venuesWithEvents.length === 0) return [];
 
-    const latitudes = venuesWithEvents.map((spot) => spot.coordinates.latitude);
-    const longitudes = venuesWithEvents.map((spot) => spot.coordinates.longitude);
-    const minLat = Math.min(...latitudes);
-    const maxLat = Math.max(...latitudes);
-    const minLon = Math.min(...longitudes);
-    const maxLon = Math.max(...longitudes);
-    const latRange = Math.max(maxLat - minLat, 0.01);
-    const lonRange = Math.max(maxLon - minLon, 0.01);
     const maxActivity = Math.max(
       ...venuesWithEvents.map((spot) => spot.attendeeCount + spot.eventCount * 35),
       1,
@@ -111,10 +103,8 @@ export default function HomeScreen({
           ...spot,
           activityScore,
           intensity,
-          x: 14 + ((spot.coordinates.longitude - minLon) / lonRange) * 72,
-          y: 18 + (1 - (spot.coordinates.latitude - minLat) / latRange) * 60,
           color: getActivityColor(intensity),
-          size: 34 + intensity * 28,
+          radius: 180 + intensity * 360,
         };
       })
       .sort((a, b) => b.activityScore - a.activityScore);
@@ -122,6 +112,26 @@ export default function HomeScreen({
   const [selectedActivityId, setSelectedActivityId] = useState<string | null>(null);
   const selectedActivitySpot =
     activitySpots.find((spot) => spot.id === selectedActivityId) ?? activitySpots[0];
+  const activityMapRegion = useMemo(() => {
+    const cityCenter =
+      activitySpots.length > 0
+        ? {
+            latitude:
+              activitySpots.reduce((total, spot) => total + spot.coordinates.latitude, 0) /
+              activitySpots.length,
+            longitude:
+              activitySpots.reduce((total, spot) => total + spot.coordinates.longitude, 0) /
+              activitySpots.length,
+          }
+        : cityData.venues[0]?.coordinates;
+
+    return {
+      latitude: cityCenter?.latitude ?? 50.879,
+      longitude: cityCenter?.longitude ?? 4.703,
+      latitudeDelta: cityData.id === 'lublin' ? 0.045 : 0.028,
+      longitudeDelta: cityData.id === 'lublin' ? 0.045 : 0.028,
+    };
+  }, [activitySpots, cityData]);
   const visibleNotifications = useMemo(() => {
     const organizerNotification =
       organizerApplicationStatus === 'approved'
@@ -268,151 +278,49 @@ export default function HomeScreen({
 
             <View className="overflow-hidden rounded-3xl border border-gray-200 bg-[#EAF0F7]">
               <View className="h-[210px]">
-                <Svg height="100%" style={StyleSheet.absoluteFillObject} viewBox="0 0 360 210">
-                  <Rect fill="#EAF0F7" height="210" width="360" x="0" y="0" />
-                  <Path
-                    d="M-18 158 C46 128 92 138 149 111 C215 80 260 82 384 38"
-                    fill="none"
-                    stroke="#B8D3EA"
-                    strokeLinecap="round"
-                    strokeWidth="24"
-                  />
-                  <Path
-                    d="M-14 158 C48 130 94 141 151 113 C217 82 262 84 382 40"
-                    fill="none"
-                    stroke="#D8ECFA"
-                    strokeLinecap="round"
-                    strokeWidth="13"
-                  />
-                  <Rect fill="#F7F9FC" height="42" rx="8" width="74" x="22" y="24" />
-                  <Rect fill="#F7F9FC" height="34" rx="8" width="86" x="118" y="18" />
-                  <Rect fill="#F7F9FC" height="46" rx="8" width="74" x="236" y="20" />
-                  <Rect fill="#F7F9FC" height="42" rx="8" width="78" x="54" y="82" />
-                  <Rect fill="#F7F9FC" height="50" rx="8" width="88" x="161" y="70" />
-                  <Rect fill="#F7F9FC" height="40" rx="8" width="68" x="274" y="92" />
-                  <Rect fill="#F7F9FC" height="44" rx="8" width="90" x="22" y="144" />
-                  <Rect fill="#F7F9FC" height="38" rx="8" width="88" x="141" y="150" />
-                  <Rect fill="#F7F9FC" height="42" rx="8" width="72" x="262" y="150" />
+                <MapView
+                  initialRegion={activityMapRegion}
+                  mapType="standard"
+                  pitchEnabled={false}
+                  rotateEnabled={false}
+                  showsBuildings
+                  showsCompass={false}
+                  showsPointsOfInterest
+                  showsScale={false}
+                  showsUserLocation={false}
+                  style={StyleSheet.absoluteFillObject}
+                  toolbarEnabled={false}
+                >
+                  {activitySpots.map((spot) => (
+                    <MapCircle
+                      center={spot.coordinates}
+                      fillColor={`${spot.color}45`}
+                      key={`${spot.id}-heat`}
+                      radius={spot.radius}
+                      strokeColor={`${spot.color}88`}
+                      strokeWidth={1}
+                    />
+                  ))}
 
-                  <Path
-                    d="M18 40 C80 57 118 62 168 54 C231 44 280 48 346 68"
-                    fill="none"
-                    stroke="#FFFFFF"
-                    strokeLinecap="round"
-                    strokeWidth="8"
-                  />
-                  <Path
-                    d="M34 185 C76 147 119 126 162 103 C217 75 263 51 326 19"
-                    fill="none"
-                    stroke="#FFFFFF"
-                    strokeLinecap="round"
-                    strokeWidth="8"
-                  />
-                  <Path
-                    d="M-8 108 C58 101 108 108 156 128 C211 151 264 154 368 132"
-                    fill="none"
-                    stroke="#FFFFFF"
-                    strokeLinecap="round"
-                    strokeWidth="8"
-                  />
-                  <Path
-                    d="M95 -5 C106 42 114 80 131 116 C151 158 176 184 206 220"
-                    fill="none"
-                    stroke="#FFFFFF"
-                    strokeLinecap="round"
-                    strokeWidth="7"
-                  />
-                  <Path
-                    d="M245 -5 C235 34 229 73 236 112 C244 154 270 184 302 218"
-                    fill="none"
-                    stroke="#FFFFFF"
-                    strokeLinecap="round"
-                    strokeWidth="7"
-                  />
-
-                  <Path
-                    d="M18 40 C80 57 118 62 168 54 C231 44 280 48 346 68"
-                    fill="none"
-                    stroke="#CBD5E1"
-                    strokeDasharray="1 14"
-                    strokeLinecap="round"
-                    strokeWidth="2"
-                  />
-                  <Path
-                    d="M34 185 C76 147 119 126 162 103 C217 75 263 51 326 19"
-                    fill="none"
-                    stroke="#CBD5E1"
-                    strokeDasharray="1 14"
-                    strokeLinecap="round"
-                    strokeWidth="2"
-                  />
-                  <Path
-                    d="M-8 108 C58 101 108 108 156 128 C211 151 264 154 368 132"
-                    fill="none"
-                    stroke="#CBD5E1"
-                    strokeDasharray="1 14"
-                    strokeLinecap="round"
-                    strokeWidth="2"
-                  />
-
-                  <Circle cx="61" cy="52" fill="#DDE7F3" r="6" />
-                  <Circle cx="294" cy="112" fill="#DDE7F3" r="5" />
-                  <Circle cx="180" cy="170" fill="#DDE7F3" r="5" />
-                  <SvgText fill="#6B7280" fontSize="10" fontWeight="700" x="26" y="83">
-                    Centre
-                  </SvgText>
-                  <SvgText fill="#6B7280" fontSize="10" fontWeight="700" x="242" y="52">
-                    Campus
-                  </SvgText>
-                  <SvgText fill="#6B7280" fontSize="10" fontWeight="700" x="228" y="184">
-                    Culture route
-                  </SvgText>
-                </Svg>
+                  {activitySpots.map((spot) => (
+                    <Marker
+                      coordinate={spot.coordinates}
+                      key={spot.id}
+                      onPress={() => setSelectedActivityId(spot.id)}
+                      tracksViewChanges={false}
+                    >
+                      <View className="h-5 w-5 items-center justify-center rounded-full border-2 border-white bg-secondary">
+                        <View className="h-1.5 w-1.5 rounded-full bg-white" />
+                      </View>
+                    </Marker>
+                  ))}
+                </MapView>
                 <View className="absolute left-5 top-5 rounded-full bg-white/80 px-3 py-1">
                   <Text className="text-[11px] font-bold text-primary">{cityData.name}</Text>
                 </View>
-
-                {activitySpots.map((spot) => (
-                  <Pressable
-                    key={spot.id}
-                    onPress={() => setSelectedActivityId(spot.id)}
-                    className="absolute items-center justify-center active:opacity-85"
-                    style={{
-                      left: `${spot.x}%`,
-                      top: `${spot.y}%`,
-                      transform: [{ translateX: -spot.size / 2 }, { translateY: -spot.size / 2 }],
-                    }}
-                    accessibilityRole="button"
-                    accessibilityLabel={`Show activity near ${spot.name}`}
-                  >
-                    <View
-                      className="items-center justify-center rounded-full"
-                      style={{
-                        width: spot.size,
-                        height: spot.size,
-                        backgroundColor: `${spot.color}30`,
-                      }}
-                    >
-                      <View
-                        className="items-center justify-center rounded-full"
-                        style={{
-                          width: spot.size * 0.68,
-                          height: spot.size * 0.68,
-                          backgroundColor: `${spot.color}66`,
-                        }}
-                      >
-                        <View
-                          className="rounded-full border-2 border-white"
-                          style={{
-                            width: spot.size * 0.34,
-                            height: spot.size * 0.34,
-                            backgroundColor: spot.color,
-                          }}
-                        />
-                      </View>
-                    </View>
-                  </Pressable>
-                ))}
+                <View className="absolute bottom-3 right-3 rounded-full bg-white/90 px-3 py-1">
+                  <Text className="text-[10px] font-bold text-muted">Live map</Text>
+                </View>
               </View>
 
               <View className="border-t border-gray-200 bg-white px-4 py-3">
