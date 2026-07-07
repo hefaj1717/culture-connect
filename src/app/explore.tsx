@@ -16,10 +16,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import {
   categoryLabels,
+  type CultureCityData,
   eventCategoryLabels,
-  events,
+  getCultureCityData,
   languageLabels,
-  venues,
 } from '@/data/culture';
 
 const audienceFilters = [
@@ -30,10 +30,15 @@ const audienceFilters = [
   { key: 'tonight', label: 'Tonight' },
 ];
 
-export default function ExploreScreen() {
+type ExploreScreenProps = {
+  cityData?: CultureCityData;
+};
+
+export default function ExploreScreen({ cityData = getCultureCityData() }: ExploreScreenProps) {
   const [search, setSearch] = useState('');
   const [tab, setTab] = useState<'events' | 'venues'>('events');
   const [audienceFilter, setAudienceFilter] = useState('all');
+  const { events, venues } = cityData;
 
   const normalizedSearch = search.trim().toLowerCase();
 
@@ -44,7 +49,7 @@ export default function ExploreScreen() {
           venue.name.toLowerCase().includes(normalizedSearch) ||
           venue.tags.some((tag) => tag.toLowerCase().includes(normalizedSearch)),
       ),
-    [normalizedSearch],
+    [normalizedSearch, venues],
   );
 
   const filteredEvents = useMemo(
@@ -69,7 +74,7 @@ export default function ExploreScreen() {
 
         return matchesSearch && matchesAudience;
       }),
-    [audienceFilter, normalizedSearch],
+    [audienceFilter, events, normalizedSearch],
   );
 
   const featuredEvent = events.find((event) => event.isFlashQuest);
@@ -83,7 +88,9 @@ export default function ExploreScreen() {
       >
         <View className="px-5 pt-4 pb-2">
           <Text className="text-[28px] font-bold tracking-tight text-black">Discover</Text>
-          <Text className="text-[14px] text-muted">Find your next adventure</Text>
+          <Text className="text-[14px] text-muted">
+            Find your next adventure in {cityData.name}
+          </Text>
         </View>
 
         <View className="px-5 mb-4">

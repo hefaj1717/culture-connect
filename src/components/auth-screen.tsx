@@ -11,6 +11,8 @@ import {
   View,
 } from 'react-native';
 
+import { CitySelector } from '@/components/city-selector';
+import { type CityId, defaultCityId } from '@/data/culture';
 import { useAuth } from '@/providers/auth-provider';
 
 type AuthScreenProps = {
@@ -26,6 +28,7 @@ export function AuthScreen({ onCancel }: AuthScreenProps) {
   const [password, setPassword] = useState('');
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
+  const [cityId, setCityId] = useState<CityId>(defaultCityId);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -65,7 +68,13 @@ export function AuthScreen({ onCancel }: AuthScreenProps) {
       return;
     }
 
-    const result = await signUp(normalizedEmail, password, normalizedFirstName, normalizedLastName);
+    const result = await signUp(
+      normalizedEmail,
+      password,
+      normalizedFirstName,
+      normalizedLastName,
+      cityId,
+    );
     setLoading(false);
 
     if (result.error) {
@@ -197,6 +206,10 @@ export function AuthScreen({ onCancel }: AuthScreenProps) {
                 returnKeyType="next"
                 className="mb-3 rounded-xl border border-gray-300 px-4 py-3 text-[15px] text-black"
               />
+              <Text className="mb-2 text-[13px] font-semibold text-black">City</Text>
+              <View className="mb-4">
+                <CitySelector value={cityId} onChange={setCityId} />
+              </View>
             </>
           ) : null}
 

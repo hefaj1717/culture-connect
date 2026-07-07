@@ -17,9 +17,8 @@ import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-nati
 import { useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { events, languageLabels } from '@/data/culture';
+import { type CultureCityData, getCultureCityData, languageLabels } from '@/data/culture';
 
-const happeningNow = events.slice(0, 3);
 const notifications = [
   {
     id: 'pilot-live',
@@ -52,15 +51,20 @@ const notifications = [
 
 type HomeScreenProps = {
   avatarInitials?: string | null;
+  avatarUrl?: string | null;
+  cityData?: CultureCityData;
   onOpenDiscover?: () => void;
   onOpenProfile?: () => void;
 };
 
 export default function HomeScreen({
   avatarInitials,
+  avatarUrl,
+  cityData = getCultureCityData(),
   onOpenDiscover,
   onOpenProfile,
 }: HomeScreenProps) {
+  const happeningNow = cityData.events.slice(0, 3);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [hasUnreadNotifications, setHasUnreadNotifications] = useState(
     notifications.some((notification) => notification.unread),
@@ -80,7 +84,7 @@ export default function HomeScreen({
       >
         <View className="h-[520px] overflow-hidden bg-[#15233A]">
           <Image
-            source={require('@/assets/images/culture/hero-culture.jpg')}
+            source={getHeroImageSource(cityData.heroImage)}
             contentFit="cover"
             style={StyleSheet.absoluteFillObject}
           />
@@ -112,9 +116,15 @@ export default function HomeScreen({
                 </Pressable>
                 <Pressable
                   onPress={onOpenProfile}
-                  className="h-11 w-11 items-center justify-center rounded-full bg-primary active:opacity-85"
+                  className="h-11 w-11 items-center justify-center overflow-hidden rounded-full bg-primary active:opacity-85"
                 >
-                  {avatarInitials ? (
+                  {avatarUrl ? (
+                    <Image
+                      source={{ uri: avatarUrl }}
+                      contentFit="cover"
+                      style={{ height: 44, width: 44 }}
+                    />
+                  ) : avatarInitials ? (
                     <Text className="text-[13px] font-extrabold text-white">{avatarInitials}</Text>
                   ) : (
                     <User size={22} color="white" strokeWidth={2.4} />
@@ -126,9 +136,7 @@ export default function HomeScreen({
             <View className="mt-10 items-center">
               <View className="flex-row items-center gap-2 rounded-full border border-white/25 bg-white/20 px-4 py-2">
                 <View className="h-2 w-2 rounded-full bg-success" />
-                <Text className="text-[12px] font-semibold text-white">
-                  Students exploring Leuven right now
-                </Text>
+                <Text className="text-[12px] font-semibold text-white">{cityData.statusText}</Text>
               </View>
             </View>
           </SafeAreaView>
@@ -138,15 +146,15 @@ export default function HomeScreen({
               className="mb-2 text-[42px] font-extrabold leading-[45px] text-white"
               style={{ fontFamily: 'Georgia' }}
             >
-              Your city.{'\n'}Your adventure.
+              {cityData.heroTitle}
             </Text>
             <Text className="mb-4 max-w-[310px] text-[15px] leading-5 text-white/75">
-              Explore Leuven&apos;s cultural scene. Earn XP. Unlock real rewards at local cafes.
+              {cityData.heroSubtitle}
             </Text>
 
             <View className="mb-4 rounded-xl bg-secondary/95 px-4 py-2.5">
               <Text className="text-center text-[13px] font-semibold text-white">
-                Leuven Pilot is LIVE - join now
+                {cityData.pilotText}
               </Text>
             </View>
 
@@ -238,10 +246,7 @@ export default function HomeScreen({
               <TrendingUp size={16} color="#3B82F6" />
               <Text className="text-[13px] font-semibold text-primary">Level up tip</Text>
             </View>
-            <Text className="text-[14px] leading-5 text-black/80">
-              Check in at 2 more venues this week to unlock the{' '}
-              <Text className="font-semibold text-black">Weekend Explorer</Text> badge.
-            </Text>
+            <Text className="text-[14px] leading-5 text-black/80">{cityData.levelTip}</Text>
           </View>
         </View>
       </ScrollView>
@@ -315,4 +320,12 @@ export default function HomeScreen({
       </Modal>
     </View>
   );
+}
+
+function getHeroImageSource(heroImage: CultureCityData['heroImage']) {
+  if (heroImage === 'lublin') {
+    return require('@/assets/images/culture/hero-lublin.jpg');
+  }
+
+  return require('@/assets/images/culture/hero-culture.jpg');
 }
