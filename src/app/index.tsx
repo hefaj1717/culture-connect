@@ -58,6 +58,7 @@ type HomeScreenProps = {
   cityData?: CultureCityData;
   organizerApplicationStatus?: OrganizerApplicationStatus;
   onOpenDiscover?: () => void;
+  onOpenEvent?: (eventId: string) => void;
   onOpenProfile?: () => void;
 };
 
@@ -67,6 +68,7 @@ export default function HomeScreen({
   cityData = getCultureCityData(),
   organizerApplicationStatus = 'none',
   onOpenDiscover,
+  onOpenEvent,
   onOpenProfile,
 }: HomeScreenProps) {
   const happeningNow = cityData.events.slice(0, 3);
@@ -81,7 +83,7 @@ export default function HomeScreen({
           address: venue.address,
           eventCount: venueEvents.length,
           attendeeCount: venueEvents.reduce((total, event) => total + event.attendeeCount, 0),
-          nextEvent: venueEvents[0]?.title,
+          nextEvent: venueEvents[0],
           coordinates: venue.coordinates,
         };
       })
@@ -325,14 +327,22 @@ export default function HomeScreen({
 
               <View className="border-t border-gray-200 bg-white px-4 py-3">
                 <View className="mb-3 flex-row items-start justify-between gap-3">
-                  <View className="min-w-0 flex-1">
+                  <Pressable
+                    onPress={() => {
+                      if (selectedActivitySpot.nextEvent) {
+                        onOpenEvent?.(selectedActivitySpot.nextEvent.id);
+                      }
+                    }}
+                    className="min-w-0 flex-1 active:opacity-70"
+                    disabled={!selectedActivitySpot.nextEvent}
+                  >
                     <Text className="text-[15px] font-bold text-black" numberOfLines={1}>
                       {selectedActivitySpot.name}
                     </Text>
                     <Text className="mt-0.5 text-[12px] text-muted" numberOfLines={1}>
-                      {selectedActivitySpot.nextEvent || 'Upcoming culture activity nearby'}
+                      {selectedActivitySpot.nextEvent?.title || 'Upcoming culture activity nearby'}
                     </Text>
-                  </View>
+                  </Pressable>
                   <View className="rounded-full bg-secondary/12 px-3 py-1.5">
                     <Text className="text-[12px] font-bold text-secondary">
                       {selectedActivitySpot.attendeeCount} people
