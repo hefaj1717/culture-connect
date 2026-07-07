@@ -3,7 +3,6 @@ import * as ImagePicker from 'expo-image-picker';
 import { Image } from 'expo-image';
 import {
   ArrowLeft,
-  Award,
   Building2,
   Camera,
   CalendarPlus,
@@ -14,10 +13,7 @@ import {
   Crown,
   Gift,
   Globe,
-  LogOut,
   MapPin,
-  Pencil,
-  Plus,
   Search,
   Sparkles,
   TicketCheck,
@@ -517,7 +513,7 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
       <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 112 }}>
         <View className="px-5 pt-4 pb-5">
           <Text className="text-[28px] font-bold tracking-tight text-black">Profile</Text>
-          <Text className="text-[14px] text-muted">Your CultureQuest progress</Text>
+          <Text className="text-[14px] text-muted">Account, rewards, and organizer tools</Text>
         </View>
 
         <View className="mx-5 mb-5 rounded-2xl border border-gray-200 bg-white p-5">
@@ -545,9 +541,8 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
               setAvatarUrl(savedAvatarUrl);
               setEditOpen(true);
             }}
-            className="mb-3 h-12 flex-row items-center justify-center gap-2 rounded-xl bg-primary active:opacity-85"
+            className="mb-3 h-12 flex-row items-center justify-center rounded-xl bg-primary active:opacity-85"
           >
-            <Pencil size={16} color="white" strokeWidth={2.4} />
             <Text className="text-[14px] font-semibold text-white">Edit profile</Text>
           </Pressable>
 
@@ -556,26 +551,25 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
           )}
 
           {organizerApplicationStatus === 'approved' && (
-            <View className="mb-5 rounded-2xl border border-primary/10 bg-primary/5 p-4">
-              <View className="mb-3 flex-row items-start gap-3">
-                <View className="h-10 w-10 items-center justify-center rounded-xl bg-primary">
-                  <CalendarPlus size={18} color="white" strokeWidth={2.4} />
-                </View>
+            <View className="mb-5 rounded-2xl border border-gray-200 bg-gray-50 p-4">
+              <View className="mb-3 flex-row items-start justify-between gap-3">
                 <View className="flex-1">
                   <Text className="text-[15px] font-extrabold text-black">Organizer tools</Text>
                   <Text className="mt-0.5 text-[12px] leading-4 text-muted">
                     Create events for {cityData.name}. Published events appear in Discover.
                   </Text>
                 </View>
+                <Text className="rounded-full bg-success/10 px-2 py-1 text-[10px] font-bold text-success">
+                  Approved
+                </Text>
               </View>
               <Pressable
                 onPress={() => {
                   resetEventForm();
                   setCreateEventOpen(true);
                 }}
-                className="h-11 flex-row items-center justify-center gap-2 rounded-xl bg-primary active:opacity-85"
+                className="h-11 flex-row items-center justify-center rounded-xl bg-primary active:opacity-85"
               >
-                <Plus size={17} color="white" strokeWidth={2.4} />
                 <Text className="text-[14px] font-semibold text-white">Create event</Text>
               </Pressable>
             </View>
@@ -588,10 +582,7 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
             </View>
             <View className="w-px bg-gray-200" />
             <View className="flex-1 items-center">
-              <View className="flex-row items-center gap-1">
-                <Text className="text-[22px] font-bold text-black">8</Text>
-                <TicketCheck size={16} color="#24458F" />
-              </View>
+              <Text className="text-[22px] font-bold text-black">8</Text>
               <Text className="text-[11px] font-medium text-muted">Events</Text>
             </View>
             <View className="w-px bg-gray-200" />
@@ -599,26 +590,25 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
               onPress={() => setBadgesOpen(true)}
               className="flex-1 items-center active:opacity-75"
             >
-              <Award size={22} color="#3B82F6" />
+              <Text className="text-[22px] font-bold text-black">3</Text>
               <Text className="text-[11px] font-medium text-muted">Badges</Text>
             </Pressable>
           </View>
 
           <Pressable
             onPress={signOut}
-            className="h-12 flex-row items-center justify-center gap-2 rounded-xl border border-gray-200 active:opacity-80"
+            className="h-12 flex-row items-center justify-center rounded-xl border border-gray-200 active:opacity-80"
           >
-            <LogOut size={17} color="#60646C" />
             <Text className="text-[14px] font-semibold text-muted">Log out</Text>
           </Pressable>
         </View>
 
         <View className="px-5">
-          <View className="mb-3 flex-row items-center gap-2">
-            <Sparkles size={16} color="#24458F" />
+          <View className="mb-3 flex-row items-center justify-between">
             <Text className="text-[11px] font-semibold uppercase tracking-wide text-muted">
               Rewards
             </Text>
+            <Text className="text-[11px] font-semibold text-primary">{cityData.name}</Text>
           </View>
 
           <View className="gap-3">
@@ -1050,76 +1040,54 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
                 <View className="mb-5">
                   <Text className="text-[28px] font-extrabold text-black">Badges</Text>
                   <Text className="mt-1 text-[13px] leading-5 text-muted">
-                    Milestones for exploring events, venues, and local rewards.
+                    Progress milestones from events, venues, and rewards.
                   </Text>
                 </View>
 
-                <View className="mb-5 flex-row rounded-2xl bg-primary/5 p-4">
+                <View className="mb-5 flex-row rounded-2xl bg-gray-100 p-4">
                   <View className="flex-1 items-center">
                     <Text className="text-[22px] font-extrabold text-black">3</Text>
                     <Text className="text-[11px] font-medium text-muted">Unlocked</Text>
                   </View>
-                  <View className="w-px bg-primary/10" />
+                  <View className="w-px bg-gray-200" />
                   <View className="flex-1 items-center">
                     <Text className="text-[22px] font-extrabold text-black">10</Text>
                     <Text className="text-[11px] font-medium text-muted">Total</Text>
                   </View>
                 </View>
 
-                <View className="gap-3">
-                  {achievementBadges.map((badge) => {
-                    const Icon = badge.icon;
-
-                    return (
+                <View className="overflow-hidden rounded-2xl border border-gray-200 bg-white">
+                  {achievementBadges.map((badge, index) => (
+                    <View
+                      key={badge.id}
+                      className={`flex-row items-start gap-3 p-4 ${
+                        index === achievementBadges.length - 1 ? '' : 'border-b border-gray-100'
+                      }`}
+                    >
                       <View
-                        key={badge.id}
-                        className={`rounded-2xl border p-4 ${
-                          badge.unlocked
-                            ? 'border-primary/15 bg-white'
-                            : 'border-gray-200 bg-gray-50'
+                        className={`mt-1 h-2.5 w-2.5 rounded-full ${
+                          badge.unlocked ? 'bg-success' : 'bg-gray-300'
                         }`}
-                      >
-                        <View className="flex-row items-start gap-3">
-                          <View
-                            className="h-12 w-12 items-center justify-center rounded-xl"
-                            style={{
-                              backgroundColor: `${badge.color}${badge.unlocked ? '22' : '14'}`,
-                            }}
+                      />
+                      <View className="min-w-0 flex-1">
+                        <View className="mb-1 flex-row items-center justify-between gap-3">
+                          <Text className="shrink text-[15px] font-bold text-black">
+                            {badge.title}
+                          </Text>
+                          <Text
+                            className={`text-[11px] font-bold ${
+                              badge.unlocked ? 'text-success' : 'text-muted'
+                            }`}
                           >
-                            <Icon
-                              size={22}
-                              color={badge.unlocked ? badge.color : '#8B909A'}
-                              strokeWidth={2.4}
-                            />
-                          </View>
-                          <View className="min-w-0 flex-1">
-                            <View className="mb-1 flex-row items-center gap-2">
-                              <Text className="shrink text-[15px] font-extrabold text-black">
-                                {badge.title}
-                              </Text>
-                              {badge.unlocked && (
-                                <View className="rounded-full bg-success/10 px-2 py-0.5">
-                                  <Text className="text-[10px] font-bold text-success">
-                                    Unlocked
-                                  </Text>
-                                </View>
-                              )}
-                            </View>
-                            <Text className="mb-2 text-[12px] leading-4 text-muted">
-                              {badge.description}
-                            </Text>
-                            <Text
-                              className={`text-[12px] font-bold ${
-                                badge.unlocked ? 'text-primary' : 'text-muted'
-                              }`}
-                            >
-                              {badge.progress}
-                            </Text>
-                          </View>
+                            {badge.unlocked ? 'Unlocked' : badge.progress}
+                          </Text>
                         </View>
+                        <Text className="text-[12px] leading-4 text-muted">
+                          {badge.description}
+                        </Text>
                       </View>
-                    );
-                  })}
+                    </View>
+                  ))}
                 </View>
               </ScrollView>
             </SafeAreaView>
