@@ -401,7 +401,11 @@ export default function ExploreScreen({
       <EventDetailModal
         checkedIn={!!(selectedEvent && confirmedCheckIns[selectedEvent.id])}
         event={selectedEvent}
-        venue={selectedEvent ? venues.find((venue) => venue.id === selectedEvent.venueId) : null}
+        venue={
+          selectedEvent
+            ? (venues.find((venue) => venue.id === selectedEvent.venueId) ?? null)
+            : null
+        }
         onCheckIn={(eventId) =>
           setConfirmedCheckIns((current) => ({
             ...current,
@@ -488,8 +492,10 @@ function EventDetailModal({
 
   if (!event) return null;
 
+  const verifiedVenue = venue ?? getEventLocationVenue(event);
+
   async function verifyVenueDistance() {
-    if (!venue) {
+    if (!verifiedVenue) {
       return { allowed: false, message: 'Venue location is missing for this event.' };
     }
 
@@ -504,20 +510,20 @@ function EventDetailModal({
     const distance = getDistanceMeters(
       position.coords.latitude,
       position.coords.longitude,
-      venue.coordinates.latitude,
-      venue.coordinates.longitude,
+      verifiedVenue.coordinates.latitude,
+      verifiedVenue.coordinates.longitude,
     );
 
     if (distance > EVENT_CHECK_IN_RADIUS_METERS) {
       return {
         allowed: false,
-        message: `You need to be within 500m of ${venue.name}. You are about ${formatDistance(distance)} away.`,
+        message: `You need to be within 500m of ${verifiedVenue.name}. You are about ${formatDistance(distance)} away.`,
       };
     }
 
     return {
       allowed: true,
-      message: `Location verified: ${formatDistance(distance)} from ${venue.name}.`,
+      message: `Location verified: ${formatDistance(distance)} from ${verifiedVenue.name}.`,
     };
   }
 
@@ -800,6 +806,28 @@ function InfoRow({ icon, label }: { icon: React.ReactNode; label: string }) {
       <Text className="flex-1 text-[13px] font-medium text-black/75">{label}</Text>
     </View>
   );
+}
+
+function getEventLocationVenue(event: CultureEvent): Venue | null {
+  if (!event.venueCoordinates) {
+    return null;
+  }
+
+  return {
+    id: event.venueId,
+    name: event.venueName,
+    category: 'cultural-centre',
+    address: event.venueAddress ?? event.venueName,
+    description: event.description,
+    hours: event.time,
+    rating: 0,
+    checkIns: 0,
+    xpReward: event.xpBonus,
+    isPartner: true,
+    tags: [],
+    color: '#24458F',
+    coordinates: event.venueCoordinates,
+  };
 }
 
 function getOrganizerImageSource(image: CultureEvent['organizerImage']) {

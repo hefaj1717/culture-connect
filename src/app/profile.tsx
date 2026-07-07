@@ -18,6 +18,7 @@ import {
   MapPin,
   Pencil,
   Plus,
+  Search,
   Sparkles,
   TicketCheck,
   Trophy,
@@ -59,6 +60,7 @@ import {
   languageLabels,
 } from '@/data/culture';
 import { createOrganizerEvent } from '@/lib/organizer-events';
+import { type PlaceSuggestion, searchPlaces } from '@/lib/place-search';
 import { useAuth } from '@/providers/auth-provider';
 
 const eventCategories: EventCategory[] = [
@@ -70,6 +72,24 @@ const eventCategories: EventCategory[] = [
   'concert',
 ];
 const eventLanguages: EventLanguage[] = ['en', 'nl', 'fr', 'pl', 'multilingual'];
+const fixedEventXp = 50;
+const monthNames = [
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
+];
+const weekdayLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+const timeHours = Array.from({ length: 24 }, (_, index) => index);
+const timeMinutes = [0, 15, 30, 45];
 
 const achievementBadges = [
   {
@@ -187,17 +207,24 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
   const [savingProfile, setSavingProfile] = useState(false);
   const [createEventOpen, setCreateEventOpen] = useState(false);
   const [eventTitle, setEventTitle] = useState('');
-  const [eventVenueId, setEventVenueId] = useState('');
+  const [placeQuery, setPlaceQuery] = useState('');
+  const [placeSuggestions, setPlaceSuggestions] = useState<PlaceSuggestion[]>([]);
+  const [selectedPlace, setSelectedPlace] = useState<PlaceSuggestion | null>(null);
+  const [searchingPlaces, setSearchingPlaces] = useState(false);
   const [eventCategory, setEventCategory] = useState<EventCategory>('workshop');
   const [eventLanguage, setEventLanguage] = useState<EventLanguage>('en');
   const [eventDate, setEventDate] = useState('');
   const [eventTime, setEventTime] = useState('');
   const [eventDescription, setEventDescription] = useState('');
-  const [eventXp, setEventXp] = useState('50');
   const [eventIsFree, setEventIsFree] = useState(true);
   const [createEventError, setCreateEventError] = useState<string | null>(null);
   const [creatingEvent, setCreatingEvent] = useState(false);
   const [badgesOpen, setBadgesOpen] = useState(false);
+  const [datePickerOpen, setDatePickerOpen] = useState(false);
+  const [timePickerOpen, setTimePickerOpen] = useState(false);
+  const [calendarMonth, setCalendarMonth] = useState(() => startOfMonth(new Date()));
+  const [selectedHour, setSelectedHour] = useState(19);
+  const [selectedMinute, setSelectedMinute] = useState(0);
 
   const email = session?.user.email ?? 'Student';
   const metadataName = [
@@ -213,8 +240,6 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
     session?.user.user_metadata?.city_id === 'lublin' ? 'lublin' : defaultCityId;
   const cityData = getCultureCityData(savedCityId);
   const savedAvatarUrl = session?.user.user_metadata?.avatar_url || null;
-  const selectedEventVenue =
-    cityData.venues.find((venue) => venue.id === eventVenueId) ?? cityData.venues[0];
   const createEventTranslateX = useSharedValue(0);
   const badgesTranslateX = useSharedValue(0);
 
@@ -281,9 +306,8 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
     setLastName(savedLastName);
     setCityId(savedCityId);
     setAvatarUrl(savedAvatarUrl);
-    setEventVenueId(cityData.venues[0]?.id || '');
     setEventLanguage(savedCityId === 'lublin' ? 'pl' : 'en');
-  }, [cityData.venues, savedAvatarUrl, savedCityId, savedFirstName, savedLastName]);
+  }, [savedAvatarUrl, savedCityId, savedFirstName, savedLastName]);
 
   useEffect(() => {
     if (session?.user.id) {
@@ -302,6 +326,37 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
       badgesTranslateX.value = 0;
     }
   }, [badgesOpen, badgesTranslateX]);
+
+  useEffect(() => {
+    let active = true;
+
+    async function loadPlaceSuggestions() {
+      if (selectedPlace && placeQuery === selectedPlace.name) {
+        setPlaceSuggestions([]);
+        setSearchingPlaces(false);
+        return;
+      }
+
+      if (placeQuery.trim().length < 2) {
+        setPlaceSuggestions([]);
+        setSearchingPlaces(false);
+        return;
+      }
+
+      setSearchingPlaces(true);
+      const suggestions = await searchPlaces(placeQuery, savedCityId);
+      if (!active) return;
+
+      setPlaceSuggestions(suggestions);
+      setSearchingPlaces(false);
+    }
+
+    loadPlaceSuggestions();
+
+    return () => {
+      active = false;
+    };
+  }, [placeQuery, savedCityId, selectedPlace]);
 
   if (!session) {
     return <AuthScreen onCancel={() => router.replace('/')} />;
@@ -357,15 +412,19 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
 
   function resetEventForm() {
     setEventTitle('');
-    setEventVenueId(cityData.venues[0]?.id || '');
+    setPlaceQuery('');
+    setPlaceSuggestions([]);
+    setSelectedPlace(null);
     setEventCategory('workshop');
     setEventLanguage(savedCityId === 'lublin' ? 'pl' : 'en');
     setEventDate('');
     setEventTime('');
     setEventDescription('');
-    setEventXp('50');
     setEventIsFree(true);
     setCreateEventError(null);
+    setCalendarMonth(startOfMonth(new Date()));
+    setSelectedHour(19);
+    setSelectedMinute(0);
   }
 
   function closeCreateEventWithAnimation() {
@@ -389,22 +448,17 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
     const normalizedDate = eventDate.trim();
     const normalizedTime = eventTime.trim();
     const normalizedDescription = eventDescription.trim();
-    const xpBonus = Number.parseInt(eventXp, 10);
 
     if (!session?.user.id) {
       setCreateEventError('Log in again before publishing an event.');
       return;
     }
-    if (!selectedEventVenue) {
-      setCreateEventError('Choose a venue for this event.');
+    if (!selectedPlace) {
+      setCreateEventError('Select a suggested place so attendance can be location-verified.');
       return;
     }
     if (!normalizedTitle || !normalizedDate || !normalizedTime || !normalizedDescription) {
       setCreateEventError('Fill in title, date, time, and description.');
-      return;
-    }
-    if (!Number.isFinite(xpBonus) || xpBonus < 0 || xpBonus > 500) {
-      setCreateEventError('XP must be a number between 0 and 500.');
       return;
     }
 
@@ -412,13 +466,12 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
     setCreatingEvent(true);
     const result = await createOrganizerEvent(session.user.id, {
       cityId: savedCityId,
-      venue: selectedEventVenue,
+      place: selectedPlace,
       title: normalizedTitle,
       description: normalizedDescription,
       category: eventCategory,
       date: normalizedDate,
       time: normalizedTime,
-      xpBonus,
       language: eventLanguage,
       isFree: eventIsFree,
     });
@@ -717,32 +770,68 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
                     className="mb-4 rounded-xl border border-gray-300 px-4 py-3 text-[15px] text-black"
                   />
 
-                  <Text className="mb-2 text-[13px] font-semibold text-black">Venue</Text>
-                  <View className="mb-4 gap-2">
-                    {cityData.venues.map((venue) => {
-                      const active = eventVenueId === venue.id;
-                      return (
-                        <Pressable
-                          key={venue.id}
-                          onPress={() => setEventVenueId(venue.id)}
-                          className={`flex-row items-center gap-3 rounded-xl border p-3 ${
-                            active ? 'border-primary bg-primary/10' : 'border-gray-200 bg-white'
-                          }`}
-                        >
-                          <View className="h-9 w-9 items-center justify-center rounded-full bg-primary/10">
-                            <MapPin size={16} color="#24458F" strokeWidth={2.4} />
-                          </View>
-                          <View className="min-w-0 flex-1">
-                            <Text className="text-[13px] font-bold text-black" numberOfLines={1}>
-                              {venue.name}
-                            </Text>
-                            <Text className="text-[11px] text-muted" numberOfLines={1}>
-                              {venue.address}
-                            </Text>
-                          </View>
-                        </Pressable>
-                      );
-                    })}
+                  <Text className="mb-2 text-[13px] font-semibold text-black">
+                    Place or address
+                  </Text>
+                  <View className="mb-4">
+                    <View className="h-12 flex-row items-center gap-3 rounded-xl border border-gray-300 px-4">
+                      <Search size={16} color="#60646C" strokeWidth={2.4} />
+                      <TextInput
+                        value={placeQuery}
+                        onChangeText={(value) => {
+                          setPlaceQuery(value);
+                          setSelectedPlace(null);
+                        }}
+                        placeholder={`Search places in ${cityData.name}`}
+                        placeholderTextColor="#8B909A"
+                        className="flex-1 text-[15px] text-black"
+                      />
+                      {searchingPlaces && <ActivityIndicator color="#24458F" size="small" />}
+                    </View>
+
+                    {selectedPlace && (
+                      <View className="mt-2 flex-row gap-3 rounded-xl border border-success/25 bg-success/10 p-3">
+                        <View className="h-9 w-9 items-center justify-center rounded-full bg-success/15">
+                          <MapPin size={16} color="#22C55E" strokeWidth={2.4} />
+                        </View>
+                        <View className="min-w-0 flex-1">
+                          <Text className="text-[13px] font-bold text-black" numberOfLines={1}>
+                            {selectedPlace.name}
+                          </Text>
+                          <Text className="text-[11px] leading-4 text-muted" numberOfLines={2}>
+                            {selectedPlace.address}
+                          </Text>
+                        </View>
+                      </View>
+                    )}
+
+                    {placeSuggestions.length > 0 && (
+                      <View className="mt-2 overflow-hidden rounded-xl border border-gray-200 bg-white">
+                        {placeSuggestions.map((place) => (
+                          <Pressable
+                            key={`${place.source}-${place.id}`}
+                            onPress={() => {
+                              setSelectedPlace(place);
+                              setPlaceQuery(place.name);
+                              setPlaceSuggestions([]);
+                            }}
+                            className="flex-row items-start gap-3 border-b border-gray-100 p-3 active:bg-gray-50"
+                          >
+                            <View className="h-9 w-9 items-center justify-center rounded-full bg-primary/10">
+                              <MapPin size={16} color="#24458F" strokeWidth={2.4} />
+                            </View>
+                            <View className="min-w-0 flex-1">
+                              <Text className="text-[13px] font-bold text-black" numberOfLines={1}>
+                                {place.name}
+                              </Text>
+                              <Text className="text-[11px] leading-4 text-muted" numberOfLines={2}>
+                                {place.address}
+                              </Text>
+                            </View>
+                          </Pressable>
+                        ))}
+                      </View>
+                    )}
                   </View>
 
                   <Text className="mb-2 text-[13px] font-semibold text-black">Category</Text>
@@ -760,23 +849,25 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
                   <View className="mb-4 flex-row gap-3">
                     <View className="flex-1">
                       <Text className="mb-2 text-[13px] font-semibold text-black">Date</Text>
-                      <TextInput
-                        value={eventDate}
-                        onChangeText={setEventDate}
-                        placeholder="Fri, Apr 12"
-                        placeholderTextColor="#8B909A"
-                        className="rounded-xl border border-gray-300 px-4 py-3 text-[15px] text-black"
-                      />
+                      <Pressable
+                        onPress={() => setDatePickerOpen(true)}
+                        className="h-12 justify-center rounded-xl border border-gray-300 px-4 active:opacity-80"
+                      >
+                        <Text className={`text-[15px] ${eventDate ? 'text-black' : 'text-muted'}`}>
+                          {eventDate || 'Choose date'}
+                        </Text>
+                      </Pressable>
                     </View>
                     <View className="flex-1">
                       <Text className="mb-2 text-[13px] font-semibold text-black">Time</Text>
-                      <TextInput
-                        value={eventTime}
-                        onChangeText={setEventTime}
-                        placeholder="19:00 - 21:00"
-                        placeholderTextColor="#8B909A"
-                        className="rounded-xl border border-gray-300 px-4 py-3 text-[15px] text-black"
-                      />
+                      <Pressable
+                        onPress={() => setTimePickerOpen(true)}
+                        className="h-12 justify-center rounded-xl border border-gray-300 px-4 active:opacity-80"
+                      >
+                        <Text className={`text-[15px] ${eventTime ? 'text-black' : 'text-muted'}`}>
+                          {eventTime || 'Choose time'}
+                        </Text>
+                      </Pressable>
                     </View>
                   </View>
 
@@ -795,14 +886,9 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
                   <View className="mb-4 flex-row gap-3">
                     <View className="flex-1">
                       <Text className="mb-2 text-[13px] font-semibold text-black">XP reward</Text>
-                      <TextInput
-                        value={eventXp}
-                        onChangeText={setEventXp}
-                        keyboardType="number-pad"
-                        placeholder="50"
-                        placeholderTextColor="#8B909A"
-                        className="rounded-xl border border-gray-300 px-4 py-3 text-[15px] text-black"
-                      />
+                      <View className="h-12 justify-center rounded-xl border border-gray-200 bg-gray-100 px-4">
+                        <Text className="text-[15px] font-bold text-black">{fixedEventXp} XP</Text>
+                      </View>
                     </View>
                     <View className="flex-1">
                       <Text className="mb-2 text-[13px] font-semibold text-black">Price</Text>
@@ -855,6 +941,30 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
           </Animated.View>
         </GestureDetector>
       </Modal>
+
+      <DatePickerModal
+        month={calendarMonth}
+        onChangeMonth={setCalendarMonth}
+        onClose={() => setDatePickerOpen(false)}
+        onSelectDate={(date) => {
+          setEventDate(formatEventDate(date));
+          setDatePickerOpen(false);
+        }}
+        visible={datePickerOpen}
+      />
+
+      <TimePickerModal
+        hour={selectedHour}
+        minute={selectedMinute}
+        onChangeHour={setSelectedHour}
+        onChangeMinute={setSelectedMinute}
+        onClose={() => setTimePickerOpen(false)}
+        onConfirm={() => {
+          setEventTime(`${formatTimeUnit(selectedHour)}:${formatTimeUnit(selectedMinute)}`);
+          setTimePickerOpen(false);
+        }}
+        visible={timePickerOpen}
+      />
 
       <Modal animationType="slide" onRequestClose={closeBadgesWithAnimation} visible={badgesOpen}>
         <GestureDetector gesture={badgesSwipeGesture}>
@@ -978,6 +1088,206 @@ function ChoicePill({
       </Text>
     </Pressable>
   );
+}
+
+function DatePickerModal({
+  month,
+  onChangeMonth,
+  onClose,
+  onSelectDate,
+  visible,
+}: {
+  month: Date;
+  onChangeMonth: (date: Date) => void;
+  onClose: () => void;
+  onSelectDate: (date: Date) => void;
+  visible: boolean;
+}) {
+  const days = getCalendarDays(month);
+
+  return (
+    <Modal animationType="fade" onRequestClose={onClose} transparent visible={visible}>
+      <Pressable className="flex-1 justify-center bg-black/35 px-5" onPress={onClose}>
+        <Pressable
+          className="rounded-2xl bg-white p-4"
+          onPress={(event) => event.stopPropagation()}
+        >
+          <View className="mb-4 flex-row items-center justify-between">
+            <Pressable
+              onPress={() => onChangeMonth(addMonths(month, -1))}
+              className="h-9 w-9 items-center justify-center rounded-full bg-gray-100"
+            >
+              <Text className="text-[20px] font-bold text-primary">‹</Text>
+            </Pressable>
+            <Text className="text-[17px] font-extrabold text-black">
+              {monthNames[month.getMonth()]} {month.getFullYear()}
+            </Text>
+            <Pressable
+              onPress={() => onChangeMonth(addMonths(month, 1))}
+              className="h-9 w-9 items-center justify-center rounded-full bg-gray-100"
+            >
+              <Text className="text-[20px] font-bold text-primary">›</Text>
+            </Pressable>
+          </View>
+
+          <View className="mb-2 flex-row">
+            {weekdayLabels.map((day) => (
+              <Text
+                className="flex-1 text-center text-[11px] font-bold uppercase text-muted"
+                key={day}
+              >
+                {day}
+              </Text>
+            ))}
+          </View>
+
+          <View className="flex-row flex-wrap">
+            {days.map((date, index) => {
+              const disabled = !date || isBeforeToday(date);
+
+              return (
+                <Pressable
+                  disabled={disabled}
+                  key={date ? date.toISOString() : `empty-${index}`}
+                  onPress={() => date && onSelectDate(date)}
+                  style={{ width: '14.2857%' }}
+                  className="aspect-square items-center justify-center p-1 disabled:opacity-35"
+                >
+                  {date && (
+                    <View className="h-9 w-9 items-center justify-center rounded-full bg-primary/10">
+                      <Text className="text-[13px] font-bold text-primary">{date.getDate()}</Text>
+                    </View>
+                  )}
+                </Pressable>
+              );
+            })}
+          </View>
+        </Pressable>
+      </Pressable>
+    </Modal>
+  );
+}
+
+function TimePickerModal({
+  hour,
+  minute,
+  onChangeHour,
+  onChangeMinute,
+  onClose,
+  onConfirm,
+  visible,
+}: {
+  hour: number;
+  minute: number;
+  onChangeHour: (hour: number) => void;
+  onChangeMinute: (minute: number) => void;
+  onClose: () => void;
+  onConfirm: () => void;
+  visible: boolean;
+}) {
+  return (
+    <Modal animationType="fade" onRequestClose={onClose} transparent visible={visible}>
+      <Pressable className="flex-1 justify-center bg-black/35 px-5" onPress={onClose}>
+        <Pressable
+          className="rounded-2xl bg-white p-4"
+          onPress={(event) => event.stopPropagation()}
+        >
+          <View className="mb-4 flex-row items-center justify-between">
+            <Text className="text-[19px] font-extrabold text-black">Choose time</Text>
+            <Text className="text-[17px] font-extrabold text-primary">
+              {formatTimeUnit(hour)}:{formatTimeUnit(minute)}
+            </Text>
+          </View>
+
+          <View className="mb-4 flex-row gap-3">
+            <ScrollView className="max-h-[220px] flex-1 rounded-xl bg-gray-100">
+              {timeHours.map((nextHour) => (
+                <Pressable
+                  key={nextHour}
+                  onPress={() => onChangeHour(nextHour)}
+                  className={`items-center py-3 ${
+                    hour === nextHour ? 'bg-primary' : 'border-b border-white'
+                  }`}
+                >
+                  <Text
+                    className={`text-[16px] font-bold ${
+                      hour === nextHour ? 'text-white' : 'text-black'
+                    }`}
+                  >
+                    {formatTimeUnit(nextHour)}
+                  </Text>
+                </Pressable>
+              ))}
+            </ScrollView>
+
+            <ScrollView className="max-h-[220px] flex-1 rounded-xl bg-gray-100">
+              {timeMinutes.map((nextMinute) => (
+                <Pressable
+                  key={nextMinute}
+                  onPress={() => onChangeMinute(nextMinute)}
+                  className={`items-center py-3 ${
+                    minute === nextMinute ? 'bg-primary' : 'border-b border-white'
+                  }`}
+                >
+                  <Text
+                    className={`text-[16px] font-bold ${
+                      minute === nextMinute ? 'text-white' : 'text-black'
+                    }`}
+                  >
+                    {formatTimeUnit(nextMinute)}
+                  </Text>
+                </Pressable>
+              ))}
+            </ScrollView>
+          </View>
+
+          <Pressable
+            onPress={onConfirm}
+            className="h-12 items-center justify-center rounded-xl bg-primary active:opacity-85"
+          >
+            <Text className="text-[14px] font-semibold text-white">Set time</Text>
+          </Pressable>
+        </Pressable>
+      </Pressable>
+    </Modal>
+  );
+}
+
+function getCalendarDays(month: Date) {
+  const firstDay = startOfMonth(month);
+  const startOffset = (firstDay.getDay() + 6) % 7;
+  const daysInMonth = new Date(firstDay.getFullYear(), firstDay.getMonth() + 1, 0).getDate();
+  const days: (Date | null)[] = Array.from({ length: startOffset }, () => null);
+
+  for (let day = 1; day <= daysInMonth; day += 1) {
+    days.push(new Date(firstDay.getFullYear(), firstDay.getMonth(), day));
+  }
+
+  return days;
+}
+
+function startOfMonth(date: Date) {
+  return new Date(date.getFullYear(), date.getMonth(), 1);
+}
+
+function addMonths(date: Date, amount: number) {
+  return new Date(date.getFullYear(), date.getMonth() + amount, 1);
+}
+
+function isBeforeToday(date: Date) {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const comparisonDate = new Date(date);
+  comparisonDate.setHours(0, 0, 0, 0);
+  return comparisonDate < today;
+}
+
+function formatEventDate(date: Date) {
+  return `${weekdayLabels[(date.getDay() + 6) % 7]}, ${monthNames[date.getMonth()].slice(0, 3)} ${date.getDate()}`;
+}
+
+function formatTimeUnit(value: number) {
+  return value.toString().padStart(2, '0');
 }
 
 function OrganizerStatusCard({ status }: { status: 'pending' | 'approved' | 'rejected' }) {

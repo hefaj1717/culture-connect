@@ -3,19 +3,19 @@ import {
   type CultureEvent,
   type EventCategory,
   type EventLanguage,
-  type Venue,
+  type VenueCategory,
 } from '@/data/culture';
+import type { PlaceSuggestion } from '@/lib/place-search';
 import { supabase } from '@/lib/supabase';
 
 export type CreateOrganizerEventInput = {
   cityId: CityId;
-  venue: Venue;
+  place: PlaceSuggestion;
   title: string;
   description: string;
   category: EventCategory;
   date: string;
   time: string;
-  xpBonus: number;
   language: EventLanguage;
   isFree: boolean;
 };
@@ -25,6 +25,9 @@ type OrganizerEventRow = {
   city_key: CityId;
   venue_key: string;
   venue_name: string;
+  venue_address: string | null;
+  venue_latitude: number | null;
+  venue_longitude: number | null;
   title: string;
   description: string;
   category: EventCategory;
@@ -43,7 +46,7 @@ export async function fetchOrganizerEvents(cityId: CityId) {
   const { data, error } = await supabase
     .from('organizer_events')
     .select(
-      'id, city_key, venue_key, venue_name, title, description, category, date_label, time_label, xp_bonus, language, is_free, is_international, attendee_count, image_kind, check_in_code',
+      'id, city_key, venue_key, venue_name, venue_address, venue_latitude, venue_longitude, title, description, category, date_label, time_label, xp_bonus, language, is_free, is_international, attendee_count, image_kind, check_in_code',
     )
     .eq('city_key', cityId)
     .eq('status', 'published')
@@ -63,18 +66,21 @@ export async function createOrganizerEvent(userId: string, input: CreateOrganize
   const { error } = await supabase.from('organizer_events').insert({
     organizer_user_id: userId,
     city_key: input.cityId,
-    venue_key: input.venue.id,
-    venue_name: input.venue.name,
+    venue_key: input.place.id,
+    venue_name: input.place.name,
+    venue_address: input.place.address,
+    venue_latitude: input.place.latitude,
+    venue_longitude: input.place.longitude,
     title: input.title,
     description: input.description,
     category: input.category,
     date_label: input.date,
     time_label: input.time,
-    xp_bonus: input.xpBonus,
+    xp_bonus: 50,
     language: input.language,
     is_free: input.isFree,
     is_international: input.language !== 'pl',
-    image_kind: getImageKind(input.venue.category),
+    image_kind: getImageKind(input.category),
     status: 'published',
   });
 
@@ -101,15 +107,23 @@ function mapOrganizerEventRow(row: OrganizerEventRow): CultureEvent {
     organizerName: 'Verified CultureQuest organizer',
     organizerImage: row.image_kind,
     checkInCode: row.check_in_code,
+    venueAddress: row.venue_address ?? undefined,
+    venueCoordinates:
+      typeof row.venue_latitude === 'number' && typeof row.venue_longitude === 'number'
+        ? {
+            latitude: row.venue_latitude,
+            longitude: row.venue_longitude,
+          }
+        : undefined,
   };
 }
 
-function getImageKind(category: Venue['category']): CultureEvent['organizerImage'] {
-  if (category === 'cafe' || category === 'bar' || category === 'shop') {
-    return 'cafe';
-  }
-  if (category === 'museum' || category === 'gallery' || category === 'landmark') {
+function getImageKind(category: VenueCategory | EventCategory): CultureEvent['organizerImage'] {
+  if (category === 'exhibition') {
     return 'museum';
+  }
+  if (category === 'workshop') {
+    return 'cafe';
   }
   return 'theater';
 }
