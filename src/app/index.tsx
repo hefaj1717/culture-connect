@@ -69,6 +69,24 @@ export default function HomeScreen({
   onOpenProfile,
 }: HomeScreenProps) {
   const happeningNow = cityData.events.slice(0, 3);
+  const activeAreas = useMemo(
+    () =>
+      cityData.venues
+        .map((venue) => {
+          const eventCount = cityData.events.filter((event) => event.venueId === venue.id).length;
+
+          return {
+            id: venue.id,
+            name: venue.name,
+            area: venue.address.split(',').slice(-2, -1)[0]?.trim() || cityData.name,
+            eventCount,
+          };
+        })
+        .filter((area) => area.eventCount > 0)
+        .sort((a, b) => b.eventCount - a.eventCount)
+        .slice(0, 3),
+    [cityData],
+  );
   const visibleNotifications = useMemo(() => {
     const organizerNotification =
       organizerApplicationStatus === 'approved'
@@ -204,29 +222,42 @@ export default function HomeScreen({
           </View>
         </View>
 
-        <View className="bg-white px-5 py-5">
-          <View className="flex-row items-center rounded-2xl border border-gray-200 bg-white p-4">
-            <View className="flex-1 items-center">
-              <Text className="text-[22px] font-bold text-black">1,860</Text>
-              <Text className="text-[11px] font-medium text-muted">Your XP</Text>
+        {activeAreas.length > 0 && (
+          <View className="bg-white px-5 py-5">
+            <View className="mb-3 flex-row items-center justify-between">
+              <Text className="text-[11px] font-semibold uppercase tracking-wide text-muted">
+                Active areas
+              </Text>
+              <Text className="text-[11px] font-semibold text-primary">{cityData.name}</Text>
             </View>
-            <View className="h-8 w-px bg-gray-200" />
-            <View className="flex-1 items-center">
-              <View className="flex-row items-center gap-1">
-                <Text className="text-[22px] font-bold text-black">12</Text>
-                <Flame size={16} color="#F59E0B" />
-              </View>
-              <Text className="text-[11px] font-medium text-muted">Day Streak</Text>
-            </View>
-            <View className="h-8 w-px bg-gray-200" />
-            <View className="flex-1 items-center">
-              <Text className="text-[22px] font-bold text-black">#14</Text>
-              <Text className="text-[11px] font-medium text-muted">Ranking</Text>
+
+            <View className="gap-2">
+              {activeAreas.map((area) => (
+                <Pressable
+                  key={area.id}
+                  onPress={onOpenDiscover}
+                  className="flex-row items-center justify-between rounded-2xl border border-gray-200 bg-white px-4 py-3 active:opacity-85"
+                >
+                  <View className="min-w-0 flex-1">
+                    <Text className="text-[14px] font-bold text-black" numberOfLines={1}>
+                      {area.name}
+                    </Text>
+                    <Text className="mt-0.5 text-[12px] text-muted" numberOfLines={1}>
+                      {area.area}
+                    </Text>
+                  </View>
+                  <View className="rounded-full bg-primary/10 px-3 py-1.5">
+                    <Text className="text-[12px] font-bold text-primary">
+                      {area.eventCount} {area.eventCount === 1 ? 'event' : 'events'}
+                    </Text>
+                  </View>
+                </Pressable>
+              ))}
             </View>
           </View>
-        </View>
+        )}
 
-        <View className="pb-8">
+        <View className="pb-8 pt-1">
           <View className="mb-4 flex-row items-center gap-1.5 px-5">
             <Flame size={14} color="#F59E0B" />
             <Text className="text-[11px] font-semibold uppercase tracking-wide text-muted">
