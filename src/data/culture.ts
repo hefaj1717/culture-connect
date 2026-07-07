@@ -64,6 +64,11 @@ export type CultureEvent = {
   organizerName: string;
   organizerImage: 'museum' | 'cafe' | 'theater';
   checkInCode: string;
+  venueAddress?: string;
+  venueCoordinates?: {
+    latitude: number;
+    longitude: number;
+  };
 };
 
 export type RewardPartner = {
