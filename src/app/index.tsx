@@ -69,24 +69,58 @@ export default function HomeScreen({
   onOpenProfile,
 }: HomeScreenProps) {
   const happeningNow = cityData.events.slice(0, 3);
-  const activeAreas = useMemo(
-    () =>
-      cityData.venues
-        .map((venue) => {
-          const eventCount = cityData.events.filter((event) => event.venueId === venue.id).length;
+  const activitySpots = useMemo(() => {
+    const venuesWithEvents = cityData.venues
+      .map((venue) => {
+        const venueEvents = cityData.events.filter((event) => event.venueId === venue.id);
 
-          return {
-            id: venue.id,
-            name: venue.name,
-            area: venue.address.split(',').slice(-2, -1)[0]?.trim() || cityData.name,
-            eventCount,
-          };
-        })
-        .filter((area) => area.eventCount > 0)
-        .sort((a, b) => b.eventCount - a.eventCount)
-        .slice(0, 3),
-    [cityData],
-  );
+        return {
+          id: venue.id,
+          name: venue.name,
+          address: venue.address,
+          eventCount: venueEvents.length,
+          attendeeCount: venueEvents.reduce((total, event) => total + event.attendeeCount, 0),
+          nextEvent: venueEvents[0]?.title,
+          coordinates: venue.coordinates,
+        };
+      })
+      .filter((spot) => spot.eventCount > 0);
+
+    if (venuesWithEvents.length === 0) return [];
+
+    const latitudes = venuesWithEvents.map((spot) => spot.coordinates.latitude);
+    const longitudes = venuesWithEvents.map((spot) => spot.coordinates.longitude);
+    const minLat = Math.min(...latitudes);
+    const maxLat = Math.max(...latitudes);
+    const minLon = Math.min(...longitudes);
+    const maxLon = Math.max(...longitudes);
+    const latRange = Math.max(maxLat - minLat, 0.01);
+    const lonRange = Math.max(maxLon - minLon, 0.01);
+    const maxActivity = Math.max(
+      ...venuesWithEvents.map((spot) => spot.attendeeCount + spot.eventCount * 35),
+      1,
+    );
+
+    return venuesWithEvents
+      .map((spot) => {
+        const activityScore = spot.attendeeCount + spot.eventCount * 35;
+        const intensity = activityScore / maxActivity;
+
+        return {
+          ...spot,
+          activityScore,
+          intensity,
+          x: 14 + ((spot.coordinates.longitude - minLon) / lonRange) * 72,
+          y: 18 + (1 - (spot.coordinates.latitude - minLat) / latRange) * 60,
+          color: getActivityColor(intensity),
+          size: 34 + intensity * 28,
+        };
+      })
+      .sort((a, b) => b.activityScore - a.activityScore);
+  }, [cityData]);
+  const [selectedActivityId, setSelectedActivityId] = useState<string | null>(null);
+  const selectedActivitySpot =
+    activitySpots.find((spot) => spot.id === selectedActivityId) ?? activitySpots[0];
   const visibleNotifications = useMemo(() => {
     const organizerNotification =
       organizerApplicationStatus === 'approved'
@@ -222,37 +256,106 @@ export default function HomeScreen({
           </View>
         </View>
 
-        {activeAreas.length > 0 && (
+        {activitySpots.length > 0 && (
           <View className="bg-white px-5 py-5">
             <View className="mb-3 flex-row items-center justify-between">
               <Text className="text-[11px] font-semibold uppercase tracking-wide text-muted">
-                Active areas
+                City activity
               </Text>
-              <Text className="text-[11px] font-semibold text-primary">{cityData.name}</Text>
+              <Text className="text-[11px] font-semibold text-primary">Now + upcoming</Text>
             </View>
 
-            <View className="gap-2">
-              {activeAreas.map((area) => (
-                <Pressable
-                  key={area.id}
-                  onPress={onOpenDiscover}
-                  className="flex-row items-center justify-between rounded-2xl border border-gray-200 bg-white px-4 py-3 active:opacity-85"
-                >
+            <View className="overflow-hidden rounded-3xl border border-gray-200 bg-[#EEF3FA]">
+              <View className="h-[210px]">
+                <LinearGradient
+                  colors={['#F8FBFF', '#EEF4FB', '#E5EDF7']}
+                  style={StyleSheet.absoluteFillObject}
+                />
+                <View className="absolute left-5 right-5 top-9 h-px bg-white" />
+                <View className="absolute left-4 right-8 top-24 h-px bg-white/80" />
+                <View className="absolute left-10 right-3 top-40 h-px bg-white/80" />
+                <View className="absolute bottom-6 left-12 top-4 w-px bg-white/90" />
+                <View className="absolute bottom-8 right-16 top-5 w-px bg-white/70" />
+                <View
+                  className="absolute left-[-30px] top-[132px] h-[34px] w-[430px] rounded-full bg-[#CBD8EA]/70"
+                  style={{ transform: [{ rotate: '-9deg' }] }}
+                />
+                <View
+                  className="absolute left-[28px] top-[62px] h-[18px] w-[320px] rounded-full bg-white/75"
+                  style={{ transform: [{ rotate: '18deg' }] }}
+                />
+                <View className="absolute left-5 top-5 rounded-full bg-white/80 px-3 py-1">
+                  <Text className="text-[11px] font-bold text-primary">{cityData.name}</Text>
+                </View>
+
+                {activitySpots.map((spot) => (
+                  <Pressable
+                    key={spot.id}
+                    onPress={() => setSelectedActivityId(spot.id)}
+                    className="absolute items-center justify-center active:opacity-85"
+                    style={{
+                      left: `${spot.x}%`,
+                      top: `${spot.y}%`,
+                      transform: [{ translateX: -spot.size / 2 }, { translateY: -spot.size / 2 }],
+                    }}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Show activity near ${spot.name}`}
+                  >
+                    <View
+                      className="items-center justify-center rounded-full"
+                      style={{
+                        width: spot.size,
+                        height: spot.size,
+                        backgroundColor: `${spot.color}30`,
+                      }}
+                    >
+                      <View
+                        className="items-center justify-center rounded-full"
+                        style={{
+                          width: spot.size * 0.68,
+                          height: spot.size * 0.68,
+                          backgroundColor: `${spot.color}66`,
+                        }}
+                      >
+                        <View
+                          className="rounded-full border-2 border-white"
+                          style={{
+                            width: spot.size * 0.34,
+                            height: spot.size * 0.34,
+                            backgroundColor: spot.color,
+                          }}
+                        />
+                      </View>
+                    </View>
+                  </Pressable>
+                ))}
+              </View>
+
+              <View className="border-t border-gray-200 bg-white px-4 py-3">
+                <View className="mb-3 flex-row items-start justify-between gap-3">
                   <View className="min-w-0 flex-1">
-                    <Text className="text-[14px] font-bold text-black" numberOfLines={1}>
-                      {area.name}
+                    <Text className="text-[15px] font-bold text-black" numberOfLines={1}>
+                      {selectedActivitySpot.name}
                     </Text>
                     <Text className="mt-0.5 text-[12px] text-muted" numberOfLines={1}>
-                      {area.area}
+                      {selectedActivitySpot.nextEvent || 'Upcoming culture activity nearby'}
                     </Text>
                   </View>
-                  <View className="rounded-full bg-primary/10 px-3 py-1.5">
-                    <Text className="text-[12px] font-bold text-primary">
-                      {area.eventCount} {area.eventCount === 1 ? 'event' : 'events'}
+                  <View className="rounded-full bg-secondary/12 px-3 py-1.5">
+                    <Text className="text-[12px] font-bold text-secondary">
+                      {selectedActivitySpot.attendeeCount} people
                     </Text>
                   </View>
+                </View>
+
+                <Pressable
+                  onPress={onOpenDiscover}
+                  className="h-10 flex-row items-center justify-center gap-2 rounded-xl bg-primary active:opacity-85"
+                >
+                  <Text className="text-[13px] font-semibold text-white">Open Discover</Text>
+                  <ArrowRight size={14} color="white" />
                 </Pressable>
-              ))}
+              </View>
             </View>
           </View>
         )}
@@ -417,4 +520,10 @@ function getEventImageSource(event: CultureCityData['events'][number]) {
   }
 
   return require('@/assets/images/culture/venue-museum.jpg');
+}
+
+function getActivityColor(intensity: number) {
+  if (intensity >= 0.78) return '#C2410C';
+  if (intensity >= 0.52) return '#F97316';
+  return '#FDBA38';
 }
