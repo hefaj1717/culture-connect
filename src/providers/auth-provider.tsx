@@ -5,6 +5,14 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from '
 import { type CityId, defaultCityId } from '@/data/culture';
 import { supabase } from '@/lib/supabase';
 
+export type OrganizerApplicationInput = {
+  institutionName: string;
+  institutionType: string;
+  websiteUrl?: string;
+  contactRole?: string;
+  note?: string;
+};
+
 type AuthContextValue = {
   session: Session | null;
   user: User | null;
@@ -16,6 +24,7 @@ type AuthContextValue = {
     firstName: string,
     lastName: string,
     cityId: CityId,
+    organizerApplication?: OrganizerApplicationInput | null,
   ) => Promise<{ error: string | null; needsConfirmation: boolean }>;
   verifySignUpCode: (email: string, token: string) => Promise<{ error: string | null }>;
   resendSignUpCode: (email: string) => Promise<{ error: string | null }>;
@@ -91,8 +100,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     firstName: string,
     lastName: string,
     cityId: CityId,
+    organizerApplication?: OrganizerApplicationInput | null,
   ) {
     const fullName = `${firstName} ${lastName}`.trim();
+    const normalizedOrganizerApplication = organizerApplication
+      ? {
+          institution_name: organizerApplication.institutionName,
+          institution_type: organizerApplication.institutionType,
+          website_url: organizerApplication.websiteUrl ?? '',
+          contact_role: organizerApplication.contactRole ?? '',
+          note: organizerApplication.note ?? '',
+        }
+      : null;
 
     const { data, error } = await supabase.auth.signUp({
       email,
@@ -103,6 +122,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           last_name: lastName,
           full_name: fullName,
           city_id: cityId,
+          requested_role: normalizedOrganizerApplication ? 'organizer_pending' : 'user',
+          organizer_application: normalizedOrganizerApplication,
         },
       },
     });
