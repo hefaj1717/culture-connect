@@ -6,12 +6,9 @@ import {
   CalendarDays,
   CheckCircle2,
   CircleAlert,
-  Flame,
   Gift,
   Globe,
-  MapPin,
   Sparkles,
-  TrendingUp,
   User,
   X,
 } from 'lucide-react-native';
@@ -119,26 +116,21 @@ export default function HomeScreen({
         contentContainerStyle={{ paddingBottom: 104 }}
         showsVerticalScrollIndicator={false}
       >
-        <View className="h-[520px] overflow-hidden bg-[#15233A]">
+        <View className="h-[390px] overflow-hidden bg-[#15233A]">
           <Image
             source={getHeroImageSource(cityData.heroImage)}
             contentFit="cover"
             style={StyleSheet.absoluteFillObject}
           />
           <LinearGradient
-            colors={['rgba(14,28,58,0.16)', 'rgba(14,28,58,0.28)', 'rgba(14,28,58,0.86)']}
-            locations={[0, 0.42, 1]}
+            colors={['rgba(10,18,34,0.18)', 'rgba(10,18,34,0.42)', 'rgba(10,18,34,0.86)']}
+            locations={[0, 0.48, 1]}
             style={StyleSheet.absoluteFillObject}
           />
 
           <SafeAreaView edges={['top']} className="absolute left-0 right-0 top-0 z-20 px-5">
             <View className="flex-row items-center justify-between pt-3">
-              <Text
-                className="text-[23px] font-extrabold text-white"
-                style={{ fontFamily: 'Georgia' }}
-              >
-                CultureQuest
-              </Text>
+              <Text className="text-[21px] font-extrabold text-white">CultureQuest</Text>
               <View className="flex-row items-center gap-3">
                 <Pressable
                   onPress={openNotifications}
@@ -170,37 +162,30 @@ export default function HomeScreen({
               </View>
             </View>
 
-            <View className="mt-10 items-center">
-              <View className="flex-row items-center gap-2 rounded-full border border-white/25 bg-white/20 px-4 py-2">
+            <View className="mt-5 items-start">
+              <View className="max-w-[280px] flex-row items-center gap-2 rounded-full border border-white/20 bg-black/20 px-3 py-1.5">
                 <View className="h-2 w-2 rounded-full bg-success" />
-                <Text className="text-[12px] font-semibold text-white">{cityData.statusText}</Text>
+                <Text className="text-[11px] font-semibold text-white/90">
+                  {cityData.statusText}
+                </Text>
               </View>
             </View>
           </SafeAreaView>
 
-          <View className="absolute bottom-0 left-0 right-0 px-6 pb-7">
-            <Text
-              className="mb-2 text-[42px] font-extrabold leading-[45px] text-white"
-              style={{ fontFamily: 'Georgia' }}
-            >
-              {cityData.heroTitle}
+          <View className="absolute bottom-0 left-0 right-0 px-5 pb-6">
+            <Text className="mb-2 text-[32px] font-extrabold leading-9 text-white">
+              This week in {cityData.name}
             </Text>
-            <Text className="mb-4 max-w-[310px] text-[15px] leading-5 text-white/75">
-              {cityData.heroSubtitle}
+            <Text className="mb-5 max-w-[320px] text-[14px] leading-5 text-white/78">
+              Events, partner venues, and rewards near your student route.
             </Text>
-
-            <View className="mb-4 rounded-xl bg-secondary/95 px-4 py-2.5">
-              <Text className="text-center text-[13px] font-semibold text-white">
-                {cityData.pilotText}
-              </Text>
-            </View>
 
             <Pressable
               onPress={onOpenDiscover}
-              className="h-[52px] flex-row items-center justify-center gap-2 rounded-xl bg-primary active:opacity-85"
+              className="h-[48px] flex-row items-center justify-center gap-2 rounded-xl bg-white active:opacity-85"
             >
-              <Text className="text-[16px] font-semibold text-white">Start Exploring</Text>
-              <ArrowRight size={17} color="white" />
+              <Text className="text-[15px] font-bold text-primary">Browse events</Text>
+              <ArrowRight size={17} color="#24458F" />
             </Pressable>
           </View>
         </View>
@@ -214,10 +199,10 @@ export default function HomeScreen({
             <View className="h-8 w-px bg-gray-200" />
             <View className="flex-1 items-center">
               <View className="flex-row items-center gap-1">
-                <Text className="text-[22px] font-bold text-black">12</Text>
-                <Flame size={16} color="#F59E0B" />
+                <Text className="text-[22px] font-bold text-black">{cityData.events.length}</Text>
+                <CalendarDays size={15} color="#24458F" />
               </View>
-              <Text className="text-[11px] font-medium text-muted">Day Streak</Text>
+              <Text className="text-[11px] font-medium text-muted">Events</Text>
             </View>
             <View className="h-8 w-px bg-gray-200" />
             <View className="flex-1 items-center">
@@ -228,11 +213,11 @@ export default function HomeScreen({
         </View>
 
         <View className="pb-8">
-          <View className="mb-4 flex-row items-center gap-1.5 px-5">
-            <Flame size={14} color="#F59E0B" />
-            <Text className="text-[11px] font-semibold uppercase tracking-wide text-muted">
-              Happening Now
-            </Text>
+          <View className="mb-4 flex-row items-center justify-between px-5">
+            <Text className="text-[18px] font-extrabold text-black">Happening soon</Text>
+            <Pressable onPress={onOpenDiscover} className="active:opacity-70">
+              <Text className="text-[12px] font-bold text-primary">See all</Text>
+            </Pressable>
           </View>
 
           <ScrollView
@@ -243,34 +228,42 @@ export default function HomeScreen({
             {happeningNow.map((event) => (
               <Pressable
                 onPress={onOpenDiscover}
-                className="w-[178px] rounded-2xl border border-gray-200 bg-white p-4 active:opacity-85"
+                className="w-[220px] overflow-hidden rounded-2xl border border-gray-200 bg-white active:opacity-85"
                 key={event.id}
               >
-                <View className="mb-3 h-10 w-10 items-center justify-center rounded-xl bg-primary/15">
-                  <MapPin size={16} color="#24458F" />
+                <View className="h-[112px] bg-gray-200">
+                  <Image
+                    source={getEventImageSource(event)}
+                    contentFit="cover"
+                    style={StyleSheet.absoluteFillObject}
+                  />
                 </View>
-                <Text className="mb-0.5 text-[14px] font-semibold text-black" numberOfLines={2}>
-                  {event.title}
-                </Text>
-                <Text className="mb-2 text-[12px] text-muted" numberOfLines={1}>
-                  {event.venueName}
-                </Text>
-                <View className="flex-row flex-wrap items-center gap-2">
-                  <View className="flex-row items-center gap-0.5">
-                    <Sparkles size={12} color="#22C55E" />
-                    <Text className="text-[12px] font-bold text-success">+{event.xpBonus} XP</Text>
-                  </View>
-                  {event.isFree && (
-                    <View className="rounded-full bg-success/10 px-1.5 py-0.5">
-                      <Text className="text-[10px] font-bold text-success">Free</Text>
-                    </View>
-                  )}
-                </View>
-                <View className="mt-1.5 flex-row items-center gap-1">
-                  <Globe size={12} color="#24458F" />
-                  <Text className="text-[11px] font-medium text-primary">
-                    {languageLabels[event.language]}
+                <View className="p-3">
+                  <Text className="mb-1 text-[14px] font-bold text-black" numberOfLines={2}>
+                    {event.title}
                   </Text>
+                  <Text className="mb-2 text-[12px] text-muted" numberOfLines={1}>
+                    {event.date} · {event.venueName}
+                  </Text>
+                  <View className="flex-row flex-wrap items-center gap-2">
+                    <View className="flex-row items-center gap-0.5">
+                      <Sparkles size={12} color="#22C55E" />
+                      <Text className="text-[12px] font-bold text-success">
+                        +{event.xpBonus} XP
+                      </Text>
+                    </View>
+                    {event.isFree && (
+                      <View className="rounded-full bg-success/10 px-1.5 py-0.5">
+                        <Text className="text-[10px] font-bold text-success">Free</Text>
+                      </View>
+                    )}
+                    <View className="flex-row items-center gap-1">
+                      <Globe size={12} color="#60646C" />
+                      <Text className="text-[11px] font-medium text-muted">
+                        {languageLabels[event.language]}
+                      </Text>
+                    </View>
+                  </View>
                 </View>
               </Pressable>
             ))}
@@ -278,12 +271,9 @@ export default function HomeScreen({
         </View>
 
         <View className="px-5">
-          <View className="rounded-2xl border border-primary/10 bg-primary/5 p-5">
-            <View className="mb-2 flex-row items-center gap-2">
-              <TrendingUp size={16} color="#3B82F6" />
-              <Text className="text-[13px] font-semibold text-primary">Level up tip</Text>
-            </View>
-            <Text className="text-[14px] leading-5 text-black/80">{cityData.levelTip}</Text>
+          <View className="rounded-2xl border border-gray-200 bg-gray-50 p-4">
+            <Text className="mb-1 text-[13px] font-bold text-black">Next reward</Text>
+            <Text className="text-[13px] leading-5 text-muted">{cityData.levelTip}</Text>
           </View>
         </View>
       </ScrollView>
@@ -365,4 +355,18 @@ function getHeroImageSource(heroImage: CultureCityData['heroImage']) {
   }
 
   return require('@/assets/images/culture/hero-culture.jpg');
+}
+
+function getEventImageSource(event: CultureCityData['events'][number]) {
+  if (event.imageUrl) {
+    return { uri: event.imageUrl };
+  }
+  if (event.organizerImage === 'cafe') {
+    return require('@/assets/images/culture/venue-cafe.jpg');
+  }
+  if (event.organizerImage === 'theater') {
+    return require('@/assets/images/culture/venue-theater.jpg');
+  }
+
+  return require('@/assets/images/culture/venue-museum.jpg');
 }
