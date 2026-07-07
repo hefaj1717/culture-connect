@@ -1,5 +1,6 @@
 import { CameraView, useCameraPermissions, type BarcodeScanningResult } from 'expo-camera';
 import { Image } from 'expo-image';
+import * as Location from 'expo-location';
 import {
   ArrowLeft,
   BellRing,
@@ -41,6 +42,7 @@ import {
   categoryLabels,
   type CultureEvent,
   type CultureCityData,
+  type Venue,
   eventCategoryLabels,
   getCultureCityData,
   languageLabels,
@@ -53,6 +55,7 @@ const audienceFilters = [
   { key: 'free', label: 'Free' },
   { key: 'tonight', label: 'Tonight' },
 ];
+const EVENT_CHECK_IN_RADIUS_METERS = 500;
 
 type ExploreScreenProps = {
   cityData?: CultureCityData;
@@ -363,6 +366,7 @@ export default function ExploreScreen({ cityData = getCultureCityData() }: Explo
       <EventDetailModal
         checkedIn={!!(selectedEvent && confirmedCheckIns[selectedEvent.id])}
         event={selectedEvent}
+        venue={selectedEvent ? venues.find((venue) => venue.id === selectedEvent.venueId) : null}
         onCheckIn={(eventId) =>
           setConfirmedCheckIns((current) => ({
             ...current,
@@ -385,6 +389,7 @@ export default function ExploreScreen({ cityData = getCultureCityData() }: Explo
 function EventDetailModal({
   checkedIn,
   event,
+  venue,
   onCheckIn,
   onClose,
   onSetStatus,
@@ -392,6 +397,7 @@ function EventDetailModal({
 }: {
   checkedIn: boolean;
   event: CultureEvent | null;
+  venue?: Venue | null;
   onCheckIn: (eventId: string) => void;
   onClose: () => void;
   onSetStatus: (eventId: string, status: 'interested' | 'going') => void;
@@ -401,6 +407,8 @@ function EventDetailModal({
   const [scannerOpen, setScannerOpen] = useState(false);
   const [scanLocked, setScanLocked] = useState(false);
   const [scanMessage, setScanMessage] = useState<string | null>(null);
+  const [locationMessage, setLocationMessage] = useState<string | null>(null);
+  const [checkingLocation, setCheckingLocation] = useState(false);
   const [permission, requestPermission] = useCameraPermissions();
   const translateX = useSharedValue(0);
 
@@ -445,20 +453,72 @@ function EventDetailModal({
 
   if (!event) return null;
 
-  function openScanner() {
+  async function verifyVenueDistance() {
+    if (!venue) {
+      return { allowed: false, message: 'Venue location is missing for this event.' };
+    }
+
+    const permissionResult = await Location.requestForegroundPermissionsAsync();
+    if (permissionResult.status !== 'granted') {
+      return { allowed: false, message: 'Location permission is needed to verify attendance.' };
+    }
+
+    const position = await Location.getCurrentPositionAsync({
+      accuracy: Location.Accuracy.Balanced,
+    });
+    const distance = getDistanceMeters(
+      position.coords.latitude,
+      position.coords.longitude,
+      venue.coordinates.latitude,
+      venue.coordinates.longitude,
+    );
+
+    if (distance > EVENT_CHECK_IN_RADIUS_METERS) {
+      return {
+        allowed: false,
+        message: `You need to be within 500m of ${venue.name}. You are about ${formatDistance(distance)} away.`,
+      };
+    }
+
+    return {
+      allowed: true,
+      message: `Location verified: ${formatDistance(distance)} from ${venue.name}.`,
+    };
+  }
+
+  async function openScanner() {
+    setCheckingLocation(true);
+    setLocationMessage(null);
+    const result = await verifyVenueDistance();
+    setCheckingLocation(false);
+
+    if (!result.allowed) {
+      setLocationMessage(result.message);
+      return;
+    }
+
+    setLocationMessage(result.message);
     setScanLocked(false);
     setScanMessage(null);
     setScannerOpen(true);
   }
 
-  function handleBarcodeScanned(result: BarcodeScanningResult) {
+  async function handleBarcodeScanned(result: BarcodeScanningResult) {
     if (scanLocked || !event) return;
 
     setScanLocked(true);
+    const locationResult = await verifyVenueDistance();
+    if (!locationResult.allowed) {
+      setScanMessage(locationResult.message);
+      setTimeout(() => setScanLocked(false), 1400);
+      return;
+    }
+
     if (result.data === event.checkInCode) {
       onCheckIn(event.id);
       setScannerOpen(false);
       setScanMessage(null);
+      setLocationMessage('Attendance verified by QR code and venue location.');
       return;
     }
 
@@ -588,13 +648,23 @@ function EventDetailModal({
                     </Text>
                   </View>
                 ) : (
-                  <Pressable
-                    onPress={openScanner}
-                    className="h-[52px] flex-row items-center justify-center gap-2 rounded-xl bg-primary active:opacity-85"
-                  >
-                    <QrCode size={19} color="white" strokeWidth={2.4} />
-                    <Text className="text-[15px] font-semibold text-white">Scan event QR</Text>
-                  </Pressable>
+                  <>
+                    {locationMessage && (
+                      <View className="mb-3 rounded-xl bg-gray-100 p-3">
+                        <Text className="text-[12px] leading-4 text-muted">{locationMessage}</Text>
+                      </View>
+                    )}
+                    <Pressable
+                      onPress={openScanner}
+                      disabled={checkingLocation}
+                      className="h-[52px] flex-row items-center justify-center gap-2 rounded-xl bg-primary active:opacity-85 disabled:opacity-60"
+                    >
+                      <QrCode size={19} color="white" strokeWidth={2.4} />
+                      <Text className="text-[15px] font-semibold text-white">
+                        {checkingLocation ? 'Checking location...' : 'Scan event QR'}
+                      </Text>
+                    </Pressable>
+                  </>
                 )}
               </View>
             </ScrollView>
@@ -706,4 +776,35 @@ function getOrganizerImageSource(image: CultureEvent['organizerImage']) {
   }
 
   return require('@/assets/images/culture/venue-museum.jpg');
+}
+
+function getDistanceMeters(
+  latitudeA: number,
+  longitudeA: number,
+  latitudeB: number,
+  longitudeB: number,
+) {
+  const earthRadiusMeters = 6371000;
+  const latARadians = toRadians(latitudeA);
+  const latBRadians = toRadians(latitudeB);
+  const latDelta = toRadians(latitudeB - latitudeA);
+  const lonDelta = toRadians(longitudeB - longitudeA);
+  const haversine =
+    Math.sin(latDelta / 2) * Math.sin(latDelta / 2) +
+    Math.cos(latARadians) * Math.cos(latBRadians) * Math.sin(lonDelta / 2) * Math.sin(lonDelta / 2);
+  const centralAngle = 2 * Math.atan2(Math.sqrt(haversine), Math.sqrt(1 - haversine));
+
+  return earthRadiusMeters * centralAngle;
+}
+
+function toRadians(value: number) {
+  return (value * Math.PI) / 180;
+}
+
+function formatDistance(distanceMeters: number) {
+  if (distanceMeters < 1000) {
+    return `${Math.round(distanceMeters)}m`;
+  }
+
+  return `${(distanceMeters / 1000).toFixed(1)}km`;
 }
