@@ -1,7 +1,18 @@
 import { useRouter } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import { Image } from 'expo-image';
-import { Award, Camera, Flame, Gift, LogOut, Pencil, Sparkles, User, X } from 'lucide-react-native';
+import {
+  Award,
+  Building2,
+  Camera,
+  Flame,
+  Gift,
+  LogOut,
+  Pencil,
+  Sparkles,
+  User,
+  X,
+} from 'lucide-react-native';
 import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
@@ -47,6 +58,8 @@ export default function ProfileScreen() {
     session?.user.user_metadata?.city_id === 'lublin' ? 'lublin' : defaultCityId;
   const cityData = getCultureCityData(savedCityId);
   const savedAvatarUrl = session?.user.user_metadata?.avatar_url || null;
+  const hasPendingOrganizerApplication =
+    session?.user.user_metadata?.requested_role === 'organizer_pending';
 
   useEffect(() => {
     setFirstName(savedFirstName);
@@ -145,6 +158,22 @@ export default function ProfileScreen() {
             <Pencil size={16} color="white" strokeWidth={2.4} />
             <Text className="text-[14px] font-semibold text-white">Edit profile</Text>
           </Pressable>
+
+          {hasPendingOrganizerApplication && (
+            <View className="mb-3 flex-row gap-3 rounded-xl border border-secondary/20 bg-secondary/10 p-3">
+              <View className="h-9 w-9 items-center justify-center rounded-full bg-secondary/20">
+                <Building2 size={17} color="#F59E0B" strokeWidth={2.4} />
+              </View>
+              <View className="flex-1">
+                <Text className="text-[13px] font-bold text-black">
+                  Organizer application pending
+                </Text>
+                <Text className="mt-0.5 text-[12px] leading-4 text-muted">
+                  CultureQuest admin must approve the institution before event creation is enabled.
+                </Text>
+              </View>
+            </View>
+          )}
 
           <View className="mb-5 flex-row rounded-2xl bg-gray-100 p-4">
             <View className="flex-1 items-center">

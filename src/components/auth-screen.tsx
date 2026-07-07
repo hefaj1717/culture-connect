@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Building2, Check } from 'lucide-react-native';
 import {
   ActivityIndicator,
   Keyboard,
@@ -19,6 +20,13 @@ type AuthScreenProps = {
   onCancel?: () => void;
 };
 
+const organizerTypes = [
+  { key: 'cultural_institution', label: 'Cultural institution' },
+  { key: 'cafe_or_business', label: 'Cafe / business' },
+  { key: 'student_organization', label: 'Student organization' },
+  { key: 'city_partner', label: 'City partner' },
+];
+
 export function AuthScreen({ onCancel }: AuthScreenProps) {
   const { signIn, signUp, verifySignUpCode, resendSignUpCode } = useAuth();
   const [mode, setMode] = useState<'signIn' | 'signUp' | 'confirmSignUp'>('signIn');
@@ -29,6 +37,12 @@ export function AuthScreen({ onCancel }: AuthScreenProps) {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [cityId, setCityId] = useState<CityId>(defaultCityId);
+  const [applyAsOrganizer, setApplyAsOrganizer] = useState(false);
+  const [institutionName, setInstitutionName] = useState('');
+  const [institutionType, setInstitutionType] = useState(organizerTypes[0].key);
+  const [websiteUrl, setWebsiteUrl] = useState('');
+  const [contactRole, setContactRole] = useState('');
+  const [organizerNote, setOrganizerNote] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -55,6 +69,11 @@ export function AuthScreen({ onCancel }: AuthScreenProps) {
       return;
     }
 
+    if (mode === 'signUp' && applyAsOrganizer && !institutionName.trim()) {
+      setError('Please enter the institution or business name.');
+      return;
+    }
+
     Keyboard.dismiss();
     setLoading(true);
 
@@ -74,6 +93,15 @@ export function AuthScreen({ onCancel }: AuthScreenProps) {
       normalizedFirstName,
       normalizedLastName,
       cityId,
+      applyAsOrganizer
+        ? {
+            institutionName: institutionName.trim(),
+            institutionType,
+            websiteUrl: websiteUrl.trim(),
+            contactRole: contactRole.trim(),
+            note: organizerNote.trim(),
+          }
+        : null,
     );
     setLoading(false);
 
@@ -89,7 +117,11 @@ export function AuthScreen({ onCancel }: AuthScreenProps) {
       return;
     }
 
-    setNotice('Account created. You are now logged in.');
+    setNotice(
+      applyAsOrganizer
+        ? 'Account created. Your organizer application is pending review.'
+        : 'Account created. You are now logged in.',
+    );
   }
 
   async function handleConfirmCode() {
@@ -210,6 +242,101 @@ export function AuthScreen({ onCancel }: AuthScreenProps) {
               <View className="mb-4">
                 <CitySelector value={cityId} onChange={setCityId} />
               </View>
+
+              <Pressable
+                onPress={() => setApplyAsOrganizer((current) => !current)}
+                className={`mb-4 flex-row items-center gap-3 rounded-xl border p-4 active:opacity-85 ${
+                  applyAsOrganizer ? 'border-primary bg-primary/10' : 'border-gray-300 bg-white'
+                }`}
+              >
+                <View
+                  className={`h-7 w-7 items-center justify-center rounded-full ${
+                    applyAsOrganizer ? 'bg-primary' : 'bg-gray-200'
+                  }`}
+                >
+                  {applyAsOrganizer ? (
+                    <Check size={16} color="white" strokeWidth={2.7} />
+                  ) : (
+                    <Building2 size={15} color="#5F6675" strokeWidth={2.4} />
+                  )}
+                </View>
+                <View className="flex-1">
+                  <Text className="text-[14px] font-bold text-black">Apply as an organizer</Text>
+                  <Text className="mt-0.5 text-[12px] leading-4 text-muted">
+                    For institutions, cafes, student groups, and city partners. Approval is
+                    required.
+                  </Text>
+                </View>
+              </Pressable>
+
+              {applyAsOrganizer && (
+                <View className="mb-4 rounded-2xl border border-primary/10 bg-primary/5 p-4">
+                  <Text className="mb-3 text-[13px] font-semibold text-black">
+                    Organizer application
+                  </Text>
+                  <TextInput
+                    value={institutionName}
+                    onChangeText={setInstitutionName}
+                    placeholder="Institution or business name"
+                    placeholderTextColor="#8B909A"
+                    autoCapitalize="words"
+                    returnKeyType="next"
+                    className="mb-3 rounded-xl border border-gray-300 bg-white px-4 py-3 text-[15px] text-black"
+                  />
+                  <Text className="mb-2 text-[12px] font-semibold text-black">Type</Text>
+                  <View className="mb-3 gap-2">
+                    {organizerTypes.map((type) => {
+                      const active = institutionType === type.key;
+
+                      return (
+                        <Pressable
+                          key={type.key}
+                          onPress={() => setInstitutionType(type.key)}
+                          className={`rounded-xl border px-3 py-2 active:opacity-85 ${
+                            active ? 'border-primary bg-white' : 'border-gray-200 bg-white/70'
+                          }`}
+                        >
+                          <Text
+                            className={`text-[13px] font-semibold ${
+                              active ? 'text-primary' : 'text-muted'
+                            }`}
+                          >
+                            {type.label}
+                          </Text>
+                        </Pressable>
+                      );
+                    })}
+                  </View>
+                  <TextInput
+                    value={websiteUrl}
+                    onChangeText={setWebsiteUrl}
+                    placeholder="Website or social link"
+                    placeholderTextColor="#8B909A"
+                    autoCapitalize="none"
+                    keyboardType="url"
+                    returnKeyType="next"
+                    className="mb-3 rounded-xl border border-gray-300 bg-white px-4 py-3 text-[15px] text-black"
+                  />
+                  <TextInput
+                    value={contactRole}
+                    onChangeText={setContactRole}
+                    placeholder="Your role, e.g. event manager"
+                    placeholderTextColor="#8B909A"
+                    autoCapitalize="sentences"
+                    returnKeyType="next"
+                    className="mb-3 rounded-xl border border-gray-300 bg-white px-4 py-3 text-[15px] text-black"
+                  />
+                  <TextInput
+                    value={organizerNote}
+                    onChangeText={setOrganizerNote}
+                    placeholder="Short note for CultureQuest admin"
+                    placeholderTextColor="#8B909A"
+                    multiline
+                    textAlignVertical="top"
+                    className="min-h-[86px] rounded-xl border border-gray-300 bg-white px-4 py-3 text-[15px] text-black"
+                  />
+                </View>
+              )}
             </>
           ) : null}
 
