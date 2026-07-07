@@ -4,7 +4,6 @@ import * as Location from 'expo-location';
 import {
   ArrowLeft,
   BellRing,
-  Calendar,
   CheckCircle2,
   ChevronRight,
   Clock,
@@ -144,9 +143,7 @@ export default function ExploreScreen({
       >
         <View className="px-5 pt-4 pb-2">
           <Text className="text-[28px] font-bold tracking-tight text-black">Discover</Text>
-          <Text className="text-[14px] text-muted">
-            Find your next adventure in {cityData.name}
-          </Text>
+          <Text className="text-[14px] text-muted">Events and places around {cityData.name}</Text>
         </View>
 
         <View className="px-5 mb-4">
@@ -219,57 +216,59 @@ export default function ExploreScreen({
 
                 <Pressable
                   onPress={() => setSelectedEvent(featuredEvent)}
-                  className="overflow-hidden rounded-2xl border border-gray-200 bg-gray-100 p-5 active:opacity-90"
+                  className="overflow-hidden rounded-2xl border border-gray-200 bg-white active:opacity-90"
                 >
-                  <View className="mb-2 flex-row flex-wrap items-center gap-2">
-                    <View className="rounded-full bg-secondary px-2.5 py-1">
-                      <Text className="text-[11px] font-bold text-white">Flash Quest</Text>
+                  <View className="h-[170px] bg-gray-200">
+                    <Image
+                      source={getEventImageSource(featuredEvent)}
+                      contentFit="cover"
+                      style={StyleSheet.absoluteFillObject}
+                    />
+                    <View className="absolute left-3 top-3 rounded-full bg-black/55 px-2.5 py-1">
+                      <Text className="text-[11px] font-bold text-white">Live quest</Text>
                     </View>
-                    <View className="rounded-full border border-gray-200 px-2 py-0.5">
-                      <Text className="text-[11px] font-medium text-muted">
-                        {eventCategoryLabels[featuredEvent.category]}
-                      </Text>
-                    </View>
-                    <View className="flex-row items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5">
-                      <Globe size={12} color="#3B82F6" />
-                      <Text className="text-[11px] font-medium text-primary">
-                        {languageLabels[featuredEvent.language]}
-                      </Text>
-                    </View>
-                    {featuredEvent.isFree && (
-                      <View className="rounded-full bg-success/10 px-2 py-0.5">
-                        <Text className="text-[11px] font-bold text-success">Free</Text>
-                      </View>
-                    )}
                   </View>
 
-                  <Text className="mb-1 text-[18px] font-bold text-black">
-                    {featuredEvent.title}
-                  </Text>
-                  <Text className="mb-3 text-[13px] leading-5 text-muted" numberOfLines={2}>
-                    {featuredEvent.description}
-                  </Text>
-                  <View className="mb-4 flex-row flex-wrap items-center gap-4">
-                    <Text className="text-[13px] text-muted">{featuredEvent.date}</Text>
-                    <View className="flex-row items-center gap-1">
-                      <Sparkles size={13} color="#22C55E" />
-                      <Text className="text-[13px] font-bold text-success">
-                        +{featuredEvent.xpBonus} XP
-                      </Text>
+                  <View className="p-4">
+                    <View className="mb-2 flex-row flex-wrap items-center gap-2">
+                      <View className="rounded-full bg-gray-100 px-2 py-0.5">
+                        <Text className="text-[11px] font-semibold text-muted">
+                          {eventCategoryLabels[featuredEvent.category]}
+                        </Text>
+                      </View>
+                      {featuredEvent.isFree && (
+                        <View className="rounded-full bg-success/10 px-2 py-0.5">
+                          <Text className="text-[11px] font-bold text-success">Free</Text>
+                        </View>
+                      )}
+                      {!!featuredEvent.spotsLeft && (
+                        <Text className="text-[11px] font-bold text-secondary">
+                          {featuredEvent.spotsLeft} spots left
+                        </Text>
+                      )}
                     </View>
-                    {!!featuredEvent.spotsLeft && (
-                      <Text className="text-[13px] font-bold text-secondary">
-                        {featuredEvent.spotsLeft} spots
-                      </Text>
-                    )}
+
+                    <Text className="mb-1 text-[18px] font-bold text-black">
+                      {featuredEvent.title}
+                    </Text>
+                    <Text className="mb-3 text-[13px] leading-5 text-muted" numberOfLines={2}>
+                      {featuredEvent.description}
+                    </Text>
+                    <View className="flex-row flex-wrap items-center gap-3">
+                      <View className="flex-row items-center gap-1">
+                        <Clock size={13} color="#60646C" />
+                        <Text className="text-[12px] text-muted">
+                          {featuredEvent.date}, {featuredEvent.time}
+                        </Text>
+                      </View>
+                      <View className="flex-row items-center gap-1">
+                        <MapPin size={13} color="#60646C" />
+                        <Text className="text-[12px] text-muted" numberOfLines={1}>
+                          {featuredEvent.venueName}
+                        </Text>
+                      </View>
+                    </View>
                   </View>
-                  <Pressable
-                    onPress={() => setSelectedEvent(featuredEvent)}
-                    className="h-11 flex-row items-center justify-center gap-2 rounded-xl bg-primary active:opacity-80"
-                  >
-                    <CheckCircle2 size={16} color="white" />
-                    <Text className="text-[14px] font-semibold text-white">Open Event</Text>
-                  </Pressable>
                 </Pressable>
               </View>
             )}
@@ -304,47 +303,46 @@ export default function ExploreScreen({
                     <Pressable
                       key={event.id}
                       onPress={() => setSelectedEvent(event)}
-                      className="flex-row items-start gap-3 rounded-2xl border border-gray-200 bg-white p-4"
+                      className="flex-row items-start gap-3 rounded-2xl border border-gray-200 bg-white p-3"
                     >
-                      <View className="h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-primary/10">
-                        <Calendar size={22} color="#3B82F6" />
+                      <View className="h-[86px] w-[86px] shrink-0 overflow-hidden rounded-xl bg-gray-200">
+                        <Image
+                          source={getEventImageSource(event)}
+                          contentFit="cover"
+                          style={StyleSheet.absoluteFillObject}
+                        />
                       </View>
                       <View className="min-w-0 flex-1">
-                        <Text
-                          className="mb-0.5 text-[15px] font-semibold text-black"
-                          numberOfLines={2}
-                        >
+                        <View className="mb-1 flex-row items-center gap-2">
+                          <Text className="text-[11px] font-semibold uppercase text-muted">
+                            {event.date}
+                          </Text>
+                          {event.isFree && (
+                            <Text className="text-[11px] font-bold text-success">Free</Text>
+                          )}
+                        </View>
+                        <Text className="mb-1 text-[15px] font-bold text-black" numberOfLines={2}>
                           {event.title}
                         </Text>
-                        <Text className="mb-1.5 text-[13px] text-muted">{event.venueName}</Text>
-                        <View className="flex-row flex-wrap items-center gap-2">
+                        <Text className="mb-2 text-[12px] text-muted" numberOfLines={1}>
+                          {event.venueName}
+                        </Text>
+                        <View className="flex-row flex-wrap items-center gap-2.5">
                           <View className="flex-row items-center gap-1">
                             <Clock size={12} color="#60646C" />
                             <Text className="text-[12px] text-muted">{event.time}</Text>
                           </View>
-                          <Text className="text-[12px] font-bold text-success">
-                            +{event.xpBonus} XP
-                          </Text>
                           {event.isInternational && (
                             <View className="flex-row items-center gap-0.5">
-                              <Globe size={12} color="#3B82F6" />
-                              <Text className="text-[12px] font-medium text-primary">
+                              <Globe size={12} color="#60646C" />
+                              <Text className="text-[12px] font-medium text-muted">
                                 {languageLabels[event.language]}
                               </Text>
                             </View>
                           )}
-                          {event.isFree && (
-                            <Text className="text-[12px] font-bold text-success">Free</Text>
-                          )}
                         </View>
                       </View>
-                      <Pressable
-                        onPress={() => setSelectedEvent(event)}
-                        className="h-9 flex-row items-center justify-center gap-1 rounded-full bg-primary/10 px-3 active:opacity-80"
-                      >
-                        <CheckCircle2 size={14} color="#3B82F6" />
-                        <Text className="text-[12px] font-semibold text-primary">Open</Text>
-                      </Pressable>
+                      <ChevronRight size={18} color="#8B909A" />
                     </Pressable>
                   ))}
                 </View>
@@ -579,11 +577,7 @@ function EventDetailModal({
             >
               <View className="relative h-[260px] bg-gray-200">
                 <Image
-                  source={
-                    event.imageUrl
-                      ? { uri: event.imageUrl }
-                      : getOrganizerImageSource(event.organizerImage)
-                  }
+                  source={getEventImageSource(event)}
                   contentFit="cover"
                   style={StyleSheet.absoluteFillObject}
                 />
@@ -810,6 +804,14 @@ function InfoRow({ icon, label }: { icon: React.ReactNode; label: string }) {
       <Text className="flex-1 text-[13px] font-medium text-black/75">{label}</Text>
     </View>
   );
+}
+
+function getEventImageSource(event: CultureEvent) {
+  if (event.imageUrl) {
+    return { uri: event.imageUrl };
+  }
+
+  return getOrganizerImageSource(event.organizerImage);
 }
 
 function getEventLocationVenue(event: CultureEvent): Venue | null {
