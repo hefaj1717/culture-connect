@@ -1,3 +1,4 @@
+import { StatusBar } from 'expo-status-bar';
 import { Compass, Home, User } from 'lucide-react-native';
 import { useMemo, useState } from 'react';
 import { Pressable, Text, useWindowDimensions, View } from 'react-native';
@@ -82,6 +83,7 @@ export default function AppTabs() {
 
   return (
     <View className="flex-1 bg-white">
+      <StatusBar backgroundColor="transparent" style={activeIndex === 0 ? 'light' : 'dark'} />
       <GestureDetector gesture={gesture}>
         <Animated.View
           style={[
