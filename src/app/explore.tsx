@@ -425,11 +425,19 @@ export default function ExploreScreen({
           }))
         }
         onClose={() => setSelectedEvent(null)}
-        onSetStatus={(eventId, status) =>
-          setEventStatuses((current) => ({
-            ...current,
-            [eventId]: status,
-          }))
+        onToggleStatus={(eventId, status) =>
+          setEventStatuses((current) => {
+            if (current[eventId] === status) {
+              const nextStatuses = { ...current };
+              delete nextStatuses[eventId];
+              return nextStatuses;
+            }
+
+            return {
+              ...current,
+              [eventId]: status,
+            };
+          })
         }
         status={selectedEvent ? eventStatuses[selectedEvent.id] : undefined}
       />
@@ -443,7 +451,7 @@ function EventDetailModal({
   venue,
   onCheckIn,
   onClose,
-  onSetStatus,
+  onToggleStatus,
   status,
 }: {
   checkedIn: boolean;
@@ -451,7 +459,7 @@ function EventDetailModal({
   venue?: Venue | null;
   onCheckIn: (eventId: string) => void;
   onClose: () => void;
-  onSetStatus: (eventId: string, status: 'interested' | 'going') => void;
+  onToggleStatus: (eventId: string, status: 'interested' | 'going') => void;
   status?: 'interested' | 'going';
 }) {
   const { width } = useWindowDimensions();
@@ -634,7 +642,7 @@ function EventDetailModal({
                       <BellRing size={17} color={status === 'interested' ? 'white' : '#24458F'} />
                     }
                     label="Interested"
-                    onPress={() => onSetStatus(event.id, 'interested')}
+                    onPress={() => onToggleStatus(event.id, 'interested')}
                   />
                   <StatusButton
                     active={status === 'going'}
@@ -642,7 +650,7 @@ function EventDetailModal({
                       <CheckCircle2 size={17} color={status === 'going' ? 'white' : '#24458F'} />
                     }
                     label="Going"
-                    onPress={() => onSetStatus(event.id, 'going')}
+                    onPress={() => onToggleStatus(event.id, 'going')}
                   />
                 </View>
 
