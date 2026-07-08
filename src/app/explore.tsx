@@ -609,7 +609,7 @@ function EventDetailModal({
                 <Pressable
                   onPress={closeWithAnimation}
                   className="absolute left-5 h-10 w-10 items-center justify-center rounded-full bg-black/30 active:opacity-80"
-                  style={{ top: insets.top + 12 }}
+                  style={{ top: insets.top + 6 }}
                 >
                   <ArrowLeft size={21} color="white" strokeWidth={2.6} />
                 </Pressable>
