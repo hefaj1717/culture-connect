@@ -35,7 +35,7 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import {
   categoryLabels,
@@ -70,6 +70,7 @@ export default function ExploreScreen({
   openEventId,
   openEventNonce,
 }: ExploreScreenProps) {
+  const insets = useSafeAreaInsets();
   const [search, setSearch] = useState('');
   const [tab, setTab] = useState<'events' | 'venues'>('events');
   const [audienceFilter, setAudienceFilter] = useState('all');
@@ -149,13 +150,13 @@ export default function ExploreScreen({
   }, [allEvents, openEventId, openEventNonce]);
 
   return (
-    <SafeAreaView className="flex-1 bg-white" edges={['top']}>
+    <View className="flex-1 bg-white">
       <ScrollView
         className="flex-1"
         contentContainerStyle={{ paddingBottom: 112 }}
         keyboardShouldPersistTaps="handled"
       >
-        <View className="px-5 pt-4 pb-2">
+        <View className="px-5 pb-2" style={{ paddingTop: insets.top + 16 }}>
           <Text className="text-[28px] font-bold tracking-tight text-black">Discover</Text>
           <Text className="text-[14px] text-muted">Events and places around {cityData.name}</Text>
         </View>
@@ -441,7 +442,7 @@ export default function ExploreScreen({
         }
         status={selectedEvent ? eventStatuses[selectedEvent.id] : undefined}
       />
-    </SafeAreaView>
+    </View>
   );
 }
 
