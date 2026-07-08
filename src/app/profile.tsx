@@ -631,20 +631,6 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
             </View>
           </View>
 
-          <Pressable
-            onPress={() => {
-              setProfileError(null);
-              setFirstName(savedFirstName);
-              setLastName(savedLastName);
-              setCityId(savedCityId);
-              setAvatarUrl(savedAvatarUrl);
-              setEditOpen(true);
-            }}
-            className="mb-3 h-12 flex-row items-center justify-center rounded-xl bg-primary active:opacity-85"
-          >
-            <Text className="text-[14px] font-semibold text-white">Edit profile</Text>
-          </Pressable>
-
           <View className="mb-4 rounded-2xl bg-gray-100 p-4">
             <View className="mb-3 flex-row items-start justify-between gap-3">
               <View className="min-w-0 flex-1">
@@ -698,12 +684,28 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
             </Pressable>
           </View>
 
-          <Pressable
-            onPress={signOut}
-            className="h-12 flex-row items-center justify-center rounded-xl border border-gray-200 active:opacity-80"
-          >
-            <Text className="text-[14px] font-semibold text-muted">Log out</Text>
-          </Pressable>
+          <View className="flex-row gap-3">
+            <Pressable
+              onPress={() => {
+                setProfileError(null);
+                setFirstName(savedFirstName);
+                setLastName(savedLastName);
+                setCityId(savedCityId);
+                setAvatarUrl(savedAvatarUrl);
+                setEditOpen(true);
+              }}
+              className="h-12 flex-1 flex-row items-center justify-center rounded-xl bg-primary active:opacity-85"
+            >
+              <Text className="text-[14px] font-semibold text-white">Edit profile</Text>
+            </Pressable>
+
+            <Pressable
+              onPress={signOut}
+              className="h-12 flex-1 flex-row items-center justify-center rounded-xl border border-gray-200 active:opacity-80"
+            >
+              <Text className="text-[14px] font-semibold text-muted">Log out</Text>
+            </Pressable>
+          </View>
         </View>
 
         {organizerApplicationStatus !== 'none' && (
