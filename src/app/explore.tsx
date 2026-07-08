@@ -464,6 +464,7 @@ function EventDetailModal({
   status?: 'interested' | 'going';
 }) {
   const { width } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
   const [scannerOpen, setScannerOpen] = useState(false);
   const [scanLocked, setScanLocked] = useState(false);
   const [scanMessage, setScanMessage] = useState<string | null>(null);
@@ -592,10 +593,10 @@ function EventDetailModal({
     <Modal animationType="slide" onRequestClose={closeWithAnimation} visible>
       <GestureDetector gesture={swipeGesture}>
         <Animated.View className="flex-1 bg-white" style={swipeStyle}>
-          <SafeAreaView className="flex-1 bg-white" edges={['top', 'bottom']}>
+          <View className="flex-1 bg-white">
             <ScrollView
               className="flex-1"
-              contentContainerStyle={{ paddingBottom: 30 }}
+              contentContainerStyle={{ paddingBottom: insets.bottom + 30 }}
               showsVerticalScrollIndicator={false}
             >
               <View className="relative h-[260px] bg-gray-200">
@@ -607,7 +608,8 @@ function EventDetailModal({
                 <View className="absolute inset-0 bg-black/25" />
                 <Pressable
                   onPress={closeWithAnimation}
-                  className="absolute left-5 top-4 h-10 w-10 items-center justify-center rounded-full bg-black/30 active:opacity-80"
+                  className="absolute left-5 h-10 w-10 items-center justify-center rounded-full bg-black/30 active:opacity-80"
+                  style={{ top: insets.top + 12 }}
                 >
                   <ArrowLeft size={21} color="white" strokeWidth={2.6} />
                 </Pressable>
@@ -787,7 +789,7 @@ function EventDetailModal({
                 )}
               </SafeAreaView>
             </Modal>
-          </SafeAreaView>
+          </View>
         </Animated.View>
       </GestureDetector>
     </Modal>
