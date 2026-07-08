@@ -42,7 +42,7 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AuthScreen } from '@/components/auth-screen';
 import { CitySelector } from '@/components/city-selector';
@@ -204,6 +204,7 @@ type ProfileScreenProps = {
 };
 
 export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {}) {
+  const insets = useSafeAreaInsets();
   const {
     organizerApplicationStatus,
     refreshOrganizerApplicationStatus,
@@ -608,9 +609,9 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-white" edges={['top']}>
+    <View className="flex-1 bg-white">
       <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 112 }}>
-        <View className="px-5 pt-4 pb-5">
+        <View className="px-5 pb-5" style={{ paddingTop: insets.top + 16 }}>
           <Text className="text-[28px] font-bold tracking-tight text-black">Profile</Text>
           <Text className="text-[14px] text-muted">Account, rewards, and organizer tools</Text>
         </View>
@@ -1419,7 +1420,7 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
           </GestureDetector>
         )}
       </Modal>
-    </SafeAreaView>
+    </View>
   );
 }
 
