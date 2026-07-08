@@ -645,35 +645,6 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
             <Text className="text-[14px] font-semibold text-white">Edit profile</Text>
           </Pressable>
 
-          {organizerApplicationStatus !== 'none' && organizerApplicationStatus !== 'approved' && (
-            <OrganizerStatusCard status={organizerApplicationStatus} />
-          )}
-
-          {organizerApplicationStatus === 'approved' && (
-            <View className="mb-5 rounded-2xl border border-gray-200 bg-gray-50 p-4">
-              <View className="mb-3">
-                <View className="flex-1">
-                  <Text className="text-[15px] font-extrabold text-black">Organizer tools</Text>
-                  <Text className="mt-0.5 text-[12px] leading-4 text-muted">
-                    Create events for {cityData.name}. Published events appear in Discover.
-                  </Text>
-                </View>
-                <View className="mt-3 self-start rounded-full bg-success/10 px-3 py-1">
-                  <Text className="text-[11px] font-bold text-success">Organizer approved</Text>
-                </View>
-              </View>
-              <Pressable
-                onPress={() => {
-                  resetEventForm();
-                  setCreateEventOpen(true);
-                }}
-                className="h-11 flex-row items-center justify-center rounded-xl bg-primary active:opacity-85"
-              >
-                <Text className="text-[14px] font-semibold text-white">Create event</Text>
-              </Pressable>
-            </View>
-          )}
-
           <View className="mb-4 rounded-2xl bg-gray-100 p-4">
             <View className="mb-3 flex-row items-start justify-between gap-3">
               <View className="min-w-0 flex-1">
@@ -734,6 +705,47 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
             <Text className="text-[14px] font-semibold text-muted">Log out</Text>
           </Pressable>
         </View>
+
+        {organizerApplicationStatus !== 'none' && (
+          <View className="mb-5 px-5">
+            <View className="mb-3 flex-row items-center justify-between">
+              <Text className="text-[11px] font-semibold uppercase tracking-wide text-muted">
+                Organizer
+              </Text>
+              {organizerApplicationStatus === 'approved' && (
+                <Text className="text-[11px] font-semibold text-success">Approved</Text>
+              )}
+            </View>
+
+            {organizerApplicationStatus === 'approved' ? (
+              <View className="rounded-2xl border border-gray-200 bg-white p-4">
+                <View className="mb-4 flex-row items-start justify-between gap-4">
+                  <View className="min-w-0 flex-1">
+                    <Text className="text-[16px] font-extrabold text-black">Event maker tools</Text>
+                    <Text className="mt-1 text-[13px] leading-5 text-muted">
+                      Create and publish events for {cityData.name}.
+                    </Text>
+                  </View>
+                  <View className="rounded-full bg-success/10 px-3 py-1">
+                    <Text className="text-[11px] font-bold text-success">Live</Text>
+                  </View>
+                </View>
+
+                <Pressable
+                  onPress={() => {
+                    resetEventForm();
+                    setCreateEventOpen(true);
+                  }}
+                  className="h-11 flex-row items-center justify-center rounded-xl bg-primary active:opacity-85"
+                >
+                  <Text className="text-[14px] font-semibold text-white">Create event</Text>
+                </Pressable>
+              </View>
+            ) : (
+              <OrganizerStatusCard status={organizerApplicationStatus} />
+            )}
+          </View>
+        )}
 
         <View className="px-5">
           <View className="mb-3 flex-row items-center justify-between">
