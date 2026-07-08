@@ -88,6 +88,18 @@ const weekdayLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 const timeHours = Array.from({ length: 24 }, (_, index) => index);
 const timeMinutes = [0, 15, 30, 45];
 const rewardRedeemWindowMs = 5 * 60 * 1000;
+const userXp = 1860;
+const attendedEventsCount = 8;
+const unlockedBadgesCount = 3;
+
+const xpLevels = [
+  { name: 'Newcomer', minXp: 0 },
+  { name: 'Explorer', minXp: 200 },
+  { name: 'Connector', minXp: 600 },
+  { name: 'Influencer', minXp: 1200 },
+  { name: 'Tastemaker', minXp: 2000 },
+  { name: 'City Legend', minXp: 3200 },
+];
 
 type RedeemedRewardState = {
   redeemedAt: number;
@@ -247,6 +259,7 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
     session?.user.user_metadata?.city_id === 'lublin' ? 'lublin' : defaultCityId;
   const cityData = getCultureCityData(savedCityId);
   const savedAvatarUrl = session?.user.user_metadata?.avatar_url || null;
+  const levelProgress = getXpLevelProgress(userXp);
   const createEventTranslateX = useSharedValue(0);
   const badgesTranslateX = useSharedValue(0);
   const rewardTranslateX = useSharedValue(0);
@@ -632,22 +645,22 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
             <Text className="text-[14px] font-semibold text-white">Edit profile</Text>
           </Pressable>
 
-          {organizerApplicationStatus !== 'none' && (
+          {organizerApplicationStatus !== 'none' && organizerApplicationStatus !== 'approved' && (
             <OrganizerStatusCard status={organizerApplicationStatus} />
           )}
 
           {organizerApplicationStatus === 'approved' && (
             <View className="mb-5 rounded-2xl border border-gray-200 bg-gray-50 p-4">
-              <View className="mb-3 flex-row items-start justify-between gap-3">
+              <View className="mb-3">
                 <View className="flex-1">
                   <Text className="text-[15px] font-extrabold text-black">Organizer tools</Text>
                   <Text className="mt-0.5 text-[12px] leading-4 text-muted">
                     Create events for {cityData.name}. Published events appear in Discover.
                   </Text>
                 </View>
-                <Text className="rounded-full bg-success/10 px-2 py-1 text-[10px] font-bold text-success">
-                  Approved
-                </Text>
+                <View className="mt-3 self-start rounded-full bg-success/10 px-3 py-1">
+                  <Text className="text-[11px] font-bold text-success">Organizer approved</Text>
+                </View>
               </View>
               <Pressable
                 onPress={() => {
@@ -661,23 +674,56 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
             </View>
           )}
 
-          <View className="mb-5 flex-row rounded-2xl bg-gray-100 p-4">
-            <View className="flex-1 items-center">
-              <Text className="text-[22px] font-bold text-black">1,860</Text>
-              <Text className="text-[11px] font-medium text-muted">XP</Text>
+          <View className="mb-4 rounded-2xl bg-gray-100 p-4">
+            <View className="mb-3 flex-row items-start justify-between gap-3">
+              <View className="min-w-0 flex-1">
+                <Text className="text-[12px] font-semibold uppercase tracking-wide text-muted">
+                  Level
+                </Text>
+                <Text className="mt-1 text-[22px] font-extrabold text-black">
+                  {levelProgress.currentLevel.name}
+                </Text>
+              </View>
+              <View className="items-end">
+                <Text className="text-[22px] font-extrabold text-black">
+                  {userXp.toLocaleString()}
+                </Text>
+                <Text className="text-[11px] font-medium text-muted">XP</Text>
+              </View>
             </View>
-            <View className="w-px bg-gray-200" />
-            <View className="flex-1 items-center">
-              <Text className="text-[22px] font-bold text-black">8</Text>
-              <Text className="text-[11px] font-medium text-muted">Events</Text>
+
+            <View className="mb-2 h-3 overflow-hidden rounded-full bg-white">
+              <View
+                className="h-full rounded-full bg-success"
+                style={{ width: `${levelProgress.progressPercent}%` }}
+              />
             </View>
-            <View className="w-px bg-gray-200" />
+
+            <View className="flex-row items-center justify-between">
+              <Text className="text-[12px] font-medium text-muted">
+                {levelProgress.nextLevel
+                  ? `${levelProgress.xpToNext.toLocaleString()} XP to ${
+                      levelProgress.nextLevel.name
+                    }`
+                  : 'Top city rank reached'}
+              </Text>
+              <Text className="text-[12px] font-semibold text-success">
+                {Math.round(levelProgress.progressPercent)}%
+              </Text>
+            </View>
+          </View>
+
+          <View className="mb-5 flex-row gap-3">
+            <View className="flex-1 rounded-2xl border border-gray-200 bg-white p-4">
+              <Text className="text-[20px] font-extrabold text-black">{attendedEventsCount}</Text>
+              <Text className="mt-1 text-[12px] font-medium text-muted">Events attended</Text>
+            </View>
             <Pressable
               onPress={() => setBadgesOpen(true)}
-              className="flex-1 items-center active:opacity-75"
+              className="flex-1 rounded-2xl border border-gray-200 bg-white p-4 active:bg-gray-50"
             >
-              <Text className="text-[22px] font-bold text-black">3</Text>
-              <Text className="text-[11px] font-medium text-muted">Badges</Text>
+              <Text className="text-[20px] font-extrabold text-black">{unlockedBadgesCount}</Text>
+              <Text className="mt-1 text-[12px] font-medium text-muted">Badges unlocked</Text>
             </Pressable>
           </View>
 
@@ -1378,6 +1424,32 @@ function formatRewardTime(milliseconds: number) {
   const seconds = totalSeconds % 60;
 
   return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+}
+
+function getXpLevelProgress(xp: number) {
+  const currentLevel = [...xpLevels].reverse().find((level) => xp >= level.minXp) ?? xpLevels[0];
+  const currentIndex = xpLevels.findIndex((level) => level.name === currentLevel.name);
+  const nextLevel = xpLevels[currentIndex + 1] ?? null;
+
+  if (!nextLevel) {
+    return {
+      currentLevel,
+      nextLevel,
+      progressPercent: 100,
+      xpToNext: 0,
+    };
+  }
+
+  const levelSpan = nextLevel.minXp - currentLevel.minXp;
+  const xpInsideLevel = xp - currentLevel.minXp;
+  const progressPercent = Math.min(100, Math.max(0, (xpInsideLevel / levelSpan) * 100));
+
+  return {
+    currentLevel,
+    nextLevel,
+    progressPercent,
+    xpToNext: nextLevel.minXp - xp,
+  };
 }
 
 function ChoicePill({
