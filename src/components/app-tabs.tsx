@@ -155,24 +155,14 @@ export default function AppTabs() {
           label="Quests"
           onPress={() => goToTab(1)}
         />
-        <Pressable
+        <TabButton
+          active={activeIndex === 2}
+          icon={
+            <Compass size={23} color={activeIndex === 2 ? ACTIVE : INACTIVE} strokeWidth={2.3} />
+          }
+          label="Discover"
           onPress={() => goToTab(2)}
-          style={{
-            width: 60,
-            height: 60,
-            transform: [{ translateY: -14 }],
-            alignItems: 'center',
-            justifyContent: 'center',
-            borderRadius: 22,
-            backgroundColor: ACTIVE,
-            shadowColor: ACTIVE,
-            shadowOpacity: 0.14,
-            shadowRadius: 12,
-            shadowOffset: { width: 0, height: 6 },
-          }}
-        >
-          <Compass size={31} color="#FFFFFF" strokeWidth={2.45} />
-        </Pressable>
+        />
         <TabButton
           active={activeIndex === 3}
           icon={<User size={24} color={activeIndex === 3 ? ACTIVE : INACTIVE} />}
