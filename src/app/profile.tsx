@@ -816,7 +816,7 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
               <View className="mb-7 items-center">
                 <Pressable onPress={pickAvatar} className="items-center active:opacity-85">
                   <View className="relative">
-                    <Avatar uri={avatarUrl} size={104} iconSize={42} />
+                    <Avatar initials={avatarInitials} uri={avatarUrl} size={104} iconSize={42} />
                     <View className="absolute bottom-0 right-0 h-9 w-9 items-center justify-center rounded-full border-2 border-white bg-primary">
                       <Camera size={17} color="white" strokeWidth={2.4} />
                     </View>
@@ -1974,7 +1974,17 @@ function OrganizerStatusCard({ status }: { status: 'pending' | 'approved' | 'rej
   );
 }
 
-function Avatar({ uri, size, iconSize }: { uri?: string | null; size: number; iconSize: number }) {
+function Avatar({
+  initials,
+  uri,
+  size,
+  iconSize,
+}: {
+  initials?: string | null;
+  uri?: string | null;
+  size: number;
+  iconSize: number;
+}) {
   return (
     <View
       className="items-center justify-center overflow-hidden rounded-full bg-primary"
@@ -1982,6 +1992,8 @@ function Avatar({ uri, size, iconSize }: { uri?: string | null; size: number; ic
     >
       {uri ? (
         <Image source={{ uri }} contentFit="cover" style={{ height: size, width: size }} />
+      ) : initials ? (
+        <Text className="font-ui text-[32px] text-white">{initials}</Text>
       ) : (
         <User size={iconSize} color="white" strokeWidth={2.2} />
       )}
