@@ -66,7 +66,7 @@ export default function QuestsScreen({ cityData = getCultureCityData() }: Quests
         contentContainerStyle={{ paddingBottom: 112 }}
         showsVerticalScrollIndicator={false}
       >
-        <View className="px-5" style={{ paddingTop: insets.top + 16 }}>
+        <View className="px-5" style={{ paddingTop: insets.top + 24 }}>
           <View className="mb-5 overflow-hidden rounded-3xl bg-ink">
             <LinearGradient
               colors={['rgba(124,58,237,0.72)', 'rgba(36,28,46,0.98)']}
