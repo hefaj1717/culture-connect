@@ -6,7 +6,6 @@ import {
   CheckCircle2,
   ChevronRight,
   Clock,
-  Flame,
   Globe,
   MapPin,
   QrCode,
@@ -218,7 +217,7 @@ export default function ExploreScreen({
             {featuredEvent && (
               <View className="mb-6 px-5">
                 <View className="mb-3 flex-row items-center gap-1.5">
-                  <Flame size={14} color="#F4A261" />
+                  <View className="h-2.5 w-2.5 rounded-full bg-red-500" />
                   <Text className="text-[11px] font-semibold uppercase tracking-wide text-muted">
                     Live Now
                   </Text>
