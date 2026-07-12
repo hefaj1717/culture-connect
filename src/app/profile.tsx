@@ -1199,49 +1199,14 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
                   </Text>
                 </View>
 
-                <View className="mb-5 flex-row rounded-2xl bg-gray-100 p-4">
-                  <View className="flex-1 items-center">
-                    <Text className="font-stat text-[22px] font-extrabold text-ink">3</Text>
-                    <Text className="text-[11px] font-medium text-muted">Unlocked</Text>
-                  </View>
-                  <View className="w-px bg-gray-200" />
-                  <View className="flex-1 items-center">
-                    <Text className="font-stat text-[22px] font-extrabold text-ink">10</Text>
-                    <Text className="text-[11px] font-medium text-muted">Total</Text>
-                  </View>
+                <View className="mb-5 flex-row gap-3 rounded-2xl bg-canvas p-4">
+                  <BadgeSummaryMetric label="Unlocked" value="3" />
+                  <BadgeSummaryMetric label="Total" value="10" />
                 </View>
 
-                <View className="overflow-hidden rounded-2xl border border-gray-200 bg-white">
-                  {achievementBadges.map((badge, index) => (
-                    <View
-                      key={badge.id}
-                      className={`flex-row items-start gap-3 p-4 ${
-                        index === achievementBadges.length - 1 ? '' : 'border-b border-gray-100'
-                      }`}
-                    >
-                      <View
-                        className={`mt-1 h-2.5 w-2.5 rounded-full ${
-                          badge.unlocked ? 'bg-primary' : 'bg-gray-300'
-                        }`}
-                      />
-                      <View className="min-w-0 flex-1">
-                        <View className="mb-1 flex-row items-center justify-between gap-3">
-                          <Text className="shrink font-ui text-[15px] font-bold text-ink">
-                            {badge.title}
-                          </Text>
-                          <Text
-                            className={`text-[11px] font-bold ${
-                              badge.unlocked ? 'text-primary' : 'text-muted'
-                            }`}
-                          >
-                            {badge.unlocked ? 'Unlocked' : badge.progress}
-                          </Text>
-                        </View>
-                        <Text className="text-[12px] leading-4 text-muted">
-                          {badge.description}
-                        </Text>
-                      </View>
-                    </View>
+                <View className="gap-3">
+                  {achievementBadges.map((badge) => (
+                    <BadgeProgressRow badge={badge} key={badge.id} />
                   ))}
                 </View>
               </ScrollView>
@@ -1541,26 +1506,13 @@ function ProgressRing({
 }
 
 function PassportBadge({ badge }: { badge: (typeof achievementBadges)[number] }) {
-  const Icon = badge.icon;
-
   return (
     <Pressable
       className={`w-[104px] rounded-3xl p-3 active:opacity-80 ${
         badge.unlocked ? 'bg-primary/10' : 'bg-gray-100'
       }`}
     >
-      <View
-        className={`mb-3 h-14 w-14 items-center justify-center rounded-2xl ${
-          badge.unlocked ? 'bg-primary' : 'bg-gray-200'
-        }`}
-      >
-        <Icon
-          size={25}
-          color={badge.unlocked ? 'white' : '#9CA3AF'}
-          strokeWidth={2.4}
-          fill={badge.unlocked ? 'rgba(255,255,255,0.16)' : 'transparent'}
-        />
-      </View>
+      <BadgeIcon badge={badge} className="mb-3 h-14 w-14 rounded-2xl" iconSize={25} />
       <Text
         className={`font-ui text-[12px] font-bold leading-4 ${
           badge.unlocked ? 'text-ink' : 'text-muted'
@@ -1574,6 +1526,107 @@ function PassportBadge({ badge }: { badge: (typeof achievementBadges)[number] })
       </Text>
     </Pressable>
   );
+}
+
+function BadgeProgressRow({ badge }: { badge: (typeof achievementBadges)[number] }) {
+  const progress = getBadgeProgress(badge.progress);
+  const hasProgress = !badge.unlocked && progress !== null;
+  const progressPercent = progress
+    ? Math.min(100, Math.max(0, (progress.current / progress.total) * 100))
+    : 0;
+
+  return (
+    <View
+      className={`rounded-3xl border p-4 ${
+        badge.unlocked ? 'border-primary/15 bg-primary/5' : 'border-gray-200 bg-white'
+      }`}
+    >
+      <View className="flex-row items-start gap-3">
+        <BadgeIcon badge={badge} className="h-12 w-12 rounded-2xl" iconSize={22} />
+        <View className="min-w-0 flex-1">
+          <View className="mb-1 flex-row items-start justify-between gap-3">
+            <Text
+              className={`shrink font-ui text-[15px] font-extrabold ${
+                badge.unlocked ? 'text-ink' : 'text-muted'
+              }`}
+            >
+              {badge.title}
+            </Text>
+            <View
+              className={`rounded-full px-2 py-0.5 ${
+                badge.unlocked ? 'bg-primary/10' : 'bg-gray-100'
+              }`}
+            >
+              <Text
+                className={`text-[10px] font-extrabold ${
+                  badge.unlocked ? 'text-primary' : 'text-muted'
+                }`}
+              >
+                {badge.unlocked ? 'Unlocked' : badge.progress}
+              </Text>
+            </View>
+          </View>
+          <Text className="text-[12px] leading-4 text-muted">{badge.description}</Text>
+          {hasProgress && (
+            <View className="mt-3">
+              <View className="h-1.5 overflow-hidden rounded-full bg-primary/10">
+                <View
+                  className="h-full rounded-full bg-primary"
+                  style={{ width: `${progressPercent}%` }}
+                />
+              </View>
+            </View>
+          )}
+        </View>
+      </View>
+    </View>
+  );
+}
+
+function BadgeIcon({
+  badge,
+  className,
+  iconSize,
+}: {
+  badge: (typeof achievementBadges)[number];
+  className: string;
+  iconSize: number;
+}) {
+  const Icon = badge.icon;
+
+  return (
+    <View
+      className={`items-center justify-center ${badge.unlocked ? 'bg-primary' : 'bg-gray-200'} ${className}`}
+    >
+      <Icon
+        size={iconSize}
+        color={badge.unlocked ? 'white' : '#9CA3AF'}
+        strokeWidth={2.4}
+        fill={badge.unlocked ? 'rgba(255,255,255,0.16)' : 'transparent'}
+      />
+    </View>
+  );
+}
+
+function BadgeSummaryMetric({ label, value }: { label: string; value: string }) {
+  return (
+    <View className="flex-1 rounded-2xl bg-white px-4 py-3">
+      <Text className="font-stat text-[24px] font-extrabold leading-[28px] text-ink">{value}</Text>
+      <Text className="mt-0.5 text-[11px] font-semibold uppercase tracking-wide text-muted">
+        {label}
+      </Text>
+    </View>
+  );
+}
+
+function getBadgeProgress(progress: string) {
+  const match = progress.match(/(\d+)\s*\/\s*(\d+)/);
+  if (!match) return null;
+
+  return {
+    current: Number(match[1]),
+    total: Number(match[2]),
+  };
 }
 
 function RewardPartnerRow({
