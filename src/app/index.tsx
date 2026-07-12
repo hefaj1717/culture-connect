@@ -430,17 +430,17 @@ export default function HomeScreen({
               colors={['rgba(124,58,237,0.1)', 'rgba(244,162,97,0.12)']}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
-              style={{ minHeight: 176, paddingHorizontal: 18, paddingBottom: 20, paddingTop: 22 }}
+              style={{ padding: 16 }}
             >
-              <View className="flex-1 flex-row items-center justify-between gap-4">
+              <View className="flex-row items-center justify-between gap-4">
                 <View className="min-w-0 flex-1">
-                  <Text className="mb-3 text-[11px] font-semibold uppercase tracking-wide text-muted">
+                  <Text className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-muted">
                     Weekly leaderboard
                   </Text>
-                  <Text className="font-heading text-[24px] font-extrabold leading-[29px] text-ink">
+                  <Text className="font-heading text-[21px] font-extrabold leading-[25px] text-ink">
                     Your university is #{userLeaderboardRow.rank} this week
                   </Text>
-                  <Text className="mt-3 text-[13px] leading-5 text-muted">
+                  <Text className="mt-1 text-[13px] leading-5 text-muted">
                     {userLeaderboardRow.name} has earned {userLeaderboardRow.xp.toLocaleString()} XP
                     across {cityData.name}.
                   </Text>
