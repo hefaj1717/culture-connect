@@ -804,13 +804,7 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
               keyboardDismissMode="interactive"
               keyboardShouldPersistTaps="handled"
             >
-              <View className="mb-6 flex-row items-center justify-between">
-                <View>
-                  <Text className="font-heading text-[26px] font-extrabold text-ink">
-                    Edit profile
-                  </Text>
-                  <Text className="mt-0.5 text-[13px] text-muted">Update your public details</Text>
-                </View>
+              <View className="mb-6 flex-row justify-end">
                 <Pressable
                   onPress={() => setEditOpen(false)}
                   className="h-10 w-10 items-center justify-center rounded-full bg-gray-100 active:opacity-80"
@@ -915,15 +909,6 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
                   >
                     <ArrowLeft size={21} color="#756F7B" strokeWidth={2.6} />
                   </Pressable>
-
-                  <View className="mb-6">
-                    <Text className="font-heading text-[26px] font-extrabold text-ink">
-                      Create event
-                    </Text>
-                    <Text className="mt-0.5 text-[13px] text-muted">
-                      Publish as an approved CultureQuest organizer
-                    </Text>
-                  </View>
 
                   <Text className="mb-2 text-[13px] font-semibold text-ink">Event title</Text>
                   <TextInput
