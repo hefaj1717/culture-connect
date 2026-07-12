@@ -1240,7 +1240,7 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
                       colors={['rgba(124,58,237,0.84)', 'rgba(36,28,46,0.98)']}
                       end={{ x: 1, y: 1 }}
                       start={{ x: 0, y: 0 }}
-                      className="px-5 pb-5 pt-7"
+                      style={{ paddingBottom: 20, paddingHorizontal: 28, paddingTop: 28 }}
                     >
                       <Text
                         className="mb-3 text-[10px] font-bold uppercase leading-[16px] tracking-[1.6px] text-white/65"
@@ -1310,7 +1310,7 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
                       colors={['rgba(36,28,46,0.98)', 'rgba(124,58,237,0.86)']}
                       end={{ x: 1, y: 1 }}
                       start={{ x: 0, y: 0 }}
-                      className="px-5 pb-5 pt-7"
+                      style={{ paddingBottom: 20, paddingHorizontal: 24, paddingTop: 28 }}
                     >
                       <View className="mb-4 flex-row items-start justify-between gap-3">
                         <View className="min-w-0 flex-1">
