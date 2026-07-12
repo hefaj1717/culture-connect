@@ -18,10 +18,6 @@ import { CitySelector } from '@/components/city-selector';
 import { type CityId, defaultCityId } from '@/data/culture';
 import { useAuth } from '@/providers/auth-provider';
 
-type AuthScreenProps = {
-  onCancel?: () => void;
-};
-
 const organizerTypes = [
   { key: 'cultural_institution', label: 'Cultural institution' },
   { key: 'cafe_or_business', label: 'Cafe / business' },
@@ -29,7 +25,7 @@ const organizerTypes = [
   { key: 'city_partner', label: 'City partner' },
 ];
 
-export function AuthScreen({ onCancel }: AuthScreenProps) {
+export function AuthScreen() {
   const { signIn, signUp, verifySignUpCode, resendSignUpCode } = useAuth();
   const [mode, setMode] = useState<'signIn' | 'signUp' | 'confirmSignUp'>('signIn');
   const [email, setEmail] = useState('');
@@ -191,14 +187,6 @@ export function AuthScreen({ onCancel }: AuthScreenProps) {
             className="h-[268px] bg-ink"
             style={styles.hero}
           >
-            {onCancel && (
-              <Pressable
-                onPress={onCancel}
-                className="absolute right-5 top-12 rounded-full border border-white/20 bg-white/20 px-4 py-2 active:opacity-80"
-              >
-                <Text className="font-ui text-[13px] text-white">Cancel</Text>
-              </Pressable>
-            )}
             <View className="absolute inset-x-0 bottom-0 px-6 pb-8">
               <Text className="font-heading text-[38px] leading-[43px] text-white">
                 CultureQuest
@@ -430,17 +418,6 @@ export function AuthScreen({ onCancel }: AuthScreenProps) {
                 {mode === 'signIn' ? "Don't have an account? Sign up" : 'Back to log in'}
               </Text>
             </Pressable>
-
-            {onCancel && (
-              <Pressable
-                onPress={onCancel}
-                className="mt-4 h-[50px] items-center justify-center rounded-xl border border-primary/20 bg-primary/5 active:opacity-85"
-              >
-                <Text className="font-ui text-[14px] text-primary">
-                  Continue without logging in
-                </Text>
-              </Pressable>
-            )}
           </View>
         </View>
       </ScrollView>
