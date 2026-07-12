@@ -145,7 +145,7 @@ export default function HomeScreen({
         contentContainerStyle={{ paddingBottom: 104 }}
         showsVerticalScrollIndicator={false}
       >
-        <View className="h-[520px] overflow-hidden bg-[#15233A]">
+        <View className="h-[520px] overflow-hidden bg-ink">
           <Image
             source={getHeroImageSource(cityData.heroImage)}
             contentFit="cover"
@@ -159,10 +159,7 @@ export default function HomeScreen({
 
           <SafeAreaView edges={['top']} className="absolute left-0 right-0 top-0 z-20 px-5">
             <View className="flex-row items-center justify-between pt-3">
-              <Text
-                className="text-[23px] font-extrabold text-white"
-                style={{ fontFamily: 'Georgia' }}
-              >
+              <Text className="font-heading text-[23px] font-extrabold text-white">
                 CultureQuest
               </Text>
               <View className="flex-row items-center gap-3">
@@ -198,17 +195,14 @@ export default function HomeScreen({
 
             <View className="mt-10 items-center">
               <View className="flex-row items-center gap-2 rounded-full border border-white/25 bg-white/20 px-4 py-2">
-                <View className="h-2 w-2 rounded-full bg-success" />
+                <View className="h-2 w-2 rounded-full bg-primary" />
                 <Text className="text-[12px] font-semibold text-white">{cityData.statusText}</Text>
               </View>
             </View>
           </SafeAreaView>
 
           <View className="absolute bottom-0 left-0 right-0 px-6 pb-7">
-            <Text
-              className="mb-2 text-[42px] font-extrabold leading-[45px] text-white"
-              style={{ fontFamily: 'Georgia' }}
-            >
+            <Text className="mb-2 font-display text-[42px] font-extrabold leading-[45px] text-white">
               {cityData.heroTitle}
             </Text>
             <Text className="mb-4 max-w-[310px] text-[15px] leading-5 text-white/75">
@@ -233,7 +227,7 @@ export default function HomeScreen({
 
         <View className="pb-5 pt-6">
           <View className="mb-4 flex-row items-center gap-1.5 px-5">
-            <Flame size={14} color="#F59E0B" />
+            <Flame size={14} color="#F4A261" />
             <Text className="text-[11px] font-semibold uppercase tracking-wide text-muted">
               Happening Now
             </Text>
@@ -258,7 +252,7 @@ export default function HomeScreen({
                   />
                 </View>
                 <View className="p-3">
-                  <Text className="mb-1 text-[14px] font-bold text-black" numberOfLines={2}>
+                  <Text className="mb-1 text-[14px] font-bold text-ink" numberOfLines={2}>
                     {event.title}
                   </Text>
                   <Text className="mb-2 text-[12px] text-muted" numberOfLines={1}>
@@ -266,8 +260,8 @@ export default function HomeScreen({
                   </Text>
                   <View className="flex-row flex-wrap items-center gap-2">
                     <View className="flex-row items-center gap-0.5">
-                      <Sparkles size={12} color="#22C55E" />
-                      <Text className="text-[12px] font-bold text-success">
+                      <Sparkles size={12} color="#7C3AED" />
+                      <Text className="text-[12px] font-bold text-primary">
                         +{event.xpBonus} XP
                       </Text>
                     </View>
@@ -277,7 +271,7 @@ export default function HomeScreen({
                       </View>
                     )}
                     <View className="flex-row items-center gap-1">
-                      <Globe size={12} color="#60646C" />
+                      <Globe size={12} color="#756F7B" />
                       <Text className="text-[11px] font-medium text-muted">
                         {languageLabels[event.language]}
                       </Text>
@@ -357,7 +351,7 @@ export default function HomeScreen({
                     className="min-w-0 flex-1 active:opacity-70"
                     disabled={!selectedActivitySpot.nextEvent}
                   >
-                    <Text className="text-[15px] font-bold text-black" numberOfLines={1}>
+                    <Text className="font-ui text-[15px] font-bold text-ink" numberOfLines={1}>
                       {selectedActivitySpot.name}
                     </Text>
                     <Text className="mt-0.5 text-[12px] text-muted" numberOfLines={1}>
@@ -386,10 +380,10 @@ export default function HomeScreen({
         <View className="px-5">
           <View className="rounded-2xl border border-primary/10 bg-primary/5 p-5">
             <View className="mb-2 flex-row items-center gap-2">
-              <TrendingUp size={16} color="#3B82F6" />
+              <TrendingUp size={16} color="#7C3AED" />
               <Text className="text-[13px] font-semibold text-primary">Level up tip</Text>
             </View>
-            <Text className="text-[14px] leading-5 text-black/80">{cityData.levelTip}</Text>
+            <Text className="text-[14px] leading-5 text-ink/80">{cityData.levelTip}</Text>
           </View>
         </View>
       </ScrollView>
@@ -410,7 +404,7 @@ export default function HomeScreen({
           >
             <View className="flex-row items-start justify-between px-5 pb-4 pt-5">
               <View>
-                <Text className="text-[22px] font-bold tracking-tight text-black">
+                <Text className="font-heading text-[22px] font-bold tracking-tight text-ink">
                   Notifications
                 </Text>
                 <Text className="mt-1 text-[13px] text-muted">
@@ -424,7 +418,7 @@ export default function HomeScreen({
                 accessibilityRole="button"
                 accessibilityLabel="Close notifications"
               >
-                <X size={17} color="#5F6675" strokeWidth={2.3} />
+                <X size={17} color="#756F7B" strokeWidth={2.3} />
               </Pressable>
             </View>
 
@@ -450,7 +444,7 @@ export default function HomeScreen({
                     }`}
                   >
                     <View className="mb-1 flex-row items-start justify-between gap-3">
-                      <Text className="min-w-0 flex-1 text-[15px] font-semibold text-black">
+                      <Text className="min-w-0 flex-1 text-[15px] font-semibold text-ink">
                         {notification.title}
                       </Text>
                       <Text className="text-[12px] font-medium text-muted">

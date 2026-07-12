@@ -114,7 +114,7 @@ const achievementBadges = [
     progress: '1 / 1',
     unlocked: true,
     icon: TicketCheck,
-    color: '#22C55E',
+    color: '#2F9E73',
   },
   {
     id: 'culture-regular',
@@ -123,7 +123,7 @@ const achievementBadges = [
     progress: '4 / 10',
     unlocked: false,
     icon: CalendarPlus,
-    color: '#24458F',
+    color: '#7C3AED',
   },
   {
     id: 'reward-hunter',
@@ -132,7 +132,7 @@ const achievementBadges = [
     progress: '2 / 10',
     unlocked: false,
     icon: Gift,
-    color: '#F59E0B',
+    color: '#F4A261',
   },
   {
     id: 'museum-mind',
@@ -150,7 +150,7 @@ const achievementBadges = [
     progress: '5 / 8',
     unlocked: false,
     icon: Compass,
-    color: '#3B82F6',
+    color: '#7C3AED',
   },
   {
     id: 'social-spark',
@@ -612,7 +612,9 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
     <View className="flex-1 bg-white">
       <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 112 }}>
         <View className="px-5 pb-5" style={{ paddingTop: insets.top + 16 }}>
-          <Text className="text-[28px] font-bold tracking-tight text-black">Profile</Text>
+          <Text className="font-heading text-[28px] font-bold tracking-tight text-ink">
+            Profile
+          </Text>
           <Text className="text-[14px] text-muted">Account, rewards, and organizer tools</Text>
         </View>
 
@@ -620,7 +622,7 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
           <View className="mb-5 flex-row items-center gap-4">
             <Avatar uri={savedAvatarUrl} size={64} iconSize={28} />
             <View className="min-w-0 flex-1">
-              <Text className="text-[20px] font-bold text-black" numberOfLines={1}>
+              <Text className="text-[20px] font-bold text-ink" numberOfLines={1}>
                 {fullName}
               </Text>
               <Text className="text-[13px] text-muted" numberOfLines={1}>
@@ -638,12 +640,12 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
                 <Text className="text-[12px] font-semibold uppercase tracking-wide text-muted">
                   Level
                 </Text>
-                <Text className="mt-1 text-[22px] font-extrabold text-black">
+                <Text className="mt-1 font-heading text-[22px] font-extrabold text-ink">
                   {levelProgress.currentLevel.name}
                 </Text>
               </View>
               <View className="items-end">
-                <Text className="text-[22px] font-extrabold text-black">
+                <Text className="font-stat text-[22px] font-extrabold text-ink">
                   {userXp.toLocaleString()}
                 </Text>
                 <Text className="text-[11px] font-medium text-muted">XP</Text>
@@ -652,7 +654,7 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
 
             <View className="mb-2 h-3 overflow-hidden rounded-full bg-white">
               <View
-                className="h-full rounded-full bg-success"
+                className="h-full rounded-full bg-primary"
                 style={{ width: `${levelProgress.progressPercent}%` }}
               />
             </View>
@@ -665,7 +667,7 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
                     }`
                   : 'Top city rank reached'}
               </Text>
-              <Text className="text-[12px] font-semibold text-success">
+              <Text className="text-[12px] font-semibold text-primary">
                 {Math.round(levelProgress.progressPercent)}%
               </Text>
             </View>
@@ -673,14 +675,18 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
 
           <View className="mb-5 flex-row gap-3">
             <View className="flex-1 rounded-2xl border border-gray-200 bg-white p-4">
-              <Text className="text-[20px] font-extrabold text-black">{attendedEventsCount}</Text>
+              <Text className="font-stat text-[20px] font-extrabold text-ink">
+                {attendedEventsCount}
+              </Text>
               <Text className="mt-1 text-[12px] font-medium text-muted">Events attended</Text>
             </View>
             <Pressable
               onPress={() => setBadgesOpen(true)}
               className="flex-1 rounded-2xl border border-gray-200 bg-white p-4 active:bg-gray-50"
             >
-              <Text className="text-[20px] font-extrabold text-black">{unlockedBadgesCount}</Text>
+              <Text className="font-stat text-[20px] font-extrabold text-ink">
+                {unlockedBadgesCount}
+              </Text>
               <Text className="mt-1 text-[12px] font-medium text-muted">Badges unlocked</Text>
             </Pressable>
           </View>
@@ -724,7 +730,9 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
               <View className="rounded-2xl border border-gray-200 bg-white p-4">
                 <View className="mb-4 flex-row items-start justify-between gap-4">
                   <View className="min-w-0 flex-1">
-                    <Text className="text-[16px] font-extrabold text-black">Event maker tools</Text>
+                    <Text className="font-ui text-[16px] font-extrabold text-ink">
+                      Event maker tools
+                    </Text>
                     <Text className="mt-1 text-[13px] leading-5 text-muted">
                       Create and publish events for {cityData.name}.
                     </Text>
@@ -769,7 +777,7 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
               >
                 <View className="mb-2 flex-row items-start justify-between gap-3">
                   <View className="min-w-0 flex-1">
-                    <Text className="text-[15px] font-bold text-black" numberOfLines={1}>
+                    <Text className="font-ui text-[15px] font-bold text-ink" numberOfLines={1}>
                       {reward.name}
                     </Text>
                     <Text className="mt-0.5 text-[12px] text-muted" numberOfLines={1}>
@@ -779,7 +787,7 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
                   <Text className="text-[12px] font-bold text-primary">{reward.xpCost} XP</Text>
                 </View>
 
-                <Text className="mb-2 text-[13px] leading-5 text-black">{reward.discount}</Text>
+                <Text className="mb-2 text-[13px] leading-5 text-ink">{reward.discount}</Text>
 
                 <View className="flex-row items-center justify-between">
                   <Text className="text-[12px] text-muted" numberOfLines={1}>
@@ -807,14 +815,16 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
             >
               <View className="mb-6 flex-row items-center justify-between">
                 <View>
-                  <Text className="text-[26px] font-extrabold text-black">Edit profile</Text>
+                  <Text className="font-heading text-[26px] font-extrabold text-ink">
+                    Edit profile
+                  </Text>
                   <Text className="mt-0.5 text-[13px] text-muted">Update your public details</Text>
                 </View>
                 <Pressable
                   onPress={() => setEditOpen(false)}
                   className="h-10 w-10 items-center justify-center rounded-full bg-gray-100 active:opacity-80"
                 >
-                  <X size={19} color="#5F6675" strokeWidth={2.4} />
+                  <X size={19} color="#756F7B" strokeWidth={2.4} />
                 </Pressable>
               </View>
 
@@ -832,7 +842,7 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
                 </Pressable>
               </View>
 
-              <Text className="mb-2 text-[13px] font-semibold text-black">First name</Text>
+              <Text className="mb-2 text-[13px] font-semibold text-ink">First name</Text>
               <TextInput
                 value={firstName}
                 onChangeText={setFirstName}
@@ -841,10 +851,10 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
                 autoCapitalize="words"
                 textContentType="givenName"
                 autoComplete="given-name"
-                className="mb-4 rounded-xl border border-gray-300 px-4 py-3 text-[15px] text-black"
+                className="mb-4 rounded-xl border border-gray-300 px-4 py-3 text-[15px] text-ink"
               />
 
-              <Text className="mb-2 text-[13px] font-semibold text-black">Last name</Text>
+              <Text className="mb-2 text-[13px] font-semibold text-ink">Last name</Text>
               <TextInput
                 value={lastName}
                 onChangeText={setLastName}
@@ -853,10 +863,10 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
                 autoCapitalize="words"
                 textContentType="familyName"
                 autoComplete="family-name"
-                className="mb-4 rounded-xl border border-gray-300 px-4 py-3 text-[15px] text-black"
+                className="mb-4 rounded-xl border border-gray-300 px-4 py-3 text-[15px] text-ink"
               />
 
-              <Text className="mb-2 text-[13px] font-semibold text-black">City</Text>
+              <Text className="mb-2 text-[13px] font-semibold text-ink">City</Text>
               <View className="mb-5">
                 <CitySelector value={cityId} onChange={setCityId} />
               </View>
@@ -912,26 +922,28 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
                     accessibilityRole="button"
                     accessibilityLabel="Close create event"
                   >
-                    <ArrowLeft size={21} color="#5F6675" strokeWidth={2.6} />
+                    <ArrowLeft size={21} color="#756F7B" strokeWidth={2.6} />
                   </Pressable>
 
                   <View className="mb-6">
-                    <Text className="text-[26px] font-extrabold text-black">Create event</Text>
+                    <Text className="font-heading text-[26px] font-extrabold text-ink">
+                      Create event
+                    </Text>
                     <Text className="mt-0.5 text-[13px] text-muted">
                       Publish as an approved CultureQuest organizer
                     </Text>
                   </View>
 
-                  <Text className="mb-2 text-[13px] font-semibold text-black">Event title</Text>
+                  <Text className="mb-2 text-[13px] font-semibold text-ink">Event title</Text>
                   <TextInput
                     value={eventTitle}
                     onChangeText={setEventTitle}
                     placeholder="e.g. Student Jazz Night"
                     placeholderTextColor="#8B909A"
-                    className="mb-4 rounded-xl border border-gray-300 px-4 py-3 text-[15px] text-black"
+                    className="mb-4 rounded-xl border border-gray-300 px-4 py-3 text-[15px] text-ink"
                   />
 
-                  <Text className="mb-2 text-[13px] font-semibold text-black">Event photo</Text>
+                  <Text className="mb-2 text-[13px] font-semibold text-ink">Event photo</Text>
                   <Pressable
                     onPress={pickEventImage}
                     className="mb-4 overflow-hidden rounded-2xl border border-gray-200 bg-gray-100 active:opacity-85"
@@ -945,9 +957,9 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
                     ) : (
                       <View className="h-[150px] items-center justify-center px-5">
                         <View className="mb-3 h-11 w-11 items-center justify-center rounded-full bg-primary/10">
-                          <Camera size={20} color="#24458F" strokeWidth={2.4} />
+                          <Camera size={20} color="#7C3AED" strokeWidth={2.4} />
                         </View>
-                        <Text className="text-center text-[14px] font-bold text-black">
+                        <Text className="text-center font-ui text-[14px] font-bold text-ink">
                           Add event photo
                         </Text>
                         <Text className="mt-1 text-center text-[12px] leading-4 text-muted">
@@ -966,12 +978,10 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
                     </Pressable>
                   )}
 
-                  <Text className="mb-2 text-[13px] font-semibold text-black">
-                    Place or address
-                  </Text>
+                  <Text className="mb-2 text-[13px] font-semibold text-ink">Place or address</Text>
                   <View className="mb-4">
                     <View className="h-12 flex-row items-center gap-3 rounded-xl border border-gray-300 px-4">
-                      <Search size={16} color="#60646C" strokeWidth={2.4} />
+                      <Search size={16} color="#756F7B" strokeWidth={2.4} />
                       <TextInput
                         value={placeQuery}
                         onChangeText={(value) => {
@@ -980,9 +990,9 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
                         }}
                         placeholder={`Search places in ${cityData.name}`}
                         placeholderTextColor="#8B909A"
-                        className="flex-1 text-[15px] text-black"
+                        className="flex-1 text-[15px] text-ink"
                       />
-                      {searchingPlaces && <ActivityIndicator color="#24458F" size="small" />}
+                      {searchingPlaces && <ActivityIndicator color="#7C3AED" size="small" />}
                     </View>
                     <Text className="mt-2 text-[11px] leading-4 text-muted">
                       {hasGooglePlacesApiKey
@@ -993,10 +1003,13 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
                     {selectedPlace && (
                       <View className="mt-2 flex-row gap-3 rounded-xl border border-success/25 bg-success/10 p-3">
                         <View className="h-9 w-9 items-center justify-center rounded-full bg-success/15">
-                          <MapPin size={16} color="#22C55E" strokeWidth={2.4} />
+                          <MapPin size={16} color="#2F9E73" strokeWidth={2.4} />
                         </View>
                         <View className="min-w-0 flex-1">
-                          <Text className="text-[13px] font-bold text-black" numberOfLines={1}>
+                          <Text
+                            className="font-ui text-[13px] font-bold text-ink"
+                            numberOfLines={1}
+                          >
                             {selectedPlace.name}
                           </Text>
                           <Text className="text-[11px] leading-4 text-muted" numberOfLines={2}>
@@ -1019,10 +1032,13 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
                             className="flex-row items-start gap-3 border-b border-gray-100 p-3 active:bg-gray-50"
                           >
                             <View className="h-9 w-9 items-center justify-center rounded-full bg-primary/10">
-                              <MapPin size={16} color="#24458F" strokeWidth={2.4} />
+                              <MapPin size={16} color="#7C3AED" strokeWidth={2.4} />
                             </View>
                             <View className="min-w-0 flex-1">
-                              <Text className="text-[13px] font-bold text-black" numberOfLines={1}>
+                              <Text
+                                className="font-ui text-[13px] font-bold text-ink"
+                                numberOfLines={1}
+                              >
                                 {place.name}
                               </Text>
                               <Text className="text-[11px] leading-4 text-muted" numberOfLines={2}>
@@ -1035,7 +1051,7 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
                     )}
                   </View>
 
-                  <Text className="mb-2 text-[13px] font-semibold text-black">Category</Text>
+                  <Text className="mb-2 text-[13px] font-semibold text-ink">Category</Text>
                   <View className="mb-4 flex-row flex-wrap gap-2">
                     {eventCategories.map((category) => (
                       <ChoicePill
@@ -1049,30 +1065,30 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
 
                   <View className="mb-4 flex-row gap-3">
                     <View className="flex-1">
-                      <Text className="mb-2 text-[13px] font-semibold text-black">Date</Text>
+                      <Text className="mb-2 text-[13px] font-semibold text-ink">Date</Text>
                       <Pressable
                         onPress={() => setDatePickerOpen(true)}
                         className="h-12 justify-center rounded-xl border border-gray-300 px-4 active:opacity-80"
                       >
-                        <Text className={`text-[15px] ${eventDate ? 'text-black' : 'text-muted'}`}>
+                        <Text className={`text-[15px] ${eventDate ? 'text-ink' : 'text-muted'}`}>
                           {eventDate || 'Choose date'}
                         </Text>
                       </Pressable>
                     </View>
                     <View className="flex-1">
-                      <Text className="mb-2 text-[13px] font-semibold text-black">Time</Text>
+                      <Text className="mb-2 text-[13px] font-semibold text-ink">Time</Text>
                       <Pressable
                         onPress={() => setTimePickerOpen(true)}
                         className="h-12 justify-center rounded-xl border border-gray-300 px-4 active:opacity-80"
                       >
-                        <Text className={`text-[15px] ${eventTime ? 'text-black' : 'text-muted'}`}>
+                        <Text className={`text-[15px] ${eventTime ? 'text-ink' : 'text-muted'}`}>
                           {eventTime || 'Choose time'}
                         </Text>
                       </Pressable>
                     </View>
                   </View>
 
-                  <Text className="mb-2 text-[13px] font-semibold text-black">Language</Text>
+                  <Text className="mb-2 text-[13px] font-semibold text-ink">Language</Text>
                   <View className="mb-4 flex-row flex-wrap gap-2">
                     {eventLanguages.map((language) => (
                       <ChoicePill
@@ -1086,13 +1102,15 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
 
                   <View className="mb-4 flex-row gap-3">
                     <View className="flex-1">
-                      <Text className="mb-2 text-[13px] font-semibold text-black">XP reward</Text>
+                      <Text className="mb-2 text-[13px] font-semibold text-ink">XP reward</Text>
                       <View className="h-12 justify-center rounded-xl border border-gray-200 bg-gray-100 px-4">
-                        <Text className="text-[15px] font-bold text-black">{fixedEventXp} XP</Text>
+                        <Text className="font-ui text-[15px] font-bold text-ink">
+                          {fixedEventXp} XP
+                        </Text>
                       </View>
                     </View>
                     <View className="flex-1">
-                      <Text className="mb-2 text-[13px] font-semibold text-black">Price</Text>
+                      <Text className="mb-2 text-[13px] font-semibold text-ink">Price</Text>
                       <View className="flex-row gap-2">
                         <ChoicePill
                           active={eventIsFree}
@@ -1108,7 +1126,7 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
                     </View>
                   </View>
 
-                  <Text className="mb-2 text-[13px] font-semibold text-black">Description</Text>
+                  <Text className="mb-2 text-[13px] font-semibold text-ink">Description</Text>
                   <TextInput
                     value={eventDescription}
                     onChangeText={setEventDescription}
@@ -1116,7 +1134,7 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
                     placeholderTextColor="#8B909A"
                     multiline
                     textAlignVertical="top"
-                    className="mb-4 min-h-[112px] rounded-xl border border-gray-300 px-4 py-3 text-[15px] leading-5 text-black"
+                    className="mb-4 min-h-[112px] rounded-xl border border-gray-300 px-4 py-3 text-[15px] leading-5 text-ink"
                   />
 
                   {createEventError && (
@@ -1181,11 +1199,11 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
                   accessibilityRole="button"
                   accessibilityLabel="Close badges"
                 >
-                  <ArrowLeft size={21} color="#5F6675" strokeWidth={2.6} />
+                  <ArrowLeft size={21} color="#756F7B" strokeWidth={2.6} />
                 </Pressable>
 
                 <View className="mb-5">
-                  <Text className="text-[28px] font-extrabold text-black">Badges</Text>
+                  <Text className="font-heading text-[28px] font-extrabold text-ink">Badges</Text>
                   <Text className="mt-1 text-[13px] leading-5 text-muted">
                     Progress milestones from events, venues, and rewards.
                   </Text>
@@ -1193,12 +1211,12 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
 
                 <View className="mb-5 flex-row rounded-2xl bg-gray-100 p-4">
                   <View className="flex-1 items-center">
-                    <Text className="text-[22px] font-extrabold text-black">3</Text>
+                    <Text className="font-stat text-[22px] font-extrabold text-ink">3</Text>
                     <Text className="text-[11px] font-medium text-muted">Unlocked</Text>
                   </View>
                   <View className="w-px bg-gray-200" />
                   <View className="flex-1 items-center">
-                    <Text className="text-[22px] font-extrabold text-black">10</Text>
+                    <Text className="font-stat text-[22px] font-extrabold text-ink">10</Text>
                     <Text className="text-[11px] font-medium text-muted">Total</Text>
                   </View>
                 </View>
@@ -1218,7 +1236,7 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
                       />
                       <View className="min-w-0 flex-1">
                         <View className="mb-1 flex-row items-center justify-between gap-3">
-                          <Text className="shrink text-[15px] font-bold text-black">
+                          <Text className="shrink font-ui text-[15px] font-bold text-ink">
                             {badge.title}
                           </Text>
                           <Text
@@ -1262,11 +1280,11 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
                     accessibilityRole="button"
                     accessibilityLabel="Close reward"
                   >
-                    <ArrowLeft size={21} color="#5F6675" strokeWidth={2.6} />
+                    <ArrowLeft size={21} color="#756F7B" strokeWidth={2.6} />
                   </Pressable>
 
                   <View className="mb-5">
-                    <Text className="text-[28px] font-extrabold text-black">
+                    <Text className="font-heading text-[28px] font-extrabold text-ink">
                       {selectedReward.name}
                     </Text>
                     <Text className="mt-1 text-[13px] leading-5 text-muted">
@@ -1278,7 +1296,7 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
                     <Text className="mb-2 text-[12px] font-semibold uppercase tracking-wide text-muted">
                       Reward
                     </Text>
-                    <Text className="text-[22px] font-extrabold text-black">
+                    <Text className="font-stat text-[22px] font-extrabold text-ink">
                       {selectedReward.discount}
                     </Text>
                     <Text className="mt-3 text-[13px] leading-5 text-muted">
@@ -1289,7 +1307,7 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
 
                   <View className="mb-5 overflow-hidden rounded-2xl border border-gray-200 bg-white">
                     <View className="border-b border-gray-100 p-4">
-                      <Text className="mb-1 text-[13px] font-bold text-black">How to redeem</Text>
+                      <Text className="mb-1 text-[13px] font-bold text-ink">How to redeem</Text>
                       <Text className="text-[13px] leading-5 text-muted">
                         1. Visit {selectedReward.name}.
                       </Text>
@@ -1301,9 +1319,7 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
                       </Text>
                     </View>
                     <View className="p-4">
-                      <Text className="mb-1 text-[13px] font-bold text-black">
-                        Unlock condition
-                      </Text>
+                      <Text className="mb-1 text-[13px] font-bold text-ink">Unlock condition</Text>
                       <Text className="text-[13px] leading-5 text-muted">
                         {selectedReward.condition}
                       </Text>
@@ -1316,7 +1332,7 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
                         <Text className="text-[12px] font-semibold uppercase tracking-wide text-muted">
                           Pickup screen
                         </Text>
-                        <Text className="mt-1 text-[15px] font-bold text-black">
+                        <Text className="mt-1 font-ui text-[15px] font-bold text-ink">
                           {selectedRewardIsUsed
                             ? 'Coupon already used'
                             : selectedRewardIsActive
@@ -1355,11 +1371,11 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
                       <Text className="mb-2 text-center text-[12px] font-semibold uppercase tracking-wide text-muted">
                         CultureQuest reward
                       </Text>
-                      <Text className="text-center text-[20px] font-extrabold text-black">
+                      <Text className="text-center font-heading text-[20px] font-extrabold text-ink">
                         {selectedReward.discount}
                       </Text>
                       {selectedRewardIsActive && (
-                        <Text className="mt-3 text-center text-[30px] font-extrabold tracking-widest text-primary">
+                        <Text className="mt-3 text-center font-stat text-[30px] font-extrabold tracking-widest text-primary">
                           {getRewardPickupCode(selectedReward)}
                         </Text>
                       )}
@@ -1520,7 +1536,7 @@ function DatePickerModal({
           >
             <Text className="text-[20px] font-bold text-primary">‹</Text>
           </Pressable>
-          <Text className="text-[17px] font-extrabold text-black">
+          <Text className="text-[17px] font-extrabold text-ink">
             {monthNames[month.getMonth()]} {month.getFullYear()}
           </Text>
           <Pressable
@@ -1594,7 +1610,7 @@ function TimePickerModal({
       <Pressable className="absolute inset-0" onPress={onClose} />
       <View className="rounded-2xl bg-white p-4">
         <View className="mb-4 flex-row items-center justify-between">
-          <Text className="text-[19px] font-extrabold text-black">Choose time</Text>
+          <Text className="text-[19px] font-extrabold text-ink">Choose time</Text>
           <Text className="text-[17px] font-extrabold text-primary">
             {formatTimeUnit(hour)}:{formatTimeUnit(minute)}
           </Text>
@@ -1612,7 +1628,7 @@ function TimePickerModal({
               >
                 <Text
                   className={`text-[16px] font-bold ${
-                    hour === nextHour ? 'text-white' : 'text-black'
+                    hour === nextHour ? 'text-white' : 'text-ink'
                   }`}
                 >
                   {formatTimeUnit(nextHour)}
@@ -1632,7 +1648,7 @@ function TimePickerModal({
               >
                 <Text
                   className={`text-[16px] font-bold ${
-                    minute === nextMinute ? 'text-white' : 'text-black'
+                    minute === nextMinute ? 'text-white' : 'text-ink'
                   }`}
                 >
                   {formatTimeUnit(nextMinute)}
@@ -1693,7 +1709,7 @@ function formatTimeUnit(value: number) {
 function OrganizerStatusCard({ status }: { status: 'pending' | 'approved' | 'rejected' }) {
   const isApproved = status === 'approved';
   const isRejected = status === 'rejected';
-  const color = isApproved ? '#22C55E' : isRejected ? '#EF4444' : '#F59E0B';
+  const color = isApproved ? '#2F9E73' : isRejected ? '#EF4444' : '#F4A261';
   const Icon = isApproved ? CheckCircle2 : isRejected ? CircleAlert : Building2;
   const title = isApproved
     ? 'Organizer approved'
@@ -1721,7 +1737,7 @@ function OrganizerStatusCard({ status }: { status: 'pending' | 'approved' | 'rej
         <Icon size={17} color={color} strokeWidth={2.4} />
       </View>
       <View className="flex-1">
-        <Text className="text-[13px] font-bold text-black">{title}</Text>
+        <Text className="font-ui text-[13px] font-bold text-ink">{title}</Text>
         <Text className="mt-0.5 text-[12px] leading-4 text-muted">{message}</Text>
       </View>
     </View>

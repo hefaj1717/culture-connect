@@ -160,7 +160,7 @@ export const cultureByCity: Record<CityId, CultureCityData> = {
         xpReward: 60,
         isPartner: true,
         tags: ['Events', 'Culture', 'Multilingual'],
-        color: '#F59E0B',
+        color: '#F4A261',
         coordinates: { latitude: 50.88095, longitude: 4.70504 },
       },
     ],
@@ -322,7 +322,7 @@ export const cultureByCity: Record<CityId, CultureCityData> = {
         isPartner: true,
         isLive: true,
         tags: ['Castle', 'Museum', 'Old Town'],
-        color: '#24458F',
+        color: '#7C3AED',
         coordinates: { latitude: 51.25013, longitude: 22.57243 },
       },
       {
@@ -354,7 +354,7 @@ export const cultureByCity: Record<CityId, CultureCityData> = {
         xpReward: 50,
         isPartner: true,
         tags: ['Coffee', 'Study spot', 'Old Town'],
-        color: '#F59E0B',
+        color: '#F4A261',
         coordinates: { latitude: 51.24868, longitude: 22.56869 },
       },
       {
@@ -370,7 +370,7 @@ export const cultureByCity: Record<CityId, CultureCityData> = {
         xpReward: 60,
         isPartner: false,
         tags: ['Food', 'Evening', 'Courtyard'],
-        color: '#22C55E',
+        color: '#2F9E73',
         coordinates: { latitude: 51.24582, longitude: 22.5655 },
       },
     ],
@@ -493,7 +493,7 @@ export const cultureByCity: Record<CityId, CultureCityData> = {
         xpCost: 80,
         isPopular: true,
         badge: 'Hot',
-        color: '#F59E0B',
+        color: '#F4A261',
       },
       {
         id: 'lu-r2',
@@ -505,7 +505,7 @@ export const cultureByCity: Record<CityId, CultureCityData> = {
         xpCost: 120,
         isPopular: true,
         badge: 'New',
-        color: '#22C55E',
+        color: '#2F9E73',
       },
       {
         id: 'lu-r3',

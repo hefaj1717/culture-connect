@@ -157,20 +157,22 @@ export default function ExploreScreen({
         keyboardShouldPersistTaps="handled"
       >
         <View className="px-5 pb-2" style={{ paddingTop: insets.top + 16 }}>
-          <Text className="text-[28px] font-bold tracking-tight text-black">Discover</Text>
+          <Text className="font-heading text-[28px] font-bold tracking-tight text-ink">
+            Discover
+          </Text>
           <Text className="text-[14px] text-muted">Events and places around {cityData.name}</Text>
         </View>
 
         <View className="px-5 mb-4">
           <View className="h-12 flex-row items-center gap-3 rounded-xl border border-gray-200 bg-gray-100 px-4">
-            <Search size={17} color="#60646C" />
+            <Search size={17} color="#756F7B" />
             <TextInput
               value={search}
               onChangeText={setSearch}
               placeholder="Search events, venues..."
-              placeholderTextColor="#60646C"
+              placeholderTextColor="#756F7B"
               autoCapitalize="none"
-              className="flex-1 text-[14px] text-black"
+              className="flex-1 text-[14px] text-ink"
             />
           </View>
         </View>
@@ -223,7 +225,7 @@ export default function ExploreScreen({
             {featuredEvent && (
               <View className="mb-6 px-5">
                 <View className="mb-3 flex-row items-center gap-1.5">
-                  <Flame size={14} color="#F59E0B" />
+                  <Flame size={14} color="#F4A261" />
                   <Text className="text-[11px] font-semibold uppercase tracking-wide text-muted">
                     Live Now
                   </Text>
@@ -263,7 +265,7 @@ export default function ExploreScreen({
                       )}
                     </View>
 
-                    <Text className="mb-1 text-[18px] font-bold text-black">
+                    <Text className="mb-1 font-ui text-[18px] font-bold text-ink">
                       {featuredEvent.title}
                     </Text>
                     <Text className="mb-3 text-[13px] leading-5 text-muted" numberOfLines={2}>
@@ -271,13 +273,13 @@ export default function ExploreScreen({
                     </Text>
                     <View className="flex-row flex-wrap items-center gap-3">
                       <View className="flex-row items-center gap-1">
-                        <Clock size={13} color="#60646C" />
+                        <Clock size={13} color="#756F7B" />
                         <Text className="text-[12px] text-muted">
                           {featuredEvent.date}, {featuredEvent.time}
                         </Text>
                       </View>
                       <View className="flex-row items-center gap-1">
-                        <MapPin size={13} color="#60646C" />
+                        <MapPin size={13} color="#756F7B" />
                         <Text className="text-[12px] text-muted" numberOfLines={1}>
                           {featuredEvent.venueName}
                         </Text>
@@ -336,7 +338,10 @@ export default function ExploreScreen({
                             <Text className="text-[11px] font-bold text-success">Free</Text>
                           )}
                         </View>
-                        <Text className="mb-1 text-[15px] font-bold text-black" numberOfLines={2}>
+                        <Text
+                          className="mb-1 font-ui text-[15px] font-bold text-ink"
+                          numberOfLines={2}
+                        >
                           {event.title}
                         </Text>
                         <Text className="mb-2 text-[12px] text-muted" numberOfLines={1}>
@@ -344,12 +349,12 @@ export default function ExploreScreen({
                         </Text>
                         <View className="flex-row flex-wrap items-center gap-2.5">
                           <View className="flex-row items-center gap-1">
-                            <Clock size={12} color="#60646C" />
+                            <Clock size={12} color="#756F7B" />
                             <Text className="text-[12px] text-muted">{event.time}</Text>
                           </View>
                           {event.isInternational && (
                             <View className="flex-row items-center gap-0.5">
-                              <Globe size={12} color="#60646C" />
+                              <Globe size={12} color="#756F7B" />
                               <Text className="text-[12px] font-medium text-muted">
                                 {languageLabels[event.language]}
                               </Text>
@@ -379,7 +384,7 @@ export default function ExploreScreen({
                 </View>
                 <View className="min-w-0 flex-1">
                   <View className="mb-0.5 flex-row items-center gap-2">
-                    <Text className="shrink text-[15px] font-semibold text-black" numberOfLines={1}>
+                    <Text className="shrink text-[15px] font-semibold text-ink" numberOfLines={1}>
                       {venue.name}
                     </Text>
                     {venue.isLive && (
@@ -398,13 +403,13 @@ export default function ExploreScreen({
                   </Text>
                   <View className="flex-row items-center gap-3">
                     <View className="flex-row items-center gap-1">
-                      <Star size={12} color="#F59E0B" fill="#F59E0B" />
+                      <Star size={12} color="#F4A261" fill="#F4A261" />
                       <Text className="text-[12px] text-muted">{venue.rating}</Text>
                     </View>
-                    <Text className="text-[12px] font-bold text-success">+{venue.xpReward} XP</Text>
+                    <Text className="text-[12px] font-bold text-primary">+{venue.xpReward} XP</Text>
                   </View>
                 </View>
-                <ChevronRight size={18} color="#60646C" />
+                <ChevronRight size={18} color="#756F7B" />
               </Pressable>
             ))}
           </View>
@@ -642,7 +647,7 @@ function EventDetailModal({
                   <StatusButton
                     active={status === 'interested'}
                     icon={
-                      <BellRing size={17} color={status === 'interested' ? 'white' : '#24458F'} />
+                      <BellRing size={17} color={status === 'interested' ? 'white' : '#7C3AED'} />
                     }
                     label="Interested"
                     onPress={() => onToggleStatus(event.id, 'interested')}
@@ -650,7 +655,7 @@ function EventDetailModal({
                   <StatusButton
                     active={status === 'going'}
                     icon={
-                      <CheckCircle2 size={17} color={status === 'going' ? 'white' : '#24458F'} />
+                      <CheckCircle2 size={17} color={status === 'going' ? 'white' : '#7C3AED'} />
                     }
                     label="Going"
                     onPress={() => onToggleStatus(event.id, 'going')}
@@ -670,33 +675,31 @@ function EventDetailModal({
                 )}
 
                 <View className="mb-5 gap-3 rounded-2xl border border-gray-200 bg-white p-4">
-                  <InfoRow icon={<MapPin size={17} color="#24458F" />} label={event.venueName} />
+                  <InfoRow icon={<MapPin size={17} color="#7C3AED" />} label={event.venueName} />
                   <InfoRow
-                    icon={<Clock size={17} color="#24458F" />}
+                    icon={<Clock size={17} color="#7C3AED" />}
                     label={`${event.date}, ${event.time}`}
                   />
                   <InfoRow
-                    icon={<Users size={17} color="#24458F" />}
+                    icon={<Users size={17} color="#7C3AED" />}
                     label={`${event.attendeeCount} people taking part`}
                   />
                   <InfoRow
-                    icon={<Sparkles size={17} color="#22C55E" />}
+                    icon={<Sparkles size={17} color="#7C3AED" />}
                     label={`+${event.xpBonus} XP after confirmed attendance`}
                   />
                 </View>
 
-                <Text className="mb-2 text-[16px] font-extrabold text-black">About this event</Text>
-                <Text className="mb-5 text-[14px] leading-5 text-black/75">
-                  {event.description}
+                <Text className="mb-2 font-ui text-[16px] font-extrabold text-ink">
+                  About this event
                 </Text>
+                <Text className="mb-5 text-[14px] leading-5 text-ink/75">{event.description}</Text>
 
                 <View className="mb-5 rounded-2xl border border-gray-200 bg-gray-50 p-4">
                   <Text className="text-[12px] font-semibold uppercase tracking-wide text-muted">
                     Organiser
                   </Text>
-                  <Text className="mt-1 text-[15px] font-bold text-black">
-                    {event.organizerName}
-                  </Text>
+                  <Text className="mt-1 text-[15px] font-bold text-ink">{event.organizerName}</Text>
                   <Text className="mt-1 text-[12px] leading-4 text-muted">
                     This organiser can post updates to everyone marked Interested or Going.
                   </Text>
@@ -707,7 +710,7 @@ function EventDetailModal({
                     <Text className="text-[15px] font-extrabold text-success">
                       Attendance confirmed
                     </Text>
-                    <Text className="mt-1 text-[13px] leading-5 text-black/75">
+                    <Text className="mt-1 text-[13px] leading-5 text-ink/75">
                       You earned {event.xpBonus} XP for this event.
                     </Text>
                   </View>
@@ -762,7 +765,7 @@ function EventDetailModal({
                       onPress={requestPermission}
                       className="h-12 items-center justify-center rounded-xl bg-white px-5"
                     >
-                      <Text className="text-[14px] font-bold text-black">Allow camera access</Text>
+                      <Text className="text-[14px] font-bold text-ink">Allow camera access</Text>
                     </Pressable>
                   </View>
                 ) : (
@@ -826,7 +829,7 @@ function InfoRow({ icon, label }: { icon: React.ReactNode; label: string }) {
   return (
     <View className="flex-row items-center gap-3">
       <View className="h-8 w-8 items-center justify-center rounded-full bg-primary/10">{icon}</View>
-      <Text className="flex-1 text-[13px] font-medium text-black/75">{label}</Text>
+      <Text className="flex-1 text-[13px] font-medium text-ink/75">{label}</Text>
     </View>
   );
 }
@@ -856,7 +859,7 @@ function getEventLocationVenue(event: CultureEvent): Venue | null {
     xpReward: event.xpBonus,
     isPartner: true,
     tags: [],
-    color: '#24458F',
+    color: '#7C3AED',
     coordinates: event.venueCoordinates,
   };
 }

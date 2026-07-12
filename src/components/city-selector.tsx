@@ -23,9 +23,7 @@ export function CitySelector({ value, onChange }: CitySelectorProps) {
             }`}
           >
             <View>
-              <Text
-                className={`text-[15px] font-semibold ${active ? 'text-primary' : 'text-black'}`}
-              >
+              <Text className={`text-[15px] font-semibold ${active ? 'text-primary' : 'text-ink'}`}>
                 {city.name}
               </Text>
               <Text className="text-[12px] text-muted">{city.country}</Text>

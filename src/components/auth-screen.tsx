@@ -189,7 +189,7 @@ export function AuthScreen({ onCancel }: AuthScreenProps) {
             </Pressable>
           )}
 
-          <Text className="mb-1 text-[28px] font-extrabold text-black">CultureQuest</Text>
+          <Text className="mb-1 text-[28px] font-extrabold text-ink">CultureQuest</Text>
           <Text className="mb-8 text-[15px] text-muted">
             {mode === 'signIn'
               ? 'Log in to continue'
@@ -211,7 +211,7 @@ export function AuthScreen({ onCancel }: AuthScreenProps) {
                 autoComplete="one-time-code"
                 returnKeyType="done"
                 onSubmitEditing={handleConfirmCode}
-                className="mb-4 rounded-xl border border-gray-300 px-4 py-3 text-[15px] text-black"
+                className="mb-4 rounded-xl border border-gray-300 px-4 py-3 text-[15px] text-ink"
               />
             </>
           ) : mode === 'signUp' ? (
@@ -225,7 +225,7 @@ export function AuthScreen({ onCancel }: AuthScreenProps) {
                 textContentType="givenName"
                 autoComplete="given-name"
                 returnKeyType="next"
-                className="mb-3 rounded-xl border border-gray-300 px-4 py-3 text-[15px] text-black"
+                className="mb-3 rounded-xl border border-gray-300 px-4 py-3 text-[15px] text-ink"
               />
               <TextInput
                 value={lastName}
@@ -236,9 +236,9 @@ export function AuthScreen({ onCancel }: AuthScreenProps) {
                 textContentType="familyName"
                 autoComplete="family-name"
                 returnKeyType="next"
-                className="mb-3 rounded-xl border border-gray-300 px-4 py-3 text-[15px] text-black"
+                className="mb-3 rounded-xl border border-gray-300 px-4 py-3 text-[15px] text-ink"
               />
-              <Text className="mb-2 text-[13px] font-semibold text-black">City</Text>
+              <Text className="mb-2 text-[13px] font-semibold text-ink">City</Text>
               <View className="mb-4">
                 <CitySelector value={cityId} onChange={setCityId} />
               </View>
@@ -257,11 +257,11 @@ export function AuthScreen({ onCancel }: AuthScreenProps) {
                   {applyAsOrganizer ? (
                     <Check size={16} color="white" strokeWidth={2.7} />
                   ) : (
-                    <Building2 size={15} color="#5F6675" strokeWidth={2.4} />
+                    <Building2 size={15} color="#756F7B" strokeWidth={2.4} />
                   )}
                 </View>
                 <View className="flex-1">
-                  <Text className="text-[14px] font-bold text-black">Apply as an organizer</Text>
+                  <Text className="text-[14px] font-bold text-ink">Apply as an organizer</Text>
                   <Text className="mt-0.5 text-[12px] leading-4 text-muted">
                     For institutions, cafes, student groups, and city partners. Approval is
                     required.
@@ -271,7 +271,7 @@ export function AuthScreen({ onCancel }: AuthScreenProps) {
 
               {applyAsOrganizer && (
                 <View className="mb-4 rounded-2xl border border-primary/10 bg-primary/5 p-4">
-                  <Text className="mb-3 text-[13px] font-semibold text-black">
+                  <Text className="mb-3 text-[13px] font-semibold text-ink">
                     Organizer application
                   </Text>
                   <TextInput
@@ -281,9 +281,9 @@ export function AuthScreen({ onCancel }: AuthScreenProps) {
                     placeholderTextColor="#8B909A"
                     autoCapitalize="words"
                     returnKeyType="next"
-                    className="mb-3 rounded-xl border border-gray-300 bg-white px-4 py-3 text-[15px] text-black"
+                    className="mb-3 rounded-xl border border-gray-300 bg-white px-4 py-3 text-[15px] text-ink"
                   />
-                  <Text className="mb-2 text-[12px] font-semibold text-black">Type</Text>
+                  <Text className="mb-2 text-[12px] font-semibold text-ink">Type</Text>
                   <View className="mb-3 gap-2">
                     {organizerTypes.map((type) => {
                       const active = institutionType === type.key;
@@ -315,7 +315,7 @@ export function AuthScreen({ onCancel }: AuthScreenProps) {
                     autoCapitalize="none"
                     keyboardType="url"
                     returnKeyType="next"
-                    className="mb-3 rounded-xl border border-gray-300 bg-white px-4 py-3 text-[15px] text-black"
+                    className="mb-3 rounded-xl border border-gray-300 bg-white px-4 py-3 text-[15px] text-ink"
                   />
                   <TextInput
                     value={contactRole}
@@ -324,7 +324,7 @@ export function AuthScreen({ onCancel }: AuthScreenProps) {
                     placeholderTextColor="#8B909A"
                     autoCapitalize="sentences"
                     returnKeyType="next"
-                    className="mb-3 rounded-xl border border-gray-300 bg-white px-4 py-3 text-[15px] text-black"
+                    className="mb-3 rounded-xl border border-gray-300 bg-white px-4 py-3 text-[15px] text-ink"
                   />
                   <TextInput
                     value={organizerNote}
@@ -333,7 +333,7 @@ export function AuthScreen({ onCancel }: AuthScreenProps) {
                     placeholderTextColor="#8B909A"
                     multiline
                     textAlignVertical="top"
-                    className="min-h-[86px] rounded-xl border border-gray-300 bg-white px-4 py-3 text-[15px] text-black"
+                    className="min-h-[86px] rounded-xl border border-gray-300 bg-white px-4 py-3 text-[15px] text-ink"
                   />
                 </View>
               )}
@@ -351,7 +351,7 @@ export function AuthScreen({ onCancel }: AuthScreenProps) {
               textContentType="emailAddress"
               autoComplete="email"
               returnKeyType="next"
-              className="mb-3 rounded-xl border border-gray-300 px-4 py-3 text-[15px] text-black"
+              className="mb-3 rounded-xl border border-gray-300 px-4 py-3 text-[15px] text-ink"
             />
           )}
 
@@ -366,12 +366,12 @@ export function AuthScreen({ onCancel }: AuthScreenProps) {
               autoComplete={mode === 'signIn' ? 'current-password' : 'new-password'}
               returnKeyType="done"
               onSubmitEditing={handleSubmit}
-              className="mb-4 rounded-xl border border-gray-300 px-4 py-3 text-[15px] text-black"
+              className="mb-4 rounded-xl border border-gray-300 px-4 py-3 text-[15px] text-ink"
             />
           )}
 
           {error && <Text className="mb-4 text-[13px] text-destructive">{error}</Text>}
-          {notice && <Text className="mb-4 text-[13px] text-success">{notice}</Text>}
+          {notice && <Text className="mb-4 text-[13px] text-primary">{notice}</Text>}
 
           <Pressable
             onPress={mode === 'confirmSignUp' ? handleConfirmCode : handleSubmit}
