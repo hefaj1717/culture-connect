@@ -24,7 +24,7 @@ const TAB_COUNT = 4;
 
 export default function AppTabs() {
   const { width } = useWindowDimensions();
-  const { organizerApplicationStatus, user } = useAuth();
+  const { organizerApplicationStatus, session, user } = useAuth();
   const [activeIndex, setActiveIndex] = useState(0);
   const [organizerEventsVersion, setOrganizerEventsVersion] = useState(0);
   const [eventOpenRequest, setEventOpenRequest] = useState<{
@@ -41,6 +41,7 @@ export default function AppTabs() {
   );
   const avatarUrl = user?.user_metadata?.avatar_url ?? null;
   const cityData = getCultureCityData(user?.user_metadata?.city_id);
+  const isAuthTabActive = activeIndex === 3 && !session;
 
   function goToTab(index: number) {
     setActiveIndex(index);
@@ -85,7 +86,10 @@ export default function AppTabs() {
 
   return (
     <View className="flex-1 bg-white">
-      <StatusBar backgroundColor="transparent" style={activeIndex === 0 ? 'light' : 'dark'} />
+      <StatusBar
+        backgroundColor="transparent"
+        style={activeIndex === 0 || isAuthTabActive ? 'light' : 'dark'}
+      />
       <GestureDetector gesture={gesture}>
         <Animated.View
           style={[
@@ -130,46 +134,50 @@ export default function AppTabs() {
         </Animated.View>
       </GestureDetector>
 
-      <View
-        style={{
-          height: 84,
-          paddingTop: 8,
-          paddingBottom: 18,
-          borderTopWidth: 1,
-          borderTopColor: '#E5E7EB',
-          backgroundColor: '#FFFFFF',
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'space-around',
-        }}
-      >
-        <TabButton
-          active={activeIndex === 0}
-          icon={<Home size={24} color={activeIndex === 0 ? ACTIVE : INACTIVE} />}
-          label="Home"
-          onPress={() => goToTab(0)}
-        />
-        <TabButton
-          active={activeIndex === 1}
-          icon={
-            <Compass size={23} color={activeIndex === 1 ? ACTIVE : INACTIVE} strokeWidth={2.3} />
-          }
-          label="Discover"
-          onPress={() => goToTab(1)}
-        />
-        <TabButton
-          active={activeIndex === 2}
-          icon={<Route size={23} color={activeIndex === 2 ? ACTIVE : INACTIVE} strokeWidth={2.3} />}
-          label="Quests"
-          onPress={() => goToTab(2)}
-        />
-        <TabButton
-          active={activeIndex === 3}
-          icon={<User size={24} color={activeIndex === 3 ? ACTIVE : INACTIVE} />}
-          label="Profile"
-          onPress={() => goToTab(3)}
-        />
-      </View>
+      {!isAuthTabActive && (
+        <View
+          style={{
+            height: 84,
+            paddingTop: 8,
+            paddingBottom: 18,
+            borderTopWidth: 1,
+            borderTopColor: '#E5E7EB',
+            backgroundColor: '#FFFFFF',
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-around',
+          }}
+        >
+          <TabButton
+            active={activeIndex === 0}
+            icon={<Home size={24} color={activeIndex === 0 ? ACTIVE : INACTIVE} />}
+            label="Home"
+            onPress={() => goToTab(0)}
+          />
+          <TabButton
+            active={activeIndex === 1}
+            icon={
+              <Compass size={23} color={activeIndex === 1 ? ACTIVE : INACTIVE} strokeWidth={2.3} />
+            }
+            label="Discover"
+            onPress={() => goToTab(1)}
+          />
+          <TabButton
+            active={activeIndex === 2}
+            icon={
+              <Route size={23} color={activeIndex === 2 ? ACTIVE : INACTIVE} strokeWidth={2.3} />
+            }
+            label="Quests"
+            onPress={() => goToTab(2)}
+          />
+          <TabButton
+            active={activeIndex === 3}
+            icon={<User size={24} color={activeIndex === 3 ? ACTIVE : INACTIVE} />}
+            label="Profile"
+            onPress={() => goToTab(3)}
+          />
+        </View>
+      )}
     </View>
   );
 }

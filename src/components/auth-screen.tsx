@@ -7,11 +7,13 @@ import {
   Platform,
   Pressable,
   ScrollView,
+  StyleSheet,
   Text,
   TextInput,
   View,
 } from 'react-native';
 
+import { BrandImage } from '@/components/brand-image';
 import { CitySelector } from '@/components/city-selector';
 import { type CityId, defaultCityId } from '@/data/culture';
 import { useAuth } from '@/providers/auth-provider';
@@ -178,248 +180,277 @@ export function AuthScreen({ onCancel }: AuthScreenProps) {
     >
       <ScrollView
         className="flex-1"
-        contentContainerStyle={{ flexGrow: 1, justifyContent: 'center', padding: 24 }}
+        contentContainerStyle={{ flexGrow: 1 }}
         keyboardDismissMode="interactive"
         keyboardShouldPersistTaps="handled"
       >
-        <View className="flex-1 justify-center">
-          {onCancel && (
-            <Pressable onPress={onCancel} className="absolute right-0 top-0 rounded-full px-3 py-2">
-              <Text className="text-[14px] font-semibold text-primary">Cancel</Text>
-            </Pressable>
-          )}
-
-          <Text className="mb-1 text-[28px] font-extrabold text-ink">CultureQuest</Text>
-          <Text className="mb-8 text-[15px] text-muted">
-            {mode === 'signIn'
-              ? 'Log in to continue'
-              : mode === 'signUp'
-                ? 'Create an account to start exploring'
-                : 'Enter the code from your email'}
-          </Text>
-
-          {mode === 'confirmSignUp' ? (
-            <>
-              <TextInput
-                value={confirmationCode}
-                onChangeText={setConfirmationCode}
-                placeholder="Confirmation code"
-                placeholderTextColor="#8B909A"
-                autoCapitalize="none"
-                keyboardType="number-pad"
-                textContentType="oneTimeCode"
-                autoComplete="one-time-code"
-                returnKeyType="done"
-                onSubmitEditing={handleConfirmCode}
-                className="mb-4 rounded-xl border border-gray-300 px-4 py-3 text-[15px] text-ink"
-              />
-            </>
-          ) : mode === 'signUp' ? (
-            <>
-              <TextInput
-                value={firstName}
-                onChangeText={setFirstName}
-                placeholder="First name"
-                placeholderTextColor="#8B909A"
-                autoCapitalize="words"
-                textContentType="givenName"
-                autoComplete="given-name"
-                returnKeyType="next"
-                className="mb-3 rounded-xl border border-gray-300 px-4 py-3 text-[15px] text-ink"
-              />
-              <TextInput
-                value={lastName}
-                onChangeText={setLastName}
-                placeholder="Last name"
-                placeholderTextColor="#8B909A"
-                autoCapitalize="words"
-                textContentType="familyName"
-                autoComplete="family-name"
-                returnKeyType="next"
-                className="mb-3 rounded-xl border border-gray-300 px-4 py-3 text-[15px] text-ink"
-              />
-              <Text className="mb-2 text-[13px] font-semibold text-ink">City</Text>
-              <View className="mb-4">
-                <CitySelector value={cityId} onChange={setCityId} />
-              </View>
-
+        <View className="flex-1 bg-white">
+          <BrandImage
+            source={require('@/assets/images/culture/hero-culture.jpg')}
+            withTextGradient
+            className="h-[268px] bg-ink"
+            style={styles.hero}
+          >
+            {onCancel && (
               <Pressable
-                onPress={() => setApplyAsOrganizer((current) => !current)}
-                className={`mb-4 flex-row items-center gap-3 rounded-xl border p-4 active:opacity-85 ${
-                  applyAsOrganizer ? 'border-primary bg-primary/10' : 'border-gray-300 bg-white'
-                }`}
+                onPress={onCancel}
+                className="absolute right-5 top-12 rounded-full border border-white/20 bg-white/20 px-4 py-2 active:opacity-80"
               >
-                <View
-                  className={`h-7 w-7 items-center justify-center rounded-full ${
-                    applyAsOrganizer ? 'bg-primary' : 'bg-gray-200'
+                <Text className="font-ui text-[13px] text-white">Cancel</Text>
+              </Pressable>
+            )}
+            <View className="absolute inset-x-0 bottom-0 px-6 pb-8">
+              <Text className="font-heading text-[38px] leading-[43px] text-white">
+                CultureQuest
+              </Text>
+              <Text className="mt-3 max-w-[300px] font-body text-[15px] leading-6 text-white/85">
+                Discover the city, earn XP, and unlock student rewards.
+              </Text>
+            </View>
+          </BrandImage>
+
+          <View className="-mt-5 flex-1 rounded-t-[28px] bg-white px-6 pb-8 pt-7">
+            <Text className="mb-6 font-ui text-[17px] text-ink">
+              {mode === 'signIn'
+                ? 'Log in to continue'
+                : mode === 'signUp'
+                  ? 'Create an account to start exploring'
+                  : 'Enter the code from your email'}
+            </Text>
+
+            {mode === 'confirmSignUp' ? (
+              <>
+                <TextInput
+                  value={confirmationCode}
+                  onChangeText={setConfirmationCode}
+                  placeholder="Confirmation code"
+                  placeholderTextColor="#8B909A"
+                  autoCapitalize="none"
+                  keyboardType="number-pad"
+                  textContentType="oneTimeCode"
+                  autoComplete="one-time-code"
+                  returnKeyType="done"
+                  onSubmitEditing={handleConfirmCode}
+                  className="mb-4 rounded-xl border border-gray-300 px-4 py-3 text-[15px] text-ink"
+                />
+              </>
+            ) : mode === 'signUp' ? (
+              <>
+                <TextInput
+                  value={firstName}
+                  onChangeText={setFirstName}
+                  placeholder="First name"
+                  placeholderTextColor="#8B909A"
+                  autoCapitalize="words"
+                  textContentType="givenName"
+                  autoComplete="given-name"
+                  returnKeyType="next"
+                  className="mb-3 rounded-xl border border-gray-300 px-4 py-3 text-[15px] text-ink"
+                />
+                <TextInput
+                  value={lastName}
+                  onChangeText={setLastName}
+                  placeholder="Last name"
+                  placeholderTextColor="#8B909A"
+                  autoCapitalize="words"
+                  textContentType="familyName"
+                  autoComplete="family-name"
+                  returnKeyType="next"
+                  className="mb-3 rounded-xl border border-gray-300 px-4 py-3 text-[15px] text-ink"
+                />
+                <Text className="mb-2 text-[13px] font-semibold text-ink">City</Text>
+                <View className="mb-4">
+                  <CitySelector value={cityId} onChange={setCityId} />
+                </View>
+
+                <Pressable
+                  onPress={() => setApplyAsOrganizer((current) => !current)}
+                  className={`mb-4 flex-row items-center gap-3 rounded-xl border p-4 active:opacity-85 ${
+                    applyAsOrganizer ? 'border-primary bg-primary/10' : 'border-gray-300 bg-white'
                   }`}
                 >
-                  {applyAsOrganizer ? (
-                    <Check size={16} color="white" strokeWidth={2.7} />
-                  ) : (
-                    <Building2 size={15} color="#756F7B" strokeWidth={2.4} />
-                  )}
-                </View>
-                <View className="flex-1">
-                  <Text className="text-[14px] font-bold text-ink">Apply as an organizer</Text>
-                  <Text className="mt-0.5 text-[12px] leading-4 text-muted">
-                    For institutions, cafes, student groups, and city partners. Approval is
-                    required.
-                  </Text>
-                </View>
-              </Pressable>
+                  <View
+                    className={`h-7 w-7 items-center justify-center rounded-full ${
+                      applyAsOrganizer ? 'bg-primary' : 'bg-gray-200'
+                    }`}
+                  >
+                    {applyAsOrganizer ? (
+                      <Check size={16} color="white" strokeWidth={2.7} />
+                    ) : (
+                      <Building2 size={15} color="#756F7B" strokeWidth={2.4} />
+                    )}
+                  </View>
+                  <View className="flex-1">
+                    <Text className="text-[14px] font-bold text-ink">Apply as an organizer</Text>
+                    <Text className="mt-0.5 text-[12px] leading-4 text-muted">
+                      For institutions, cafes, student groups, and city partners. Approval is
+                      required.
+                    </Text>
+                  </View>
+                </Pressable>
 
-              {applyAsOrganizer && (
-                <View className="mb-4 rounded-2xl border border-primary/10 bg-primary/5 p-4">
-                  <Text className="mb-3 text-[13px] font-semibold text-ink">
-                    Organizer application
-                  </Text>
-                  <TextInput
-                    value={institutionName}
-                    onChangeText={setInstitutionName}
-                    placeholder="Institution or business name"
-                    placeholderTextColor="#8B909A"
-                    autoCapitalize="words"
-                    returnKeyType="next"
-                    className="mb-3 rounded-xl border border-gray-300 bg-white px-4 py-3 text-[15px] text-ink"
-                  />
-                  <Text className="mb-2 text-[12px] font-semibold text-ink">Type</Text>
-                  <View className="mb-3 gap-2">
-                    {organizerTypes.map((type) => {
-                      const active = institutionType === type.key;
+                {applyAsOrganizer && (
+                  <View className="mb-4 rounded-2xl border border-primary/10 bg-primary/5 p-4">
+                    <Text className="mb-3 text-[13px] font-semibold text-ink">
+                      Organizer application
+                    </Text>
+                    <TextInput
+                      value={institutionName}
+                      onChangeText={setInstitutionName}
+                      placeholder="Institution or business name"
+                      placeholderTextColor="#8B909A"
+                      autoCapitalize="words"
+                      returnKeyType="next"
+                      className="mb-3 rounded-xl border border-gray-300 bg-white px-4 py-3 text-[15px] text-ink"
+                    />
+                    <Text className="mb-2 text-[12px] font-semibold text-ink">Type</Text>
+                    <View className="mb-3 gap-2">
+                      {organizerTypes.map((type) => {
+                        const active = institutionType === type.key;
 
-                      return (
-                        <Pressable
-                          key={type.key}
-                          onPress={() => setInstitutionType(type.key)}
-                          className={`rounded-xl border px-3 py-2 active:opacity-85 ${
-                            active ? 'border-primary bg-white' : 'border-gray-200 bg-white/70'
-                          }`}
-                        >
-                          <Text
-                            className={`text-[13px] font-semibold ${
-                              active ? 'text-primary' : 'text-muted'
+                        return (
+                          <Pressable
+                            key={type.key}
+                            onPress={() => setInstitutionType(type.key)}
+                            className={`rounded-xl border px-3 py-2 active:opacity-85 ${
+                              active ? 'border-primary bg-white' : 'border-gray-200 bg-white/70'
                             }`}
                           >
-                            {type.label}
-                          </Text>
-                        </Pressable>
-                      );
-                    })}
+                            <Text
+                              className={`text-[13px] font-semibold ${
+                                active ? 'text-primary' : 'text-muted'
+                              }`}
+                            >
+                              {type.label}
+                            </Text>
+                          </Pressable>
+                        );
+                      })}
+                    </View>
+                    <TextInput
+                      value={websiteUrl}
+                      onChangeText={setWebsiteUrl}
+                      placeholder="Website or social link"
+                      placeholderTextColor="#8B909A"
+                      autoCapitalize="none"
+                      keyboardType="url"
+                      returnKeyType="next"
+                      className="mb-3 rounded-xl border border-gray-300 bg-white px-4 py-3 text-[15px] text-ink"
+                    />
+                    <TextInput
+                      value={contactRole}
+                      onChangeText={setContactRole}
+                      placeholder="Your role, e.g. event manager"
+                      placeholderTextColor="#8B909A"
+                      autoCapitalize="sentences"
+                      returnKeyType="next"
+                      className="mb-3 rounded-xl border border-gray-300 bg-white px-4 py-3 text-[15px] text-ink"
+                    />
+                    <TextInput
+                      value={organizerNote}
+                      onChangeText={setOrganizerNote}
+                      placeholder="Short note for CultureQuest admin"
+                      placeholderTextColor="#8B909A"
+                      multiline
+                      textAlignVertical="top"
+                      className="min-h-[86px] rounded-xl border border-gray-300 bg-white px-4 py-3 text-[15px] text-ink"
+                    />
                   </View>
-                  <TextInput
-                    value={websiteUrl}
-                    onChangeText={setWebsiteUrl}
-                    placeholder="Website or social link"
-                    placeholderTextColor="#8B909A"
-                    autoCapitalize="none"
-                    keyboardType="url"
-                    returnKeyType="next"
-                    className="mb-3 rounded-xl border border-gray-300 bg-white px-4 py-3 text-[15px] text-ink"
-                  />
-                  <TextInput
-                    value={contactRole}
-                    onChangeText={setContactRole}
-                    placeholder="Your role, e.g. event manager"
-                    placeholderTextColor="#8B909A"
-                    autoCapitalize="sentences"
-                    returnKeyType="next"
-                    className="mb-3 rounded-xl border border-gray-300 bg-white px-4 py-3 text-[15px] text-ink"
-                  />
-                  <TextInput
-                    value={organizerNote}
-                    onChangeText={setOrganizerNote}
-                    placeholder="Short note for CultureQuest admin"
-                    placeholderTextColor="#8B909A"
-                    multiline
-                    textAlignVertical="top"
-                    className="min-h-[86px] rounded-xl border border-gray-300 bg-white px-4 py-3 text-[15px] text-ink"
-                  />
-                </View>
-              )}
-            </>
-          ) : null}
+                )}
+              </>
+            ) : null}
 
-          {mode !== 'confirmSignUp' && (
-            <TextInput
-              value={email}
-              onChangeText={setEmail}
-              placeholder="Email"
-              placeholderTextColor="#8B909A"
-              autoCapitalize="none"
-              keyboardType="email-address"
-              textContentType="emailAddress"
-              autoComplete="email"
-              returnKeyType="next"
-              className="mb-3 rounded-xl border border-gray-300 px-4 py-3 text-[15px] text-ink"
-            />
-          )}
-
-          {mode !== 'confirmSignUp' && (
-            <TextInput
-              value={password}
-              onChangeText={setPassword}
-              placeholder="Password"
-              placeholderTextColor="#8B909A"
-              secureTextEntry
-              textContentType={mode === 'signIn' ? 'password' : 'newPassword'}
-              autoComplete={mode === 'signIn' ? 'current-password' : 'new-password'}
-              returnKeyType="done"
-              onSubmitEditing={handleSubmit}
-              className="mb-4 rounded-xl border border-gray-300 px-4 py-3 text-[15px] text-ink"
-            />
-          )}
-
-          {error && <Text className="mb-4 text-[13px] text-destructive">{error}</Text>}
-          {notice && <Text className="mb-4 text-[13px] text-primary">{notice}</Text>}
-
-          <Pressable
-            onPress={mode === 'confirmSignUp' ? handleConfirmCode : handleSubmit}
-            disabled={loading}
-            className="mb-4 h-[52px] items-center justify-center rounded-xl bg-primary active:opacity-80"
-          >
-            {loading ? (
-              <ActivityIndicator color="white" />
-            ) : (
-              <Text className="text-[16px] font-semibold text-white">
-                {mode === 'signIn'
-                  ? 'Log in'
-                  : mode === 'signUp'
-                    ? 'Create account'
-                    : 'Confirm email'}
-              </Text>
+            {mode !== 'confirmSignUp' && (
+              <TextInput
+                value={email}
+                onChangeText={setEmail}
+                placeholder="Email"
+                placeholderTextColor="#8B909A"
+                autoCapitalize="none"
+                keyboardType="email-address"
+                textContentType="emailAddress"
+                autoComplete="email"
+                returnKeyType="next"
+                className="mb-3 rounded-xl border border-gray-300 px-4 py-3 text-[15px] text-ink"
+              />
             )}
-          </Pressable>
 
-          {mode === 'confirmSignUp' && (
-            <Pressable onPress={handleResendCode} disabled={loading} className="mb-4">
+            {mode !== 'confirmSignUp' && (
+              <TextInput
+                value={password}
+                onChangeText={setPassword}
+                placeholder="Password"
+                placeholderTextColor="#8B909A"
+                secureTextEntry
+                textContentType={mode === 'signIn' ? 'password' : 'newPassword'}
+                autoComplete={mode === 'signIn' ? 'current-password' : 'new-password'}
+                returnKeyType="done"
+                onSubmitEditing={handleSubmit}
+                className="mb-4 rounded-xl border border-gray-300 px-4 py-3 text-[15px] text-ink"
+              />
+            )}
+
+            {error && <Text className="mb-4 text-[13px] text-destructive">{error}</Text>}
+            {notice && <Text className="mb-4 text-[13px] text-primary">{notice}</Text>}
+
+            <Pressable
+              onPress={mode === 'confirmSignUp' ? handleConfirmCode : handleSubmit}
+              disabled={loading}
+              className="mb-4 h-[52px] items-center justify-center rounded-xl bg-primary active:opacity-80"
+            >
+              {loading ? (
+                <ActivityIndicator color="white" />
+              ) : (
+                <Text className="text-[16px] font-semibold text-white">
+                  {mode === 'signIn'
+                    ? 'Log in'
+                    : mode === 'signUp'
+                      ? 'Create account'
+                      : 'Confirm email'}
+                </Text>
+              )}
+            </Pressable>
+
+            {mode === 'confirmSignUp' && (
+              <Pressable onPress={handleResendCode} disabled={loading} className="mb-4">
+                <Text className="text-center text-[14px] font-medium text-primary">
+                  Resend confirmation code
+                </Text>
+              </Pressable>
+            )}
+
+            <Pressable
+              onPress={() => {
+                setError(null);
+                setNotice(null);
+                setMode(mode === 'signIn' ? 'signUp' : 'signIn');
+              }}
+            >
               <Text className="text-center text-[14px] font-medium text-primary">
-                Resend confirmation code
+                {mode === 'signIn' ? "Don't have an account? Sign up" : 'Back to log in'}
               </Text>
             </Pressable>
-          )}
 
-          <Pressable
-            onPress={() => {
-              setError(null);
-              setNotice(null);
-              setMode(mode === 'signIn' ? 'signUp' : 'signIn');
-            }}
-          >
-            <Text className="text-center text-[14px] font-medium text-primary">
-              {mode === 'signIn' ? "Don't have an account? Sign up" : 'Back to log in'}
-            </Text>
-          </Pressable>
-
-          {onCancel && (
-            <Pressable onPress={onCancel} className="mt-6">
-              <Text className="text-center text-[14px] font-medium text-muted">
-                Continue without logging in
-              </Text>
-            </Pressable>
-          )}
+            {onCancel && (
+              <Pressable
+                onPress={onCancel}
+                className="mt-4 h-[50px] items-center justify-center rounded-xl border border-primary/20 bg-primary/5 active:opacity-85"
+              >
+                <Text className="font-ui text-[14px] text-primary">
+                  Continue without logging in
+                </Text>
+              </Pressable>
+            )}
+          </View>
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
   );
 }
+
+const styles = StyleSheet.create({
+  hero: {
+    borderBottomLeftRadius: 0,
+    borderBottomRightRadius: 0,
+  },
+});
