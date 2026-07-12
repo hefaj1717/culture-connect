@@ -8,7 +8,6 @@ import {
   Globe,
   Sparkles,
   TrendingUp,
-  Trophy,
   User,
   X,
 } from 'lucide-react-native';
@@ -436,14 +435,9 @@ export default function HomeScreen({
             >
               <View className="flex-row items-center justify-between gap-4">
                 <View className="min-w-0 flex-1">
-                  <View className="mb-2 flex-row items-center gap-2">
-                    <View className="h-9 w-9 items-center justify-center rounded-2xl bg-primary">
-                      <Trophy size={18} color="white" fill="rgba(255,255,255,0.18)" />
-                    </View>
-                    <Text className="text-[11px] font-semibold uppercase tracking-wide text-muted">
-                      Weekly leaderboard
-                    </Text>
-                  </View>
+                  <Text className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-muted">
+                    Weekly leaderboard
+                  </Text>
                   <Text className="font-heading text-[21px] font-extrabold leading-[25px] text-ink">
                     Your university is #{userLeaderboardRow.rank} this week
                   </Text>
@@ -584,7 +578,6 @@ type LeaderboardRow = {
   shortName: string;
   xp: number;
   rank: number;
-  change: string;
   isUserGroup?: boolean;
 };
 
@@ -668,9 +661,6 @@ function LeaderboardModal({
                     end={{ x: 1, y: 1 }}
                     style={{ padding: 18 }}
                   >
-                    <View className="mb-5 h-12 w-12 items-center justify-center rounded-2xl bg-white/15">
-                      <Trophy size={24} color="white" fill="rgba(255,255,255,0.18)" />
-                    </View>
                     <Text className="text-[12px] font-semibold uppercase tracking-wide text-white/70">
                       Campus race
                     </Text>
@@ -715,14 +705,13 @@ function LeaderboardModal({
                           )}
                         </View>
                         <Text className="mt-0.5 text-[12px] font-medium text-muted">
-                          {row.shortName} · {row.change}
+                          {row.shortName}
                         </Text>
                       </View>
                       <View className="items-end">
                         <Text className="font-ui text-[15px] font-extrabold text-primary">
                           {row.xp.toLocaleString()}
                         </Text>
-                        <Text className="text-[10px] font-semibold uppercase text-muted">XP</Text>
                       </View>
                     </View>
                   ))}
@@ -745,7 +734,6 @@ function getLeaderboardRows(cityId: CultureCityData['id']): LeaderboardRow[] {
         shortName: 'Politechnika Lubelska',
         xp: 14820,
         rank: 1,
-        change: '+2 places',
       },
       {
         id: 'umcs',
@@ -753,7 +741,6 @@ function getLeaderboardRows(cityId: CultureCityData['id']): LeaderboardRow[] {
         shortName: 'UMCS',
         xp: 13760,
         rank: 2,
-        change: '+840 XP today',
         isUserGroup: true,
       },
       {
@@ -762,7 +749,6 @@ function getLeaderboardRows(cityId: CultureCityData['id']): LeaderboardRow[] {
         shortName: 'KUL',
         xp: 12910,
         rank: 3,
-        change: 'holding steady',
       },
       {
         id: 'umlub',
@@ -770,7 +756,6 @@ function getLeaderboardRows(cityId: CultureCityData['id']): LeaderboardRow[] {
         shortName: 'UMLub',
         xp: 11140,
         rank: 4,
-        change: '+1 place',
       },
     ];
   }
@@ -782,7 +767,6 @@ function getLeaderboardRows(cityId: CultureCityData['id']): LeaderboardRow[] {
       shortName: 'UCLL',
       xp: 15480,
       rank: 1,
-      change: '+1,120 XP today',
     },
     {
       id: 'ku-leuven',
@@ -790,7 +774,6 @@ function getLeaderboardRows(cityId: CultureCityData['id']): LeaderboardRow[] {
       shortName: 'KU Leuven',
       xp: 14630,
       rank: 2,
-      change: '+680 XP today',
       isUserGroup: true,
     },
     {
@@ -799,7 +782,6 @@ function getLeaderboardRows(cityId: CultureCityData['id']): LeaderboardRow[] {
       shortName: 'LUCA',
       xp: 11870,
       rank: 3,
-      change: '+2 places',
     },
     {
       id: 'imec',
@@ -807,7 +789,6 @@ function getLeaderboardRows(cityId: CultureCityData['id']): LeaderboardRow[] {
       shortName: 'ISH',
       xp: 10240,
       rank: 4,
-      change: 'new challenger',
     },
   ];
 }
