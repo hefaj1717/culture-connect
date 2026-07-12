@@ -631,70 +631,76 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
             colors={['rgba(124,58,237,0.52)', 'rgba(36,28,46,0.96)']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
-            className="p-5"
           >
-            <View className="mb-5 flex-row items-start justify-between gap-4">
-              <View className="min-w-0 flex-1">
-                <View className="mb-2 flex-row items-center gap-2">
-                  <Text className="text-[12px] font-semibold uppercase tracking-wide text-white/70">
-                    CultureQuest rank
+            <View className="p-5">
+              <View className="mb-5 flex-row items-start justify-between gap-3">
+                <View className="min-w-0 flex-1 pr-1">
+                  <View className="mb-2 flex-row flex-wrap items-center gap-2">
+                    <Text className="text-[11px] font-semibold uppercase tracking-wide text-white/70">
+                      CultureQuest rank
+                    </Text>
+                    {organizerApplicationStatus === 'approved' && <OrganizerVerifiedBadge />}
+                  </View>
+                  <Text
+                    className="font-heading text-[31px] font-extrabold leading-[35px] text-white"
+                    numberOfLines={1}
+                    adjustsFontSizeToFit
+                    minimumFontScale={0.82}
+                  >
+                    {levelProgress.currentLevel.name}
                   </Text>
-                  {organizerApplicationStatus === 'approved' && <OrganizerVerifiedBadge />}
-                </View>
-                <Text className="font-heading text-[34px] font-extrabold leading-[38px] text-white">
-                  {levelProgress.currentLevel.name}
-                </Text>
-                <Text className="mt-1 text-[13px] text-white/72" numberOfLines={1}>
-                  {fullName} · {cityData.label}
-                </Text>
-              </View>
-
-              <RankAvatar
-                initials={avatarInitials}
-                progressPercent={levelProgress.progressPercent}
-                uri={savedAvatarUrl}
-              />
-            </View>
-
-            <View className="mb-5 flex-row items-end justify-between gap-4">
-              <View>
-                <View className="mb-1 flex-row items-center gap-1.5">
-                  <Sparkles size={15} color={Colors.light.accent} strokeWidth={2.4} />
-                  <Text className="text-[12px] font-semibold uppercase tracking-wide text-white/65">
-                    Total XP
+                  <Text className="mt-1 text-[13px] text-white/72" numberOfLines={1}>
+                    {fullName} · {cityData.label}
                   </Text>
                 </View>
-                <Text className="font-stat text-[38px] font-extrabold leading-[42px] text-white">
-                  {userXp.toLocaleString()}
-                </Text>
-              </View>
-              <View className="max-w-[160px] items-end">
-                <Text className="text-right text-[12px] leading-4 text-white/70">
-                  {levelProgress.nextLevel
-                    ? `${levelProgress.xpToNext.toLocaleString()} XP to ${
-                        levelProgress.nextLevel.name
-                      }`
-                    : 'Top city rank reached'}
-                </Text>
-                <Text className="mt-1 text-[13px] font-bold text-white">
-                  {Math.round(levelProgress.progressPercent)}%
-                </Text>
-              </View>
-            </View>
 
-            <View className="flex-row gap-3 border-t border-white/12 pt-4">
-              <ProfileMetric
-                icon={<TicketCheck size={18} color={Colors.light.primary} strokeWidth={2.5} />}
-                label="Events"
-                value={attendedEventsCount.toString()}
-              />
-              <Pressable className="flex-1 active:opacity-80" onPress={() => setBadgesOpen(true)}>
-                <ProfileMetric
-                  icon={<Gift size={18} color={Colors.light.primary} strokeWidth={2.5} />}
-                  label="Badges"
-                  value={unlockedBadgesCount.toString()}
+                <RankAvatar
+                  initials={avatarInitials}
+                  progressPercent={levelProgress.progressPercent}
+                  uri={savedAvatarUrl}
                 />
-              </Pressable>
+              </View>
+
+              <View className="mb-5 flex-row items-end justify-between gap-4">
+                <View>
+                  <View className="mb-1 flex-row items-center gap-1.5">
+                    <Sparkles size={15} color={Colors.light.accent} strokeWidth={2.4} />
+                    <Text className="text-[12px] font-semibold uppercase tracking-wide text-white/65">
+                      Total XP
+                    </Text>
+                  </View>
+                  <Text className="font-stat text-[38px] font-extrabold leading-[42px] text-white">
+                    {userXp.toLocaleString()}
+                  </Text>
+                </View>
+                <View className="max-w-[150px] items-end">
+                  <Text className="text-right text-[12px] leading-4 text-white/70">
+                    {levelProgress.nextLevel
+                      ? `${levelProgress.xpToNext.toLocaleString()} XP to ${
+                          levelProgress.nextLevel.name
+                        }`
+                      : 'Top city rank reached'}
+                  </Text>
+                  <Text className="mt-1 text-[13px] font-bold text-white">
+                    {Math.round(levelProgress.progressPercent)}%
+                  </Text>
+                </View>
+              </View>
+
+              <View className="flex-row gap-3 border-t border-white/12 pt-4">
+                <ProfileMetric
+                  icon={<TicketCheck size={18} color={Colors.light.primary} strokeWidth={2.5} />}
+                  label="Events"
+                  value={attendedEventsCount.toString()}
+                />
+                <Pressable className="flex-1 active:opacity-80" onPress={() => setBadgesOpen(true)}>
+                  <ProfileMetric
+                    icon={<Gift size={18} color={Colors.light.primary} strokeWidth={2.5} />}
+                    label="Badges"
+                    value={unlockedBadgesCount.toString()}
+                  />
+                </Pressable>
+              </View>
             </View>
           </LinearGradient>
         </View>
@@ -1502,17 +1508,22 @@ function RankAvatar({
   uri?: string | null;
 }) {
   return (
-    <View className="relative h-[98px] w-[98px] items-center justify-center">
-      <ProgressRing progressPercent={progressPercent} size={98} strokeWidth={6} />
-      <View className="h-[78px] w-[78px] items-center justify-center overflow-hidden rounded-full bg-white/12">
+    <View className="relative h-[90px] w-[90px] items-center justify-center">
+      <ProgressRing progressPercent={progressPercent} size={90} strokeWidth={6} />
+      <View className="h-[70px] w-[70px] items-center justify-center overflow-hidden rounded-full bg-white/12">
         {uri ? (
-          <Image source={{ uri }} contentFit="cover" style={{ height: 78, width: 78 }} />
+          <Image source={{ uri }} contentFit="cover" style={{ height: 70, width: 70 }} />
         ) : (
           <LinearGradient
             colors={['rgba(244,162,97,0.92)', 'rgba(124,58,237,0.96)']}
-            className="h-full w-full items-center justify-center"
+            style={{
+              alignItems: 'center',
+              height: 70,
+              justifyContent: 'center',
+              width: 70,
+            }}
           >
-            <Text className="font-heading text-[24px] font-extrabold text-white">
+            <Text className="font-heading text-[22px] font-extrabold text-white">
               {initials ?? 'CQ'}
             </Text>
           </LinearGradient>
