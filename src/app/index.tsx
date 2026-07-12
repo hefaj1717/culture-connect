@@ -1,5 +1,17 @@
 import { Image } from 'expo-image';
-import { ArrowRight, Bell, Flame, Globe, Sparkles, TrendingUp, User, X } from 'lucide-react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import {
+  ArrowLeft,
+  ArrowRight,
+  Bell,
+  Flame,
+  Globe,
+  Sparkles,
+  TrendingUp,
+  Trophy,
+  User,
+  X,
+} from 'lucide-react-native';
 import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useEffect, useMemo, useState } from 'react';
 import MapView, { Circle as MapCircle, Marker } from 'react-native-maps';
@@ -98,6 +110,8 @@ export default function HomeScreen({
   const selectedActivitySpot =
     activitySpots.find((spot) => spot.id === selectedActivityId) ?? activitySpots[0];
   const activityMapRegion = useMemo(() => getCityMapRegion(cityData), [cityData]);
+  const leaderboardRows = useMemo(() => getLeaderboardRows(cityData.id), [cityData.id]);
+  const userLeaderboardRow = leaderboardRows.find((row) => row.isUserGroup) ?? leaderboardRows[0];
   const visibleNotifications = useMemo(() => {
     const organizerNotification =
       organizerApplicationStatus === 'approved'
@@ -121,6 +135,7 @@ export default function HomeScreen({
     return organizerNotification ? [organizerNotification, ...notifications] : notifications;
   }, [organizerApplicationStatus]);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [leaderboardOpen, setLeaderboardOpen] = useState(false);
   const [hasUnreadNotifications, setHasUnreadNotifications] = useState(
     visibleNotifications.some((notification) => notification.unread),
   );
@@ -392,6 +407,46 @@ export default function HomeScreen({
           </View>
         )}
 
+        <View className="px-5 pb-8">
+          <Pressable
+            onPress={() => setLeaderboardOpen(true)}
+            className="overflow-hidden rounded-3xl border border-primary/10 bg-white active:opacity-90"
+          >
+            <LinearGradient
+              colors={['rgba(124,58,237,0.1)', 'rgba(244,162,97,0.12)']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={{ padding: 16 }}
+            >
+              <View className="flex-row items-center justify-between gap-4">
+                <View className="min-w-0 flex-1">
+                  <View className="mb-2 flex-row items-center gap-2">
+                    <View className="h-9 w-9 items-center justify-center rounded-2xl bg-primary">
+                      <Trophy size={18} color="white" fill="rgba(255,255,255,0.18)" />
+                    </View>
+                    <Text className="text-[11px] font-semibold uppercase tracking-wide text-muted">
+                      Weekly leaderboard
+                    </Text>
+                  </View>
+                  <Text className="font-heading text-[21px] font-extrabold leading-[25px] text-ink">
+                    Your university is #{userLeaderboardRow.rank} this week
+                  </Text>
+                  <Text className="mt-1 text-[13px] leading-5 text-muted">
+                    {userLeaderboardRow.name} has earned {userLeaderboardRow.xp.toLocaleString()} XP
+                    across {cityData.name}.
+                  </Text>
+                </View>
+                <View className="items-end">
+                  <Text className="font-ui text-[13px] font-extrabold text-primary">
+                    View leaderboard
+                  </Text>
+                  <ArrowRight size={16} color={Colors.light.primary} />
+                </View>
+              </View>
+            </LinearGradient>
+          </Pressable>
+        </View>
+
         <View className="px-5">
           <View className="rounded-2xl border border-primary/10 bg-primary/5 p-5">
             <View className="mb-2 flex-row items-center gap-2">
@@ -474,6 +529,13 @@ export default function HomeScreen({
           </Pressable>
         </Pressable>
       </Modal>
+
+      <LeaderboardModal
+        cityName={cityData.name}
+        onClose={() => setLeaderboardOpen(false)}
+        rows={leaderboardRows}
+        visible={leaderboardOpen}
+      />
     </View>
   );
 }
@@ -484,6 +546,204 @@ function getHeroImageSource(heroImage: CultureCityData['heroImage']) {
   }
 
   return require('@/assets/images/culture/hero-culture.jpg');
+}
+
+type LeaderboardRow = {
+  id: string;
+  name: string;
+  shortName: string;
+  xp: number;
+  rank: number;
+  change: string;
+  isUserGroup?: boolean;
+};
+
+function LeaderboardModal({
+  cityName,
+  onClose,
+  rows,
+  visible,
+}: {
+  cityName: string;
+  onClose: () => void;
+  rows: LeaderboardRow[];
+  visible: boolean;
+}) {
+  return (
+    <Modal animationType="slide" onRequestClose={onClose} visible={visible}>
+      <SafeAreaView className="flex-1 bg-white" edges={['top']}>
+        <View className="flex-row items-center justify-between px-5 pb-4 pt-2">
+          <Pressable
+            onPress={onClose}
+            className="h-10 w-10 items-center justify-center rounded-full bg-gray-100 active:opacity-80"
+          >
+            <ArrowLeft size={20} color="#241C2E" strokeWidth={2.5} />
+          </Pressable>
+          <Text className="text-[12px] font-semibold uppercase tracking-wide text-muted">
+            This week
+          </Text>
+        </View>
+
+        <ScrollView
+          className="flex-1"
+          contentContainerStyle={{ paddingBottom: 36 }}
+          showsVerticalScrollIndicator={false}
+        >
+          <View className="px-5 pb-5">
+            <Text className="font-heading text-[31px] font-extrabold leading-[35px] text-ink">
+              University leaderboard
+            </Text>
+            <Text className="mt-2 text-[14px] leading-5 text-muted">
+              XP earned by student groups around {cityName}.
+            </Text>
+          </View>
+
+          <View className="px-5">
+            <View className="mb-4 overflow-hidden rounded-3xl bg-ink">
+              <LinearGradient
+                colors={['rgba(124,58,237,0.78)', 'rgba(36,28,46,0.98)']}
+                start={{ x: 0, y: 0 }}
+                end={{ x: 1, y: 1 }}
+                style={{ padding: 18 }}
+              >
+                <View className="mb-5 h-12 w-12 items-center justify-center rounded-2xl bg-white/15">
+                  <Trophy size={24} color="white" fill="rgba(255,255,255,0.18)" />
+                </View>
+                <Text className="text-[12px] font-semibold uppercase tracking-wide text-white/70">
+                  Campus race
+                </Text>
+                <Text className="mt-1 font-heading text-[28px] font-extrabold leading-[32px] text-white">
+                  {rows[0]?.name} leads with {rows[0]?.xp.toLocaleString()} XP
+                </Text>
+              </LinearGradient>
+            </View>
+
+            <View className="gap-3">
+              {rows.map((row) => (
+                <View
+                  key={row.id}
+                  className={`flex-row items-center gap-3 rounded-2xl border p-3 ${
+                    row.isUserGroup ? 'border-accent/40 bg-accent/10' : 'border-gray-200 bg-white'
+                  }`}
+                >
+                  <View
+                    className={`h-11 w-11 items-center justify-center rounded-2xl ${
+                      row.rank <= 3 ? 'bg-primary' : 'bg-gray-100'
+                    }`}
+                  >
+                    <Text
+                      className={`font-ui text-[15px] font-extrabold ${
+                        row.rank <= 3 ? 'text-white' : 'text-muted'
+                      }`}
+                    >
+                      #{row.rank}
+                    </Text>
+                  </View>
+                  <View className="min-w-0 flex-1">
+                    <View className="flex-row items-center gap-2">
+                      <Text className="min-w-0 flex-1 text-[15px] font-extrabold text-ink">
+                        {row.name}
+                      </Text>
+                      {row.isUserGroup && (
+                        <View className="rounded-full bg-accent px-2 py-0.5">
+                          <Text className="text-[10px] font-extrabold text-white">YOU</Text>
+                        </View>
+                      )}
+                    </View>
+                    <Text className="mt-0.5 text-[12px] font-medium text-muted">
+                      {row.shortName} · {row.change}
+                    </Text>
+                  </View>
+                  <View className="items-end">
+                    <Text className="font-ui text-[15px] font-extrabold text-primary">
+                      {row.xp.toLocaleString()}
+                    </Text>
+                    <Text className="text-[10px] font-semibold uppercase text-muted">XP</Text>
+                  </View>
+                </View>
+              ))}
+            </View>
+          </View>
+        </ScrollView>
+      </SafeAreaView>
+    </Modal>
+  );
+}
+
+function getLeaderboardRows(cityId: CultureCityData['id']): LeaderboardRow[] {
+  if (cityId === 'lublin') {
+    return [
+      {
+        id: 'pollub',
+        name: 'Lublin University of Technology',
+        shortName: 'Politechnika Lubelska',
+        xp: 14820,
+        rank: 1,
+        change: '+2 places',
+      },
+      {
+        id: 'umcs',
+        name: 'Maria Curie-Sklodowska University',
+        shortName: 'UMCS',
+        xp: 13760,
+        rank: 2,
+        change: '+840 XP today',
+        isUserGroup: true,
+      },
+      {
+        id: 'kul',
+        name: 'John Paul II Catholic University',
+        shortName: 'KUL',
+        xp: 12910,
+        rank: 3,
+        change: 'holding steady',
+      },
+      {
+        id: 'umlub',
+        name: 'Medical University of Lublin',
+        shortName: 'UMLub',
+        xp: 11140,
+        rank: 4,
+        change: '+1 place',
+      },
+    ];
+  }
+
+  return [
+    {
+      id: 'ucll',
+      name: 'UCLL Applied Sciences',
+      shortName: 'UCLL',
+      xp: 15480,
+      rank: 1,
+      change: '+1,120 XP today',
+    },
+    {
+      id: 'ku-leuven',
+      name: 'KU Leuven',
+      shortName: 'KU Leuven',
+      xp: 14630,
+      rank: 2,
+      change: '+680 XP today',
+      isUserGroup: true,
+    },
+    {
+      id: 'luca',
+      name: 'LUCA School of Arts',
+      shortName: 'LUCA',
+      xp: 11870,
+      rank: 3,
+      change: '+2 places',
+    },
+    {
+      id: 'imec',
+      name: 'International Student Houses',
+      shortName: 'ISH',
+      xp: 10240,
+      rank: 4,
+      change: 'new challenger',
+    },
+  ];
 }
 
 function getEventImageSource(event: CultureCityData['events'][number]) {

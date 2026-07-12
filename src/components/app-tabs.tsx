@@ -1,5 +1,5 @@
 import { StatusBar } from 'expo-status-bar';
-import { Compass, Home, User } from 'lucide-react-native';
+import { Compass, Home, Route, User } from 'lucide-react-native';
 import { useMemo, useState } from 'react';
 import { Pressable, Text, useWindowDimensions, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
@@ -13,13 +13,14 @@ import Animated, {
 import ExploreScreen from '@/app/explore';
 import HomeScreen from '@/app/index';
 import ProfileScreen from '@/app/profile';
+import QuestsScreen from '@/app/quests';
 import { Colors, FontTokens } from '@/constants/theme';
 import { getCultureCityData } from '@/data/culture';
 import { useAuth } from '@/providers/auth-provider';
 
 const ACTIVE = Colors.light.primary;
 const INACTIVE = '#7D8594';
-const TAB_COUNT = 3;
+const TAB_COUNT = 4;
 
 export default function AppTabs() {
   const { width } = useWindowDimensions();
@@ -48,7 +49,7 @@ export default function AppTabs() {
 
   function openDiscoverEvent(eventId: string) {
     setEventOpenRequest({ eventId, nonce: Date.now() });
-    goToTab(1);
+    goToTab(2);
   }
 
   const gesture = useMemo(
@@ -102,10 +103,13 @@ export default function AppTabs() {
               avatarUrl={avatarUrl}
               cityData={cityData}
               organizerApplicationStatus={organizerApplicationStatus}
-              onOpenDiscover={() => goToTab(1)}
+              onOpenDiscover={() => goToTab(2)}
               onOpenEvent={openDiscoverEvent}
-              onOpenProfile={() => goToTab(2)}
+              onOpenProfile={() => goToTab(3)}
             />
+          </View>
+          <View style={{ width }}>
+            <QuestsScreen cityData={cityData} />
           </View>
           <View style={{ width }}>
             <ExploreScreen
@@ -119,7 +123,7 @@ export default function AppTabs() {
             <ProfileScreen
               onEventCreated={() => {
                 setOrganizerEventsVersion((version) => version + 1);
-                goToTab(1);
+                goToTab(2);
               }}
             />
           </View>
@@ -145,8 +149,14 @@ export default function AppTabs() {
           label="Home"
           onPress={() => goToTab(0)}
         />
-        <Pressable
+        <TabButton
+          active={activeIndex === 1}
+          icon={<Route size={23} color={activeIndex === 1 ? ACTIVE : INACTIVE} strokeWidth={2.3} />}
+          label="Quests"
           onPress={() => goToTab(1)}
+        />
+        <Pressable
+          onPress={() => goToTab(2)}
           style={{
             width: 60,
             height: 60,
@@ -164,10 +174,10 @@ export default function AppTabs() {
           <Compass size={31} color="#FFFFFF" strokeWidth={2.45} />
         </Pressable>
         <TabButton
-          active={activeIndex === 2}
-          icon={<User size={24} color={activeIndex === 2 ? ACTIVE : INACTIVE} />}
+          active={activeIndex === 3}
+          icon={<User size={24} color={activeIndex === 3 ? ACTIVE : INACTIVE} />}
           label="Profile"
-          onPress={() => goToTab(2)}
+          onPress={() => goToTab(3)}
         />
       </View>
     </View>
@@ -201,7 +211,7 @@ function TabButton({
   onPress: () => void;
 }) {
   return (
-    <Pressable onPress={onPress} className="min-w-[88px] items-center justify-center gap-1">
+    <Pressable onPress={onPress} className="min-w-[72px] items-center justify-center gap-1">
       {icon}
       <Text
         style={{
