@@ -327,7 +327,7 @@ function getQuestData(cityId: CultureCityData['id']): Quest[] {
         description:
           'A walk through Lublin facades, student landmarks, and bold post-war details hiding in plain sight.',
         totalXp: 250,
-        completedStops: 2,
+        completedStops: 0,
         image: 'museum',
         stops: [
           {
@@ -335,14 +335,14 @@ function getQuestData(cityId: CultureCityData['id']): Quest[] {
             title: 'Plac Litewski start',
             description: 'Begin at the main square and read the trail briefing.',
             eta: '5 min',
-            completed: true,
+            completed: false,
           },
           {
             id: 'cs2',
             title: 'Centre for Culture facade',
             description: 'Find the geometric entry detail and scan the location marker.',
             eta: '8 min',
-            completed: true,
+            completed: false,
           },
           {
             id: 'cs3',
@@ -367,7 +367,7 @@ function getQuestData(cityId: CultureCityData['id']): Quest[] {
         description:
           'Three evening stops for film, small gigs, and a cafe reward after the last check-in.',
         totalXp: 180,
-        completedStops: 1,
+        completedStops: 0,
         image: 'cafe',
         stops: [
           {
@@ -375,7 +375,7 @@ function getQuestData(cityId: CultureCityData['id']): Quest[] {
             title: 'Bookland Lublin',
             description: 'Pick up the first clue from the staff counter.',
             eta: '6 min',
-            completed: true,
+            completed: false,
           },
           {
             id: 'ns2',
@@ -404,7 +404,7 @@ function getQuestData(cityId: CultureCityData['id']): Quest[] {
       description:
         'A curated route from campus corners to cultural venues that shaped Leuven’s modern student life.',
       totalXp: 250,
-      completedStops: 2,
+      completedStops: 0,
       image: 'museum',
       stops: [
         {
@@ -412,14 +412,14 @@ function getQuestData(cityId: CultureCityData['id']): Quest[] {
           title: 'University Library steps',
           description: 'Start with the city skyline and read the route intro.',
           eta: '5 min',
-          completed: true,
+          completed: false,
         },
         {
           id: 'ms2',
           title: 'M-Museum Leuven',
           description: 'Find the courtyard perspective and confirm the stop.',
           eta: '9 min',
-          completed: true,
+          completed: false,
         },
         {
           id: 'ms3',
