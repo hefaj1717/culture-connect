@@ -3,7 +3,6 @@ import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import {
   ArrowLeft,
-  BadgeCheck,
   Beer,
   BookOpen,
   Building2,
@@ -97,7 +96,7 @@ const weekdayLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 const timeHours = Array.from({ length: 24 }, (_, index) => index);
 const timeMinutes = [0, 15, 30, 45];
 const rewardRedeemWindowMs = 5 * 60 * 1000;
-const userXp = 1860;
+const userXp = 0;
 
 const xpLevels = [
   { name: 'Newcomer', minXp: 0 },
@@ -118,8 +117,8 @@ const achievementBadges = [
     id: 'first-quest',
     title: 'First Quest',
     description: 'Attend your first CultureQuest event.',
-    progress: '1 / 1',
-    unlocked: true,
+    progress: '0 / 1',
+    unlocked: false,
     icon: TicketCheck,
     color: Colors.light.primary,
   },
@@ -127,7 +126,7 @@ const achievementBadges = [
     id: 'culture-regular',
     title: 'Culture Regular',
     description: 'Attend 10 events across your city.',
-    progress: '4 / 10',
+    progress: '0 / 10',
     unlocked: false,
     icon: CalendarPlus,
     color: Colors.light.primary,
@@ -136,7 +135,7 @@ const achievementBadges = [
     id: 'reward-hunter',
     title: 'Reward Hunter',
     description: 'Redeem 10 rewards from local partners.',
-    progress: '2 / 10',
+    progress: '0 / 10',
     unlocked: false,
     icon: Gift,
     color: Colors.light.primary,
@@ -145,7 +144,7 @@ const achievementBadges = [
     id: 'museum-mind',
     title: 'Museum Mind',
     description: 'Check in at 5 museum or gallery events.',
-    progress: '3 / 5',
+    progress: '0 / 5',
     unlocked: false,
     icon: Building2,
     color: Colors.light.primary,
@@ -154,7 +153,7 @@ const achievementBadges = [
     id: 'city-explorer',
     title: 'City Explorer',
     description: 'Visit 8 different venues in one city.',
-    progress: '5 / 8',
+    progress: '0 / 8',
     unlocked: false,
     icon: Compass,
     color: Colors.light.primary,
@@ -163,8 +162,8 @@ const achievementBadges = [
     id: 'social-spark',
     title: 'Social Spark',
     description: 'Mark Going on 5 events before attending.',
-    progress: '5 / 5',
-    unlocked: true,
+    progress: '0 / 5',
+    unlocked: false,
     icon: Sparkles,
     color: Colors.light.primary,
   },
@@ -172,7 +171,7 @@ const achievementBadges = [
     id: 'international-eye',
     title: 'International Eye',
     description: 'Join 3 multilingual or international events.',
-    progress: '1 / 3',
+    progress: '0 / 3',
     unlocked: false,
     icon: Globe,
     color: Colors.light.primary,
@@ -181,7 +180,7 @@ const achievementBadges = [
     id: 'coffee-route',
     title: 'Coffee Route',
     description: 'Redeem rewards at 3 cafe partners.',
-    progress: '1 / 3',
+    progress: '0 / 3',
     unlocked: false,
     icon: Coffee,
     color: Colors.light.primary,
@@ -190,7 +189,7 @@ const achievementBadges = [
     id: 'top-week',
     title: 'Top 10 Week',
     description: 'Reach the weekly city leaderboard top 10.',
-    progress: 'Best: #14',
+    progress: 'Not ranked',
     unlocked: false,
     icon: Trophy,
     color: Colors.light.primary,
@@ -199,8 +198,8 @@ const achievementBadges = [
     id: 'founding-student',
     title: 'Founding Student',
     description: 'Join CultureQuest during the pilot season.',
-    progress: 'Unlocked',
-    unlocked: true,
+    progress: 'Locked',
+    unlocked: false,
     icon: Crown,
     color: Colors.light.primary,
   },
@@ -735,7 +734,7 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
               </Text>
               {organizerApplicationStatus === 'approved' && (
                 <View className="flex-row items-center gap-1.5 rounded-full bg-secondary/15 px-2.5 py-1">
-                  <BadgeCheck size={14} color={Colors.light.accent} fill={Colors.light.accent} />
+                  <VerifiedCheckIcon size={16} />
                   <Text className="text-[11px] font-bold text-ink">Approved</Text>
                 </View>
               )}
@@ -753,7 +752,7 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
                     </Text>
                   </View>
                   <View className="h-10 w-10 items-center justify-center rounded-full bg-secondary">
-                    <BadgeCheck size={18} color="white" fill="white" />
+                    <CheckCircle2 size={20} color="white" strokeWidth={2.7} />
                   </View>
                 </View>
 
@@ -1678,14 +1677,25 @@ function RewardPartnerRow({
 function OrganizerVerifiedBadge({ compact = false }: { compact?: boolean }) {
   return (
     <View
-      className={`flex-row items-center gap-1 rounded-full bg-secondary ${
+      className={`flex-row items-center gap-1 rounded-full bg-secondary/15 ${
         compact ? 'px-1.5 py-1' : 'px-2 py-1'
       }`}
     >
-      <BadgeCheck size={13} color="white" fill="white" strokeWidth={2.3} />
+      <VerifiedCheckIcon size={compact ? 16 : 17} />
       {!compact && (
-        <Text className="text-[10px] font-bold uppercase tracking-wide text-white">Approved</Text>
+        <Text className="text-[10px] font-bold uppercase tracking-wide text-ink">Approved</Text>
       )}
+    </View>
+  );
+}
+
+function VerifiedCheckIcon({ size = 16 }: { size?: number }) {
+  return (
+    <View
+      className="items-center justify-center rounded-full bg-secondary"
+      style={{ height: size, width: size }}
+    >
+      <CheckCircle2 size={size - 3} color="white" strokeWidth={3} />
     </View>
   );
 }
