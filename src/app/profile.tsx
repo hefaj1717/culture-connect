@@ -1207,14 +1207,15 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
         {selectedReward && (
           <GestureDetector gesture={rewardSwipeGesture}>
             <Animated.View className="flex-1 bg-white" style={rewardSwipeStyle}>
-              <SafeAreaView className="flex-1 bg-white" edges={['bottom']}>
+              <SafeAreaView className="flex-1 bg-white" edges={['top', 'bottom']}>
                 <ScrollView
                   className="flex-1"
                   contentContainerStyle={{
                     paddingHorizontal: 20,
-                    paddingBottom: 24,
-                    paddingTop: stableModalTopInset + 14,
+                    paddingBottom: 32,
+                    paddingTop: 12,
                   }}
+                  contentInsetAdjustmentBehavior="automatic"
                   showsVerticalScrollIndicator={false}
                 >
                   <Pressable
@@ -1231,12 +1232,15 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
                       colors={['rgba(124,58,237,0.84)', 'rgba(36,28,46,0.98)']}
                       end={{ x: 1, y: 1 }}
                       start={{ x: 0, y: 0 }}
-                      className="p-5"
+                      className="px-5 pb-5 pt-6"
                     >
-                      <Text className="mb-3 text-[11px] font-bold uppercase tracking-[2px] text-white/65">
+                      <Text
+                        className="mb-3 text-[10px] font-bold uppercase leading-[14px] tracking-[2px] text-white/65"
+                        numberOfLines={1}
+                      >
                         {selectedReward.location}
                       </Text>
-                      <Text className="font-heading text-[31px] font-extrabold leading-[35px] text-white">
+                      <Text className="font-heading text-[30px] font-extrabold leading-[36px] text-white">
                         {selectedReward.name}
                       </Text>
                       <View className="mt-4 self-start rounded-full bg-white/10 px-3 py-1.5">
@@ -1248,7 +1252,7 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
                   </View>
 
                   <View className="mb-4 rounded-3xl border border-primary/10 bg-primary/5 p-5">
-                    <Text className="mb-2 text-[11px] font-bold uppercase tracking-[2px] text-muted">
+                    <Text className="mb-2 text-[11px] font-bold uppercase leading-[15px] tracking-[2px] text-muted">
                       Reward
                     </Text>
                     <Text className="font-heading text-[25px] font-extrabold leading-[29px] text-ink">
@@ -1293,19 +1297,22 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
                     </View>
                   </View>
 
-                  <View className="mb-2 overflow-hidden rounded-3xl bg-ink">
+                  <View className="mb-3 overflow-hidden rounded-3xl bg-ink">
                     <LinearGradient
                       colors={['rgba(36,28,46,0.98)', 'rgba(124,58,237,0.86)']}
                       end={{ x: 1, y: 1 }}
                       start={{ x: 0, y: 0 }}
-                      className="p-5"
+                      className="px-5 pb-5 pt-6"
                     >
-                      <View className="mb-4 flex-row items-center justify-between">
-                        <View>
-                          <Text className="text-[11px] font-bold uppercase tracking-[2px] text-white/60">
+                      <View className="mb-4 flex-row items-start justify-between gap-3">
+                        <View className="min-w-0 flex-1">
+                          <Text className="text-[10px] font-bold uppercase leading-[14px] tracking-[2px] text-white/60">
                             Pickup screen
                           </Text>
-                          <Text className="mt-1 font-heading text-[22px] font-extrabold text-white">
+                          <Text
+                            className="mt-1 font-heading text-[21px] font-extrabold leading-[26px] text-white"
+                            numberOfLines={2}
+                          >
                             {selectedRewardIsUsed
                               ? 'Coupon already used'
                               : selectedRewardIsActive
@@ -1340,11 +1347,11 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
                         </View>
                       </View>
 
-                      <View className="rounded-2xl border border-dashed border-accent/80 bg-white/10 p-5">
-                        <Text className="mb-2 text-center text-[11px] font-bold uppercase tracking-[1.8px] text-white/60">
+                      <View className="rounded-2xl border border-dashed border-accent/80 bg-white/10 px-4 py-5">
+                        <Text className="mb-2 text-center text-[10px] font-bold uppercase leading-[14px] tracking-[1.8px] text-white/60">
                           CultureQuest reward
                         </Text>
-                        <Text className="text-center font-heading text-[22px] font-extrabold leading-[27px] text-white">
+                        <Text className="text-center font-heading text-[21px] font-extrabold leading-[27px] text-white">
                           {selectedReward.discount}
                         </Text>
                         {selectedRewardIsActive && (
@@ -1377,7 +1384,7 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
                 </ScrollView>
                 <View
                   className="border-t border-gray-100 bg-white px-5 pt-3"
-                  style={{ paddingBottom: insets.bottom + 12 }}
+                  style={{ paddingBottom: 12 }}
                 >
                   <Pressable
                     onPress={() => {
