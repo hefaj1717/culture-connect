@@ -1165,7 +1165,11 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
             <SafeAreaView className="flex-1 bg-white" edges={['top', 'bottom']}>
               <ScrollView
                 className="flex-1"
-                contentContainerStyle={{ padding: 20, paddingBottom: 36 }}
+                contentContainerStyle={{
+                  paddingHorizontal: 20,
+                  paddingBottom: 36,
+                  paddingTop: insets.top + 18,
+                }}
                 showsVerticalScrollIndicator={false}
               >
                 <View className="mb-5 flex-row items-center justify-between">
