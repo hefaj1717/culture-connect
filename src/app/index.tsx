@@ -4,7 +4,6 @@ import {
   ArrowLeft,
   ArrowRight,
   Bell,
-  Flame,
   Globe,
   Sparkles,
   TrendingUp,
@@ -254,7 +253,7 @@ export default function HomeScreen({
 
         <View className="pb-5 pt-6">
           <View className="mb-4 flex-row items-center gap-1.5 px-5">
-            <Flame size={14} color="#F4A261" />
+            <View className="h-2.5 w-2.5 rounded-full bg-red-500" />
             <Text className="text-[11px] font-semibold uppercase tracking-wide text-muted">
               Happening Now
             </Text>
