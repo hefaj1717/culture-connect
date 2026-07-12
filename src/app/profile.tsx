@@ -630,16 +630,10 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
             />
 
             <View className="min-w-0 flex-1">
-              <View className="mb-1 flex-row flex-wrap items-center gap-2">
-                <Text
-                  className="font-heading text-[29px] font-extrabold leading-[33px] text-ink"
-                  numberOfLines={1}
-                  adjustsFontSizeToFit
-                  minimumFontScale={0.72}
-                >
+              <View className="mb-1">
+                <Text className="font-heading text-[31px] font-extrabold leading-[35px] text-ink">
                   {fullName}
                 </Text>
-                {organizerApplicationStatus === 'approved' && <OrganizerVerifiedBadge compact />}
               </View>
               <Text className="text-[13px] font-medium text-muted" numberOfLines={1}>
                 {levelProgress.currentLevel.name} · {cityData.label}
@@ -733,17 +727,11 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
               <Text className="font-heading text-[22px] font-extrabold text-ink">
                 Organizer Tools
               </Text>
-              {organizerApplicationStatus === 'approved' && (
-                <View className="flex-row items-center gap-1.5 rounded-full bg-secondary/15 px-2.5 py-1">
-                  <VerifiedCheckIcon size={16} />
-                  <Text className="text-[11px] font-bold text-ink">Approved</Text>
-                </View>
-              )}
             </View>
 
             {organizerApplicationStatus === 'approved' ? (
               <View className="rounded-3xl border border-primary/10 bg-primary/5 p-4">
-                <View className="mb-4 flex-row items-start justify-between gap-4">
+                <View className="mb-4">
                   <View className="min-w-0 flex-1">
                     <Text className="font-heading text-[20px] font-extrabold text-ink">
                       Event maker tools
@@ -751,9 +739,6 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
                     <Text className="mt-1 text-[13px] leading-5 text-muted">
                       Create and publish events for {cityData.name}.
                     </Text>
-                  </View>
-                  <View className="h-10 w-10 items-center justify-center rounded-full bg-secondary">
-                    <CheckCircle2 size={20} color="white" strokeWidth={2.7} />
                   </View>
                 </View>
 
@@ -1707,32 +1692,6 @@ function RewardPartnerRow({
         </View>
       </View>
     </Pressable>
-  );
-}
-
-function OrganizerVerifiedBadge({ compact = false }: { compact?: boolean }) {
-  return (
-    <View
-      className={`flex-row items-center gap-1 rounded-full bg-secondary/15 ${
-        compact ? 'px-1.5 py-1' : 'px-2 py-1'
-      }`}
-    >
-      <VerifiedCheckIcon size={compact ? 16 : 17} />
-      {!compact && (
-        <Text className="text-[10px] font-bold uppercase tracking-wide text-ink">Approved</Text>
-      )}
-    </View>
-  );
-}
-
-function VerifiedCheckIcon({ size = 16 }: { size?: number }) {
-  return (
-    <View
-      className="items-center justify-center rounded-full bg-secondary"
-      style={{ height: size, width: size }}
-    >
-      <CheckCircle2 size={size - 3} color="white" strokeWidth={3} />
-    </View>
   );
 }
 
