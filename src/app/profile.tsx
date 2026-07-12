@@ -1490,7 +1490,7 @@ function RankAvatar({
           <Image source={{ uri }} contentFit="cover" style={{ height: 70, width: 70 }} />
         ) : (
           <View className="h-[70px] w-[70px] items-center justify-center bg-primary">
-            <Text className="font-heading text-[22px] font-extrabold text-white">
+            <Text className="font-ui text-[22px] font-extrabold text-white">
               {initials ?? 'CQ'}
             </Text>
           </View>
