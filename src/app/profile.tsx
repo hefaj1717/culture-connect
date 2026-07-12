@@ -1,4 +1,3 @@
-import { useRouter } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import { Image } from 'expo-image';
 import {
@@ -216,7 +215,6 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
     signOut,
     updateProfile,
   } = useAuth();
-  const router = useRouter();
   const { width } = useWindowDimensions();
   const [editOpen, setEditOpen] = useState(false);
   const [firstName, setFirstName] = useState('');
@@ -455,7 +453,7 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
       : 0;
 
   if (!session) {
-    return <AuthScreen onCancel={() => router.replace('/')} />;
+    return <AuthScreen />;
   }
 
   async function pickAvatar() {
