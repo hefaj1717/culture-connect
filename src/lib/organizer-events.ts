@@ -4,6 +4,7 @@ import {
   type EventCategory,
   type EventLanguage,
   type VenueCategory,
+  defaultEventXp,
 } from '@/data/culture';
 import type { PlaceSuggestion } from '@/lib/place-search';
 import { supabase } from '@/lib/supabase';
@@ -88,7 +89,7 @@ export async function createOrganizerEvent(userId: string, input: CreateOrganize
     category: input.category,
     date_label: input.date,
     time_label: input.time,
-    xp_bonus: 50,
+    xp_bonus: defaultEventXp,
     language: input.language,
     is_free: input.isFree,
     is_international: input.language !== 'pl',
@@ -110,7 +111,7 @@ function mapOrganizerEventRow(row: OrganizerEventRow): CultureEvent {
     date: row.date_label,
     time: row.time_label,
     description: row.description,
-    xpBonus: row.xp_bonus,
+    xpBonus: defaultEventXp,
     isFeatured: false,
     isFlashQuest: false,
     language: row.language,
