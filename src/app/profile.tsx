@@ -635,6 +635,11 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
                   {fullName}
                 </Text>
               </View>
+              {organizerApplicationStatus === 'approved' && (
+                <View className="mb-2">
+                  <OrganizerVerifiedBadge />
+                </View>
+              )}
               <Text className="text-[13px] font-medium text-muted" numberOfLines={1}>
                 {levelProgress.currentLevel.name} · {cityData.label}
               </Text>
@@ -732,10 +737,13 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
             {organizerApplicationStatus === 'approved' ? (
               <View className="rounded-3xl border border-primary/10 bg-primary/5 p-4">
                 <View className="mb-4">
-                  <View className="min-w-0 flex-1">
-                    <Text className="font-heading text-[20px] font-extrabold text-ink">
+                  <View className="mb-1 flex-row items-start justify-between gap-3">
+                    <Text className="min-w-0 flex-1 font-heading text-[20px] font-extrabold text-ink">
                       Event maker tools
                     </Text>
+                    <OrganizerVerifiedBadge compact />
+                  </View>
+                  <View className="min-w-0 flex-1">
                     <Text className="mt-1 text-[13px] leading-5 text-muted">
                       Create and publish events for {cityData.name}.
                     </Text>
@@ -1699,6 +1707,30 @@ function RewardPartnerRow({
         </View>
       </View>
     </Pressable>
+  );
+}
+
+function OrganizerVerifiedBadge({ compact = false }: { compact?: boolean }) {
+  return (
+    <View
+      className={`self-start flex-row items-center gap-1.5 rounded-full bg-accent/15 ${
+        compact ? 'px-2 py-1' : 'px-2.5 py-1.5'
+      }`}
+    >
+      <View
+        className="items-center justify-center rounded-full bg-accent"
+        style={{ height: compact ? 15 : 16, width: compact ? 15 : 16 }}
+      >
+        <CheckCircle2 size={compact ? 11 : 12} color="white" strokeWidth={3} />
+      </View>
+      <Text
+        className={`font-extrabold uppercase tracking-wide text-ink ${
+          compact ? 'text-[10px]' : 'text-[11px]'
+        }`}
+      >
+        Approved
+      </Text>
+    </View>
   );
 }
 
