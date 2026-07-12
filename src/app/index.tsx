@@ -5,7 +5,6 @@ import {
   ArrowRight,
   Bell,
   Flame,
-  Gift,
   Globe,
   Sparkles,
   TrendingUp,
@@ -529,11 +528,15 @@ export default function HomeScreen({
                 {visibleNotifications.map((notification) => (
                   <Pressable
                     key={notification.id}
-                    className="flex-row gap-3 rounded-2xl border border-primary/10 bg-primary/5 p-3 active:opacity-80"
+                    className="flex-row gap-3 rounded-2xl border border-primary/10 bg-primary/5 px-3 py-3.5 active:opacity-80"
                     onPress={() => setNotificationsOpen(false)}
                   >
-                    <View className="h-11 w-11 items-center justify-center rounded-2xl bg-white">
-                      {getNotificationIcon(notification.id)}
+                    <View className="pt-1.5">
+                      <View
+                        className={`h-2.5 w-2.5 rounded-full ${
+                          notification.unread ? 'bg-destructive' : 'bg-primary/35'
+                        }`}
+                      />
                     </View>
                     <View className="min-w-0 flex-1">
                       <View className="mb-1 flex-row items-center justify-between gap-3">
@@ -573,34 +576,6 @@ function getHeroImageSource(heroImage: CultureCityData['heroImage']) {
   }
 
   return require('@/assets/images/culture/hero-culture.jpg');
-}
-
-function getNotificationIcon(notificationId: string) {
-  if (notificationId.includes('organizer')) {
-    return (
-      <Trophy
-        size={20}
-        color={Colors.light.primary}
-        fill="rgba(124,58,237,0.12)"
-        strokeWidth={2.3}
-      />
-    );
-  }
-  if (notificationId.includes('reward') || notificationId.includes('coffee')) {
-    return <Gift size={20} color={Colors.light.primary} strokeWidth={2.4} />;
-  }
-  if (notificationId.includes('dance') || notificationId.includes('event')) {
-    return (
-      <Flame
-        size={20}
-        color={Colors.light.primary}
-        fill="rgba(124,58,237,0.12)"
-        strokeWidth={2.3}
-      />
-    );
-  }
-
-  return <Bell size={20} color={Colors.light.primary} strokeWidth={2.3} />;
 }
 
 type LeaderboardRow = {
