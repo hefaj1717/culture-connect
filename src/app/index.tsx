@@ -478,66 +478,89 @@ export default function HomeScreen({
         visible={notificationsOpen}
       >
         <Pressable
-          className="flex-1 justify-start bg-black/30 px-4 pt-14"
+          className="flex-1 justify-start bg-black/35 px-4 pt-12"
           onPress={() => setNotificationsOpen(false)}
         >
           <Pressable
-            className="overflow-hidden rounded-[26px] bg-white shadow-lg"
+            className="overflow-hidden rounded-[30px] bg-white"
             onPress={(event) => event.stopPropagation()}
           >
-            <View className="flex-row items-start justify-between px-5 pb-4 pt-5">
-              <View>
-                <Text className="font-heading text-[22px] font-bold tracking-tight text-ink">
-                  Notifications
-                </Text>
-                <Text className="mt-1 text-[13px] text-muted">
-                  {visibleNotifications.filter((notification) => notification.unread).length} new
-                  updates
-                </Text>
+            <LinearGradient
+              colors={['rgba(124,58,237,0.12)', 'rgba(244,162,97,0.1)']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+            >
+              <View className="flex-row items-start justify-between px-5 pb-4 pt-5">
+                <View className="min-w-0 flex-1 pr-4">
+                  <View className="mb-3 flex-row items-center gap-2">
+                    <View className="h-10 w-10 items-center justify-center rounded-2xl bg-primary">
+                      <Bell size={20} color="white" strokeWidth={2.3} />
+                    </View>
+                    <View className="rounded-full bg-white/80 px-2.5 py-1">
+                      <Text className="text-[11px] font-extrabold text-primary">
+                        {visibleNotifications.filter((notification) => notification.unread).length}{' '}
+                        new
+                      </Text>
+                    </View>
+                  </View>
+                  <Text className="font-heading text-[25px] font-extrabold leading-[29px] text-ink">
+                    Updates
+                  </Text>
+                  <Text className="mt-1 text-[13px] leading-5 text-muted">
+                    Event changes, rewards, and organizer status in one place.
+                  </Text>
+                </View>
+                <Pressable
+                  onPress={() => setNotificationsOpen(false)}
+                  className="h-9 w-9 items-center justify-center rounded-full bg-white/80 active:opacity-80"
+                  accessibilityRole="button"
+                  accessibilityLabel="Close notifications"
+                >
+                  <X size={18} color="#756F7B" strokeWidth={2.4} />
+                </Pressable>
               </View>
-              <Pressable
-                onPress={() => setNotificationsOpen(false)}
-                className="h-8 w-8 items-center justify-center rounded-full bg-gray-100 active:opacity-80"
-                accessibilityRole="button"
-                accessibilityLabel="Close notifications"
-              >
-                <X size={17} color="#756F7B" strokeWidth={2.3} />
-              </Pressable>
-            </View>
+            </LinearGradient>
 
-            <View className="border-t border-gray-100">
-              {visibleNotifications.map((notification, index) => (
+            <View className="gap-2 bg-white p-3">
+              {visibleNotifications.map((notification) => (
                 <Pressable
                   key={notification.id}
-                  className="flex-row gap-3 px-5 py-4 active:bg-gray-50"
+                  className={`flex-row gap-3 rounded-2xl border p-3 active:opacity-80 ${
+                    notification.unread
+                      ? 'border-primary/15 bg-primary/5'
+                      : 'border-gray-100 bg-canvas'
+                  }`}
                   onPress={() => setNotificationsOpen(false)}
                 >
-                  <View className="pt-1.5">
-                    <View
-                      className={`h-2.5 w-2.5 rounded-full ${
-                        notification.unread ? 'bg-primary' : 'bg-gray-300'
-                      }`}
-                    />
-                  </View>
                   <View
-                    className={`min-w-0 flex-1 ${
-                      index === visibleNotifications.length - 1
-                        ? ''
-                        : 'border-b border-gray-100 pb-4'
+                    className={`h-11 w-11 items-center justify-center rounded-2xl ${
+                      notification.unread ? 'bg-primary' : 'bg-white'
                     }`}
                   >
-                    <View className="mb-1 flex-row items-start justify-between gap-3">
-                      <Text className="min-w-0 flex-1 text-[15px] font-semibold text-ink">
+                    {getNotificationIcon(notification.id, notification.unread)}
+                  </View>
+                  <View className="min-w-0 flex-1">
+                    <View className="mb-1 flex-row items-center justify-between gap-3">
+                      <Text className="min-w-0 flex-1 text-[15px] font-extrabold text-ink">
                         {notification.title}
                       </Text>
-                      <Text className="text-[12px] font-medium text-muted">
-                        {notification.time}
-                      </Text>
+                      <View className="rounded-full bg-white px-2 py-0.5">
+                        <Text className="text-[10px] font-bold text-muted">
+                          {notification.time}
+                        </Text>
+                      </View>
                     </View>
                     <Text className="text-[13px] leading-5 text-muted">{notification.message}</Text>
                   </View>
                 </Pressable>
               ))}
+
+              <Pressable
+                onPress={() => setNotificationsOpen(false)}
+                className="mt-1 h-11 items-center justify-center rounded-2xl bg-ink active:opacity-85"
+              >
+                <Text className="text-[13px] font-extrabold text-white">Done</Text>
+              </Pressable>
             </View>
           </Pressable>
         </Pressable>
@@ -558,6 +581,23 @@ function getHeroImageSource(heroImage: CultureCityData['heroImage']) {
   }
 
   return require('@/assets/images/culture/hero-culture.jpg');
+}
+
+function getNotificationIcon(notificationId: string, unread: boolean) {
+  const color = unread ? 'white' : Colors.light.primary;
+  const accentFill = unread ? 'rgba(255,255,255,0.18)' : 'rgba(124,58,237,0.12)';
+
+  if (notificationId.includes('organizer')) {
+    return <Trophy size={20} color={color} fill={accentFill} strokeWidth={2.3} />;
+  }
+  if (notificationId.includes('reward') || notificationId.includes('coffee')) {
+    return <Sparkles size={20} color={color} strokeWidth={2.4} />;
+  }
+  if (notificationId.includes('dance') || notificationId.includes('event')) {
+    return <Flame size={20} color={color} fill={accentFill} strokeWidth={2.3} />;
+  }
+
+  return <Bell size={20} color={color} strokeWidth={2.3} />;
 }
 
 type LeaderboardRow = {
