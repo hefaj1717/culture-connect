@@ -96,8 +96,6 @@ const timeHours = Array.from({ length: 24 }, (_, index) => index);
 const timeMinutes = [0, 15, 30, 45];
 const rewardRedeemWindowMs = 5 * 60 * 1000;
 const userXp = 1860;
-const attendedEventsCount = 8;
-const unlockedBadgesCount = 3;
 
 const xpLevels = [
   { name: 'Newcomer', minXp: 0 },
@@ -621,7 +619,7 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
       <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 112 }}>
         <View
           className="mx-5 mb-5 rounded-[28px] border border-gray-200 bg-white p-4"
-          style={{ marginTop: insets.top + 16 }}
+          style={{ marginTop: insets.top + 24 }}
         >
           <View className="mb-5 flex-row items-center gap-4">
             <RankAvatar
@@ -680,21 +678,6 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
                 style={{ width: `${levelProgress.progressPercent}%` }}
               />
             </View>
-          </View>
-
-          <View className="flex-row gap-3">
-            <ProfileMetric
-              icon={<TicketCheck size={18} color={Colors.light.primary} strokeWidth={2.5} />}
-              label="Events"
-              value={attendedEventsCount.toString()}
-            />
-            <Pressable className="flex-1 active:opacity-80" onPress={() => setBadgesOpen(true)}>
-              <ProfileMetric
-                icon={<Gift size={18} color={Colors.light.primary} strokeWidth={2.5} />}
-                label="Badges"
-                value={unlockedBadgesCount.toString()}
-              />
-            </Pressable>
           </View>
         </View>
 
@@ -1563,30 +1546,6 @@ function ProgressRing({
         transform={`rotate(-90 ${size / 2} ${size / 2})`}
       />
     </Svg>
-  );
-}
-
-function ProfileMetric({
-  icon,
-  label,
-  value,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  value: string;
-}) {
-  return (
-    <View className="flex-1 rounded-2xl bg-canvas px-3 py-3">
-      <View className="mb-2 flex-row items-center gap-2">
-        <View className="h-8 w-8 items-center justify-center rounded-full bg-primary/10">
-          {icon}
-        </View>
-        <Text className="text-[11px] font-semibold uppercase tracking-wide text-muted">
-          {label}
-        </Text>
-      </View>
-      <Text className="font-ui text-[24px] font-extrabold leading-[28px] text-ink">{value}</Text>
-    </View>
   );
 }
 

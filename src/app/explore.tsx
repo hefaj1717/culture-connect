@@ -156,14 +156,7 @@ export default function ExploreScreen({
         contentContainerStyle={{ paddingBottom: 112 }}
         keyboardShouldPersistTaps="handled"
       >
-        <View className="px-5 pb-2" style={{ paddingTop: insets.top + 16 }}>
-          <Text className="font-heading text-[28px] font-bold tracking-tight text-ink">
-            Discover
-          </Text>
-          <Text className="text-[14px] text-muted">Events and places around {cityData.name}</Text>
-        </View>
-
-        <View className="px-5 mb-4">
+        <View className="mb-4 px-5" style={{ paddingTop: insets.top + 16 }}>
           <View className="h-12 flex-row items-center gap-3 rounded-xl border border-gray-200 bg-gray-100 px-4">
             <Search size={17} color="#756F7B" />
             <TextInput

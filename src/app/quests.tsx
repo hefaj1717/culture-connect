@@ -66,12 +66,7 @@ export default function QuestsScreen({ cityData = getCultureCityData() }: Quests
         contentContainerStyle={{ paddingBottom: 112 }}
         showsVerticalScrollIndicator={false}
       >
-        <View className="px-5 pb-5" style={{ paddingTop: insets.top + 16 }}>
-          <Text className="font-heading text-[28px] font-bold tracking-tight text-ink">Quests</Text>
-          <Text className="text-[14px] text-muted">Thematic trails around {cityData.name}</Text>
-        </View>
-
-        <View className="px-5">
+        <View className="px-5" style={{ paddingTop: insets.top + 16 }}>
           <View className="mb-5 overflow-hidden rounded-3xl bg-ink">
             <LinearGradient
               colors={['rgba(124,58,237,0.72)', 'rgba(36,28,46,0.98)']}
