@@ -1,5 +1,6 @@
 import * as ImagePicker from 'expo-image-picker';
 import { Image } from 'expo-image';
+import { LinearGradient } from 'expo-linear-gradient';
 import {
   ArrowLeft,
   BadgeCheck,
@@ -10,12 +11,17 @@ import {
   CalendarPlus,
   CheckCircle2,
   CircleAlert,
+  Clapperboard,
   Coffee,
   Compass,
   Crown,
+  Drama,
   Gift,
   Globe,
   MapPin,
+  Music,
+  Palette,
+  PartyPopper,
   Search,
   Sparkles,
   TicketCheck,
@@ -23,7 +29,7 @@ import {
   User,
   X,
 } from 'lucide-react-native';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type ComponentType } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -59,7 +65,6 @@ import {
   defaultCityId,
   eventCategoryLabels,
   getCultureCityData,
-  languageLabels,
 } from '@/data/culture';
 import { createOrganizerEvent } from '@/lib/organizer-events';
 import { hasGooglePlacesApiKey, type PlaceSuggestion, searchPlaces } from '@/lib/place-search';
@@ -73,7 +78,6 @@ const eventCategories: EventCategory[] = [
   'festival',
   'concert',
 ];
-const eventLanguages: EventLanguage[] = ['en', 'nl', 'fr', 'pl', 'multilingual'];
 const fixedEventXp = 50;
 const monthNames = [
   'January',
@@ -230,7 +234,6 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
   const [selectedPlace, setSelectedPlace] = useState<PlaceSuggestion | null>(null);
   const [searchingPlaces, setSearchingPlaces] = useState(false);
   const [eventCategory, setEventCategory] = useState<EventCategory>('workshop');
-  const [eventLanguage, setEventLanguage] = useState<EventLanguage>('en');
   const [eventDate, setEventDate] = useState('');
   const [eventTime, setEventTime] = useState('');
   const [eventDescription, setEventDescription] = useState('');
@@ -362,7 +365,6 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
     setLastName(savedLastName);
     setCityId(savedCityId);
     setAvatarUrl(savedAvatarUrl);
-    setEventLanguage(savedCityId === 'lublin' ? 'pl' : 'en');
   }, [savedAvatarUrl, savedCityId, savedFirstName, savedLastName]);
 
   useEffect(() => {
@@ -510,7 +512,6 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
     setPlaceSuggestions([]);
     setSelectedPlace(null);
     setEventCategory('workshop');
-    setEventLanguage(savedCityId === 'lublin' ? 'pl' : 'en');
     setEventDate('');
     setEventTime('');
     setEventDescription('');
@@ -575,7 +576,7 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
       category: eventCategory,
       date: normalizedDate,
       time: normalizedTime,
-      language: eventLanguage,
+      language: getDefaultEventLanguage(savedCityId),
       isFree: eventIsFree,
       imageUri: eventImageUri,
     });
@@ -908,6 +909,25 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
                     <ArrowLeft size={21} color="#756F7B" strokeWidth={2.6} />
                   </Pressable>
 
+                  <View className="mb-5 overflow-hidden rounded-3xl bg-ink">
+                    <LinearGradient
+                      colors={['rgba(124,58,237,0.74)', 'rgba(36,28,46,0.98)']}
+                      end={{ x: 1, y: 1 }}
+                      start={{ x: 0, y: 0 }}
+                      style={{ padding: 20 }}
+                    >
+                      <View className="mb-4 h-12 w-12 items-center justify-center rounded-2xl bg-white/15">
+                        <CalendarPlus size={24} color="white" strokeWidth={2.4} />
+                      </View>
+                      <Text className="font-heading text-[29px] font-extrabold leading-[33px] text-white">
+                        Create event
+                      </Text>
+                      <Text className="mt-2 max-w-[290px] text-[13px] leading-5 text-white/80">
+                        Publish a verified city experience students can discover and check into.
+                      </Text>
+                    </LinearGradient>
+                  </View>
+
                   <Text className="mb-2 text-[13px] font-semibold text-ink">Event title</Text>
                   <TextInput
                     value={eventTitle}
@@ -920,7 +940,12 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
                   <Text className="mb-2 text-[13px] font-semibold text-ink">Event photo</Text>
                   <Pressable
                     onPress={pickEventImage}
-                    className="mb-4 overflow-hidden rounded-2xl border border-gray-200 bg-gray-100 active:opacity-85"
+                    className={`mb-4 overflow-hidden rounded-2xl border active:opacity-85 ${
+                      eventImageUri
+                        ? 'border-gray-200 bg-gray-100'
+                        : 'border-primary/40 bg-primary/5'
+                    }`}
+                    style={!eventImageUri ? { borderStyle: 'dashed' } : undefined}
                   >
                     {eventImageUri ? (
                       <BrandImage
@@ -931,10 +956,10 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
                       />
                     ) : (
                       <View className="h-[150px] items-center justify-center px-5">
-                        <View className="mb-3 h-11 w-11 items-center justify-center rounded-full bg-primary/10">
+                        <View className="mb-3 h-11 w-11 items-center justify-center rounded-full bg-primary/15">
                           <Camera size={20} color="#7C3AED" strokeWidth={2.4} />
                         </View>
-                        <Text className="text-center font-ui text-[14px] font-bold text-ink">
+                        <Text className="text-center font-ui text-[14px] font-bold text-primary">
                           Add event photo
                         </Text>
                         <Text className="mt-1 text-center text-[12px] leading-4 text-muted">
@@ -1031,6 +1056,7 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
                     {eventCategories.map((category) => (
                       <ChoicePill
                         active={eventCategory === category}
+                        icon={getEventCategoryIcon(category)}
                         key={category}
                         label={eventCategoryLabels[category]}
                         onPress={() => setEventCategory(category)}
@@ -1063,42 +1089,26 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
                     </View>
                   </View>
 
-                  <Text className="mb-2 text-[13px] font-semibold text-ink">Language</Text>
-                  <View className="mb-4 flex-row flex-wrap gap-2">
-                    {eventLanguages.map((language) => (
-                      <ChoicePill
-                        active={eventLanguage === language}
-                        key={language}
-                        label={languageLabels[language]}
-                        onPress={() => setEventLanguage(language)}
-                      />
-                    ))}
+                  <Text className="mb-2 text-[13px] font-semibold text-ink">Price</Text>
+                  <View className="mb-3 flex-row gap-2">
+                    <ChoicePill
+                      active={eventIsFree}
+                      label="Free"
+                      onPress={() => setEventIsFree(true)}
+                    />
+                    <ChoicePill
+                      active={!eventIsFree}
+                      label="Paid"
+                      onPress={() => setEventIsFree(false)}
+                    />
                   </View>
-
-                  <View className="mb-4 flex-row gap-3">
-                    <View className="flex-1">
-                      <Text className="mb-2 text-[13px] font-semibold text-ink">XP reward</Text>
-                      <View className="h-12 justify-center rounded-xl border border-gray-200 bg-gray-100 px-4">
-                        <Text className="font-ui text-[15px] font-bold text-ink">
-                          {fixedEventXp} XP
-                        </Text>
-                      </View>
+                  <View className="mb-4 flex-row items-center gap-2 rounded-2xl bg-primary/5 px-3 py-2.5">
+                    <View className="h-7 w-7 items-center justify-center rounded-full bg-primary/10">
+                      <Sparkles size={14} color="#7C3AED" strokeWidth={2.4} />
                     </View>
-                    <View className="flex-1">
-                      <Text className="mb-2 text-[13px] font-semibold text-ink">Price</Text>
-                      <View className="flex-row gap-2">
-                        <ChoicePill
-                          active={eventIsFree}
-                          label="Free"
-                          onPress={() => setEventIsFree(true)}
-                        />
-                        <ChoicePill
-                          active={!eventIsFree}
-                          label="Paid"
-                          onPress={() => setEventIsFree(false)}
-                        />
-                      </View>
-                    </View>
+                    <Text className="flex-1 text-[12px] font-semibold leading-4 text-muted">
+                      Attendees earn {fixedEventXp} XP for this event.
+                    </Text>
                   </View>
 
                   <Text className="mb-2 text-[13px] font-semibold text-ink">Description</Text>
@@ -1715,23 +1725,57 @@ function getUserInitials(value?: string | null) {
   return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
 }
 
+function getDefaultEventLanguage(cityId: CityId): EventLanguage {
+  return cityId === 'lublin' ? 'pl' : 'en';
+}
+
+type ChoiceIcon = ComponentType<{
+  color?: string;
+  size?: number;
+  strokeWidth?: number;
+}>;
+
+function getEventCategoryIcon(category: EventCategory): ChoiceIcon {
+  switch (category) {
+    case 'exhibition':
+      return Palette;
+    case 'performance':
+      return Drama;
+    case 'screening':
+      return Clapperboard;
+    case 'workshop':
+      return CalendarPlus;
+    case 'festival':
+      return PartyPopper;
+    case 'concert':
+      return Music;
+    default:
+      return CalendarPlus;
+  }
+}
+
 function ChoicePill({
   active,
+  icon: Icon,
   label,
   onPress,
 }: {
   active: boolean;
+  icon?: ChoiceIcon;
   label: string;
   onPress: () => void;
 }) {
   return (
     <Pressable
       onPress={onPress}
-      className={`rounded-full px-3 py-2 ${
-        active ? 'bg-primary' : 'border border-gray-200 bg-gray-100'
+      className={`flex-row items-center gap-1.5 rounded-2xl border px-3.5 py-2.5 ${
+        active ? 'border-primary bg-primary/10' : 'border-gray-200 bg-gray-100'
       }`}
     >
-      <Text className={`text-[12px] font-semibold ${active ? 'text-white' : 'text-muted'}`}>
+      {Icon && (
+        <Icon size={14} color={active ? Colors.light.primary : '#756F7B'} strokeWidth={2.4} />
+      )}
+      <Text className={`text-[12px] font-semibold ${active ? 'text-primary' : 'text-muted'}`}>
         {label}
       </Text>
     </Pressable>
