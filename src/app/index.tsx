@@ -1,11 +1,13 @@
 import { Image } from 'expo-image';
-import { LinearGradient } from 'expo-linear-gradient';
 import { ArrowRight, Bell, Flame, Globe, Sparkles, TrendingUp, User, X } from 'lucide-react-native';
 import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useEffect, useMemo, useState } from 'react';
 import MapView, { Circle as MapCircle, Marker } from 'react-native-maps';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { BrandImage } from '@/components/brand-image';
+import { Colors } from '@/constants/theme';
+import { cultureMapStyle } from '@/constants/map-style';
 import { type CultureCityData, getCultureCityData, languageLabels } from '@/data/culture';
 import type { OrganizerApplicationStatus } from '@/providers/auth-provider';
 
@@ -146,15 +148,11 @@ export default function HomeScreen({
         showsVerticalScrollIndicator={false}
       >
         <View className="h-[520px] overflow-hidden bg-ink">
-          <Image
+          <BrandImage
             source={getHeroImageSource(cityData.heroImage)}
             contentFit="cover"
             style={StyleSheet.absoluteFillObject}
-          />
-          <LinearGradient
-            colors={['rgba(14,28,58,0.16)', 'rgba(14,28,58,0.28)', 'rgba(14,28,58,0.86)']}
-            locations={[0, 0.42, 1]}
-            style={StyleSheet.absoluteFillObject}
+            withTextGradient
           />
 
           <SafeAreaView edges={['top']} className="absolute left-0 right-0 top-0 z-20 px-5">
@@ -245,7 +243,7 @@ export default function HomeScreen({
                 key={event.id}
               >
                 <View className="h-[112px] bg-gray-200">
-                  <Image
+                  <BrandImage
                     source={getEventImageSource(event)}
                     contentFit="cover"
                     style={StyleSheet.absoluteFillObject}
@@ -296,6 +294,7 @@ export default function HomeScreen({
               <View className="h-[210px]">
                 <MapView
                   initialRegion={activityMapRegion}
+                  customMapStyle={cultureMapStyle}
                   key={cityData.id}
                   mapType="standard"
                   pitchEnabled={false}
@@ -322,16 +321,32 @@ export default function HomeScreen({
                   {activitySpots.map((spot) => (
                     <Marker
                       coordinate={spot.coordinates}
+                      anchor={{ x: 0.5, y: 0.5 }}
                       key={spot.id}
                       onPress={() => setSelectedActivityId(spot.id)}
                       tracksViewChanges={false}
                     >
-                      <View className="h-5 w-5 items-center justify-center rounded-full border-2 border-white bg-secondary">
-                        <View className="h-1.5 w-1.5 rounded-full bg-white" />
+                      <View
+                        className={`h-7 w-7 items-center justify-center rounded-full border-2 border-white ${
+                          selectedActivitySpot.id === spot.id ? 'bg-primary' : 'bg-primary/20'
+                        }`}
+                      >
+                        <View
+                          className={`rounded-full border-2 border-white ${
+                            selectedActivitySpot.id === spot.id
+                              ? 'h-4 w-4 bg-secondary'
+                              : 'h-3.5 w-3.5 bg-primary'
+                          }`}
+                        />
                       </View>
                     </Marker>
                   ))}
                 </MapView>
+                <View
+                  pointerEvents="none"
+                  className="absolute inset-0 bg-ink/5"
+                  style={{ backgroundColor: `${Colors.light.ink}08` }}
+                />
                 <View className="absolute left-5 top-5 rounded-full bg-white/80 px-3 py-1">
                   <Text className="text-[11px] font-bold text-primary">{cityData.name}</Text>
                 </View>
@@ -486,9 +501,9 @@ function getEventImageSource(event: CultureCityData['events'][number]) {
 }
 
 function getActivityColor(intensity: number) {
-  if (intensity >= 0.78) return '#C2410C';
-  if (intensity >= 0.52) return '#F97316';
-  return '#FDBA38';
+  if (intensity >= 0.78) return Colors.light.primary;
+  if (intensity >= 0.52) return Colors.light.accent;
+  return '#BDA7F2';
 }
 
 function getCityMapRegion(cityData: CultureCityData) {

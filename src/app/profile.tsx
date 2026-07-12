@@ -45,6 +45,7 @@ import Animated, {
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AuthScreen } from '@/components/auth-screen';
+import { BrandImage } from '@/components/brand-image';
 import { CitySelector } from '@/components/city-selector';
 import {
   type CityId,
@@ -949,10 +950,11 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
                     className="mb-4 overflow-hidden rounded-2xl border border-gray-200 bg-gray-100 active:opacity-85"
                   >
                     {eventImageUri ? (
-                      <Image
+                      <BrandImage
                         source={{ uri: eventImageUri }}
                         contentFit="cover"
                         style={{ height: 150, width: '100%' }}
+                        withTextGradient
                       />
                     ) : (
                       <View className="h-[150px] items-center justify-center px-5">

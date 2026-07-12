@@ -1,5 +1,4 @@
 import { CameraView, useCameraPermissions, type BarcodeScanningResult } from 'expo-camera';
-import { Image } from 'expo-image';
 import * as Location from 'expo-location';
 import {
   ArrowLeft,
@@ -37,6 +36,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { BrandImage } from '@/components/brand-image';
 import {
   categoryLabels,
   type CultureEvent,
@@ -236,14 +236,16 @@ export default function ExploreScreen({
                   className="overflow-hidden rounded-2xl border border-gray-200 bg-white active:opacity-90"
                 >
                   <View className="h-[170px] bg-gray-200">
-                    <Image
+                    <BrandImage
                       source={getEventImageSource(featuredEvent)}
                       contentFit="cover"
                       style={StyleSheet.absoluteFillObject}
-                    />
-                    <View className="absolute left-3 top-3 rounded-full bg-black/55 px-2.5 py-1">
-                      <Text className="text-[11px] font-bold text-white">Live quest</Text>
-                    </View>
+                      withTextGradient
+                    >
+                      <View className="absolute left-3 top-3 rounded-full bg-ink/70 px-2.5 py-1">
+                        <Text className="text-[11px] font-bold text-white">Live quest</Text>
+                      </View>
+                    </BrandImage>
                   </View>
 
                   <View className="p-4">
@@ -323,7 +325,7 @@ export default function ExploreScreen({
                       className="flex-row items-start gap-3 rounded-2xl border border-gray-200 bg-white p-3"
                     >
                       <View className="h-[86px] w-[86px] shrink-0 overflow-hidden rounded-xl bg-gray-200">
-                        <Image
+                        <BrandImage
                           source={getEventImageSource(event)}
                           contentFit="cover"
                           style={StyleSheet.absoluteFillObject}
@@ -605,12 +607,12 @@ function EventDetailModal({
               showsVerticalScrollIndicator={false}
             >
               <View className="relative h-[260px] bg-gray-200">
-                <Image
+                <BrandImage
                   source={getEventImageSource(event)}
                   contentFit="cover"
                   style={StyleSheet.absoluteFillObject}
+                  withTextGradient
                 />
-                <View className="absolute inset-0 bg-black/25" />
                 <Pressable
                   onPress={closeWithAnimation}
                   className="absolute left-5 h-10 w-10 items-center justify-center rounded-full bg-black/30 active:opacity-80"
