@@ -628,7 +628,7 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
 
         <View className="mx-5 mb-6 overflow-hidden rounded-[28px] bg-ink">
           <LinearGradient
-            colors={['rgba(124,58,237,0.52)', 'rgba(36,28,46,0.96)']}
+            colors={['rgba(124,58,237,0.72)', 'rgba(36,28,46,0.98)']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
           >
@@ -637,7 +637,7 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
                 <View className="min-w-0 flex-1 pr-1">
                   <View className="mb-2 flex-row flex-wrap items-center gap-2">
                     <Text className="text-[11px] font-semibold uppercase tracking-wide text-white/70">
-                      CultureQuest rank
+                      CultureQuest profile
                     </Text>
                     {organizerApplicationStatus === 'approved' && <OrganizerVerifiedBadge />}
                   </View>
@@ -645,13 +645,20 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
                     className="font-heading text-[31px] font-extrabold leading-[35px] text-white"
                     numberOfLines={1}
                     adjustsFontSizeToFit
-                    minimumFontScale={0.82}
+                    minimumFontScale={0.76}
                   >
-                    {levelProgress.currentLevel.name}
+                    {fullName}
                   </Text>
-                  <Text className="mt-1 text-[13px] text-white/72" numberOfLines={1}>
-                    {fullName} · {cityData.label}
-                  </Text>
+                  <View className="mt-2 flex-row flex-wrap items-center gap-2">
+                    <View className="rounded-full bg-white/15 px-2.5 py-1">
+                      <Text className="font-ui text-[12px] font-bold text-white">
+                        {levelProgress.currentLevel.name}
+                      </Text>
+                    </View>
+                    <Text className="text-[12px] font-medium text-white/80" numberOfLines={1}>
+                      {cityData.label}
+                    </Text>
+                  </View>
                 </View>
 
                 <RankAvatar
@@ -665,29 +672,29 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
                 <View>
                   <View className="mb-1 flex-row items-center gap-1.5">
                     <Sparkles size={15} color={Colors.light.accent} strokeWidth={2.4} />
-                    <Text className="text-[12px] font-semibold uppercase tracking-wide text-white/65">
+                    <Text className="text-[12px] font-semibold uppercase tracking-wide text-white/70">
                       Total XP
                     </Text>
                   </View>
-                  <Text className="font-stat text-[38px] font-extrabold leading-[42px] text-white">
+                  <Text className="font-ui text-[42px] font-extrabold leading-[45px] text-white">
                     {userXp.toLocaleString()}
                   </Text>
                 </View>
-                <View className="max-w-[150px] items-end">
-                  <Text className="text-right text-[12px] leading-4 text-white/70">
+                <View className="max-w-[150px] items-end rounded-2xl bg-white/10 px-3 py-2">
+                  <Text className="text-right text-[12px] font-semibold leading-4 text-white/90">
                     {levelProgress.nextLevel
                       ? `${levelProgress.xpToNext.toLocaleString()} XP to ${
                           levelProgress.nextLevel.name
                         }`
                       : 'Top city rank reached'}
                   </Text>
-                  <Text className="mt-1 text-[13px] font-bold text-white">
+                  <Text className="mt-1 text-[14px] font-extrabold text-white">
                     {Math.round(levelProgress.progressPercent)}%
                   </Text>
                 </View>
               </View>
 
-              <View className="flex-row gap-3 border-t border-white/12 pt-4">
+              <View className="flex-row gap-3 border-t border-white/20 pt-4">
                 <ProfileMetric
                   icon={<TicketCheck size={18} color={Colors.light.primary} strokeWidth={2.5} />}
                   label="Events"
@@ -1510,7 +1517,7 @@ function RankAvatar({
   return (
     <View className="relative h-[90px] w-[90px] items-center justify-center">
       <ProgressRing progressPercent={progressPercent} size={90} strokeWidth={6} />
-      <View className="h-[70px] w-[70px] items-center justify-center overflow-hidden rounded-full bg-white/12">
+      <View className="h-[70px] w-[70px] items-center justify-center overflow-hidden rounded-full bg-white/15">
         {uri ? (
           <Image source={{ uri }} contentFit="cover" style={{ height: 70, width: 70 }} />
         ) : (
@@ -1554,7 +1561,7 @@ function ProgressRing({
         cy={size / 2}
         fill="transparent"
         r={radius}
-        stroke="rgba(255,255,255,0.18)"
+        stroke="rgba(255,255,255,0.3)"
         strokeWidth={strokeWidth}
       />
       <Circle
@@ -1562,7 +1569,7 @@ function ProgressRing({
         cy={size / 2}
         fill="transparent"
         r={radius}
-        stroke={Colors.light.primary}
+        stroke={Colors.light.accent}
         strokeDasharray={`${circumference} ${circumference}`}
         strokeDashoffset={strokeDashoffset}
         strokeLinecap="round"
@@ -1586,7 +1593,7 @@ function ProfileMetric({
     <View className="flex-1 rounded-2xl bg-white/10 px-3 py-3">
       <View className="mb-2 flex-row items-center gap-2">
         <View className="h-8 w-8 items-center justify-center rounded-full bg-white">{icon}</View>
-        <Text className="text-[11px] font-semibold uppercase tracking-wide text-white/65">
+        <Text className="text-[11px] font-semibold uppercase tracking-wide text-white/70">
           {label}
         </Text>
       </View>
