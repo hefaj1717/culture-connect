@@ -1,8 +1,12 @@
 import { useRouter } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import { Image } from 'expo-image';
+import { LinearGradient } from 'expo-linear-gradient';
 import {
   ArrowLeft,
+  BadgeCheck,
+  Beer,
+  BookOpen,
   Building2,
   Camera,
   CalendarPlus,
@@ -43,10 +47,12 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import Svg, { Circle } from 'react-native-svg';
 
 import { AuthScreen } from '@/components/auth-screen';
 import { BrandImage } from '@/components/brand-image';
 import { CitySelector } from '@/components/city-selector';
+import { Colors } from '@/constants/theme';
 import {
   type CityId,
   type EventCategory,
@@ -115,7 +121,7 @@ const achievementBadges = [
     progress: '1 / 1',
     unlocked: true,
     icon: TicketCheck,
-    color: '#2F9E73',
+    color: Colors.light.primary,
   },
   {
     id: 'culture-regular',
@@ -124,7 +130,7 @@ const achievementBadges = [
     progress: '4 / 10',
     unlocked: false,
     icon: CalendarPlus,
-    color: '#7C3AED',
+    color: Colors.light.primary,
   },
   {
     id: 'reward-hunter',
@@ -133,7 +139,7 @@ const achievementBadges = [
     progress: '2 / 10',
     unlocked: false,
     icon: Gift,
-    color: '#F4A261',
+    color: Colors.light.primary,
   },
   {
     id: 'museum-mind',
@@ -142,7 +148,7 @@ const achievementBadges = [
     progress: '3 / 5',
     unlocked: false,
     icon: Building2,
-    color: '#6366F1',
+    color: Colors.light.primary,
   },
   {
     id: 'city-explorer',
@@ -151,7 +157,7 @@ const achievementBadges = [
     progress: '5 / 8',
     unlocked: false,
     icon: Compass,
-    color: '#7C3AED',
+    color: Colors.light.primary,
   },
   {
     id: 'social-spark',
@@ -160,7 +166,7 @@ const achievementBadges = [
     progress: '5 / 5',
     unlocked: true,
     icon: Sparkles,
-    color: '#EC4899',
+    color: Colors.light.primary,
   },
   {
     id: 'international-eye',
@@ -169,7 +175,7 @@ const achievementBadges = [
     progress: '1 / 3',
     unlocked: false,
     icon: Globe,
-    color: '#0EA5E9',
+    color: Colors.light.primary,
   },
   {
     id: 'coffee-route',
@@ -178,7 +184,7 @@ const achievementBadges = [
     progress: '1 / 3',
     unlocked: false,
     icon: Coffee,
-    color: '#A16207',
+    color: Colors.light.primary,
   },
   {
     id: 'top-week',
@@ -187,7 +193,7 @@ const achievementBadges = [
     progress: 'Best: #14',
     unlocked: false,
     icon: Trophy,
-    color: '#EAB308',
+    color: Colors.light.primary,
   },
   {
     id: 'founding-student',
@@ -196,7 +202,7 @@ const achievementBadges = [
     progress: 'Unlocked',
     unlocked: true,
     icon: Crown,
-    color: '#7C3AED',
+    color: Colors.light.primary,
   },
 ];
 
@@ -255,6 +261,7 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
     .filter(Boolean)
     .join(' ');
   const fullName = session?.user.user_metadata?.full_name || metadataName || email.split('@')[0];
+  const avatarInitials = getUserInitials(fullName || email);
   const savedFirstName = session?.user.user_metadata?.first_name || '';
   const savedLastName = session?.user.user_metadata?.last_name || '';
   const savedCityId: CityId =
@@ -616,82 +623,103 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
           <Text className="font-heading text-[28px] font-bold tracking-tight text-ink">
             Profile
           </Text>
-          <Text className="text-[14px] text-muted">Account, rewards, and organizer tools</Text>
+          <Text className="text-[14px] text-muted">Rank, passport, and city rewards</Text>
         </View>
 
-        <View className="mx-5 mb-5 rounded-2xl border border-gray-200 bg-white p-5">
-          <View className="mb-5 flex-row items-center gap-4">
-            <Avatar uri={savedAvatarUrl} size={64} iconSize={28} />
-            <View className="min-w-0 flex-1">
-              <Text className="text-[20px] font-bold text-ink" numberOfLines={1}>
-                {fullName}
-              </Text>
-              <Text className="text-[13px] text-muted" numberOfLines={1}>
-                {email}
-              </Text>
-              <Text className="mt-1 text-[12px] font-semibold text-primary" numberOfLines={1}>
-                {cityData.label}
-              </Text>
-            </View>
-          </View>
-
-          <View className="mb-4 rounded-2xl bg-gray-100 p-4">
-            <View className="mb-3 flex-row items-start justify-between gap-3">
+        <View className="mx-5 mb-6 overflow-hidden rounded-[28px] bg-ink">
+          <LinearGradient
+            colors={['rgba(124,58,237,0.52)', 'rgba(36,28,46,0.96)']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            className="p-5"
+          >
+            <View className="mb-5 flex-row items-start justify-between gap-4">
               <View className="min-w-0 flex-1">
-                <Text className="text-[12px] font-semibold uppercase tracking-wide text-muted">
-                  Level
-                </Text>
-                <Text className="mt-1 font-heading text-[22px] font-extrabold text-ink">
+                <View className="mb-2 flex-row items-center gap-2">
+                  <Text className="text-[12px] font-semibold uppercase tracking-wide text-white/70">
+                    CultureQuest rank
+                  </Text>
+                  {organizerApplicationStatus === 'approved' && <OrganizerVerifiedBadge />}
+                </View>
+                <Text className="font-heading text-[34px] font-extrabold leading-[38px] text-white">
                   {levelProgress.currentLevel.name}
                 </Text>
-              </View>
-              <View className="items-end">
-                <Text className="font-stat text-[22px] font-extrabold text-ink">
-                  {userXp.toLocaleString()}
+                <Text className="mt-1 text-[13px] text-white/72" numberOfLines={1}>
+                  {fullName} · {cityData.label}
                 </Text>
-                <Text className="text-[11px] font-medium text-muted">XP</Text>
               </View>
-            </View>
 
-            <View className="mb-2 h-3 overflow-hidden rounded-full bg-white">
-              <View
-                className="h-full rounded-full bg-primary"
-                style={{ width: `${levelProgress.progressPercent}%` }}
+              <RankAvatar
+                initials={avatarInitials}
+                progressPercent={levelProgress.progressPercent}
+                uri={savedAvatarUrl}
               />
             </View>
 
-            <View className="flex-row items-center justify-between">
-              <Text className="text-[12px] font-medium text-muted">
-                {levelProgress.nextLevel
-                  ? `${levelProgress.xpToNext.toLocaleString()} XP to ${
-                      levelProgress.nextLevel.name
-                    }`
-                  : 'Top city rank reached'}
-              </Text>
-              <Text className="text-[12px] font-semibold text-primary">
-                {Math.round(levelProgress.progressPercent)}%
-              </Text>
+            <View className="mb-5 flex-row items-end justify-between gap-4">
+              <View>
+                <View className="mb-1 flex-row items-center gap-1.5">
+                  <Sparkles size={15} color={Colors.light.accent} strokeWidth={2.4} />
+                  <Text className="text-[12px] font-semibold uppercase tracking-wide text-white/65">
+                    Total XP
+                  </Text>
+                </View>
+                <Text className="font-stat text-[38px] font-extrabold leading-[42px] text-white">
+                  {userXp.toLocaleString()}
+                </Text>
+              </View>
+              <View className="max-w-[160px] items-end">
+                <Text className="text-right text-[12px] leading-4 text-white/70">
+                  {levelProgress.nextLevel
+                    ? `${levelProgress.xpToNext.toLocaleString()} XP to ${
+                        levelProgress.nextLevel.name
+                      }`
+                    : 'Top city rank reached'}
+                </Text>
+                <Text className="mt-1 text-[13px] font-bold text-white">
+                  {Math.round(levelProgress.progressPercent)}%
+                </Text>
+              </View>
             </View>
-          </View>
 
-          <View className="mb-5 flex-row gap-3">
-            <View className="flex-1 rounded-2xl border border-gray-200 bg-white p-4">
-              <Text className="font-stat text-[20px] font-extrabold text-ink">
-                {attendedEventsCount}
-              </Text>
-              <Text className="mt-1 text-[12px] font-medium text-muted">Events attended</Text>
+            <View className="flex-row gap-3 border-t border-white/12 pt-4">
+              <ProfileMetric
+                icon={<TicketCheck size={18} color={Colors.light.primary} strokeWidth={2.5} />}
+                label="Events"
+                value={attendedEventsCount.toString()}
+              />
+              <Pressable className="flex-1 active:opacity-80" onPress={() => setBadgesOpen(true)}>
+                <ProfileMetric
+                  icon={<Gift size={18} color={Colors.light.primary} strokeWidth={2.5} />}
+                  label="Badges"
+                  value={unlockedBadgesCount.toString()}
+                />
+              </Pressable>
             </View>
-            <Pressable
-              onPress={() => setBadgesOpen(true)}
-              className="flex-1 rounded-2xl border border-gray-200 bg-white p-4 active:bg-gray-50"
-            >
-              <Text className="font-stat text-[20px] font-extrabold text-ink">
-                {unlockedBadgesCount}
-              </Text>
-              <Text className="mt-1 text-[12px] font-medium text-muted">Badges unlocked</Text>
+          </LinearGradient>
+        </View>
+
+        <View className="mb-6">
+          <View className="mb-3 flex-row items-center justify-between px-5">
+            <Text className="font-heading text-[22px] font-extrabold text-ink">
+              Digital Passport
+            </Text>
+            <Pressable onPress={() => setBadgesOpen(true)} className="active:opacity-75">
+              <Text className="text-[12px] font-semibold text-primary">View all</Text>
             </Pressable>
           </View>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ paddingHorizontal: 20, gap: 12 }}
+          >
+            {achievementBadges.slice(0, 8).map((badge) => (
+              <PassportBadge badge={badge} key={badge.id} />
+            ))}
+          </ScrollView>
+        </View>
 
+        <View className="mx-5 mb-6">
           <View className="flex-row gap-3">
             <Pressable
               onPress={() => {
@@ -717,29 +745,32 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
         </View>
 
         {organizerApplicationStatus !== 'none' && (
-          <View className="mb-5 px-5">
+          <View className="mb-6 px-5">
             <View className="mb-3 flex-row items-center justify-between">
-              <Text className="text-[11px] font-semibold uppercase tracking-wide text-muted">
-                Organizer
+              <Text className="font-heading text-[22px] font-extrabold text-ink">
+                Organizer Tools
               </Text>
               {organizerApplicationStatus === 'approved' && (
-                <Text className="text-[11px] font-semibold text-success">Approved</Text>
+                <View className="flex-row items-center gap-1.5 rounded-full bg-secondary/15 px-2.5 py-1">
+                  <BadgeCheck size={14} color={Colors.light.accent} fill={Colors.light.accent} />
+                  <Text className="text-[11px] font-bold text-ink">Approved</Text>
+                </View>
               )}
             </View>
 
             {organizerApplicationStatus === 'approved' ? (
-              <View className="rounded-2xl border border-gray-200 bg-white p-4">
+              <View className="rounded-3xl border border-primary/10 bg-primary/5 p-4">
                 <View className="mb-4 flex-row items-start justify-between gap-4">
                   <View className="min-w-0 flex-1">
-                    <Text className="font-ui text-[16px] font-extrabold text-ink">
+                    <Text className="font-heading text-[20px] font-extrabold text-ink">
                       Event maker tools
                     </Text>
                     <Text className="mt-1 text-[13px] leading-5 text-muted">
                       Create and publish events for {cityData.name}.
                     </Text>
                   </View>
-                  <View className="rounded-full bg-success/10 px-3 py-1">
-                    <Text className="text-[11px] font-bold text-success">Live</Text>
+                  <View className="h-10 w-10 items-center justify-center rounded-full bg-secondary">
+                    <BadgeCheck size={18} color="white" fill="white" />
                   </View>
                 </View>
 
@@ -761,42 +792,18 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
 
         <View className="px-5">
           <View className="mb-3 flex-row items-center justify-between">
-            <Text className="text-[11px] font-semibold uppercase tracking-wide text-muted">
-              Rewards
-            </Text>
+            <Text className="font-heading text-[22px] font-extrabold text-ink">Rewards</Text>
             <Text className="text-[11px] font-semibold text-primary">{cityData.name}</Text>
           </View>
 
-          <View className="overflow-hidden rounded-2xl border border-gray-200 bg-white">
+          <View className="gap-3">
             {cityData.rewardPartners.map((reward, index) => (
-              <Pressable
+              <RewardPartnerRow
                 key={reward.id}
+                reward={reward}
                 onPress={() => setSelectedReward(reward)}
-                className={`px-4 py-4 active:bg-gray-50 ${
-                  index === cityData.rewardPartners.length - 1 ? '' : 'border-b border-gray-100'
-                }`}
-              >
-                <View className="mb-2 flex-row items-start justify-between gap-3">
-                  <View className="min-w-0 flex-1">
-                    <Text className="font-ui text-[15px] font-bold text-ink" numberOfLines={1}>
-                      {reward.name}
-                    </Text>
-                    <Text className="mt-0.5 text-[12px] text-muted" numberOfLines={1}>
-                      {reward.location}
-                    </Text>
-                  </View>
-                  <Text className="text-[12px] font-bold text-primary">{reward.xpCost} XP</Text>
-                </View>
-
-                <Text className="mb-2 text-[13px] leading-5 text-ink">{reward.discount}</Text>
-
-                <View className="flex-row items-center justify-between">
-                  <Text className="text-[12px] text-muted" numberOfLines={1}>
-                    {reward.condition}
-                  </Text>
-                  <Text className="text-[12px] font-semibold text-primary">View</Text>
-                </View>
-              </Pressable>
+                variantIndex={index}
+              />
             ))}
           </View>
         </View>
@@ -1003,9 +1010,9 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
                     </Text>
 
                     {selectedPlace && (
-                      <View className="mt-2 flex-row gap-3 rounded-xl border border-success/25 bg-success/10 p-3">
-                        <View className="h-9 w-9 items-center justify-center rounded-full bg-success/15">
-                          <MapPin size={16} color="#2F9E73" strokeWidth={2.4} />
+                      <View className="mt-2 flex-row gap-3 rounded-xl border border-primary/25 bg-primary/10 p-3">
+                        <View className="h-9 w-9 items-center justify-center rounded-full bg-primary/15">
+                          <MapPin size={16} color="#7C3AED" strokeWidth={2.4} />
                         </View>
                         <View className="min-w-0 flex-1">
                           <Text
@@ -1233,7 +1240,7 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
                     >
                       <View
                         className={`mt-1 h-2.5 w-2.5 rounded-full ${
-                          badge.unlocked ? 'bg-success' : 'bg-gray-300'
+                          badge.unlocked ? 'bg-primary' : 'bg-gray-300'
                         }`}
                       />
                       <View className="min-w-0 flex-1">
@@ -1243,7 +1250,7 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
                           </Text>
                           <Text
                             className={`text-[11px] font-bold ${
-                              badge.unlocked ? 'text-success' : 'text-muted'
+                              badge.unlocked ? 'text-primary' : 'text-muted'
                             }`}
                           >
                             {badge.unlocked ? 'Unlocked' : badge.progress}
@@ -1347,7 +1354,7 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
                           selectedRewardIsUsed
                             ? 'bg-gray-200'
                             : selectedRewardIsActive
-                              ? 'bg-success/10'
+                              ? 'bg-primary/10'
                               : 'bg-white'
                         }`}
                       >
@@ -1356,7 +1363,7 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
                             selectedRewardIsUsed
                               ? 'text-muted'
                               : selectedRewardIsActive
-                                ? 'text-success'
+                                ? 'text-primary'
                                 : 'text-muted'
                           }`}
                         >
@@ -1483,6 +1490,243 @@ function getXpLevelProgress(xp: number) {
     progressPercent,
     xpToNext: nextLevel.minXp - xp,
   };
+}
+
+function RankAvatar({
+  initials,
+  progressPercent,
+  uri,
+}: {
+  initials: string | null;
+  progressPercent: number;
+  uri?: string | null;
+}) {
+  return (
+    <View className="relative h-[98px] w-[98px] items-center justify-center">
+      <ProgressRing progressPercent={progressPercent} size={98} strokeWidth={6} />
+      <View className="h-[78px] w-[78px] items-center justify-center overflow-hidden rounded-full bg-white/12">
+        {uri ? (
+          <Image source={{ uri }} contentFit="cover" style={{ height: 78, width: 78 }} />
+        ) : (
+          <LinearGradient
+            colors={['rgba(244,162,97,0.92)', 'rgba(124,58,237,0.96)']}
+            className="h-full w-full items-center justify-center"
+          >
+            <Text className="font-heading text-[24px] font-extrabold text-white">
+              {initials ?? 'CQ'}
+            </Text>
+          </LinearGradient>
+        )}
+      </View>
+    </View>
+  );
+}
+
+function ProgressRing({
+  progressPercent,
+  size,
+  strokeWidth,
+}: {
+  progressPercent: number;
+  size: number;
+  strokeWidth: number;
+}) {
+  const radius = (size - strokeWidth) / 2;
+  const circumference = 2 * Math.PI * radius;
+  const clampedProgress = Math.min(100, Math.max(0, progressPercent));
+  const strokeDashoffset = circumference - (clampedProgress / 100) * circumference;
+
+  return (
+    <Svg height={size} style={{ position: 'absolute' }} width={size}>
+      <Circle
+        cx={size / 2}
+        cy={size / 2}
+        fill="transparent"
+        r={radius}
+        stroke="rgba(255,255,255,0.18)"
+        strokeWidth={strokeWidth}
+      />
+      <Circle
+        cx={size / 2}
+        cy={size / 2}
+        fill="transparent"
+        r={radius}
+        stroke={Colors.light.primary}
+        strokeDasharray={`${circumference} ${circumference}`}
+        strokeDashoffset={strokeDashoffset}
+        strokeLinecap="round"
+        strokeWidth={strokeWidth}
+        transform={`rotate(-90 ${size / 2} ${size / 2})`}
+      />
+    </Svg>
+  );
+}
+
+function ProfileMetric({
+  icon,
+  label,
+  value,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+}) {
+  return (
+    <View className="flex-1 rounded-2xl bg-white/10 px-3 py-3">
+      <View className="mb-2 flex-row items-center gap-2">
+        <View className="h-8 w-8 items-center justify-center rounded-full bg-white">{icon}</View>
+        <Text className="text-[11px] font-semibold uppercase tracking-wide text-white/65">
+          {label}
+        </Text>
+      </View>
+      <Text className="font-stat text-[24px] font-extrabold leading-[28px] text-white">
+        {value}
+      </Text>
+    </View>
+  );
+}
+
+function PassportBadge({ badge }: { badge: (typeof achievementBadges)[number] }) {
+  const Icon = badge.icon;
+
+  return (
+    <Pressable
+      className={`w-[104px] rounded-3xl p-3 active:opacity-80 ${
+        badge.unlocked ? 'bg-primary/10' : 'bg-gray-100'
+      }`}
+    >
+      <View
+        className={`mb-3 h-14 w-14 items-center justify-center rounded-2xl ${
+          badge.unlocked ? 'bg-primary' : 'bg-gray-200'
+        }`}
+      >
+        <Icon
+          size={25}
+          color={badge.unlocked ? 'white' : '#9CA3AF'}
+          strokeWidth={2.4}
+          fill={badge.unlocked ? 'rgba(255,255,255,0.16)' : 'transparent'}
+        />
+      </View>
+      <Text
+        className={`font-ui text-[12px] font-bold leading-4 ${
+          badge.unlocked ? 'text-ink' : 'text-muted'
+        }`}
+        numberOfLines={2}
+      >
+        {badge.title}
+      </Text>
+      <Text className="mt-1 text-[10px] font-semibold text-muted" numberOfLines={1}>
+        {badge.unlocked ? 'Unlocked' : badge.progress}
+      </Text>
+    </Pressable>
+  );
+}
+
+function RewardPartnerRow({
+  onPress,
+  reward,
+  variantIndex,
+}: {
+  onPress: () => void;
+  reward: RewardPartner;
+  variantIndex: number;
+}) {
+  const RewardIcon = getRewardIcon(reward);
+
+  return (
+    <Pressable
+      onPress={onPress}
+      className="flex-row items-center gap-3 rounded-3xl border border-gray-200 bg-white p-3 active:bg-gray-50"
+    >
+      <View className="h-[76px] w-[76px] overflow-hidden rounded-2xl">
+        <BrandImage
+          className="h-full w-full"
+          source={getRewardImageSource(reward, variantIndex)}
+          withTextGradient
+        >
+          <View className="absolute bottom-2 left-2 h-8 w-8 items-center justify-center rounded-full bg-white/90">
+            <RewardIcon size={16} color={Colors.light.primary} strokeWidth={2.5} />
+          </View>
+        </BrandImage>
+      </View>
+
+      <View className="min-w-0 flex-1">
+        <View className="mb-1 flex-row items-start justify-between gap-2">
+          <Text className="min-w-0 flex-1 font-ui text-[15px] font-bold text-ink" numberOfLines={1}>
+            {reward.name}
+          </Text>
+          <Text className="font-stat text-[13px] font-extrabold text-primary">
+            {reward.xpCost} XP
+          </Text>
+        </View>
+        <Text className="mb-1 text-[12px] text-muted" numberOfLines={1}>
+          {reward.location}
+        </Text>
+        <Text className="text-[13px] leading-5 text-ink" numberOfLines={2}>
+          {reward.discount}
+        </Text>
+        <View className="mt-2 flex-row items-center justify-between">
+          <Text className="text-[11px] font-medium text-muted" numberOfLines={1}>
+            {reward.condition}
+          </Text>
+          <Text className="text-[12px] font-semibold text-primary">View</Text>
+        </View>
+      </View>
+    </Pressable>
+  );
+}
+
+function OrganizerVerifiedBadge() {
+  return (
+    <View className="flex-row items-center gap-1 rounded-full bg-secondary px-2 py-1">
+      <BadgeCheck size={13} color="white" fill="white" strokeWidth={2.3} />
+      <Text className="text-[10px] font-bold uppercase tracking-wide text-white">Approved</Text>
+    </View>
+  );
+}
+
+function getRewardIcon(reward: RewardPartner) {
+  if (reward.category === 'bookstore' || reward.name.toLowerCase().includes('book')) {
+    return BookOpen;
+  }
+  if (reward.name.toLowerCase().includes('browar') || reward.name.toLowerCase().includes('brew')) {
+    return Beer;
+  }
+  if (reward.category === 'cafe') {
+    return Coffee;
+  }
+
+  return Gift;
+}
+
+function getRewardImageSource(reward: RewardPartner, variantIndex: number) {
+  if (reward.category === 'cafe') {
+    return require('@/assets/images/culture/venue-cafe.jpg');
+  }
+  if (reward.name.toLowerCase().includes('browar') || reward.name.toLowerCase().includes('brew')) {
+    return require('@/assets/images/culture/venue-theater.jpg');
+  }
+  if (reward.category === 'bookstore' || reward.name.toLowerCase().includes('book')) {
+    return require('@/assets/images/culture/venue-museum.jpg');
+  }
+
+  return variantIndex % 2 === 0
+    ? require('@/assets/images/culture/venue-cafe.jpg')
+    : require('@/assets/images/culture/venue-museum.jpg');
+}
+
+function getUserInitials(value?: string | null) {
+  if (!value) return null;
+
+  const parts = value
+    .replace(/[^a-zA-Z0-9_\s.-]/g, '')
+    .split(/[\s._-]+/)
+    .filter(Boolean);
+
+  if (parts.length === 0) return null;
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+
+  return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
 }
 
 function ChoicePill({
@@ -1711,7 +1955,7 @@ function formatTimeUnit(value: number) {
 function OrganizerStatusCard({ status }: { status: 'pending' | 'approved' | 'rejected' }) {
   const isApproved = status === 'approved';
   const isRejected = status === 'rejected';
-  const color = isApproved ? '#2F9E73' : isRejected ? '#EF4444' : '#F4A261';
+  const color = isApproved ? '#F4A261' : isRejected ? '#EF4444' : '#F4A261';
   const Icon = isApproved ? CheckCircle2 : isRejected ? CircleAlert : Building2;
   const title = isApproved
     ? 'Organizer approved'
