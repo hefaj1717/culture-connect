@@ -212,6 +212,7 @@ type ProfileScreenProps = {
 
 export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {}) {
   const insets = useSafeAreaInsets();
+  const stableModalTopInset = Math.max(insets.top, 44);
   const {
     organizerApplicationStatus,
     refreshOrganizerApplicationStatus,
@@ -889,14 +890,18 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
       >
         <GestureDetector gesture={createEventSwipeGesture}>
           <Animated.View className="flex-1 bg-white" style={createEventSwipeStyle}>
-            <SafeAreaView className="flex-1 bg-white" edges={['top', 'bottom']}>
+            <SafeAreaView className="flex-1 bg-white" edges={['bottom']}>
               <KeyboardAvoidingView
                 behavior={Platform.OS === 'ios' ? 'padding' : undefined}
                 className="flex-1"
               >
                 <ScrollView
                   className="flex-1"
-                  contentContainerStyle={{ padding: 20, paddingBottom: 36 }}
+                  contentContainerStyle={{
+                    paddingHorizontal: 20,
+                    paddingBottom: 36,
+                    paddingTop: stableModalTopInset + 14,
+                  }}
                   keyboardDismissMode="interactive"
                   keyboardShouldPersistTaps="handled"
                 >
@@ -1172,13 +1177,13 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
       <Modal animationType="slide" onRequestClose={closeBadgesWithAnimation} visible={badgesOpen}>
         <GestureDetector gesture={badgesSwipeGesture}>
           <Animated.View className="flex-1 bg-white" style={badgesSwipeStyle}>
-            <SafeAreaView className="flex-1 bg-white" edges={['top', 'bottom']}>
+            <SafeAreaView className="flex-1 bg-white" edges={['bottom']}>
               <ScrollView
                 className="flex-1"
                 contentContainerStyle={{
                   paddingHorizontal: 20,
                   paddingBottom: 36,
-                  paddingTop: insets.top + 18,
+                  paddingTop: stableModalTopInset + 18,
                 }}
                 showsVerticalScrollIndicator={false}
               >
@@ -1217,10 +1222,14 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
         {selectedReward && (
           <GestureDetector gesture={rewardSwipeGesture}>
             <Animated.View className="flex-1 bg-white" style={rewardSwipeStyle}>
-              <SafeAreaView className="flex-1 bg-white" edges={['top', 'bottom']}>
+              <SafeAreaView className="flex-1 bg-white" edges={['bottom']}>
                 <ScrollView
                   className="flex-1"
-                  contentContainerStyle={{ padding: 20, paddingBottom: 36 }}
+                  contentContainerStyle={{
+                    paddingHorizontal: 20,
+                    paddingBottom: 36,
+                    paddingTop: stableModalTopInset + 14,
+                  }}
                   showsVerticalScrollIndicator={false}
                 >
                   <Pressable

@@ -464,6 +464,7 @@ function EventDetailModal({
 }) {
   const { width } = useWindowDimensions();
   const insets = useSafeAreaInsets();
+  const stableTopInset = Math.max(insets.top, 44);
   const [scannerOpen, setScannerOpen] = useState(false);
   const [scanLocked, setScanLocked] = useState(false);
   const [scanMessage, setScanMessage] = useState<string | null>(null);
@@ -608,7 +609,7 @@ function EventDetailModal({
                 <Pressable
                   onPress={closeWithAnimation}
                   className="absolute left-5 h-10 w-10 items-center justify-center rounded-full bg-black/30 active:opacity-80"
-                  style={{ top: insets.top + 6 }}
+                  style={{ top: stableTopInset + 6 }}
                 >
                   <ArrowLeft size={21} color="white" strokeWidth={2.6} />
                 </Pressable>
