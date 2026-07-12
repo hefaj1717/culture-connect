@@ -1230,7 +1230,7 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
                   className="flex-1"
                   contentContainerStyle={{
                     paddingHorizontal: 20,
-                    paddingBottom: 48,
+                    paddingBottom: 28,
                     paddingTop: 10,
                   }}
                   showsVerticalScrollIndicator={false}
@@ -1240,10 +1240,10 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
                       colors={['rgba(124,58,237,0.84)', 'rgba(36,28,46,0.98)']}
                       end={{ x: 1, y: 1 }}
                       start={{ x: 0, y: 0 }}
-                      className="px-5 pb-5 pt-6"
+                      className="px-5 pb-5 pt-7"
                     >
                       <Text
-                        className="mb-3 text-[10px] font-bold uppercase leading-[14px] tracking-[2px] text-white/65"
+                        className="mb-3 text-[10px] font-bold uppercase leading-[16px] tracking-[1.6px] text-white/65"
                         numberOfLines={1}
                       >
                         {selectedReward.location}
@@ -1310,11 +1310,11 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
                       colors={['rgba(36,28,46,0.98)', 'rgba(124,58,237,0.86)']}
                       end={{ x: 1, y: 1 }}
                       start={{ x: 0, y: 0 }}
-                      className="px-5 pb-5 pt-6"
+                      className="px-5 pb-5 pt-7"
                     >
                       <View className="mb-4 flex-row items-start justify-between gap-3">
                         <View className="min-w-0 flex-1">
-                          <Text className="text-[10px] font-bold uppercase leading-[14px] tracking-[2px] text-white/60">
+                          <Text className="text-[10px] font-bold uppercase leading-[16px] tracking-[1.6px] text-white/60">
                             Pickup screen
                           </Text>
                           <Text
@@ -1389,11 +1389,7 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
                       </View>
                     </LinearGradient>
                   </View>
-                </ScrollView>
-                <View
-                  className="border-t border-gray-100 bg-white px-5 pt-3"
-                  style={{ paddingBottom: 12 }}
-                >
+
                   <Pressable
                     onPress={() => {
                       const redeemedAt = Date.now();
@@ -1423,7 +1419,7 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
                           : 'Redeem'}
                     </Text>
                   </Pressable>
-                </View>
+                </ScrollView>
               </SafeAreaView>
             </Animated.View>
           </GestureDetector>
