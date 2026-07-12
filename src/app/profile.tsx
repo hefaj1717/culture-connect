@@ -619,100 +619,86 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
   return (
     <View className="flex-1 bg-white">
       <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 112 }}>
-        <View className="px-5 pb-5" style={{ paddingTop: insets.top + 16 }}>
-          <Text className="font-heading text-[28px] font-bold tracking-tight text-ink">
-            Profile
-          </Text>
-          <Text className="text-[14px] text-muted">Rank, passport, and city rewards</Text>
-        </View>
+        <View
+          className="mx-5 mb-5 rounded-[28px] border border-gray-200 bg-white p-4"
+          style={{ marginTop: insets.top + 16 }}
+        >
+          <View className="mb-5 flex-row items-center gap-4">
+            <RankAvatar
+              initials={avatarInitials}
+              progressPercent={levelProgress.progressPercent}
+              uri={savedAvatarUrl}
+            />
 
-        <View className="mx-5 mb-6 overflow-hidden rounded-[28px] bg-ink">
-          <LinearGradient
-            colors={['rgba(124,58,237,0.72)', 'rgba(36,28,46,0.98)']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-          >
-            <View className="p-5">
-              <View className="mb-5 flex-row items-start justify-between gap-3">
-                <View className="min-w-0 flex-1 pr-1">
-                  <View className="mb-2 flex-row flex-wrap items-center gap-2">
-                    <Text className="text-[11px] font-semibold uppercase tracking-wide text-white/70">
-                      CultureQuest profile
-                    </Text>
-                    {organizerApplicationStatus === 'approved' && <OrganizerVerifiedBadge />}
-                  </View>
-                  <Text
-                    className="font-heading text-[31px] font-extrabold leading-[35px] text-white"
-                    numberOfLines={1}
-                    adjustsFontSizeToFit
-                    minimumFontScale={0.76}
-                  >
-                    {fullName}
-                  </Text>
-                  <View className="mt-2 flex-row flex-wrap items-center gap-2">
-                    <View className="rounded-full bg-white/15 px-2.5 py-1">
-                      <Text className="font-ui text-[12px] font-bold text-white">
-                        {levelProgress.currentLevel.name}
-                      </Text>
-                    </View>
-                    <Text className="text-[12px] font-medium text-white/80" numberOfLines={1}>
-                      {cityData.label}
-                    </Text>
-                  </View>
-                </View>
-
-                <RankAvatar
-                  initials={avatarInitials}
-                  progressPercent={levelProgress.progressPercent}
-                  uri={savedAvatarUrl}
-                />
+            <View className="min-w-0 flex-1">
+              <View className="mb-1 flex-row flex-wrap items-center gap-2">
+                <Text
+                  className="font-heading text-[29px] font-extrabold leading-[33px] text-ink"
+                  numberOfLines={1}
+                  adjustsFontSizeToFit
+                  minimumFontScale={0.72}
+                >
+                  {fullName}
+                </Text>
+                {organizerApplicationStatus === 'approved' && <OrganizerVerifiedBadge compact />}
               </View>
+              <Text className="text-[13px] font-medium text-muted" numberOfLines={1}>
+                {levelProgress.currentLevel.name} · {cityData.label}
+              </Text>
+            </View>
+          </View>
 
-              <View className="mb-5 flex-row items-end justify-between gap-4">
-                <View>
-                  <View className="mb-1 flex-row items-center gap-1.5">
-                    <Sparkles size={15} color={Colors.light.accent} strokeWidth={2.4} />
-                    <Text className="text-[12px] font-semibold uppercase tracking-wide text-white/70">
-                      Total XP
-                    </Text>
-                  </View>
-                  <Text className="font-ui text-[42px] font-extrabold leading-[45px] text-white">
-                    {userXp.toLocaleString()}
+          <View className="mb-4 rounded-2xl bg-canvas p-4">
+            <View className="mb-3 flex-row items-end justify-between gap-4">
+              <View>
+                <View className="mb-1 flex-row items-center gap-1.5">
+                  <Sparkles size={15} color={Colors.light.primary} strokeWidth={2.4} />
+                  <Text className="text-[11px] font-semibold uppercase tracking-wide text-muted">
+                    Total XP
                   </Text>
                 </View>
-                <View className="max-w-[150px] items-end rounded-2xl bg-white/10 px-3 py-2">
-                  <Text className="text-right text-[12px] font-semibold leading-4 text-white/90">
-                    {levelProgress.nextLevel
-                      ? `${levelProgress.xpToNext.toLocaleString()} XP to ${
-                          levelProgress.nextLevel.name
-                        }`
-                      : 'Top city rank reached'}
-                  </Text>
-                  <Text className="mt-1 text-[14px] font-extrabold text-white">
-                    {Math.round(levelProgress.progressPercent)}%
-                  </Text>
-                </View>
+                <Text className="font-ui text-[34px] font-extrabold leading-[38px] text-ink">
+                  {userXp.toLocaleString()}
+                </Text>
               </View>
-
-              <View className="flex-row gap-3 border-t border-white/20 pt-4">
-                <ProfileMetric
-                  icon={<TicketCheck size={18} color={Colors.light.primary} strokeWidth={2.5} />}
-                  label="Events"
-                  value={attendedEventsCount.toString()}
-                />
-                <Pressable className="flex-1 active:opacity-80" onPress={() => setBadgesOpen(true)}>
-                  <ProfileMetric
-                    icon={<Gift size={18} color={Colors.light.primary} strokeWidth={2.5} />}
-                    label="Badges"
-                    value={unlockedBadgesCount.toString()}
-                  />
-                </Pressable>
+              <View className="items-end">
+                <Text className="text-right text-[12px] font-semibold leading-4 text-muted">
+                  {levelProgress.nextLevel
+                    ? `${levelProgress.xpToNext.toLocaleString()} XP to ${
+                        levelProgress.nextLevel.name
+                      }`
+                    : 'Top city rank reached'}
+                </Text>
+                <Text className="mt-1 text-[13px] font-extrabold text-primary">
+                  {Math.round(levelProgress.progressPercent)}%
+                </Text>
               </View>
             </View>
-          </LinearGradient>
+            <View className="h-2 overflow-hidden rounded-full bg-primary/10">
+              <View
+                className="h-full rounded-full bg-primary"
+                style={{ width: `${levelProgress.progressPercent}%` }}
+              />
+            </View>
+          </View>
+
+          <View className="flex-row gap-3">
+            <ProfileMetric
+              icon={<TicketCheck size={18} color={Colors.light.primary} strokeWidth={2.5} />}
+              label="Events"
+              value={attendedEventsCount.toString()}
+            />
+            <Pressable className="flex-1 active:opacity-80" onPress={() => setBadgesOpen(true)}>
+              <ProfileMetric
+                icon={<Gift size={18} color={Colors.light.primary} strokeWidth={2.5} />}
+                label="Badges"
+                value={unlockedBadgesCount.toString()}
+              />
+            </Pressable>
+          </View>
         </View>
 
-        <View className="mx-5 mb-7">
+        <View className="mx-5 mb-6">
           <View className="flex-row gap-3">
             <Pressable
               onPress={() => {
@@ -1590,16 +1576,16 @@ function ProfileMetric({
   value: string;
 }) {
   return (
-    <View className="flex-1 rounded-2xl bg-white/10 px-3 py-3">
+    <View className="flex-1 rounded-2xl bg-canvas px-3 py-3">
       <View className="mb-2 flex-row items-center gap-2">
-        <View className="h-8 w-8 items-center justify-center rounded-full bg-white">{icon}</View>
-        <Text className="text-[11px] font-semibold uppercase tracking-wide text-white/70">
+        <View className="h-8 w-8 items-center justify-center rounded-full bg-primary/10">
+          {icon}
+        </View>
+        <Text className="text-[11px] font-semibold uppercase tracking-wide text-muted">
           {label}
         </Text>
       </View>
-      <Text className="font-stat text-[24px] font-extrabold leading-[28px] text-white">
-        {value}
-      </Text>
+      <Text className="font-ui text-[24px] font-extrabold leading-[28px] text-ink">{value}</Text>
     </View>
   );
 }
@@ -1694,11 +1680,17 @@ function RewardPartnerRow({
   );
 }
 
-function OrganizerVerifiedBadge() {
+function OrganizerVerifiedBadge({ compact = false }: { compact?: boolean }) {
   return (
-    <View className="flex-row items-center gap-1 rounded-full bg-secondary px-2 py-1">
+    <View
+      className={`flex-row items-center gap-1 rounded-full bg-secondary ${
+        compact ? 'px-1.5 py-1' : 'px-2 py-1'
+      }`}
+    >
       <BadgeCheck size={13} color="white" fill="white" strokeWidth={2.3} />
-      <Text className="text-[10px] font-bold uppercase tracking-wide text-white">Approved</Text>
+      {!compact && (
+        <Text className="text-[10px] font-bold uppercase tracking-wide text-white">Approved</Text>
+      )}
     </View>
   );
 }
