@@ -49,7 +49,7 @@ export default function AppTabs() {
 
   function openDiscoverEvent(eventId: string) {
     setEventOpenRequest({ eventId, nonce: Date.now() });
-    goToTab(2);
+    goToTab(1);
   }
 
   const gesture = useMemo(
@@ -103,13 +103,10 @@ export default function AppTabs() {
               avatarUrl={avatarUrl}
               cityData={cityData}
               organizerApplicationStatus={organizerApplicationStatus}
-              onOpenDiscover={() => goToTab(2)}
+              onOpenDiscover={() => goToTab(1)}
               onOpenEvent={openDiscoverEvent}
               onOpenProfile={() => goToTab(3)}
             />
-          </View>
-          <View style={{ width }}>
-            <QuestsScreen cityData={cityData} />
           </View>
           <View style={{ width }}>
             <ExploreScreen
@@ -120,10 +117,13 @@ export default function AppTabs() {
             />
           </View>
           <View style={{ width }}>
+            <QuestsScreen cityData={cityData} />
+          </View>
+          <View style={{ width }}>
             <ProfileScreen
               onEventCreated={() => {
                 setOrganizerEventsVersion((version) => version + 1);
-                goToTab(2);
+                goToTab(1);
               }}
             />
           </View>
@@ -151,16 +151,16 @@ export default function AppTabs() {
         />
         <TabButton
           active={activeIndex === 1}
-          icon={<Route size={23} color={activeIndex === 1 ? ACTIVE : INACTIVE} strokeWidth={2.3} />}
-          label="Quests"
+          icon={
+            <Compass size={23} color={activeIndex === 1 ? ACTIVE : INACTIVE} strokeWidth={2.3} />
+          }
+          label="Discover"
           onPress={() => goToTab(1)}
         />
         <TabButton
           active={activeIndex === 2}
-          icon={
-            <Compass size={23} color={activeIndex === 2 ? ACTIVE : INACTIVE} strokeWidth={2.3} />
-          }
-          label="Discover"
+          icon={<Route size={23} color={activeIndex === 2 ? ACTIVE : INACTIVE} strokeWidth={2.3} />}
+          label="Quests"
           onPress={() => goToTab(2)}
         />
         <TabButton
