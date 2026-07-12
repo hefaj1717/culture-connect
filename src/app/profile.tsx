@@ -712,27 +712,7 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
           </LinearGradient>
         </View>
 
-        <View className="mb-6">
-          <View className="mb-3 flex-row items-center justify-between px-5">
-            <Text className="font-heading text-[22px] font-extrabold text-ink">
-              Digital Passport
-            </Text>
-            <Pressable onPress={() => setBadgesOpen(true)} className="active:opacity-75">
-              <Text className="text-[12px] font-semibold text-primary">View all</Text>
-            </Pressable>
-          </View>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ paddingHorizontal: 20, gap: 12 }}
-          >
-            {achievementBadges.slice(0, 8).map((badge) => (
-              <PassportBadge badge={badge} key={badge.id} />
-            ))}
-          </ScrollView>
-        </View>
-
-        <View className="mx-5 mb-6">
+        <View className="mx-5 mb-7">
           <View className="flex-row gap-3">
             <Pressable
               onPress={() => {
@@ -755,6 +735,26 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
               <Text className="text-[14px] font-semibold text-muted">Log out</Text>
             </Pressable>
           </View>
+        </View>
+
+        <View className="mb-6">
+          <View className="mb-3 flex-row items-center justify-between px-5">
+            <Text className="font-heading text-[22px] font-extrabold text-ink">
+              Digital Passport
+            </Text>
+            <Pressable onPress={() => setBadgesOpen(true)} className="active:opacity-75">
+              <Text className="text-[12px] font-semibold text-primary">View all</Text>
+            </Pressable>
+          </View>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ paddingHorizontal: 20, gap: 12 }}
+          >
+            {achievementBadges.slice(0, 8).map((badge) => (
+              <PassportBadge badge={badge} key={badge.id} />
+            ))}
+          </ScrollView>
         </View>
 
         {organizerApplicationStatus !== 'none' && (
