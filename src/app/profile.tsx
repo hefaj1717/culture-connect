@@ -615,12 +615,13 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
   }
 
   return (
-    <View className="flex-1 bg-white">
-      <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 112 }}>
-        <View
-          className="mx-5 mb-5 rounded-[28px] border border-gray-200 bg-white p-4"
-          style={{ marginTop: insets.top + 24 }}
-        >
+    <SafeAreaView className="flex-1 bg-white" edges={['top']}>
+      <ScrollView
+        className="flex-1"
+        contentContainerStyle={{ paddingBottom: 112, paddingTop: 24 }}
+        contentInsetAdjustmentBehavior="automatic"
+      >
+        <View className="mx-5 mb-5 rounded-[28px] border border-gray-200 bg-white p-4">
           <View className="mb-5 flex-row items-center gap-4">
             <RankAvatar
               initials={avatarInitials}
@@ -1226,7 +1227,7 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
                   className="flex-1"
                   contentContainerStyle={{
                     paddingHorizontal: 20,
-                    paddingBottom: 36,
+                    paddingBottom: 24,
                     paddingTop: stableModalTopInset + 14,
                   }}
                   showsVerticalScrollIndicator={false}
@@ -1240,20 +1241,32 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
                     <ArrowLeft size={21} color="#756F7B" strokeWidth={2.6} />
                   </Pressable>
 
-                  <View className="mb-5">
-                    <Text className="font-heading text-[28px] font-extrabold text-ink">
-                      {selectedReward.name}
-                    </Text>
-                    <Text className="mt-1 text-[13px] leading-5 text-muted">
-                      {selectedReward.location}
-                    </Text>
+                  <View className="mb-5 overflow-hidden rounded-3xl bg-ink">
+                    <LinearGradient
+                      colors={['rgba(124,58,237,0.84)', 'rgba(36,28,46,0.98)']}
+                      end={{ x: 1, y: 1 }}
+                      start={{ x: 0, y: 0 }}
+                      className="p-5"
+                    >
+                      <Text className="mb-3 text-[11px] font-bold uppercase tracking-[2px] text-white/65">
+                        {selectedReward.location}
+                      </Text>
+                      <Text className="font-heading text-[31px] font-extrabold leading-[35px] text-white">
+                        {selectedReward.name}
+                      </Text>
+                      <View className="mt-4 self-start rounded-full bg-white/10 px-3 py-1.5">
+                        <Text className="text-[11px] font-extrabold uppercase tracking-wide text-white">
+                          CultureQuest partner
+                        </Text>
+                      </View>
+                    </LinearGradient>
                   </View>
 
-                  <View className="mb-5 rounded-2xl border border-gray-200 bg-white p-5">
-                    <Text className="mb-2 text-[12px] font-semibold uppercase tracking-wide text-muted">
+                  <View className="mb-4 rounded-3xl border border-primary/10 bg-primary/5 p-5">
+                    <Text className="mb-2 text-[11px] font-bold uppercase tracking-[2px] text-muted">
                       Reward
                     </Text>
-                    <Text className="font-stat text-[22px] font-extrabold text-ink">
+                    <Text className="font-heading text-[25px] font-extrabold leading-[29px] text-ink">
                       {selectedReward.discount}
                     </Text>
                     <Text className="mt-3 text-[13px] leading-5 text-muted">
@@ -1262,102 +1275,125 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
                     </Text>
                   </View>
 
-                  <View className="mb-5 overflow-hidden rounded-2xl border border-gray-200 bg-white">
-                    <View className="border-b border-gray-100 p-4">
-                      <Text className="mb-1 text-[13px] font-bold text-ink">How to redeem</Text>
-                      <Text className="text-[13px] leading-5 text-muted">
-                        1. Visit {selectedReward.name}.
-                      </Text>
-                      <Text className="text-[13px] leading-5 text-muted">
-                        2. Tap Redeem when you are with staff.
-                      </Text>
-                      <Text className="text-[13px] leading-5 text-muted">
-                        3. Show the confirmation card before the reward is applied.
-                      </Text>
+                  <View className="mb-4 overflow-hidden rounded-3xl border border-gray-200 bg-white">
+                    <View className="gap-3 border-b border-gray-100 p-4">
+                      <Text className="text-[13px] font-extrabold text-ink">How to redeem</Text>
+                      {[
+                        `Visit ${selectedReward.name}.`,
+                        'Tap Redeem when you are with staff.',
+                        'Show the pickup card before the reward is applied.',
+                      ].map((step, index) => (
+                        <View className="flex-row items-start gap-3" key={step}>
+                          <View className="mt-0.5 h-6 w-6 items-center justify-center rounded-full bg-primary/10">
+                            <Text className="text-[11px] font-extrabold text-primary">
+                              {index + 1}
+                            </Text>
+                          </View>
+                          <Text className="flex-1 text-[13px] leading-5 text-muted">{step}</Text>
+                        </View>
+                      ))}
                     </View>
-                    <View className="p-4">
-                      <Text className="mb-1 text-[13px] font-bold text-ink">Unlock condition</Text>
-                      <Text className="text-[13px] leading-5 text-muted">
-                        {selectedReward.condition}
-                      </Text>
+                    <View className="flex-row items-center gap-3 p-4">
+                      <View className="h-10 w-10 items-center justify-center rounded-2xl bg-accent/10">
+                        <Sparkles size={18} color={Colors.light.accent} strokeWidth={2.5} />
+                      </View>
+                      <View className="min-w-0 flex-1">
+                        <Text className="text-[11px] font-bold uppercase tracking-[1.6px] text-muted">
+                          Unlock condition
+                        </Text>
+                        <Text className="mt-1 text-[13px] font-semibold leading-5 text-ink">
+                          {selectedReward.condition}
+                        </Text>
+                      </View>
                     </View>
                   </View>
 
-                  <View className="mb-5 rounded-2xl bg-gray-100 p-5">
-                    <View className="mb-4 flex-row items-center justify-between">
-                      <View>
-                        <Text className="text-[12px] font-semibold uppercase tracking-wide text-muted">
-                          Pickup screen
-                        </Text>
-                        <Text className="mt-1 font-ui text-[15px] font-bold text-ink">
-                          {selectedRewardIsUsed
-                            ? 'Coupon already used'
-                            : selectedRewardIsActive
-                              ? 'Show this to staff'
-                              : 'Redeem with staff'}
-                        </Text>
-                      </View>
-                      <View
-                        className={`rounded-full px-3 py-1 ${
-                          selectedRewardIsUsed
-                            ? 'bg-gray-200'
-                            : selectedRewardIsActive
-                              ? 'bg-primary/10'
-                              : 'bg-white'
-                        }`}
-                      >
-                        <Text
-                          className={`text-[11px] font-bold ${
-                            selectedRewardIsUsed
-                              ? 'text-muted'
+                  <View className="mb-2 overflow-hidden rounded-3xl bg-ink">
+                    <LinearGradient
+                      colors={['rgba(36,28,46,0.98)', 'rgba(124,58,237,0.86)']}
+                      end={{ x: 1, y: 1 }}
+                      start={{ x: 0, y: 0 }}
+                      className="p-5"
+                    >
+                      <View className="mb-4 flex-row items-center justify-between">
+                        <View>
+                          <Text className="text-[11px] font-bold uppercase tracking-[2px] text-white/60">
+                            Pickup screen
+                          </Text>
+                          <Text className="mt-1 font-heading text-[22px] font-extrabold text-white">
+                            {selectedRewardIsUsed
+                              ? 'Coupon already used'
                               : selectedRewardIsActive
-                                ? 'text-primary'
-                                : 'text-muted'
+                                ? 'Show this to staff'
+                                : 'Redeem with staff'}
+                          </Text>
+                        </View>
+                        <View
+                          className={`rounded-full px-3 py-1 ${
+                            selectedRewardIsUsed
+                              ? 'bg-white/10'
+                              : selectedRewardIsActive
+                                ? 'bg-primary/20'
+                                : 'bg-white/10'
                           }`}
                         >
-                          {selectedRewardIsUsed
-                            ? 'Used'
-                            : selectedRewardIsActive
-                              ? formatRewardTime(selectedRewardRemainingMs)
-                              : 'Not redeemed'}
+                          <Text
+                            className={`text-[11px] font-bold ${
+                              selectedRewardIsUsed
+                                ? 'text-white/70'
+                                : selectedRewardIsActive
+                                  ? 'text-white'
+                                  : 'text-white/70'
+                            }`}
+                          >
+                            {selectedRewardIsUsed
+                              ? 'Used'
+                              : selectedRewardIsActive
+                                ? formatRewardTime(selectedRewardRemainingMs)
+                                : 'Not redeemed'}
+                          </Text>
+                        </View>
+                      </View>
+
+                      <View className="rounded-2xl border border-dashed border-accent/80 bg-white/10 p-5">
+                        <Text className="mb-2 text-center text-[11px] font-bold uppercase tracking-[1.8px] text-white/60">
+                          CultureQuest reward
+                        </Text>
+                        <Text className="text-center font-heading text-[22px] font-extrabold leading-[27px] text-white">
+                          {selectedReward.discount}
+                        </Text>
+                        {selectedRewardIsActive && (
+                          <Text className="mt-4 text-center font-ui text-[32px] font-extrabold tracking-widest text-accent">
+                            {getRewardPickupCode(selectedReward)}
+                          </Text>
+                        )}
+                        {!selectedRewardState && (
+                          <Text className="mt-4 text-center text-[16px] font-extrabold text-white/70">
+                            Code hidden until redeem
+                          </Text>
+                        )}
+                        {selectedRewardIsUsed && (
+                          <Text className="mt-4 text-center text-[16px] font-extrabold text-white/70">
+                            This coupon has already been used.
+                          </Text>
+                        )}
+                        <Text className="mt-3 text-center text-[12px] leading-4 text-white/65">
+                          {selectedRewardIsActive
+                            ? `Valid for ${formatRewardTime(selectedRewardRemainingMs)} at ${
+                                selectedReward.name
+                              }. Staff confirms before applying the reward.`
+                            : selectedRewardIsUsed
+                              ? 'The reward code is no longer visible after use.'
+                              : 'Tap Redeem only when you are ready to show this screen to staff.'}
                         </Text>
                       </View>
-                    </View>
-
-                    <View className="rounded-2xl border border-dashed border-gray-300 bg-white p-5">
-                      <Text className="mb-2 text-center text-[12px] font-semibold uppercase tracking-wide text-muted">
-                        CultureQuest reward
-                      </Text>
-                      <Text className="text-center font-heading text-[20px] font-extrabold text-ink">
-                        {selectedReward.discount}
-                      </Text>
-                      {selectedRewardIsActive && (
-                        <Text className="mt-3 text-center font-stat text-[30px] font-extrabold tracking-widest text-primary">
-                          {getRewardPickupCode(selectedReward)}
-                        </Text>
-                      )}
-                      {!selectedRewardState && (
-                        <Text className="mt-4 text-center text-[16px] font-bold text-muted">
-                          Code hidden until redeem
-                        </Text>
-                      )}
-                      {selectedRewardIsUsed && (
-                        <Text className="mt-4 text-center text-[16px] font-bold text-muted">
-                          This coupon has already been used.
-                        </Text>
-                      )}
-                      <Text className="mt-2 text-center text-[12px] leading-4 text-muted">
-                        {selectedRewardIsActive
-                          ? `Valid for ${formatRewardTime(selectedRewardRemainingMs)} at ${
-                              selectedReward.name
-                            }. Staff confirms before applying the reward.`
-                          : selectedRewardIsUsed
-                            ? 'The reward code is no longer visible after use.'
-                            : 'Tap Redeem only when you are ready to show this screen to staff.'}
-                      </Text>
-                    </View>
+                    </LinearGradient>
                   </View>
-
+                </ScrollView>
+                <View
+                  className="border-t border-gray-100 bg-white px-5 pt-3"
+                  style={{ paddingBottom: insets.bottom + 12 }}
+                >
                   <Pressable
                     onPress={() => {
                       const redeemedAt = Date.now();
@@ -1387,13 +1423,13 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
                           : 'Redeem'}
                     </Text>
                   </Pressable>
-                </ScrollView>
+                </View>
               </SafeAreaView>
             </Animated.View>
           </GestureDetector>
         )}
       </Modal>
-    </View>
+    </SafeAreaView>
   );
 }
 
