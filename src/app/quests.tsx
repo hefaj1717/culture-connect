@@ -25,7 +25,7 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { BrandImage } from '@/components/brand-image';
 import { Colors } from '@/constants/theme';
@@ -160,6 +160,7 @@ function QuestCard({ onPress, quest }: { onPress: () => void; quest: Quest }) {
 function QuestDetailModal({ onClose, quest }: { onClose: () => void; quest: Quest | null }) {
   const { width } = useWindowDimensions();
   const insets = useSafeAreaInsets();
+  const stableTopInset = Math.max(insets.top, 44);
   const translateX = useSharedValue(0);
 
   useEffect(() => {
@@ -219,14 +220,17 @@ function QuestDetailModal({ onClose, quest }: { onClose: () => void; quest: Ques
                 style={StyleSheet.absoluteFillObject}
                 withTextGradient
               />
-              <SafeAreaView edges={['top']} className="absolute left-0 right-0 top-0 px-5">
+              <View
+                className="absolute left-0 right-0 top-0 px-5"
+                style={{ paddingTop: stableTopInset + 8 }}
+              >
                 <Pressable
                   onPress={closeWithAnimation}
-                  className="mt-2 h-10 w-10 items-center justify-center rounded-full bg-black/30 active:opacity-80"
+                  className="h-10 w-10 items-center justify-center rounded-full bg-black/30 active:opacity-80"
                 >
                   <ArrowLeft size={21} color="white" strokeWidth={2.6} />
                 </Pressable>
-              </SafeAreaView>
+              </View>
               <View className="absolute bottom-5 left-5 right-5">
                 <Text className="mb-2 text-[12px] font-bold uppercase tracking-wide text-white/80">
                   {quest.theme}

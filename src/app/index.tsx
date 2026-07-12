@@ -31,7 +31,7 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { BrandImage } from '@/components/brand-image';
 import { Colors } from '@/constants/theme';
@@ -623,6 +623,8 @@ function LeaderboardModal({
   visible: boolean;
 }) {
   const { width } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
+  const stableTopInset = Math.max(insets.top, 44);
   const translateX = useSharedValue(0);
 
   useEffect(() => {
@@ -668,8 +670,8 @@ function LeaderboardModal({
     <Modal animationType="slide" onRequestClose={closeWithAnimation} visible={visible}>
       <GestureDetector gesture={swipeGesture}>
         <Animated.View className="flex-1 bg-white" style={swipeStyle}>
-          <SafeAreaView className="flex-1 bg-white" edges={['top']}>
-            <View className="px-5 pb-4 pt-4">
+          <SafeAreaView className="flex-1 bg-white" edges={['bottom']}>
+            <View className="px-5 pb-4" style={{ paddingTop: stableTopInset + 12 }}>
               <Pressable
                 onPress={closeWithAnimation}
                 className="h-10 w-10 items-center justify-center rounded-full bg-gray-100 active:opacity-80"
