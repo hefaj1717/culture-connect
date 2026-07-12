@@ -1170,18 +1170,20 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
                 contentContainerStyle={{ padding: 20, paddingBottom: 36 }}
                 showsVerticalScrollIndicator={false}
               >
-                <Pressable
-                  onPress={closeBadgesWithAnimation}
-                  className="mb-5 h-10 w-10 items-center justify-center rounded-full bg-gray-100 active:opacity-80"
-                  accessibilityRole="button"
-                  accessibilityLabel="Close badges"
-                >
-                  <ArrowLeft size={21} color="#756F7B" strokeWidth={2.6} />
-                </Pressable>
-
-                <View className="mb-5 flex-row gap-3 rounded-2xl bg-canvas p-4">
-                  <BadgeSummaryMetric label="Unlocked" value={unlockedBadgeCount.toString()} />
-                  <BadgeSummaryMetric label="Total" value={totalBadgeCount.toString()} />
+                <View className="mb-5 flex-row items-center justify-between">
+                  <Pressable
+                    onPress={closeBadgesWithAnimation}
+                    className="h-10 w-10 items-center justify-center rounded-full bg-gray-100 active:opacity-80"
+                    accessibilityRole="button"
+                    accessibilityLabel="Close badges"
+                  >
+                    <ArrowLeft size={21} color="#756F7B" strokeWidth={2.6} />
+                  </Pressable>
+                  <View className="rounded-full bg-primary/10 px-3 py-1.5">
+                    <Text className="text-[12px] font-extrabold text-primary">
+                      {unlockedBadgeCount} / {totalBadgeCount} completed
+                    </Text>
+                  </View>
                 </View>
 
                 <View className="gap-3">
@@ -1584,17 +1586,6 @@ function BadgeIcon({
         strokeWidth={2.4}
         fill={badge.unlocked ? 'rgba(255,255,255,0.16)' : 'transparent'}
       />
-    </View>
-  );
-}
-
-function BadgeSummaryMetric({ label, value }: { label: string; value: string }) {
-  return (
-    <View className="flex-1 rounded-2xl bg-white px-4 py-3">
-      <Text className="font-stat text-[24px] font-extrabold leading-[28px] text-ink">{value}</Text>
-      <Text className="mt-0.5 text-[11px] font-semibold uppercase tracking-wide text-muted">
-        {label}
-      </Text>
     </View>
   );
 }
