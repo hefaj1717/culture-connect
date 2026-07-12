@@ -630,15 +630,16 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
             />
 
             <View className="min-w-0 flex-1">
-              <View className="mb-1 flex-row items-center gap-2">
-                <Text
-                  className="min-w-0 flex-1 font-heading text-[31px] font-extrabold leading-[35px] text-ink"
-                  numberOfLines={1}
-                >
+              <View className="mb-1">
+                <Text className="font-heading text-[31px] font-extrabold leading-[35px] text-ink">
                   {fullName}
                 </Text>
-                {organizerApplicationStatus === 'approved' && <OrganizerVerifiedBadge iconOnly />}
               </View>
+              {organizerApplicationStatus === 'approved' && (
+                <View className="mb-2">
+                  <OrganizerVerifiedBadge />
+                </View>
+              )}
               <Text className="text-[13px] font-medium text-muted" numberOfLines={1}>
                 {levelProgress.currentLevel.name} · {cityData.label}
               </Text>
@@ -1705,36 +1706,26 @@ function RewardPartnerRow({
   );
 }
 
-function OrganizerVerifiedBadge({
-  compact = false,
-  iconOnly = false,
-}: {
-  compact?: boolean;
-  iconOnly?: boolean;
-}) {
-  const iconSize = iconOnly ? 18 : compact ? 15 : 16;
-
+function OrganizerVerifiedBadge({ compact = false }: { compact?: boolean }) {
   return (
     <View
       className={`self-start flex-row items-center gap-1.5 rounded-full bg-accent/15 ${
-        iconOnly ? 'p-1' : compact ? 'px-2 py-1' : 'px-2.5 py-1.5'
+        compact ? 'px-2 py-1' : 'px-2.5 py-1.5'
       }`}
     >
       <View
         className="items-center justify-center rounded-full bg-accent"
-        style={{ height: iconSize, width: iconSize }}
+        style={{ height: compact ? 15 : 16, width: compact ? 15 : 16 }}
       >
-        <CheckCircle2 size={iconOnly ? 13 : compact ? 11 : 12} color="white" strokeWidth={3} />
+        <CheckCircle2 size={compact ? 11 : 12} color="white" strokeWidth={3} />
       </View>
-      {!iconOnly && (
-        <Text
-          className={`font-extrabold uppercase tracking-wide text-ink ${
-            compact ? 'text-[10px]' : 'text-[11px]'
-          }`}
-        >
-          Approved
-        </Text>
-      )}
+      <Text
+        className={`font-extrabold uppercase tracking-wide text-ink ${
+          compact ? 'text-[10px]' : 'text-[11px]'
+        }`}
+      >
+        Approved
+      </Text>
     </View>
   );
 }
