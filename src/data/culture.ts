@@ -103,6 +103,7 @@ export const cultureCities: CultureCity[] = [
 ];
 
 export const defaultCityId: CityId = 'leuven';
+export const defaultEventXp = 50;
 
 export const cultureByCity: Record<CityId, CultureCityData> = {
   leuven: {
@@ -175,7 +176,7 @@ export const cultureByCity: Record<CityId, CultureCityData> = {
         time: '20:30 - 22:00',
         description:
           'Contemporary dance performances by student choreographers from across Europe.',
-        xpBonus: 80,
+        xpBonus: defaultEventXp,
         isFeatured: true,
         isFlashQuest: true,
         spotsLeft: 45,
@@ -197,7 +198,7 @@ export const cultureByCity: Record<CityId, CultureCityData> = {
         time: '11:00 - 18:00',
         description:
           'A curated collection of emerging European photographers exploring urban identity.',
-        xpBonus: 100,
+        xpBonus: defaultEventXp,
         isFeatured: true,
         isFlashQuest: false,
         language: 'en',
@@ -217,7 +218,7 @@ export const cultureByCity: Record<CityId, CultureCityData> = {
         date: 'Fri, Apr 4',
         time: '19:30 - 21:30',
         description: 'Poetry performances by students from 12 countries. Perform or just enjoy!',
-        xpBonus: 60,
+        xpBonus: defaultEventXp,
         isFeatured: false,
         isFlashQuest: false,
         language: 'multilingual',
@@ -238,7 +239,7 @@ export const cultureByCity: Record<CityId, CultureCityData> = {
         time: '21:00',
         description:
           'Award-winning documentary about cultural exchange in European university cities. English subtitles.',
-        xpBonus: 80,
+        xpBonus: defaultEventXp,
         isFeatured: false,
         isFlashQuest: false,
         spotsLeft: 23,
@@ -260,7 +261,7 @@ export const cultureByCity: Record<CityId, CultureCityData> = {
         time: '11:00 - 18:00',
         description:
           'Free entry on the first Sunday of the month. Explore the full collection and temporary exhibitions.',
-        xpBonus: 100,
+        xpBonus: defaultEventXp,
         isFeatured: true,
         isFlashQuest: false,
         language: 'multilingual',
@@ -385,7 +386,7 @@ export const cultureByCity: Record<CityId, CultureCityData> = {
         time: '19:30 - 21:00',
         description:
           'A guided evening route through castle stories, hidden details, and Old Town viewpoints.',
-        xpBonus: 100,
+        xpBonus: defaultEventXp,
         isFeatured: true,
         isFlashQuest: true,
         spotsLeft: 32,
@@ -407,7 +408,7 @@ export const cultureByCity: Record<CityId, CultureCityData> = {
         time: '20:00 - 22:00',
         description:
           'Live electronic and indie sets on the cultural centre rooftop with student discounts.',
-        xpBonus: 80,
+        xpBonus: defaultEventXp,
         isFeatured: true,
         isFlashQuest: false,
         language: 'multilingual',
@@ -428,7 +429,7 @@ export const cultureByCity: Record<CityId, CultureCityData> = {
         time: '11:00 - 13:00',
         description:
           'Meet other students, sketch Old Town corners, and collect XP with a coffee stop.',
-        xpBonus: 50,
+        xpBonus: defaultEventXp,
         isFeatured: false,
         isFlashQuest: false,
         language: 'en',
@@ -449,7 +450,7 @@ export const cultureByCity: Record<CityId, CultureCityData> = {
         time: '19:00',
         description:
           'Short films by local students with English subtitles and a post-screening chat.',
-        xpBonus: 70,
+        xpBonus: defaultEventXp,
         isFeatured: false,
         isFlashQuest: false,
         spotsLeft: 40,
@@ -470,7 +471,7 @@ export const cultureByCity: Record<CityId, CultureCityData> = {
         date: 'Sun, Apr 6',
         time: '10:00 - 17:00',
         description: 'Drop into selected galleries, collect XP, and finish with an Old Town route.',
-        xpBonus: 90,
+        xpBonus: defaultEventXp,
         isFeatured: true,
         isFlashQuest: false,
         language: 'pl',

@@ -62,6 +62,7 @@ import {
   type EventLanguage,
   type RewardPartner,
   defaultCityId,
+  defaultEventXp,
   eventCategoryLabels,
   getCultureCityData,
 } from '@/data/culture';
@@ -77,7 +78,6 @@ const eventCategories: EventCategory[] = [
   'festival',
   'concert',
 ];
-const fixedEventXp = 50;
 const monthNames = [
   'January',
   'February',
@@ -1111,7 +1111,7 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
                       <Sparkles size={14} color="#7C3AED" strokeWidth={2.4} />
                     </View>
                     <Text className="flex-1 text-[12px] font-semibold leading-4 text-muted">
-                      Attendees earn {fixedEventXp} XP for this event.
+                      Attendees earn {defaultEventXp} XP for this event.
                     </Text>
                   </View>
 
