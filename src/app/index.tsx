@@ -12,9 +12,24 @@ import {
   User,
   X,
 } from 'lucide-react-native';
-import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import {
+  Modal,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  useWindowDimensions,
+  View,
+} from 'react-native';
 import { useEffect, useMemo, useState } from 'react';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import MapView, { Circle as MapCircle, Marker } from 'react-native-maps';
+import Animated, {
+  runOnJS,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BrandImage } from '@/components/brand-image';
@@ -101,7 +116,7 @@ export default function HomeScreen({
           activityScore,
           intensity,
           color: getActivityColor(intensity),
-          radius: 180 + intensity * 360,
+          radius: 170 + intensity * 300,
         };
       })
       .sort((a, b) => b.activityScore - a.activityScore);
@@ -342,16 +357,17 @@ export default function HomeScreen({
                       tracksViewChanges={false}
                     >
                       <View
-                        className={`h-7 w-7 items-center justify-center rounded-full border-2 border-white ${
-                          selectedActivitySpot.id === spot.id ? 'bg-primary' : 'bg-primary/20'
-                        }`}
+                        className="h-7 w-7 items-center justify-center rounded-full border-2 border-white"
+                        style={{
+                          backgroundColor:
+                            selectedActivitySpot.id === spot.id ? spot.color : `${spot.color}22`,
+                        }}
                       >
                         <View
                           className={`rounded-full border-2 border-white ${
-                            selectedActivitySpot.id === spot.id
-                              ? 'h-4 w-4 bg-secondary'
-                              : 'h-3.5 w-3.5 bg-primary'
+                            selectedActivitySpot.id === spot.id ? 'h-4 w-4' : 'h-3.5 w-3.5'
                           }`}
+                          style={{ backgroundColor: spot.color }}
                         />
                       </View>
                     </Marker>
@@ -436,11 +452,8 @@ export default function HomeScreen({
                     across {cityData.name}.
                   </Text>
                 </View>
-                <View className="items-end">
-                  <Text className="font-ui text-[13px] font-extrabold text-primary">
-                    View leaderboard
-                  </Text>
-                  <ArrowRight size={16} color={Colors.light.primary} />
+                <View className="h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
+                  <ArrowRight size={19} color={Colors.light.primary} strokeWidth={2.6} />
                 </View>
               </View>
             </LinearGradient>
@@ -531,7 +544,6 @@ export default function HomeScreen({
       </Modal>
 
       <LeaderboardModal
-        cityName={cityData.name}
         onClose={() => setLeaderboardOpen(false)}
         rows={leaderboardRows}
         visible={leaderboardOpen}
@@ -559,113 +571,147 @@ type LeaderboardRow = {
 };
 
 function LeaderboardModal({
-  cityName,
   onClose,
   rows,
   visible,
 }: {
-  cityName: string;
   onClose: () => void;
   rows: LeaderboardRow[];
   visible: boolean;
 }) {
+  const { width } = useWindowDimensions();
+  const translateX = useSharedValue(0);
+
+  useEffect(() => {
+    if (visible) {
+      translateX.value = 0;
+    }
+  }, [translateX, visible]);
+
+  const swipeGesture = Gesture.Pan()
+    .activeOffsetX([-999, 18])
+    .failOffsetY([-35, 35])
+    .onUpdate((event) => {
+      translateX.value = Math.max(0, event.translationX);
+    })
+    .onEnd((event) => {
+      const shouldClose = translateX.value > width * 0.28 || event.velocityX > 700;
+
+      if (shouldClose) {
+        translateX.value = withTiming(width, { duration: 180 }, (finished) => {
+          if (finished) {
+            runOnJS(onClose)();
+          }
+        });
+        return;
+      }
+
+      translateX.value = withTiming(0, { duration: 180 });
+    });
+
+  const swipeStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: translateX.value }],
+  }));
+
+  function closeWithAnimation() {
+    translateX.value = withTiming(width, { duration: 180 }, (finished) => {
+      if (finished) {
+        runOnJS(onClose)();
+      }
+    });
+  }
+
   return (
-    <Modal animationType="slide" onRequestClose={onClose} visible={visible}>
-      <SafeAreaView className="flex-1 bg-white" edges={['top']}>
-        <View className="flex-row items-center justify-between px-5 pb-4 pt-2">
-          <Pressable
-            onPress={onClose}
-            className="h-10 w-10 items-center justify-center rounded-full bg-gray-100 active:opacity-80"
-          >
-            <ArrowLeft size={20} color="#241C2E" strokeWidth={2.5} />
-          </Pressable>
-          <Text className="text-[12px] font-semibold uppercase tracking-wide text-muted">
-            This week
-          </Text>
-        </View>
-
-        <ScrollView
-          className="flex-1"
-          contentContainerStyle={{ paddingBottom: 36 }}
-          showsVerticalScrollIndicator={false}
-        >
-          <View className="px-5 pb-5">
-            <Text className="font-heading text-[31px] font-extrabold leading-[35px] text-ink">
-              University leaderboard
-            </Text>
-            <Text className="mt-2 text-[14px] leading-5 text-muted">
-              XP earned by student groups around {cityName}.
-            </Text>
-          </View>
-
-          <View className="px-5">
-            <View className="mb-4 overflow-hidden rounded-3xl bg-ink">
-              <LinearGradient
-                colors={['rgba(124,58,237,0.78)', 'rgba(36,28,46,0.98)']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={{ padding: 18 }}
+    <Modal animationType="slide" onRequestClose={closeWithAnimation} visible={visible}>
+      <GestureDetector gesture={swipeGesture}>
+        <Animated.View className="flex-1 bg-white" style={swipeStyle}>
+          <SafeAreaView className="flex-1 bg-white" edges={['top']}>
+            <View className="px-5 pb-4 pt-4">
+              <Pressable
+                onPress={closeWithAnimation}
+                className="h-10 w-10 items-center justify-center rounded-full bg-gray-100 active:opacity-80"
               >
-                <View className="mb-5 h-12 w-12 items-center justify-center rounded-2xl bg-white/15">
-                  <Trophy size={24} color="white" fill="rgba(255,255,255,0.18)" />
-                </View>
-                <Text className="text-[12px] font-semibold uppercase tracking-wide text-white/70">
-                  Campus race
-                </Text>
-                <Text className="mt-1 font-heading text-[28px] font-extrabold leading-[32px] text-white">
-                  {rows[0]?.name} leads with {rows[0]?.xp.toLocaleString()} XP
-                </Text>
-              </LinearGradient>
+                <ArrowLeft size={20} color="#241C2E" strokeWidth={2.5} />
+              </Pressable>
             </View>
 
-            <View className="gap-3">
-              {rows.map((row) => (
-                <View
-                  key={row.id}
-                  className={`flex-row items-center gap-3 rounded-2xl border p-3 ${
-                    row.isUserGroup ? 'border-accent/40 bg-accent/10' : 'border-gray-200 bg-white'
-                  }`}
-                >
-                  <View
-                    className={`h-11 w-11 items-center justify-center rounded-2xl ${
-                      row.rank <= 3 ? 'bg-primary' : 'bg-gray-100'
-                    }`}
+            <ScrollView
+              className="flex-1"
+              contentContainerStyle={{ paddingBottom: 36 }}
+              showsVerticalScrollIndicator={false}
+            >
+              <View className="px-5">
+                <View className="mb-4 overflow-hidden rounded-3xl bg-ink">
+                  <LinearGradient
+                    colors={['rgba(124,58,237,0.78)', 'rgba(36,28,46,0.98)']}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={{ padding: 18 }}
                   >
-                    <Text
-                      className={`font-ui text-[15px] font-extrabold ${
-                        row.rank <= 3 ? 'text-white' : 'text-muted'
+                    <View className="mb-5 h-12 w-12 items-center justify-center rounded-2xl bg-white/15">
+                      <Trophy size={24} color="white" fill="rgba(255,255,255,0.18)" />
+                    </View>
+                    <Text className="text-[12px] font-semibold uppercase tracking-wide text-white/70">
+                      Campus race
+                    </Text>
+                    <Text className="mt-1 font-heading text-[28px] font-extrabold leading-[32px] text-white">
+                      {rows[0]?.name} leads with {rows[0]?.xp.toLocaleString()} XP
+                    </Text>
+                  </LinearGradient>
+                </View>
+
+                <View className="gap-3">
+                  {rows.map((row) => (
+                    <View
+                      key={row.id}
+                      className={`flex-row items-center gap-3 rounded-2xl border p-3 ${
+                        row.isUserGroup
+                          ? 'border-accent/40 bg-accent/10'
+                          : 'border-gray-200 bg-white'
                       }`}
                     >
-                      #{row.rank}
-                    </Text>
-                  </View>
-                  <View className="min-w-0 flex-1">
-                    <View className="flex-row items-center gap-2">
-                      <Text className="min-w-0 flex-1 text-[15px] font-extrabold text-ink">
-                        {row.name}
-                      </Text>
-                      {row.isUserGroup && (
-                        <View className="rounded-full bg-accent px-2 py-0.5">
-                          <Text className="text-[10px] font-extrabold text-white">YOU</Text>
+                      <View
+                        className={`h-11 w-11 items-center justify-center rounded-2xl ${
+                          row.rank <= 3 ? 'bg-primary' : 'bg-gray-100'
+                        }`}
+                      >
+                        <Text
+                          className={`font-ui text-[15px] font-extrabold ${
+                            row.rank <= 3 ? 'text-white' : 'text-muted'
+                          }`}
+                        >
+                          #{row.rank}
+                        </Text>
+                      </View>
+                      <View className="min-w-0 flex-1">
+                        <View className="flex-row items-center gap-2">
+                          <Text className="min-w-0 flex-1 text-[15px] font-extrabold text-ink">
+                            {row.name}
+                          </Text>
+                          {row.isUserGroup && (
+                            <View className="rounded-full bg-accent px-2 py-0.5">
+                              <Text className="text-[10px] font-extrabold text-white">YOU</Text>
+                            </View>
+                          )}
                         </View>
-                      )}
+                        <Text className="mt-0.5 text-[12px] font-medium text-muted">
+                          {row.shortName} · {row.change}
+                        </Text>
+                      </View>
+                      <View className="items-end">
+                        <Text className="font-ui text-[15px] font-extrabold text-primary">
+                          {row.xp.toLocaleString()}
+                        </Text>
+                        <Text className="text-[10px] font-semibold uppercase text-muted">XP</Text>
+                      </View>
                     </View>
-                    <Text className="mt-0.5 text-[12px] font-medium text-muted">
-                      {row.shortName} · {row.change}
-                    </Text>
-                  </View>
-                  <View className="items-end">
-                    <Text className="font-ui text-[15px] font-extrabold text-primary">
-                      {row.xp.toLocaleString()}
-                    </Text>
-                    <Text className="text-[10px] font-semibold uppercase text-muted">XP</Text>
-                  </View>
+                  ))}
                 </View>
-              ))}
-            </View>
-          </View>
-        </ScrollView>
-      </SafeAreaView>
+              </View>
+            </ScrollView>
+          </SafeAreaView>
+        </Animated.View>
+      </GestureDetector>
     </Modal>
   );
 }
@@ -761,9 +807,9 @@ function getEventImageSource(event: CultureCityData['events'][number]) {
 }
 
 function getActivityColor(intensity: number) {
-  if (intensity >= 0.78) return Colors.light.primary;
-  if (intensity >= 0.52) return Colors.light.accent;
-  return '#BDA7F2';
+  if (intensity >= 0.78) return '#EF4444';
+  if (intensity >= 0.52) return '#F97316';
+  return '#F59E0B';
 }
 
 function getCityMapRegion(cityData: CultureCityData) {
