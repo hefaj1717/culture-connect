@@ -156,16 +156,16 @@ export default function ExploreScreen({
         contentContainerStyle={{ paddingBottom: 112 }}
         keyboardShouldPersistTaps="handled"
       >
-        <View className="mb-4 px-5" style={{ paddingTop: insets.top + 16 }}>
-          <View className="h-12 flex-row items-center gap-3 rounded-xl border border-gray-200 bg-gray-100 px-4">
-            <Search size={17} color="#756F7B" />
+        <View className="mb-5 px-5" style={{ paddingTop: insets.top + 16 }}>
+          <View className="h-14 flex-row items-center gap-3.5 rounded-2xl border border-primary/10 bg-gray-100 px-4">
+            <Search size={20} color="#7C3AED" strokeWidth={2.4} />
             <TextInput
               value={search}
               onChangeText={setSearch}
               placeholder="Search events, venues..."
               placeholderTextColor="#756F7B"
               autoCapitalize="none"
-              className="flex-1 text-[14px] text-ink"
+              className="flex-1 text-[15px] font-medium text-ink"
             />
           </View>
         </View>
