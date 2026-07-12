@@ -1,7 +1,6 @@
 import { useRouter } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import { Image } from 'expo-image';
-import { LinearGradient } from 'expo-linear-gradient';
 import {
   ArrowLeft,
   BadgeCheck,
@@ -1490,19 +1489,11 @@ function RankAvatar({
         {uri ? (
           <Image source={{ uri }} contentFit="cover" style={{ height: 70, width: 70 }} />
         ) : (
-          <LinearGradient
-            colors={['rgba(244,162,97,0.92)', 'rgba(124,58,237,0.96)']}
-            style={{
-              alignItems: 'center',
-              height: 70,
-              justifyContent: 'center',
-              width: 70,
-            }}
-          >
+          <View className="h-[70px] w-[70px] items-center justify-center bg-primary">
             <Text className="font-heading text-[22px] font-extrabold text-white">
               {initials ?? 'CQ'}
             </Text>
-          </LinearGradient>
+          </View>
         )}
       </View>
     </View>
