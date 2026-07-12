@@ -513,9 +513,6 @@ export default function HomeScreen({
                     <Text className="font-heading text-[25px] font-extrabold leading-[29px] text-ink">
                       Updates
                     </Text>
-                    <Text className="mt-1 text-[13px] leading-5 text-muted">
-                      Event changes, rewards, and organizer status in one place.
-                    </Text>
                   </View>
                   <Pressable
                     onPress={() => setNotificationsOpen(false)}
@@ -555,13 +552,6 @@ export default function HomeScreen({
                     </View>
                   </Pressable>
                 ))}
-
-                <Pressable
-                  onPress={() => setNotificationsOpen(false)}
-                  className="mt-1 h-11 items-center justify-center rounded-2xl bg-ink active:opacity-85"
-                >
-                  <Text className="text-[13px] font-extrabold text-white">Done</Text>
-                </Pressable>
               </View>
             </Pressable>
           </SafeAreaView>
