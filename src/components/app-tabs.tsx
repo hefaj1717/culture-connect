@@ -13,10 +13,11 @@ import Animated, {
 import ExploreScreen from '@/app/explore';
 import HomeScreen from '@/app/index';
 import ProfileScreen from '@/app/profile';
+import { Colors, FontTokens } from '@/constants/theme';
 import { getCultureCityData } from '@/data/culture';
 import { useAuth } from '@/providers/auth-provider';
 
-const ACTIVE = '#24458F';
+const ACTIVE = Colors.light.primary;
 const INACTIVE = '#7D8594';
 const TAB_COUNT = 3;
 
@@ -205,6 +206,7 @@ function TabButton({
       <Text
         style={{
           color: active ? ACTIVE : INACTIVE,
+          fontFamily: FontTokens.ui,
           fontSize: 13,
           fontWeight: '700',
         }}

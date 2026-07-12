@@ -9,18 +9,26 @@ import { Platform } from 'react-native';
 
 export const Colors = {
   light: {
-    text: '#000000',
-    background: '#ffffff',
-    backgroundElement: '#F0F0F3',
-    backgroundSelected: '#E0E1E6',
-    textSecondary: '#60646C',
+    text: '#241C2E',
+    background: '#FAF8F5',
+    backgroundElement: '#F1ECE6',
+    backgroundSelected: '#E7DDF4',
+    textSecondary: '#756F7B',
+    primary: '#7C3AED',
+    ink: '#241C2E',
+    accent: '#F4A261',
+    success: '#2F9E73',
   },
   dark: {
     text: '#ffffff',
-    background: '#000000',
-    backgroundElement: '#212225',
-    backgroundSelected: '#2E3135',
-    textSecondary: '#B0B4BA',
+    background: '#241C2E',
+    backgroundElement: '#33283F',
+    backgroundSelected: '#443354',
+    textSecondary: '#D9D0E3',
+    primary: '#A78BFA',
+    ink: '#241C2E',
+    accent: '#F4A261',
+    success: '#4CC38D',
   },
 } as const;
 
@@ -28,28 +36,33 @@ export type ThemeColor = keyof typeof Colors.light & keyof typeof Colors.dark;
 
 export const Fonts = Platform.select({
   ios: {
-    /** iOS `UIFontDescriptorSystemDesignDefault` */
-    sans: 'system-ui',
-    /** iOS `UIFontDescriptorSystemDesignSerif` */
-    serif: 'ui-serif',
-    /** iOS `UIFontDescriptorSystemDesignRounded` */
-    rounded: 'ui-rounded',
-    /** iOS `UIFontDescriptorSystemDesignMonospaced` */
+    sans: 'Inter_400Regular',
+    serif: 'PlayfairDisplay_800ExtraBold',
+    rounded: 'Inter_600SemiBold',
     mono: 'ui-monospace',
   },
   default: {
-    sans: 'normal',
-    serif: 'serif',
-    rounded: 'normal',
+    sans: 'Inter_400Regular',
+    serif: 'PlayfairDisplay_800ExtraBold',
+    rounded: 'Inter_600SemiBold',
     mono: 'monospace',
   },
   web: {
-    sans: 'var(--font-display)',
-    serif: 'var(--font-serif)',
-    rounded: 'var(--font-rounded)',
+    sans: 'Inter, var(--font-display)',
+    serif: 'Playfair Display, var(--font-serif)',
+    rounded: 'Inter, var(--font-rounded)',
     mono: 'var(--font-mono)',
   },
 });
+
+export const FontTokens = {
+  heading: 'PlayfairDisplay_800ExtraBold',
+  display: 'PlayfairDisplay_900Black',
+  body: 'Inter_400Regular',
+  ui: 'Inter_600SemiBold',
+  caption: 'Inter_500Medium',
+  numeric: 'PlayfairDisplay_800ExtraBold',
+} as const;
 
 export const Spacing = {
   half: 2,
