@@ -1216,25 +1216,25 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
           <GestureDetector gesture={rewardSwipeGesture}>
             <Animated.View className="flex-1 bg-white" style={rewardSwipeStyle}>
               <SafeAreaView className="flex-1 bg-white" edges={['top', 'bottom']}>
-                <ScrollView
-                  className="flex-1"
-                  contentContainerStyle={{
-                    paddingHorizontal: 20,
-                    paddingBottom: 32,
-                    paddingTop: 12,
-                  }}
-                  contentInsetAdjustmentBehavior="automatic"
-                  showsVerticalScrollIndicator={false}
-                >
+                <View className="bg-white px-5 pb-3 pt-2">
                   <Pressable
                     onPress={closeRewardWithAnimation}
-                    className="mb-5 h-10 w-10 items-center justify-center rounded-full bg-gray-100 active:opacity-80"
+                    className="h-10 w-10 items-center justify-center rounded-full bg-gray-100 active:opacity-80"
                     accessibilityRole="button"
                     accessibilityLabel="Close reward"
                   >
                     <ArrowLeft size={21} color="#756F7B" strokeWidth={2.6} />
                   </Pressable>
-
+                </View>
+                <ScrollView
+                  className="flex-1"
+                  contentContainerStyle={{
+                    paddingHorizontal: 20,
+                    paddingBottom: 48,
+                    paddingTop: 10,
+                  }}
+                  showsVerticalScrollIndicator={false}
+                >
                   <View className="mb-5 overflow-hidden rounded-3xl bg-ink">
                     <LinearGradient
                       colors={['rgba(124,58,237,0.84)', 'rgba(36,28,46,0.98)']}
