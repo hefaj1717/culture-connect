@@ -243,6 +243,8 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
   const [badgesOpen, setBadgesOpen] = useState(false);
   const [selectedReward, setSelectedReward] = useState<RewardPartner | null>(null);
   const [redeemedRewards, setRedeemedRewards] = useState<Record<string, RedeemedRewardState>>({});
+  const unlockedBadgeCount = achievementBadges.filter((badge) => badge.unlocked).length;
+  const totalBadgeCount = achievementBadges.length;
   const [rewardNow, setRewardNow] = useState(() => Date.now());
   const [datePickerOpen, setDatePickerOpen] = useState(false);
   const [timePickerOpen, setTimePickerOpen] = useState(false);
@@ -1192,16 +1194,9 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
                   <ArrowLeft size={21} color="#756F7B" strokeWidth={2.6} />
                 </Pressable>
 
-                <View className="mb-5">
-                  <Text className="font-heading text-[28px] font-extrabold text-ink">Badges</Text>
-                  <Text className="mt-1 text-[13px] leading-5 text-muted">
-                    Progress milestones from events, venues, and rewards.
-                  </Text>
-                </View>
-
                 <View className="mb-5 flex-row gap-3 rounded-2xl bg-canvas p-4">
-                  <BadgeSummaryMetric label="Unlocked" value="3" />
-                  <BadgeSummaryMetric label="Total" value="10" />
+                  <BadgeSummaryMetric label="Unlocked" value={unlockedBadgeCount.toString()} />
+                  <BadgeSummaryMetric label="Total" value={totalBadgeCount.toString()} />
                 </View>
 
                 <View className="gap-3">
