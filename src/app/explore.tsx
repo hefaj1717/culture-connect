@@ -57,15 +57,19 @@ const audienceFilters = [
 const EVENT_CHECK_IN_RADIUS_METERS = 500;
 
 type ExploreScreenProps = {
+  checkedInEventIds?: string[];
   cityData?: CultureCityData;
   eventsRefreshKey?: number;
+  onEventCheckIn?: (event: CultureEvent) => boolean;
   openEventId?: string;
   openEventNonce?: number;
 };
 
 export default function ExploreScreen({
+  checkedInEventIds = [],
   cityData = getCultureCityData(),
   eventsRefreshKey = 0,
+  onEventCheckIn,
   openEventId,
   openEventNonce,
 }: ExploreScreenProps) {
@@ -411,19 +415,25 @@ export default function ExploreScreen({
       </ScrollView>
 
       <EventDetailModal
-        checkedIn={!!(selectedEvent && confirmedCheckIns[selectedEvent.id])}
+        checkedIn={
+          !!(
+            selectedEvent &&
+            (confirmedCheckIns[selectedEvent.id] || checkedInEventIds.includes(selectedEvent.id))
+          )
+        }
         event={selectedEvent}
         venue={
           selectedEvent
             ? (venues.find((venue) => venue.id === selectedEvent.venueId) ?? null)
             : null
         }
-        onCheckIn={(eventId) =>
+        onCheckIn={(event) => {
           setConfirmedCheckIns((current) => ({
             ...current,
-            [eventId]: true,
-          }))
-        }
+            [event.id]: true,
+          }));
+          return onEventCheckIn?.(event) ?? false;
+        }}
         onClose={() => setSelectedEvent(null)}
         onToggleStatus={(eventId, status) =>
           setEventStatuses((current) => {
@@ -457,7 +467,7 @@ function EventDetailModal({
   checkedIn: boolean;
   event: CultureEvent | null;
   venue?: Venue | null;
-  onCheckIn: (eventId: string) => void;
+  onCheckIn: (event: CultureEvent) => boolean;
   onClose: () => void;
   onToggleStatus: (eventId: string, status: 'interested' | 'going') => void;
   status?: 'interested' | 'going';
@@ -578,10 +588,14 @@ function EventDetailModal({
     }
 
     if (result.data === event.checkInCode) {
-      onCheckIn(event.id);
+      const didAwardXp = onCheckIn(event);
       setScannerOpen(false);
       setScanMessage(null);
-      setLocationMessage('Attendance verified by QR code and venue location.');
+      setLocationMessage(
+        didAwardXp
+          ? `Attendance verified. ${event.xpBonus} XP has been added to your profile.`
+          : 'Attendance already confirmed. XP was already added for this event.',
+      );
       return;
     }
 

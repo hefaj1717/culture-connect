@@ -96,7 +96,6 @@ const weekdayLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 const timeHours = Array.from({ length: 24 }, (_, index) => index);
 const timeMinutes = [0, 15, 30, 45];
 const rewardRedeemWindowMs = 5 * 60 * 1000;
-const userXp = 0;
 
 const xpLevels = [
   { name: 'Newcomer', minXp: 0 },
@@ -209,12 +208,14 @@ type ProfileScreenProps = {
   onEventCreated?: () => void;
   onRewardCreated?: (reward: RewardPartner) => void;
   organizerRewards?: RewardPartner[];
+  userXp?: number;
 };
 
 export default function ProfileScreen({
   onEventCreated,
   onRewardCreated,
   organizerRewards = [],
+  userXp = 0,
 }: ProfileScreenProps = {}) {
   const insets = useSafeAreaInsets();
   const stableModalTopInset = Math.max(insets.top, 44);

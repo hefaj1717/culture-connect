@@ -1,6 +1,6 @@
 import { StatusBar } from 'expo-status-bar';
 import { Compass, Home, Route, User } from 'lucide-react-native';
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, Text, useWindowDimensions, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
@@ -16,7 +16,7 @@ import HomeScreen from '@/app/index';
 import ProfileScreen from '@/app/profile';
 import QuestsScreen from '@/app/quests';
 import { Colors, FontTokens } from '@/constants/theme';
-import { getCultureCityData, type RewardPartner } from '@/data/culture';
+import { getCultureCityData, type CultureEvent, type RewardPartner } from '@/data/culture';
 import { useAuth } from '@/providers/auth-provider';
 
 const ACTIVE = Colors.light.primary;
@@ -53,6 +53,11 @@ function AuthenticatedTabs() {
   const [activeIndex, setActiveIndex] = useState(0);
   const [organizerEventsVersion, setOrganizerEventsVersion] = useState(0);
   const [organizerRewards, setOrganizerRewards] = useState<RewardPartner[]>([]);
+  const [userXp, setUserXp] = useState(0);
+  const [checkedInEventIds, setCheckedInEventIds] = useState<string[]>([]);
+  const [completedQuestIds, setCompletedQuestIds] = useState<string[]>([]);
+  const checkedInEventIdsRef = useRef(new Set<string>());
+  const completedQuestIdsRef = useRef(new Set<string>());
   const [eventOpenRequest, setEventOpenRequest] = useState<{
     eventId: string;
     nonce: number;
@@ -76,6 +81,28 @@ function AuthenticatedTabs() {
   function openDiscoverEvent(eventId: string) {
     setEventOpenRequest({ eventId, nonce: Date.now() });
     goToTab(1);
+  }
+
+  function awardEventCheckInXp(event: CultureEvent) {
+    if (checkedInEventIdsRef.current.has(event.id)) {
+      return false;
+    }
+
+    checkedInEventIdsRef.current.add(event.id);
+    setCheckedInEventIds([...checkedInEventIdsRef.current]);
+    setUserXp((currentXp) => currentXp + event.xpBonus);
+    return true;
+  }
+
+  function awardQuestCompletionXp(questId: string, totalXp: number) {
+    if (completedQuestIdsRef.current.has(questId)) {
+      return false;
+    }
+
+    completedQuestIdsRef.current.add(questId);
+    setCompletedQuestIds([...completedQuestIdsRef.current]);
+    setUserXp((currentXp) => currentXp + totalXp);
+    return true;
   }
 
   const gesture = useMemo(
@@ -136,18 +163,25 @@ function AuthenticatedTabs() {
           </View>
           <View style={{ width }}>
             <ExploreScreen
+              checkedInEventIds={checkedInEventIds}
               cityData={cityData}
               eventsRefreshKey={organizerEventsVersion}
+              onEventCheckIn={awardEventCheckInXp}
               openEventId={eventOpenRequest?.eventId}
               openEventNonce={eventOpenRequest?.nonce}
             />
           </View>
           <View style={{ width }}>
-            <QuestsScreen cityData={cityData} />
+            <QuestsScreen
+              cityData={cityData}
+              completedQuestIds={completedQuestIds}
+              onQuestCompleted={awardQuestCompletionXp}
+            />
           </View>
           <View style={{ width }}>
             <ProfileScreen
               organizerRewards={organizerRewards}
+              userXp={userXp}
               onEventCreated={() => {
                 setOrganizerEventsVersion((version) => version + 1);
                 goToTab(1);

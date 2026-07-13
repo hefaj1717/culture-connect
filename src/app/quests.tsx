@@ -52,12 +52,24 @@ type Quest = {
 
 type QuestsScreenProps = {
   cityData?: CultureCityData;
+  completedQuestIds?: string[];
+  onQuestCompleted?: (questId: string, totalXp: number) => boolean;
 };
 
-export default function QuestsScreen({ cityData = getCultureCityData() }: QuestsScreenProps) {
+export default function QuestsScreen({
+  cityData = getCultureCityData(),
+  completedQuestIds = [],
+  onQuestCompleted,
+}: QuestsScreenProps) {
   const insets = useSafeAreaInsets();
   const [selectedQuest, setSelectedQuest] = useState<Quest | null>(null);
-  const quests = useMemo(() => getQuestData(cityData.id), [cityData.id]);
+  const quests = useMemo(
+    () => applyCompletedQuestState(getQuestData(cityData.id), completedQuestIds),
+    [cityData.id, completedQuestIds],
+  );
+  const selectedQuestView = selectedQuest
+    ? (quests.find((quest) => quest.id === selectedQuest.id) ?? selectedQuest)
+    : null;
 
   return (
     <View className="flex-1 bg-white">
@@ -99,7 +111,11 @@ export default function QuestsScreen({ cityData = getCultureCityData() }: Quests
         </View>
       </ScrollView>
 
-      <QuestDetailModal quest={selectedQuest} onClose={() => setSelectedQuest(null)} />
+      <QuestDetailModal
+        quest={selectedQuestView}
+        onClose={() => setSelectedQuest(null)}
+        onCompleteQuest={(quest) => onQuestCompleted?.(quest.id, quest.totalXp) ?? false}
+      />
     </View>
   );
 }
@@ -157,7 +173,15 @@ function QuestCard({ onPress, quest }: { onPress: () => void; quest: Quest }) {
   );
 }
 
-function QuestDetailModal({ onClose, quest }: { onClose: () => void; quest: Quest | null }) {
+function QuestDetailModal({
+  onClose,
+  onCompleteQuest,
+  quest,
+}: {
+  onClose: () => void;
+  onCompleteQuest: (quest: Quest) => boolean;
+  quest: Quest | null;
+}) {
   const { width } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const stableTopInset = Math.max(insets.top, 44);
@@ -203,6 +227,7 @@ function QuestDetailModal({ onClose, quest }: { onClose: () => void; quest: Ques
   }
 
   if (!quest) return null;
+  const questCompleted = quest.completedStops >= quest.stops.length;
 
   return (
     <Modal animationType="slide" onRequestClose={closeWithAnimation} visible>
@@ -267,6 +292,27 @@ function QuestDetailModal({ onClose, quest }: { onClose: () => void; quest: Ques
                   />
                 ))}
               </View>
+
+              <Pressable
+                disabled={questCompleted}
+                onPress={() => onCompleteQuest(quest)}
+                className={`mt-2 h-[52px] flex-row items-center justify-center gap-2 rounded-2xl ${
+                  questCompleted ? 'bg-gray-200' : 'bg-primary active:opacity-85'
+                }`}
+              >
+                {questCompleted ? (
+                  <BadgeCheck size={19} color="#756F7B" strokeWidth={2.4} />
+                ) : (
+                  <Sparkles size={18} color="white" strokeWidth={2.4} />
+                )}
+                <Text
+                  className={`font-ui text-[15px] font-extrabold ${
+                    questCompleted ? 'text-muted' : 'text-white'
+                  }`}
+                >
+                  {questCompleted ? 'Quest completed' : `Complete quest +${quest.totalXp} XP`}
+                </Text>
+              </Pressable>
             </View>
           </ScrollView>
         </Animated.View>
@@ -315,6 +361,18 @@ function QuestStopRow({ isLast, stop }: { isLast: boolean; stop: QuestStop }) {
       </View>
     </View>
   );
+}
+
+function applyCompletedQuestState(quests: Quest[], completedQuestIds: string[]) {
+  return quests.map((quest) => {
+    if (!completedQuestIds.includes(quest.id)) return quest;
+
+    return {
+      ...quest,
+      completedStops: quest.stops.length,
+      stops: quest.stops.map((stop) => ({ ...stop, completed: true })),
+    };
+  });
 }
 
 function getQuestData(cityId: CultureCityData['id']): Quest[] {
