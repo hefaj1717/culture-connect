@@ -124,6 +124,10 @@ export default function HomeScreen({
     activitySpots.find((spot) => spot.id === selectedActivityId) ?? activitySpots[0];
   const activityMapRegion = useMemo(() => getCityMapRegion(cityData), [cityData]);
   const leaderboardRows = useMemo(() => getLeaderboardRows(cityData.id), [cityData.id]);
+  const cityLeaderboardXp = useMemo(
+    () => leaderboardRows.reduce((total, row) => total + row.xp, 0),
+    [leaderboardRows],
+  );
   const userLeaderboardRow = leaderboardRows.find((row) => row.isUserGroup) ?? leaderboardRows[0];
   const visibleNotifications = useMemo(() => {
     const organizerNotification =
@@ -441,7 +445,7 @@ export default function HomeScreen({
                     Your university is #{userLeaderboardRow.rank} this week
                   </Text>
                   <Text className="mt-2 text-[13px] leading-5 text-white/70">
-                    {userLeaderboardRow.xp.toLocaleString()} XP across {cityData.name}
+                    {cityLeaderboardXp.toLocaleString()} XP across {cityData.name}
                   </Text>
                 </View>
                 <View className="h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/10">
