@@ -1273,9 +1273,6 @@ export default function ProfileScreen({
                   start={{ x: 0, y: 0 }}
                   style={{ padding: 20 }}
                 >
-                  <View className="mb-4 h-12 w-12 items-center justify-center rounded-2xl bg-white/15">
-                    <Gift size={24} color="white" strokeWidth={2.4} />
-                  </View>
                   <Text className="font-heading text-[29px] font-extrabold leading-[33px] text-white">
                     Create reward
                   </Text>
