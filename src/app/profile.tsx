@@ -249,7 +249,10 @@ export default function ProfileScreen({
   const [creatingEvent, setCreatingEvent] = useState(false);
   const [createRewardOpen, setCreateRewardOpen] = useState(false);
   const [rewardTitle, setRewardTitle] = useState('');
-  const [rewardPlace, setRewardPlace] = useState('');
+  const [rewardPlaceQuery, setRewardPlaceQuery] = useState('');
+  const [rewardPlaceSuggestions, setRewardPlaceSuggestions] = useState<PlaceSuggestion[]>([]);
+  const [selectedRewardPlace, setSelectedRewardPlace] = useState<PlaceSuggestion | null>(null);
+  const [searchingRewardPlaces, setSearchingRewardPlaces] = useState(false);
   const [rewardDescription, setRewardDescription] = useState('');
   const [rewardXp, setRewardXp] = useState('100');
   const [createRewardError, setCreateRewardError] = useState<string | null>(null);
@@ -462,6 +465,37 @@ export default function ProfileScreen({
     };
   }, [placeQuery, savedCityId, selectedPlace]);
 
+  useEffect(() => {
+    let active = true;
+
+    async function loadRewardPlaceSuggestions() {
+      if (selectedRewardPlace && rewardPlaceQuery === selectedRewardPlace.name) {
+        setRewardPlaceSuggestions([]);
+        setSearchingRewardPlaces(false);
+        return;
+      }
+
+      if (rewardPlaceQuery.trim().length < 2) {
+        setRewardPlaceSuggestions([]);
+        setSearchingRewardPlaces(false);
+        return;
+      }
+
+      setSearchingRewardPlaces(true);
+      const suggestions = await searchPlaces(rewardPlaceQuery, savedCityId);
+      if (!active) return;
+
+      setRewardPlaceSuggestions(suggestions);
+      setSearchingRewardPlaces(false);
+    }
+
+    loadRewardPlaceSuggestions();
+
+    return () => {
+      active = false;
+    };
+  }, [rewardPlaceQuery, savedCityId, selectedRewardPlace]);
+
   const selectedRewardState = selectedReward ? redeemedRewards[selectedReward.id] : undefined;
   const selectedRewardIsUsed = !!selectedRewardState?.used;
   const selectedRewardIsActive = !!selectedRewardState && !selectedRewardIsUsed;
@@ -541,7 +575,10 @@ export default function ProfileScreen({
 
   function resetRewardForm() {
     setRewardTitle('');
-    setRewardPlace('');
+    setRewardPlaceQuery('');
+    setRewardPlaceSuggestions([]);
+    setSelectedRewardPlace(null);
+    setSearchingRewardPlaces(false);
     setRewardDescription('');
     setRewardXp('100');
     setCreateRewardError(null);
@@ -619,12 +656,15 @@ export default function ProfileScreen({
 
   function submitReward() {
     const normalizedTitle = rewardTitle.trim();
-    const normalizedPlace = rewardPlace.trim();
     const normalizedDescription = rewardDescription.trim();
     const normalizedXp = Number.parseInt(rewardXp.trim(), 10);
 
-    if (!normalizedTitle || !normalizedPlace || !normalizedDescription) {
+    if (!normalizedTitle || !normalizedDescription) {
       setCreateRewardError('Fill in reward title, place, and description.');
+      return;
+    }
+    if (!selectedRewardPlace) {
+      setCreateRewardError('Select a suggested place for this reward.');
       return;
     }
     if (!Number.isFinite(normalizedXp) || normalizedXp <= 0) {
@@ -634,9 +674,9 @@ export default function ProfileScreen({
 
     const createdReward: RewardPartner = {
       id: `organizer-reward-${Date.now()}`,
-      name: normalizedPlace,
+      name: selectedRewardPlace.name,
       category: 'cafe',
-      location: normalizedPlace,
+      location: selectedRewardPlace.address,
       discount: normalizedTitle,
       description: normalizedDescription,
       condition: `Unlock at ${normalizedXp} XP`,
@@ -1292,13 +1332,74 @@ export default function ProfileScreen({
               />
 
               <Text className="mb-2 text-[13px] font-semibold text-ink">Reward place</Text>
-              <TextInput
-                value={rewardPlace}
-                onChangeText={setRewardPlace}
-                placeholder="e.g. Heca Cafe, Grodzka 21"
-                placeholderTextColor="#8B909A"
-                className="mb-4 rounded-xl border border-gray-300 px-4 py-3 text-[15px] text-ink"
-              />
+              <View className="mb-4">
+                <View className="h-12 flex-row items-center gap-3 rounded-xl border border-gray-300 px-4">
+                  <Search size={16} color="#756F7B" strokeWidth={2.4} />
+                  <TextInput
+                    value={rewardPlaceQuery}
+                    onChangeText={(value) => {
+                      setRewardPlaceQuery(value);
+                      setSelectedRewardPlace(null);
+                    }}
+                    placeholder={`Search places in ${cityData.name}`}
+                    placeholderTextColor="#8B909A"
+                    className="flex-1 text-[15px] text-ink"
+                  />
+                  {searchingRewardPlaces && <ActivityIndicator color="#7C3AED" size="small" />}
+                </View>
+                <Text className="mt-2 text-[11px] leading-4 text-muted">
+                  {hasGooglePlacesApiKey
+                    ? 'Powered by Google Places suggestions.'
+                    : 'Google Places key is missing, so only saved city venues are shown.'}
+                </Text>
+
+                {selectedRewardPlace && (
+                  <View className="mt-2 flex-row gap-3 rounded-xl border border-primary/25 bg-primary/10 p-3">
+                    <View className="h-9 w-9 items-center justify-center rounded-full bg-primary/15">
+                      <MapPin size={16} color="#7C3AED" strokeWidth={2.4} />
+                    </View>
+                    <View className="min-w-0 flex-1">
+                      <Text className="font-ui text-[13px] font-bold text-ink" numberOfLines={1}>
+                        {selectedRewardPlace.name}
+                      </Text>
+                      <Text className="text-[11px] leading-4 text-muted" numberOfLines={2}>
+                        {selectedRewardPlace.address}
+                      </Text>
+                    </View>
+                  </View>
+                )}
+
+                {rewardPlaceSuggestions.length > 0 && (
+                  <View className="mt-2 overflow-hidden rounded-xl border border-gray-200 bg-white">
+                    {rewardPlaceSuggestions.map((place) => (
+                      <Pressable
+                        key={`${place.source}-${place.id}`}
+                        onPress={() => {
+                          setSelectedRewardPlace(place);
+                          setRewardPlaceQuery(place.name);
+                          setRewardPlaceSuggestions([]);
+                        }}
+                        className="flex-row items-start gap-3 border-b border-gray-100 p-3 active:bg-gray-50"
+                      >
+                        <View className="h-9 w-9 items-center justify-center rounded-full bg-primary/10">
+                          <MapPin size={16} color="#7C3AED" strokeWidth={2.4} />
+                        </View>
+                        <View className="min-w-0 flex-1">
+                          <Text
+                            className="font-ui text-[13px] font-bold text-ink"
+                            numberOfLines={1}
+                          >
+                            {place.name}
+                          </Text>
+                          <Text className="text-[11px] leading-4 text-muted" numberOfLines={2}>
+                            {place.address}
+                          </Text>
+                        </View>
+                      </Pressable>
+                    ))}
+                  </View>
+                )}
+              </View>
 
               <Text className="mb-2 text-[13px] font-semibold text-ink">XP required</Text>
               <TextInput
