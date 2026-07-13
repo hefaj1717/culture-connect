@@ -424,29 +424,28 @@ export default function HomeScreen({
         <View className="px-5 pb-8">
           <Pressable
             onPress={() => setLeaderboardOpen(true)}
-            className="overflow-hidden rounded-3xl border border-primary/10 bg-white active:opacity-90"
+            className="overflow-hidden rounded-3xl bg-ink active:opacity-90"
           >
             <LinearGradient
-              colors={['rgba(124,58,237,0.1)', 'rgba(244,162,97,0.12)']}
+              colors={['rgba(124,58,237,0.72)', 'rgba(36,28,46,0.98)']}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
-              style={{ padding: 16 }}
+              style={{ padding: 18 }}
             >
               <View className="flex-row items-center justify-between gap-4">
                 <View className="min-w-0 flex-1">
-                  <Text className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-muted">
+                  <Text className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-white/65">
                     Weekly leaderboard
                   </Text>
-                  <Text className="font-heading text-[21px] font-extrabold leading-[25px] text-ink">
+                  <Text className="font-heading text-[22px] font-extrabold leading-[27px] text-white">
                     Your university is #{userLeaderboardRow.rank} this week
                   </Text>
-                  <Text className="mt-1 text-[13px] leading-5 text-muted">
-                    {userLeaderboardRow.name} has earned {userLeaderboardRow.xp.toLocaleString()} XP
-                    across {cityData.name}.
+                  <Text className="mt-2 text-[13px] leading-5 text-white/70">
+                    {userLeaderboardRow.xp.toLocaleString()} XP across {cityData.name}
                   </Text>
                 </View>
-                <View className="h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary/10">
-                  <ArrowRight size={19} color={Colors.light.primary} strokeWidth={2.6} />
+                <View className="h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/10">
+                  <ArrowRight size={19} color="white" strokeWidth={2.6} />
                 </View>
               </View>
             </LinearGradient>
