@@ -207,9 +207,15 @@ const achievementBadges = [
 
 type ProfileScreenProps = {
   onEventCreated?: () => void;
+  onRewardCreated?: (reward: RewardPartner) => void;
+  organizerRewards?: RewardPartner[];
 };
 
-export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {}) {
+export default function ProfileScreen({
+  onEventCreated,
+  onRewardCreated,
+  organizerRewards = [],
+}: ProfileScreenProps = {}) {
   const insets = useSafeAreaInsets();
   const stableModalTopInset = Math.max(insets.top, 44);
   const {
@@ -241,6 +247,12 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
   const [eventIsFree, setEventIsFree] = useState(true);
   const [createEventError, setCreateEventError] = useState<string | null>(null);
   const [creatingEvent, setCreatingEvent] = useState(false);
+  const [createRewardOpen, setCreateRewardOpen] = useState(false);
+  const [rewardTitle, setRewardTitle] = useState('');
+  const [rewardPlace, setRewardPlace] = useState('');
+  const [rewardDescription, setRewardDescription] = useState('');
+  const [rewardXp, setRewardXp] = useState('100');
+  const [createRewardError, setCreateRewardError] = useState<string | null>(null);
   const [badgesOpen, setBadgesOpen] = useState(false);
   const [selectedReward, setSelectedReward] = useState<RewardPartner | null>(null);
   const [redeemedRewards, setRedeemedRewards] = useState<Record<string, RedeemedRewardState>>({});
@@ -267,6 +279,10 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
   const savedCityId: CityId =
     session?.user.user_metadata?.city_id === 'lublin' ? 'lublin' : defaultCityId;
   const cityData = getCultureCityData(savedCityId);
+  const visibleRewards = useMemo(
+    () => [...organizerRewards, ...cityData.rewardPartners],
+    [cityData.rewardPartners, organizerRewards],
+  );
   const savedAvatarUrl = session?.user.user_metadata?.avatar_url || null;
   const levelProgress = getXpLevelProgress(userXp);
   const createEventTranslateX = useSharedValue(0);
@@ -523,6 +539,14 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
     setSelectedMinute(0);
   }
 
+  function resetRewardForm() {
+    setRewardTitle('');
+    setRewardPlace('');
+    setRewardDescription('');
+    setRewardXp('100');
+    setCreateRewardError(null);
+  }
+
   function closeCreateEventWithAnimation() {
     createEventTranslateX.value = withTiming(width, { duration: 180 }, (finished) => {
       if (finished) {
@@ -591,6 +615,41 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
     resetEventForm();
     onEventCreated?.();
     Alert.alert('Event published', 'Your event is now visible in Discover.');
+  }
+
+  function submitReward() {
+    const normalizedTitle = rewardTitle.trim();
+    const normalizedPlace = rewardPlace.trim();
+    const normalizedDescription = rewardDescription.trim();
+    const normalizedXp = Number.parseInt(rewardXp.trim(), 10);
+
+    if (!normalizedTitle || !normalizedPlace || !normalizedDescription) {
+      setCreateRewardError('Fill in reward title, place, and description.');
+      return;
+    }
+    if (!Number.isFinite(normalizedXp) || normalizedXp <= 0) {
+      setCreateRewardError('Enter a valid XP amount.');
+      return;
+    }
+
+    const createdReward: RewardPartner = {
+      id: `organizer-reward-${Date.now()}`,
+      name: normalizedPlace,
+      category: 'cafe',
+      location: normalizedPlace,
+      discount: normalizedTitle,
+      description: normalizedDescription,
+      condition: `Unlock at ${normalizedXp} XP`,
+      xpCost: normalizedXp,
+      isPopular: false,
+      badge: 'Organizer',
+      color: Colors.light.primary,
+    };
+
+    onRewardCreated?.(createdReward);
+    setCreateRewardOpen(false);
+    resetRewardForm();
+    Alert.alert('Reward created', 'Your reward is now visible in Rewards.');
   }
 
   async function pickEventImage() {
@@ -750,15 +809,26 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
                   </View>
                 </View>
 
-                <Pressable
-                  onPress={() => {
-                    resetEventForm();
-                    setCreateEventOpen(true);
-                  }}
-                  className="h-11 flex-row items-center justify-center rounded-xl bg-primary active:opacity-85"
-                >
-                  <Text className="text-[14px] font-semibold text-white">Create event</Text>
-                </Pressable>
+                <View className="gap-2">
+                  <Pressable
+                    onPress={() => {
+                      resetEventForm();
+                      setCreateEventOpen(true);
+                    }}
+                    className="h-11 flex-row items-center justify-center rounded-xl bg-primary active:opacity-85"
+                  >
+                    <Text className="text-[14px] font-semibold text-white">Create event</Text>
+                  </Pressable>
+                  <Pressable
+                    onPress={() => {
+                      resetRewardForm();
+                      setCreateRewardOpen(true);
+                    }}
+                    className="h-11 flex-row items-center justify-center rounded-xl border border-primary/25 bg-white active:opacity-85"
+                  >
+                    <Text className="text-[14px] font-semibold text-primary">Create reward</Text>
+                  </Pressable>
+                </View>
               </View>
             ) : (
               <OrganizerStatusCard status={organizerApplicationStatus} />
@@ -773,7 +843,7 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
           </View>
 
           <View className="gap-3">
-            {cityData.rewardPartners.map((reward, index) => (
+            {visibleRewards.map((reward, index) => (
               <RewardPartnerRow
                 key={reward.id}
                 reward={reward}
@@ -1167,6 +1237,110 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
         </GestureDetector>
       </Modal>
 
+      <Modal
+        animationType="slide"
+        onRequestClose={() => setCreateRewardOpen(false)}
+        visible={createRewardOpen}
+      >
+        <SafeAreaView className="flex-1 bg-white" edges={['bottom']}>
+          <KeyboardAvoidingView
+            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+            className="flex-1"
+          >
+            <ScrollView
+              className="flex-1"
+              contentContainerStyle={{
+                paddingHorizontal: 20,
+                paddingBottom: 36,
+                paddingTop: stableModalTopInset + 14,
+              }}
+              keyboardDismissMode="interactive"
+              keyboardShouldPersistTaps="handled"
+            >
+              <Pressable
+                onPress={() => setCreateRewardOpen(false)}
+                className="mb-5 h-10 w-10 items-center justify-center rounded-full bg-gray-100 active:opacity-80"
+                accessibilityRole="button"
+                accessibilityLabel="Close create reward"
+              >
+                <ArrowLeft size={21} color="#756F7B" strokeWidth={2.6} />
+              </Pressable>
+
+              <View className="mb-5 overflow-hidden rounded-3xl bg-ink">
+                <LinearGradient
+                  colors={['rgba(124,58,237,0.74)', 'rgba(36,28,46,0.98)']}
+                  end={{ x: 1, y: 1 }}
+                  start={{ x: 0, y: 0 }}
+                  style={{ padding: 20 }}
+                >
+                  <View className="mb-4 h-12 w-12 items-center justify-center rounded-2xl bg-white/15">
+                    <Gift size={24} color="white" strokeWidth={2.4} />
+                  </View>
+                  <Text className="font-heading text-[29px] font-extrabold leading-[33px] text-white">
+                    Create reward
+                  </Text>
+                  <Text className="mt-2 max-w-[290px] text-[13px] leading-5 text-white/80">
+                    Add a partner reward students can unlock with CultureQuest XP.
+                  </Text>
+                </LinearGradient>
+              </View>
+
+              <Text className="mb-2 text-[13px] font-semibold text-ink">Reward title</Text>
+              <TextInput
+                value={rewardTitle}
+                onChangeText={setRewardTitle}
+                placeholder="e.g. Free espresso after check-in"
+                placeholderTextColor="#8B909A"
+                className="mb-4 rounded-xl border border-gray-300 px-4 py-3 text-[15px] text-ink"
+              />
+
+              <Text className="mb-2 text-[13px] font-semibold text-ink">Reward place</Text>
+              <TextInput
+                value={rewardPlace}
+                onChangeText={setRewardPlace}
+                placeholder="e.g. Heca Cafe, Grodzka 21"
+                placeholderTextColor="#8B909A"
+                className="mb-4 rounded-xl border border-gray-300 px-4 py-3 text-[15px] text-ink"
+              />
+
+              <Text className="mb-2 text-[13px] font-semibold text-ink">XP required</Text>
+              <TextInput
+                value={rewardXp}
+                onChangeText={setRewardXp}
+                keyboardType="number-pad"
+                placeholder="100"
+                placeholderTextColor="#8B909A"
+                className="mb-4 rounded-xl border border-gray-300 px-4 py-3 text-[15px] text-ink"
+              />
+
+              <Text className="mb-2 text-[13px] font-semibold text-ink">Description</Text>
+              <TextInput
+                value={rewardDescription}
+                onChangeText={setRewardDescription}
+                placeholder="What does the student receive and how should staff verify it?"
+                placeholderTextColor="#8B909A"
+                multiline
+                textAlignVertical="top"
+                className="mb-4 min-h-[112px] rounded-xl border border-gray-300 px-4 py-3 text-[15px] leading-5 text-ink"
+              />
+
+              {createRewardError && (
+                <Text className="mb-4 text-[13px] font-medium text-destructive">
+                  {createRewardError}
+                </Text>
+              )}
+
+              <Pressable
+                onPress={submitReward}
+                className="h-[52px] items-center justify-center rounded-xl bg-primary active:opacity-85"
+              >
+                <Text className="text-[15px] font-semibold text-white">Publish reward</Text>
+              </Pressable>
+            </ScrollView>
+          </KeyboardAvoidingView>
+        </SafeAreaView>
+      </Modal>
+
       <Modal animationType="slide" onRequestClose={closeBadgesWithAnimation} visible={badgesOpen}>
         <GestureDetector gesture={badgesSwipeGesture}>
           <Animated.View className="flex-1 bg-white" style={badgesSwipeStyle}>
@@ -1267,8 +1441,8 @@ export default function ProfileScreen({ onEventCreated }: ProfileScreenProps = {
                       {selectedReward.discount}
                     </Text>
                     <Text className="mt-3 text-[13px] leading-5 text-muted">
-                      Unlock this reward with CultureQuest XP, then show the pickup screen to staff
-                      before ordering or paying.
+                      {selectedReward.description ??
+                        'Unlock this reward with CultureQuest XP, then show the pickup screen to staff before ordering or paying.'}
                     </Text>
                   </View>
 

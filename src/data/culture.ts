@@ -78,6 +78,7 @@ export type RewardPartner = {
   category: 'cafe' | 'bar' | 'restaurant' | 'shop' | 'bookstore';
   location: string;
   discount: string;
+  description?: string;
   condition: string;
   xpCost: number;
   isPopular: boolean;

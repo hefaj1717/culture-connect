@@ -16,7 +16,7 @@ import HomeScreen from '@/app/index';
 import ProfileScreen from '@/app/profile';
 import QuestsScreen from '@/app/quests';
 import { Colors, FontTokens } from '@/constants/theme';
-import { getCultureCityData } from '@/data/culture';
+import { getCultureCityData, type RewardPartner } from '@/data/culture';
 import { useAuth } from '@/providers/auth-provider';
 
 const ACTIVE = Colors.light.primary;
@@ -52,6 +52,7 @@ function AuthenticatedTabs() {
   const { organizerApplicationStatus, user } = useAuth();
   const [activeIndex, setActiveIndex] = useState(0);
   const [organizerEventsVersion, setOrganizerEventsVersion] = useState(0);
+  const [organizerRewards, setOrganizerRewards] = useState<RewardPartner[]>([]);
   const [eventOpenRequest, setEventOpenRequest] = useState<{
     eventId: string;
     nonce: number;
@@ -146,9 +147,13 @@ function AuthenticatedTabs() {
           </View>
           <View style={{ width }}>
             <ProfileScreen
+              organizerRewards={organizerRewards}
               onEventCreated={() => {
                 setOrganizerEventsVersion((version) => version + 1);
                 goToTab(1);
+              }}
+              onRewardCreated={(reward) => {
+                setOrganizerRewards((current) => [reward, ...current]);
               }}
             />
           </View>

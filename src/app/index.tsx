@@ -1,15 +1,6 @@
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
-import {
-  ArrowLeft,
-  ArrowRight,
-  Bell,
-  Globe,
-  Sparkles,
-  TrendingUp,
-  User,
-  X,
-} from 'lucide-react-native';
+import { ArrowLeft, ArrowRight, Bell, Globe, Sparkles, User, X } from 'lucide-react-native';
 import {
   Modal,
   Pressable,
@@ -454,16 +445,6 @@ export default function HomeScreen({
               </View>
             </LinearGradient>
           </Pressable>
-        </View>
-
-        <View className="px-5">
-          <View className="rounded-2xl border border-primary/10 bg-primary/5 p-5">
-            <View className="mb-2 flex-row items-center gap-2">
-              <TrendingUp size={16} color="#7C3AED" />
-              <Text className="text-[13px] font-semibold text-primary">Level up tip</Text>
-            </View>
-            <Text className="text-[14px] leading-5 text-ink/80">{cityData.levelTip}</Text>
-          </View>
         </View>
       </ScrollView>
 
