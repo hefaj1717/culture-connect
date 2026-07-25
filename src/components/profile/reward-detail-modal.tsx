@@ -59,6 +59,7 @@ export function RewardDetailModal({
     : rewardIsActive
       ? 'Coupon active'
       : 'Redeem';
+  const venueName = formatVenueName(reward?.name);
 
   return (
     <Modal animationType="slide" onRequestClose={onClose} visible={!!reward}>
@@ -96,18 +97,18 @@ export function RewardDetailModal({
                     <View className="mb-7 flex-row items-start justify-between gap-4">
                       <View className="min-w-0 flex-1">
                         <Text
-                          className="mb-2 text-[10px] font-bold uppercase leading-[15px] tracking-[1.6px]"
-                          style={{ color: 'rgba(255,255,255,0.7)' }}
-                          numberOfLines={1}
-                        >
-                          {reward.location}
-                        </Text>
-                        <Text
-                          className="font-ui text-[17px] font-extrabold leading-6"
+                          className="font-ui text-[22px] font-extrabold leading-7"
                           style={{ color: '#FFFFFF' }}
                           numberOfLines={2}
                         >
-                          {reward.name}
+                          {venueName}
+                        </Text>
+                        <Text
+                          className="mt-1 text-[12px] font-semibold leading-[17px]"
+                          style={{ color: 'rgba(255,255,255,0.68)' }}
+                          numberOfLines={2}
+                        >
+                          {reward.location}
                         </Text>
                       </View>
                       <View className="rounded-full bg-white/10 px-3 py-1.5">
@@ -120,20 +121,15 @@ export function RewardDetailModal({
                       </View>
                     </View>
 
+                    <View className="mb-3 h-[1px] bg-white/10" />
                     <Text
-                      className="mb-2 text-[10px] font-bold uppercase leading-[15px] tracking-[2px]"
-                      style={{ color: 'rgba(255,255,255,0.68)' }}
-                    >
-                      Reward
-                    </Text>
-                    <Text
-                      className="font-heading text-[31px] font-extrabold leading-[37px]"
+                      className="font-heading text-[28px] font-extrabold leading-[34px]"
                       style={{ color: '#FFFFFF' }}
                     >
                       {reward.discount}
                     </Text>
                     <Text
-                      className="mt-4 text-[14px] leading-6"
+                      className="mt-4 text-[14px] leading-[22px]"
                       style={{ color: 'rgba(255,255,255,0.88)' }}
                       numberOfLines={detailsExpanded ? undefined : 3}
                     >
@@ -148,13 +144,7 @@ export function RewardDetailModal({
                       >
                         <View className="min-w-0 flex-1">
                           <Text
-                            className="text-[11px] font-extrabold uppercase tracking-[1.8px]"
-                            style={{ color: 'rgba(255,255,255,0.68)' }}
-                          >
-                            Redemption details
-                          </Text>
-                          <Text
-                            className="mt-1 text-[13px] font-semibold leading-5"
+                            className="text-[14px] font-extrabold leading-5"
                             style={{ color: '#FFFFFF' }}
                           >
                             {reward.condition}
@@ -171,7 +161,7 @@ export function RewardDetailModal({
                       {detailsExpanded && (
                         <View className="mt-4 gap-2">
                           {[
-                            `Visit ${reward.name}.`,
+                            `Visit ${venueName}.`,
                             'Tap Redeem only when you are with staff.',
                             'Show the pickup card before the reward is applied.',
                           ].map((step, index) => (
@@ -212,7 +202,7 @@ export function RewardDetailModal({
                           Staff pickup
                         </Text>
                         <Text
-                          className="mt-1 font-heading text-[25px] font-extrabold leading-[31px]"
+                          className="mt-1 font-heading text-[23px] font-extrabold leading-[29px]"
                           style={{ color: '#FFFFFF' }}
                           numberOfLines={2}
                         >
@@ -252,7 +242,7 @@ export function RewardDetailModal({
                         CultureQuest reward
                       </Text>
                       <Text
-                        className="text-center font-heading text-[22px] font-extrabold leading-[29px]"
+                        className="text-center font-heading text-[20px] font-extrabold leading-[27px]"
                         style={{ color: '#FFFFFF' }}
                       >
                         {reward.discount}
@@ -287,9 +277,9 @@ export function RewardDetailModal({
                         style={{ color: 'rgba(255,255,255,0.76)' }}
                       >
                         {rewardIsActive
-                          ? `Valid for ${formatRewardTime(remainingMs)} at ${
-                              reward.name
-                            }. Staff confirms before applying the reward.`
+                          ? `Valid for ${formatRewardTime(
+                              remainingMs,
+                            )} at ${venueName}. Staff confirms before applying the reward.`
                           : rewardIsUsed
                             ? 'The reward code is no longer visible after use.'
                             : 'Tap Redeem only when you are ready to show this screen to staff.'}
@@ -320,4 +310,15 @@ export function RewardDetailModal({
       )}
     </Modal>
   );
+}
+
+function formatVenueName(value?: string | null) {
+  if (!value) return 'Partner venue';
+
+  return value
+    .replace(/\bcafe\b/gi, 'café')
+    .replace(/\bSTUKcafé\b/g, 'STUK café')
+    .replace(/\bHeca\s*café\b/gi, 'Heca Café')
+    .replace(/\s+/g, ' ')
+    .trim();
 }
