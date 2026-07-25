@@ -16,7 +16,14 @@ import {
 
 import { BrandImage } from '@/components/brand-image';
 import { CitySelector } from '@/components/city-selector';
+import { FormFieldError } from '@/components/form-field-error';
 import { type CityId, defaultCityId } from '@/data/culture';
+import {
+  type AuthFieldErrors,
+  type AuthValidationInput,
+  validateAuthField,
+  validateAuthForm,
+} from '@/lib/auth-validation';
 import { useAuth } from '@/providers/auth-provider';
 
 const organizerTypes = [
@@ -25,7 +32,6 @@ const organizerTypes = [
   { key: 'student_organization', label: 'Student organization' },
   { key: 'city_partner', label: 'City partner' },
 ];
-const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 type AuthInputProps = TextInputProps & {
   inputClassName?: string;
@@ -41,7 +47,7 @@ function AuthInput({ inputRef, inputClassName, className, ...props }: AuthInputP
   }
 
   return (
-    <Pressable onPress={focusInput}>
+    <Pressable accessible={false} onPress={focusInput}>
       <TextInput
         ref={(node) => {
           internalRef.current = node;
@@ -51,6 +57,7 @@ function AuthInput({ inputRef, inputClassName, className, ...props }: AuthInputP
             inputRef.current = node;
           }
         }}
+        accessibilityLabel={props.accessibilityLabel ?? props.placeholder}
         {...props}
         className={
           inputClassName ??
@@ -88,8 +95,20 @@ export function AuthScreen() {
   const [contactRole, setContactRole] = useState('');
   const [organizerNote, setOrganizerNote] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<AuthFieldErrors>({});
   const [notice, setNotice] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  const validationInput: AuthValidationInput = {
+    applyAsOrganizer,
+    confirmationCode,
+    email: mode === 'confirmSignUp' ? pendingEmail || email : email,
+    firstName,
+    institutionName,
+    lastName,
+    mode,
+    password,
+  };
 
   useEffect(() => {
     const timeout = setTimeout(() => {
@@ -117,37 +136,11 @@ export function AuthScreen() {
     const normalizedFirstName = firstName.trim();
     const normalizedLastName = lastName.trim();
 
-    if (
-      !normalizedEmail ||
-      !password ||
-      (mode === 'signUp' && (!normalizedFirstName || !normalizedLastName))
-    ) {
-      setError('Please fill in all fields.');
-      return;
-    }
+    const validation = validateAuthForm(validationInput);
+    setFieldErrors(validation.fieldErrors);
 
-    if (!emailPattern.test(normalizedEmail)) {
-      setError('Please enter a valid email address.');
-      return;
-    }
-
-    if (mode === 'signUp' && password.length < 8) {
-      setError('Password must be at least 8 characters.');
-      return;
-    }
-
-    if (mode === 'signUp' && !/[A-Za-z]/.test(password)) {
-      setError('Password must include at least one letter.');
-      return;
-    }
-
-    if (mode === 'signUp' && !/[0-9]/.test(password)) {
-      setError('Password must include at least one number.');
-      return;
-    }
-
-    if (mode === 'signUp' && applyAsOrganizer && !institutionName.trim()) {
-      setError('Please enter the institution or business name.');
+    if (!validation.isValid) {
+      setError('Please fix the highlighted fields.');
       return;
     }
 
@@ -208,8 +201,11 @@ export function AuthScreen() {
     const normalizedEmail = (pendingEmail || email).trim();
     const normalizedCode = confirmationCode.trim();
 
-    if (!normalizedEmail || !normalizedCode) {
-      setError('Please enter the verification code from your email.');
+    const validation = validateAuthForm(validationInput);
+    setFieldErrors(validation.fieldErrors);
+
+    if (!normalizedEmail || !validation.isValid) {
+      setError('Please fix the highlighted fields.');
       return;
     }
 
@@ -246,6 +242,25 @@ export function AuthScreen() {
     }
 
     setNotice('A new confirmation code was sent.');
+  }
+
+  function handleFieldBlur(field: keyof AuthFieldErrors) {
+    setFieldErrors((current) => ({
+      ...current,
+      [field]: validateAuthField(field, validationInput),
+    }));
+  }
+
+  function clearFieldError(field: keyof AuthFieldErrors) {
+    setFieldErrors((current) => {
+      if (!current[field]) {
+        return current;
+      }
+
+      const next = { ...current };
+      delete next[field];
+      return next;
+    });
   }
 
   return (
@@ -297,22 +312,28 @@ export function AuthScreen() {
                   onChangeText={setConfirmationCode}
                   placeholder="Verification code"
                   placeholderTextColor="#8B909A"
+                  accessibilityHint="Enter the code sent to your email"
                   autoCapitalize="none"
                   keyboardType="number-pad"
                   textContentType="oneTimeCode"
                   autoComplete="one-time-code"
                   maxLength={8}
                   returnKeyType="done"
+                  onBlur={() => handleFieldBlur('confirmationCode')}
                   onSubmitEditing={handleConfirmCode}
                   className="mb-4 rounded-xl border border-gray-300 px-4 py-3 text-[15px] text-ink"
                 />
+                <FormFieldError message={fieldErrors.confirmationCode} />
               </>
             ) : mode === 'signUp' ? (
               <>
                 <AuthInput
                   inputRef={firstNameRef}
                   value={firstName}
-                  onChangeText={setFirstName}
+                  onChangeText={(value) => {
+                    setFirstName(value);
+                    clearFieldError('firstName');
+                  }}
                   placeholder="First name"
                   placeholderTextColor="#8B909A"
                   autoCapitalize="words"
@@ -320,13 +341,18 @@ export function AuthScreen() {
                   autoComplete="given-name"
                   returnKeyType="next"
                   blurOnSubmit={false}
+                  onBlur={() => handleFieldBlur('firstName')}
                   onSubmitEditing={() => lastNameRef.current?.focus()}
                   className="mb-3 rounded-xl border border-gray-300 px-4 py-3 text-[15px] text-ink"
                 />
+                <FormFieldError message={fieldErrors.firstName} />
                 <AuthInput
                   inputRef={lastNameRef}
                   value={lastName}
-                  onChangeText={setLastName}
+                  onChangeText={(value) => {
+                    setLastName(value);
+                    clearFieldError('lastName');
+                  }}
                   placeholder="Last name"
                   placeholderTextColor="#8B909A"
                   autoCapitalize="words"
@@ -334,15 +360,20 @@ export function AuthScreen() {
                   autoComplete="family-name"
                   returnKeyType="next"
                   blurOnSubmit={false}
+                  onBlur={() => handleFieldBlur('lastName')}
                   onSubmitEditing={() => emailRef.current?.focus()}
                   className="mb-3 rounded-xl border border-gray-300 px-4 py-3 text-[15px] text-ink"
                 />
+                <FormFieldError message={fieldErrors.lastName} />
                 <Text className="mb-2 text-[13px] font-semibold text-ink">City</Text>
                 <View className="mb-4">
                   <CitySelector value={cityId} onChange={setCityId} />
                 </View>
 
                 <Pressable
+                  accessibilityRole="checkbox"
+                  accessibilityState={{ checked: applyAsOrganizer }}
+                  accessibilityLabel="Apply as an organizer"
                   onPress={() => setApplyAsOrganizer((current) => !current)}
                   className={`mb-4 flex-row items-center gap-3 rounded-xl border p-4 active:opacity-85 ${
                     applyAsOrganizer ? 'border-primary bg-primary/10' : 'border-gray-300 bg-white'
@@ -376,15 +407,20 @@ export function AuthScreen() {
                     <AuthInput
                       inputRef={institutionNameRef}
                       value={institutionName}
-                      onChangeText={setInstitutionName}
+                      onChangeText={(value) => {
+                        setInstitutionName(value);
+                        clearFieldError('institutionName');
+                      }}
                       placeholder="Institution or business name"
                       placeholderTextColor="#8B909A"
                       autoCapitalize="words"
                       returnKeyType="next"
                       blurOnSubmit={false}
+                      onBlur={() => handleFieldBlur('institutionName')}
                       onSubmitEditing={() => websiteUrlRef.current?.focus()}
                       className="mb-3 rounded-xl border border-gray-300 bg-white px-4 py-3 text-[15px] text-ink"
                     />
+                    <FormFieldError message={fieldErrors.institutionName} />
                     <Text className="mb-2 text-[12px] font-semibold text-ink">Type</Text>
                     <View className="mb-3 gap-2">
                       {organizerTypes.map((type) => {
@@ -393,6 +429,9 @@ export function AuthScreen() {
                         return (
                           <Pressable
                             key={type.key}
+                            accessibilityRole="radio"
+                            accessibilityState={{ checked: active }}
+                            accessibilityLabel={`Organizer type: ${type.label}`}
                             onPress={() => setInstitutionType(type.key)}
                             className={`rounded-xl border px-3 py-2 active:opacity-85 ${
                               active ? 'border-primary bg-white' : 'border-gray-200 bg-white/70'
@@ -453,7 +492,10 @@ export function AuthScreen() {
               <AuthInput
                 inputRef={emailRef}
                 value={email}
-                onChangeText={setEmail}
+                onChangeText={(value) => {
+                  setEmail(value);
+                  clearFieldError('email');
+                }}
                 placeholder="Email"
                 placeholderTextColor="#8B909A"
                 autoCapitalize="none"
@@ -462,31 +504,40 @@ export function AuthScreen() {
                 autoComplete="email"
                 returnKeyType="next"
                 blurOnSubmit={false}
+                onBlur={() => handleFieldBlur('email')}
                 onSubmitEditing={() => passwordRef.current?.focus()}
                 className="mb-3 rounded-xl border border-gray-300 px-4 py-3 text-[15px] text-ink"
               />
             )}
+            {mode !== 'confirmSignUp' && <FormFieldError message={fieldErrors.email} />}
 
             {mode !== 'confirmSignUp' && (
               <AuthInput
                 inputRef={passwordRef}
                 value={password}
-                onChangeText={setPassword}
+                onChangeText={(value) => {
+                  setPassword(value);
+                  clearFieldError('password');
+                }}
                 placeholder="Password"
                 placeholderTextColor="#8B909A"
                 secureTextEntry
                 textContentType={mode === 'signIn' ? 'password' : 'newPassword'}
                 autoComplete={mode === 'signIn' ? 'current-password' : 'new-password'}
                 returnKeyType="done"
+                onBlur={() => handleFieldBlur('password')}
                 onSubmitEditing={handleSubmit}
                 className="mb-4 rounded-xl border border-gray-300 px-4 py-3 text-[15px] text-ink"
               />
             )}
+            {mode !== 'confirmSignUp' && <FormFieldError message={fieldErrors.password} />}
 
             {error && <Text className="mb-4 text-[13px] text-destructive">{error}</Text>}
             {notice && <Text className="mb-4 text-[13px] text-primary">{notice}</Text>}
 
             <Pressable
+              accessibilityRole="button"
+              accessibilityState={{ busy: loading, disabled: loading }}
               onPress={mode === 'confirmSignUp' ? handleConfirmCode : handleSubmit}
               disabled={loading}
               className="mb-4 h-[52px] items-center justify-center rounded-xl bg-primary active:opacity-80"
@@ -505,7 +556,13 @@ export function AuthScreen() {
             </Pressable>
 
             {mode === 'confirmSignUp' && (
-              <Pressable onPress={handleResendCode} disabled={loading} className="mb-4">
+              <Pressable
+                accessibilityRole="button"
+                accessibilityState={{ disabled: loading }}
+                onPress={handleResendCode}
+                disabled={loading}
+                className="mb-4"
+              >
                 <Text className="text-center text-[14px] font-medium text-primary">
                   Resend confirmation code
                 </Text>
@@ -513,8 +570,10 @@ export function AuthScreen() {
             )}
 
             <Pressable
+              accessibilityRole="button"
               onPress={() => {
                 setError(null);
+                setFieldErrors({});
                 setNotice(null);
                 setMode(mode === 'signIn' ? 'signUp' : 'signIn');
               }}

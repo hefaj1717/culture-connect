@@ -30,7 +30,7 @@ export default function AppTabs() {
     return (
       <View className="flex-1 items-center justify-center bg-ink">
         <StatusBar backgroundColor="transparent" style="light" />
-        <ActivityIndicator color="white" />
+        <ActivityIndicator accessibilityLabel="Loading CultureQuest" color="white" />
       </View>
     );
   }
@@ -211,6 +211,7 @@ function AuthenticatedTabs() {
           active={activeIndex === 0}
           icon={<Home size={24} color={activeIndex === 0 ? ACTIVE : INACTIVE} />}
           label="Home"
+          position={1}
           onPress={() => goToTab(0)}
         />
         <TabButton
@@ -219,18 +220,21 @@ function AuthenticatedTabs() {
             <Compass size={23} color={activeIndex === 1 ? ACTIVE : INACTIVE} strokeWidth={2.3} />
           }
           label="Discover"
+          position={2}
           onPress={() => goToTab(1)}
         />
         <TabButton
           active={activeIndex === 2}
           icon={<Route size={23} color={activeIndex === 2 ? ACTIVE : INACTIVE} strokeWidth={2.3} />}
           label="Quests"
+          position={3}
           onPress={() => goToTab(2)}
         />
         <TabButton
           active={activeIndex === 3}
           icon={<User size={24} color={activeIndex === 3 ? ACTIVE : INACTIVE} />}
           label="Profile"
+          position={4}
           onPress={() => goToTab(3)}
         />
       </View>
@@ -258,14 +262,23 @@ function TabButton({
   icon,
   label,
   onPress,
+  position,
 }: {
   active: boolean;
   icon: React.ReactNode;
   label: string;
   onPress: () => void;
+  position: number;
 }) {
   return (
-    <Pressable onPress={onPress} className="min-w-[72px] items-center justify-center gap-1">
+    <Pressable
+      accessibilityHint={`Switches to the ${label} tab`}
+      accessibilityLabel={`${label}, tab ${position} of ${TAB_COUNT}`}
+      accessibilityRole="tab"
+      accessibilityState={{ selected: active }}
+      onPress={onPress}
+      className="min-w-[72px] items-center justify-center gap-1"
+    >
       {icon}
       <Text
         style={{
