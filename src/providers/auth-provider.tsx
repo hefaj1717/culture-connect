@@ -1,4 +1,5 @@
 import type { Session, User } from '@supabase/supabase-js';
+import Constants from 'expo-constants';
 import * as Linking from 'expo-linking';
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
 
@@ -51,6 +52,25 @@ function getUrlParam(url: string, key: string) {
   return match ? decodeURIComponent(match[1]) : null;
 }
 
+function getExpoGoHostUri() {
+  const expoConfigHostUri = Constants.expoConfig?.hostUri;
+  const expoGoConfig = Constants.expoGoConfig as { debuggerHost?: string } | null;
+  const debuggerHost = expoGoConfig?.debuggerHost;
+  const hostUri = expoConfigHostUri ?? debuggerHost;
+
+  return hostUri?.replace(/^https?:\/\//, '').replace(/\/.*$/, '');
+}
+
+function getAuthRedirectUrl() {
+  const expoGoHostUri = Constants.appOwnership === 'expo' ? getExpoGoHostUri() : null;
+
+  if (expoGoHostUri) {
+    return `exp://${expoGoHostUri}/--/auth/callback`;
+  }
+
+  return Linking.createURL('/auth/callback');
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
@@ -63,8 +83,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (!url) return;
 
       const code = getUrlParam(url, 'code');
+      const tokenHash = getUrlParam(url, 'token_hash');
+      const type = getUrlParam(url, 'type') ?? 'signup';
       const accessToken = getUrlParam(url, 'access_token');
       const refreshToken = getUrlParam(url, 'refresh_token');
+
+      if (tokenHash) {
+        await supabase.auth.verifyOtp({
+          token_hash: tokenHash,
+          type,
+        });
+        return;
+      }
 
       if (code) {
         await supabase.auth.exchangeCodeForSession(code);
@@ -203,7 +233,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       email: normalizedEmail,
       password,
       options: {
-        emailRedirectTo: Linking.createURL('/auth/callback'),
+        emailRedirectTo: getAuthRedirectUrl(),
         data: {
           first_name: firstName,
           last_name: lastName,
@@ -233,6 +263,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { error } = await supabase.auth.resend({
       email: email.trim().toLowerCase(),
       type: 'signup',
+      options: {
+        emailRedirectTo: getAuthRedirectUrl(),
+      },
     });
     return { error: error?.message ?? null };
   }
