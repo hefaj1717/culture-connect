@@ -203,6 +203,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       email: normalizedEmail,
       password,
       options: {
+        emailRedirectTo: Linking.createURL('/auth/callback'),
         data: {
           first_name: firstName,
           last_name: lastName,

@@ -127,7 +127,7 @@ export function AuthScreen() {
     if (result.needsConfirmation) {
       setPendingEmail(normalizedEmail);
       setMode('confirmSignUp');
-      setNotice('Check your inbox and enter the confirmation code.');
+      setNotice('Check your inbox. Confirm your email with the link, or enter the code here.');
       return;
     }
 
@@ -146,7 +146,7 @@ export function AuthScreen() {
     const normalizedCode = confirmationCode.trim();
 
     if (!normalizedEmail || !normalizedCode) {
-      setError('Please enter the confirmation code from your email.');
+      setError('Please enter the confirmation code from your email, or tap the email link.');
       return;
     }
 
@@ -219,11 +219,15 @@ export function AuthScreen() {
                 ? 'Log in to continue'
                 : mode === 'signUp'
                   ? 'Create an account to start exploring'
-                  : 'Enter the code from your email'}
+                  : 'Verify your email'}
             </Text>
 
             {mode === 'confirmSignUp' ? (
               <>
+                <Text className="mb-4 text-[14px] leading-5 text-muted">
+                  We sent a confirmation email to {pendingEmail || email}. Tap the link in that
+                  email, or enter the confirmation code if one is shown.
+                </Text>
                 <TextInput
                   value={confirmationCode}
                   onChangeText={setConfirmationCode}
