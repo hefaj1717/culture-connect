@@ -1,15 +1,10 @@
 import * as ImagePicker from 'expo-image-picker';
-import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import {
   ArrowLeft,
-  Beer,
-  BookOpen,
   Building2,
   Camera,
   CalendarPlus,
-  CheckCircle2,
-  CircleAlert,
   Clapperboard,
   Coffee,
   Compass,
@@ -25,10 +20,8 @@ import {
   Sparkles,
   TicketCheck,
   Trophy,
-  User,
-  X,
 } from 'lucide-react-native';
-import { useEffect, useMemo, useState, type ComponentType } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -50,10 +43,29 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import Svg, { Circle } from 'react-native-svg';
 
 import { BrandImage } from '@/components/brand-image';
-import { CitySelector } from '@/components/city-selector';
+import {
+  BadgeDetailSheet,
+  BadgeGridItem,
+  type AchievementBadge,
+} from '@/components/profile/badges';
+import { ChoicePill, type ChoiceIcon } from '@/components/profile/choice-pill';
+import {
+  DatePickerModal,
+  TimePickerModal,
+  formatEventDate,
+  formatTimeUnit,
+  startOfMonth,
+} from '@/components/profile/date-time-pickers';
+import { EditProfileModal } from '@/components/profile/edit-profile-modal';
+import {
+  DigitalPassportSection,
+  OrganizerToolsSection,
+  ProfileActions,
+  ProfileRankCard,
+  RewardsSection,
+} from '@/components/profile/profile-sections';
 import { Colors } from '@/constants/theme';
 import {
   type CityId,
@@ -77,23 +89,6 @@ const eventCategories: EventCategory[] = [
   'festival',
   'concert',
 ];
-const monthNames = [
-  'January',
-  'February',
-  'March',
-  'April',
-  'May',
-  'June',
-  'July',
-  'August',
-  'September',
-  'October',
-  'November',
-  'December',
-];
-const weekdayLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-const timeHours = Array.from({ length: 24 }, (_, index) => index);
-const timeMinutes = [0, 15, 30, 45];
 const rewardRedeemWindowMs = 5 * 60 * 1000;
 
 const xpLevels = [
@@ -110,7 +105,7 @@ type RedeemedRewardState = {
   used: boolean;
 };
 
-const achievementBadges = [
+const achievementBadges: AchievementBadge[] = [
   {
     id: 'first-quest',
     title: 'First Quest',
@@ -732,278 +727,73 @@ export default function ProfileScreen({
         contentContainerStyle={{ paddingBottom: 112, paddingTop: 24 }}
         contentInsetAdjustmentBehavior="automatic"
       >
-        <View className="mx-5 mb-5 rounded-[28px] border border-gray-200 bg-white p-4">
-          <View className="mb-5 flex-row items-center gap-4">
-            <RankAvatar
-              initials={avatarInitials}
-              progressPercent={levelProgress.progressPercent}
-              uri={savedAvatarUrl}
-            />
+        <ProfileRankCard
+          avatarInitials={avatarInitials}
+          avatarUrl={savedAvatarUrl}
+          cityLabel={cityData.label}
+          fullName={fullName}
+          levelProgress={levelProgress}
+          organizerStatus={organizerApplicationStatus}
+          userXp={userXp}
+        />
 
-            <View className="min-w-0 flex-1">
-              <View className="mb-1">
-                <Text className="font-heading text-[31px] font-extrabold leading-[35px] text-ink">
-                  {fullName}
-                </Text>
-              </View>
-              {organizerApplicationStatus === 'approved' && (
-                <View className="mb-2">
-                  <OrganizerVerifiedBadge />
-                </View>
-              )}
-              <Text className="text-[13px] font-medium text-muted" numberOfLines={1}>
-                {levelProgress.currentLevel.name} · {cityData.label}
-              </Text>
-            </View>
-          </View>
+        <ProfileActions
+          onEdit={() => {
+            setProfileError(null);
+            setFirstName(savedFirstName);
+            setLastName(savedLastName);
+            setCityId(savedCityId);
+            setAvatarUrl(savedAvatarUrl);
+            setEditOpen(true);
+          }}
+          onSignOut={signOut}
+        />
 
-          <View className="mb-4 rounded-2xl bg-canvas p-4">
-            <View className="mb-3 flex-row items-end justify-between gap-4">
-              <View>
-                <View className="mb-1 flex-row items-center gap-1.5">
-                  <Sparkles size={15} color={Colors.light.primary} strokeWidth={2.4} />
-                  <Text className="text-[11px] font-semibold uppercase tracking-wide text-muted">
-                    Total XP
-                  </Text>
-                </View>
-                <Text className="font-ui text-[34px] font-extrabold leading-[38px] text-ink">
-                  {userXp.toLocaleString()}
-                </Text>
-              </View>
-              <View className="items-end">
-                <Text className="text-right text-[12px] font-semibold leading-4 text-muted">
-                  {levelProgress.nextLevel
-                    ? `${levelProgress.xpToNext.toLocaleString()} XP to ${
-                        levelProgress.nextLevel.name
-                      }`
-                    : 'Top city rank reached'}
-                </Text>
-                <Text className="mt-1 text-[13px] font-extrabold text-primary">
-                  {Math.round(levelProgress.progressPercent)}%
-                </Text>
-              </View>
-            </View>
-            <View className="h-2 overflow-hidden rounded-full bg-primary/10">
-              <View
-                className="h-full rounded-full bg-primary"
-                style={{ width: `${levelProgress.progressPercent}%` }}
-              />
-            </View>
-          </View>
-        </View>
+        <DigitalPassportSection
+          badges={achievementBadges}
+          onOpenAll={() => setBadgesOpen(true)}
+          onOpenBadge={(badge) => {
+            setSelectedBadge(badge);
+            setBadgesOpen(true);
+          }}
+        />
 
-        <View className="mx-5 mb-6">
-          <View className="flex-row gap-3">
-            <Pressable
-              onPress={() => {
-                setProfileError(null);
-                setFirstName(savedFirstName);
-                setLastName(savedLastName);
-                setCityId(savedCityId);
-                setAvatarUrl(savedAvatarUrl);
-                setEditOpen(true);
-              }}
-              className="h-12 flex-1 flex-row items-center justify-center rounded-xl bg-primary active:opacity-85"
-            >
-              <Text className="text-[14px] font-semibold text-white">Edit profile</Text>
-            </Pressable>
+        <OrganizerToolsSection
+          cityName={cityData.name}
+          onCreateEvent={() => {
+            resetEventForm();
+            setCreateEventOpen(true);
+          }}
+          onCreateReward={() => {
+            resetRewardForm();
+            setCreateRewardOpen(true);
+          }}
+          status={organizerApplicationStatus}
+        />
 
-            <Pressable
-              onPress={signOut}
-              className="h-12 flex-1 flex-row items-center justify-center rounded-xl border border-gray-200 active:opacity-80"
-            >
-              <Text className="text-[14px] font-semibold text-muted">Log out</Text>
-            </Pressable>
-          </View>
-        </View>
-
-        <View className="mb-6">
-          <View className="mb-3 flex-row items-center justify-between px-5">
-            <Text className="font-heading text-[22px] font-extrabold text-ink">
-              Digital Passport
-            </Text>
-            <Pressable onPress={() => setBadgesOpen(true)} className="active:opacity-75">
-              <Text className="text-[12px] font-semibold text-primary">View all</Text>
-            </Pressable>
-          </View>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ paddingHorizontal: 20, gap: 12 }}
-          >
-            {achievementBadges.slice(0, 8).map((badge) => (
-              <PassportBadge
-                badge={badge}
-                key={badge.id}
-                onPress={() => {
-                  setSelectedBadge(badge);
-                  setBadgesOpen(true);
-                }}
-              />
-            ))}
-          </ScrollView>
-        </View>
-
-        {organizerApplicationStatus !== 'none' && (
-          <View className="mb-6 px-5">
-            <View className="mb-3 flex-row items-center justify-between">
-              <Text className="font-heading text-[22px] font-extrabold text-ink">
-                Organizer Tools
-              </Text>
-            </View>
-
-            {organizerApplicationStatus === 'approved' ? (
-              <View className="rounded-3xl border border-primary/10 bg-primary/5 p-4">
-                <View className="mb-4">
-                  <View className="mb-1 flex-row items-start justify-between gap-3">
-                    <Text className="min-w-0 flex-1 font-heading text-[20px] font-extrabold text-ink">
-                      Event maker tools
-                    </Text>
-                    <OrganizerVerifiedBadge compact />
-                  </View>
-                  <View className="min-w-0 flex-1">
-                    <Text className="mt-1 text-[13px] leading-5 text-muted">
-                      Create and publish events for {cityData.name}.
-                    </Text>
-                  </View>
-                </View>
-
-                <View className="gap-2">
-                  <Pressable
-                    onPress={() => {
-                      resetEventForm();
-                      setCreateEventOpen(true);
-                    }}
-                    className="h-11 flex-row items-center justify-center rounded-xl bg-primary active:opacity-85"
-                  >
-                    <Text className="text-[14px] font-semibold text-white">Create event</Text>
-                  </Pressable>
-                  <Pressable
-                    onPress={() => {
-                      resetRewardForm();
-                      setCreateRewardOpen(true);
-                    }}
-                    className="h-11 flex-row items-center justify-center rounded-xl border border-primary/25 bg-white active:opacity-85"
-                  >
-                    <Text className="text-[14px] font-semibold text-primary">Create reward</Text>
-                  </Pressable>
-                </View>
-              </View>
-            ) : (
-              <OrganizerStatusCard status={organizerApplicationStatus} />
-            )}
-          </View>
-        )}
-
-        <View className="px-5">
-          <View className="mb-3 flex-row items-center justify-between">
-            <Text className="font-heading text-[22px] font-extrabold text-ink">Rewards</Text>
-            <Text className="text-[11px] font-semibold text-primary">{cityData.name}</Text>
-          </View>
-
-          <View className="gap-3">
-            {visibleRewards.map((reward, index) => (
-              <RewardPartnerRow
-                key={reward.id}
-                reward={reward}
-                onPress={() => setSelectedReward(reward)}
-                variantIndex={index}
-              />
-            ))}
-          </View>
-        </View>
+        <RewardsSection
+          cityName={cityData.name}
+          onSelectReward={setSelectedReward}
+          rewards={visibleRewards}
+        />
       </ScrollView>
 
-      <Modal animationType="slide" onRequestClose={() => setEditOpen(false)} visible={editOpen}>
-        <SafeAreaView className="flex-1 bg-white" edges={['top', 'bottom']}>
-          <KeyboardAvoidingView
-            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-            className="flex-1"
-          >
-            <ScrollView
-              className="flex-1"
-              contentContainerStyle={{ padding: 20, paddingBottom: 36 }}
-              keyboardDismissMode="interactive"
-              keyboardShouldPersistTaps="handled"
-            >
-              <View className="mb-6 flex-row justify-end">
-                <Pressable
-                  onPress={() => setEditOpen(false)}
-                  className="h-10 w-10 items-center justify-center rounded-full bg-gray-100 active:opacity-80"
-                >
-                  <X size={19} color="#756F7B" strokeWidth={2.4} />
-                </Pressable>
-              </View>
-
-              <View className="mb-7 items-center">
-                <Pressable onPress={pickAvatar} className="items-center active:opacity-85">
-                  <View className="relative">
-                    <Avatar initials={avatarInitials} uri={avatarUrl} size={104} iconSize={42} />
-                    <View className="absolute bottom-0 right-0 h-9 w-9 items-center justify-center rounded-full border-2 border-white bg-primary">
-                      <Camera size={17} color="white" strokeWidth={2.4} />
-                    </View>
-                  </View>
-                  <Text className="mt-3 text-[14px] font-semibold text-primary">
-                    Change profile photo
-                  </Text>
-                </Pressable>
-              </View>
-
-              <Text className="mb-2 text-[13px] font-semibold text-ink">First name</Text>
-              <TextInput
-                value={firstName}
-                onChangeText={setFirstName}
-                placeholder="First name"
-                placeholderTextColor="#8B909A"
-                autoCapitalize="words"
-                textContentType="givenName"
-                autoComplete="given-name"
-                className="mb-4 rounded-xl border border-gray-300 px-4 py-3 text-[15px] text-ink"
-              />
-
-              <Text className="mb-2 text-[13px] font-semibold text-ink">Last name</Text>
-              <TextInput
-                value={lastName}
-                onChangeText={setLastName}
-                placeholder="Last name"
-                placeholderTextColor="#8B909A"
-                autoCapitalize="words"
-                textContentType="familyName"
-                autoComplete="family-name"
-                className="mb-4 rounded-xl border border-gray-300 px-4 py-3 text-[15px] text-ink"
-              />
-
-              <Text className="mb-2 text-[13px] font-semibold text-ink">City</Text>
-              <View className="mb-5">
-                <CitySelector value={cityId} onChange={setCityId} />
-              </View>
-
-              <Text className="mb-6 text-[12px] leading-4 text-muted">
-                Profile photos are stored on this device for now. Cloud avatar uploads will be added
-                when we set up production storage.
-              </Text>
-
-              {profileError && (
-                <Text className="mb-4 text-[13px] font-medium text-destructive">
-                  {profileError}
-                </Text>
-              )}
-
-              <Pressable
-                onPress={saveProfile}
-                disabled={savingProfile}
-                className="h-[52px] items-center justify-center rounded-xl bg-primary active:opacity-85"
-              >
-                {savingProfile ? (
-                  <ActivityIndicator color="white" />
-                ) : (
-                  <Text className="text-[15px] font-semibold text-white">Save changes</Text>
-                )}
-              </Pressable>
-            </ScrollView>
-          </KeyboardAvoidingView>
-        </SafeAreaView>
-      </Modal>
+      <EditProfileModal
+        avatarInitials={avatarInitials}
+        avatarUrl={avatarUrl}
+        cityId={cityId}
+        firstName={firstName}
+        lastName={lastName}
+        onChangeAvatar={pickAvatar}
+        onChangeCity={setCityId}
+        onChangeFirstName={setFirstName}
+        onChangeLastName={setLastName}
+        onClose={() => setEditOpen(false)}
+        onSave={saveProfile}
+        profileError={profileError}
+        savingProfile={savingProfile}
+        visible={editOpen}
+      />
 
       <Modal
         animationType="slide"
@@ -1784,352 +1574,6 @@ function getXpLevelProgress(xp: number) {
   };
 }
 
-function RankAvatar({
-  initials,
-  progressPercent,
-  uri,
-}: {
-  initials: string | null;
-  progressPercent: number;
-  uri?: string | null;
-}) {
-  return (
-    <View className="relative h-[90px] w-[90px] items-center justify-center">
-      <ProgressRing progressPercent={progressPercent} size={90} strokeWidth={6} />
-      <View className="h-[70px] w-[70px] items-center justify-center overflow-hidden rounded-full bg-white/15">
-        {uri ? (
-          <Image source={{ uri }} contentFit="cover" style={{ height: 70, width: 70 }} />
-        ) : (
-          <View className="h-[70px] w-[70px] items-center justify-center bg-primary">
-            <Text className="font-ui text-[22px] font-extrabold text-white">
-              {initials ?? 'CQ'}
-            </Text>
-          </View>
-        )}
-      </View>
-    </View>
-  );
-}
-
-function ProgressRing({
-  progressPercent,
-  size,
-  strokeWidth,
-}: {
-  progressPercent: number;
-  size: number;
-  strokeWidth: number;
-}) {
-  const radius = (size - strokeWidth) / 2;
-  const circumference = 2 * Math.PI * radius;
-  const clampedProgress = Math.min(100, Math.max(0, progressPercent));
-  const strokeDashoffset = circumference - (clampedProgress / 100) * circumference;
-
-  return (
-    <Svg height={size} style={{ position: 'absolute' }} width={size}>
-      <Circle
-        cx={size / 2}
-        cy={size / 2}
-        fill="transparent"
-        r={radius}
-        stroke="rgba(255,255,255,0.3)"
-        strokeWidth={strokeWidth}
-      />
-      <Circle
-        cx={size / 2}
-        cy={size / 2}
-        fill="transparent"
-        r={radius}
-        stroke={Colors.light.accent}
-        strokeDasharray={`${circumference} ${circumference}`}
-        strokeDashoffset={strokeDashoffset}
-        strokeLinecap="round"
-        strokeWidth={strokeWidth}
-        transform={`rotate(-90 ${size / 2} ${size / 2})`}
-      />
-    </Svg>
-  );
-}
-
-function PassportBadge({
-  badge,
-  onPress,
-}: {
-  badge: (typeof achievementBadges)[number];
-  onPress: () => void;
-}) {
-  return (
-    <Pressable
-      onPress={onPress}
-      className={`w-[104px] rounded-3xl p-3 active:opacity-80 ${
-        badge.unlocked ? 'bg-primary/10' : 'bg-gray-100'
-      }`}
-    >
-      <BadgeIcon badge={badge} className="mb-3 h-14 w-14 rounded-2xl" iconSize={25} />
-      <Text
-        className={`font-ui text-[12px] font-bold leading-4 ${
-          badge.unlocked ? 'text-ink' : 'text-muted'
-        }`}
-        numberOfLines={2}
-      >
-        {badge.title}
-      </Text>
-      <Text className="mt-1 text-[10px] font-semibold text-muted" numberOfLines={1}>
-        {badge.unlocked ? 'Unlocked' : badge.progress}
-      </Text>
-    </Pressable>
-  );
-}
-
-function BadgeGridItem({
-  badge,
-  itemWidth,
-  onPress,
-}: {
-  badge: (typeof achievementBadges)[number];
-  itemWidth: number;
-  onPress: () => void;
-}) {
-  const progress = getBadgeProgress(badge.progress);
-  const hasProgress = !badge.unlocked && progress !== null;
-  const progressPercent = progress
-    ? Math.min(100, Math.max(0, (progress.current / progress.total) * 100))
-    : 0;
-
-  return (
-    <Pressable
-      onPress={onPress}
-      className={`min-h-[138px] rounded-3xl border p-3 active:opacity-80 ${
-        badge.unlocked ? 'border-primary/20 bg-primary/10' : 'border-gray-200 bg-gray-50'
-      }`}
-      style={{ width: itemWidth }}
-    >
-      <BadgeIcon badge={badge} className="mb-3 h-14 w-14 rounded-2xl" iconSize={24} />
-      <Text
-        className={`font-ui text-[12px] font-extrabold leading-4 ${
-          badge.unlocked ? 'text-ink' : 'text-muted'
-        }`}
-        numberOfLines={2}
-      >
-        {badge.title}
-      </Text>
-      <Text className="mt-1 text-[10px] font-bold text-muted" numberOfLines={1}>
-        {badge.unlocked ? 'Unlocked' : badge.progress}
-      </Text>
-      {hasProgress && (
-        <View className="mt-auto pt-3">
-          <View className="h-1.5 overflow-hidden rounded-full bg-primary/10">
-            <View
-              className="h-full rounded-full bg-primary"
-              style={{ width: `${progressPercent}%` }}
-            />
-          </View>
-        </View>
-      )}
-    </Pressable>
-  );
-}
-
-function BadgeDetailSheet({
-  badge,
-  onClose,
-}: {
-  badge: (typeof achievementBadges)[number];
-  onClose: () => void;
-}) {
-  const progress = getBadgeProgress(badge.progress);
-  const progressPercent = progress
-    ? Math.min(100, Math.max(0, (progress.current / progress.total) * 100))
-    : 0;
-
-  return (
-    <View className="absolute inset-x-0 bottom-0 border-t border-gray-200 bg-white px-5 pb-8 pt-4">
-      <View className="mb-4 flex-row items-start gap-4">
-        <BadgeIcon badge={badge} className="h-16 w-16 rounded-3xl" iconSize={28} />
-        <View className="min-w-0 flex-1">
-          <View className="mb-1 flex-row items-start justify-between gap-3">
-            <Text className="min-w-0 flex-1 font-heading text-[24px] font-extrabold leading-7 text-ink">
-              {badge.title}
-            </Text>
-            <Pressable
-              onPress={onClose}
-              className="h-9 w-9 items-center justify-center rounded-full bg-gray-100 active:opacity-80"
-              accessibilityRole="button"
-              accessibilityLabel="Close badge detail"
-            >
-              <X size={18} color="#756F7B" strokeWidth={2.6} />
-            </Pressable>
-          </View>
-          <Text className="text-[13px] leading-5 text-muted">{badge.description}</Text>
-        </View>
-      </View>
-
-      <View className="rounded-2xl bg-primary/5 p-4">
-        <View className="mb-2 flex-row items-center justify-between">
-          <Text className="text-[11px] font-extrabold uppercase tracking-[2px] text-muted">
-            Progress
-          </Text>
-          <Text className="text-[12px] font-extrabold text-primary">
-            {badge.unlocked ? 'Unlocked' : badge.progress}
-          </Text>
-        </View>
-        {progress ? (
-          <View className="h-2 overflow-hidden rounded-full bg-primary/10">
-            <View className="h-full rounded-full bg-primary" style={{ width: `${progressPercent}%` }} />
-          </View>
-        ) : (
-          <Text className="text-[13px] font-semibold text-muted">
-            Keep exploring to unlock this badge.
-          </Text>
-        )}
-      </View>
-    </View>
-  );
-}
-
-function BadgeIcon({
-  badge,
-  className,
-  iconSize,
-}: {
-  badge: (typeof achievementBadges)[number];
-  className: string;
-  iconSize: number;
-}) {
-  const Icon = badge.icon;
-
-  return (
-    <View
-      className={`items-center justify-center ${badge.unlocked ? 'bg-primary' : 'bg-gray-200'} ${className}`}
-    >
-      <Icon
-        size={iconSize}
-        color={badge.unlocked ? 'white' : '#9CA3AF'}
-        strokeWidth={2.4}
-        fill={badge.unlocked ? 'rgba(255,255,255,0.16)' : 'transparent'}
-      />
-    </View>
-  );
-}
-
-function getBadgeProgress(progress: string) {
-  const match = progress.match(/(\d+)\s*\/\s*(\d+)/);
-  if (!match) return null;
-
-  return {
-    current: Number(match[1]),
-    total: Number(match[2]),
-  };
-}
-
-function RewardPartnerRow({
-  onPress,
-  reward,
-  variantIndex,
-}: {
-  onPress: () => void;
-  reward: RewardPartner;
-  variantIndex: number;
-}) {
-  const RewardIcon = getRewardIcon(reward);
-
-  return (
-    <Pressable
-      onPress={onPress}
-      className="flex-row items-center gap-3 rounded-3xl border border-gray-200 bg-white p-3 active:bg-gray-50"
-    >
-      <View className="h-[76px] w-[76px] overflow-hidden rounded-2xl">
-        <BrandImage
-          className="h-full w-full"
-          source={getRewardImageSource(reward, variantIndex)}
-          withTextGradient
-        >
-          <View className="absolute bottom-2 left-2 h-8 w-8 items-center justify-center rounded-full bg-white/90">
-            <RewardIcon size={16} color={Colors.light.primary} strokeWidth={2.5} />
-          </View>
-        </BrandImage>
-      </View>
-
-      <View className="min-w-0 flex-1">
-        <View className="mb-1 flex-row items-start justify-between gap-2">
-          <Text className="min-w-0 flex-1 font-ui text-[15px] font-bold text-ink" numberOfLines={1}>
-            {reward.name}
-          </Text>
-          <Text className="font-stat text-[13px] font-extrabold text-primary">
-            {reward.xpCost} XP
-          </Text>
-        </View>
-        <Text className="mb-1 text-[12px] text-muted" numberOfLines={1}>
-          {reward.location}
-        </Text>
-        <Text className="text-[13px] leading-5 text-ink" numberOfLines={2}>
-          {reward.discount}
-        </Text>
-        <View className="mt-2 flex-row items-center justify-between">
-          <Text className="text-[11px] font-medium text-muted" numberOfLines={1}>
-            {reward.condition}
-          </Text>
-          <Text className="text-[12px] font-semibold text-primary">View</Text>
-        </View>
-      </View>
-    </Pressable>
-  );
-}
-
-function OrganizerVerifiedBadge({ compact = false }: { compact?: boolean }) {
-  return (
-    <View
-      className={`self-start flex-row items-center gap-1.5 rounded-full bg-accent/15 ${
-        compact ? 'px-2 py-1' : 'px-2.5 py-1.5'
-      }`}
-    >
-      <View
-        className="items-center justify-center rounded-full bg-accent"
-        style={{ height: compact ? 15 : 16, width: compact ? 15 : 16 }}
-      >
-        <CheckCircle2 size={compact ? 11 : 12} color="white" strokeWidth={3} />
-      </View>
-      <Text
-        className={`font-extrabold uppercase tracking-wide text-ink ${
-          compact ? 'text-[10px]' : 'text-[11px]'
-        }`}
-      >
-        Approved
-      </Text>
-    </View>
-  );
-}
-
-function getRewardIcon(reward: RewardPartner) {
-  if (reward.category === 'bookstore' || reward.name.toLowerCase().includes('book')) {
-    return BookOpen;
-  }
-  if (reward.name.toLowerCase().includes('browar') || reward.name.toLowerCase().includes('brew')) {
-    return Beer;
-  }
-  if (reward.category === 'cafe') {
-    return Coffee;
-  }
-
-  return Gift;
-}
-
-function getRewardImageSource(reward: RewardPartner, variantIndex: number) {
-  if (reward.category === 'cafe') {
-    return require('@/assets/images/culture/venue-cafe.jpg');
-  }
-  if (reward.name.toLowerCase().includes('browar') || reward.name.toLowerCase().includes('brew')) {
-    return require('@/assets/images/culture/venue-theater.jpg');
-  }
-  if (reward.category === 'bookstore' || reward.name.toLowerCase().includes('book')) {
-    return require('@/assets/images/culture/venue-museum.jpg');
-  }
-
-  return variantIndex % 2 === 0
-    ? require('@/assets/images/culture/venue-cafe.jpg')
-    : require('@/assets/images/culture/venue-museum.jpg');
-}
-
 function getUserInitials(value?: string | null) {
   if (!value) return null;
 
@@ -2148,12 +1592,6 @@ function getDefaultEventLanguage(cityId: CityId): EventLanguage {
   return cityId === 'lublin' ? 'pl' : 'en';
 }
 
-type ChoiceIcon = ComponentType<{
-  color?: string;
-  size?: number;
-  strokeWidth?: number;
-}>;
-
 function getEventCategoryIcon(category: EventCategory): ChoiceIcon {
   switch (category) {
     case 'exhibition':
@@ -2171,297 +1609,4 @@ function getEventCategoryIcon(category: EventCategory): ChoiceIcon {
     default:
       return CalendarPlus;
   }
-}
-
-function ChoicePill({
-  active,
-  icon: Icon,
-  label,
-  onPress,
-}: {
-  active: boolean;
-  icon?: ChoiceIcon;
-  label: string;
-  onPress: () => void;
-}) {
-  return (
-    <Pressable
-      onPress={onPress}
-      className={`flex-row items-center gap-1.5 rounded-2xl border px-3.5 py-2.5 ${
-        active ? 'border-primary bg-primary/10' : 'border-gray-200 bg-gray-100'
-      }`}
-    >
-      {Icon && (
-        <Icon size={14} color={active ? Colors.light.primary : '#756F7B'} strokeWidth={2.4} />
-      )}
-      <Text className={`text-[12px] font-semibold ${active ? 'text-primary' : 'text-muted'}`}>
-        {label}
-      </Text>
-    </Pressable>
-  );
-}
-
-function DatePickerModal({
-  month,
-  onChangeMonth,
-  onClose,
-  onSelectDate,
-  visible,
-}: {
-  month: Date;
-  onChangeMonth: (date: Date) => void;
-  onClose: () => void;
-  onSelectDate: (date: Date) => void;
-  visible: boolean;
-}) {
-  const days = getCalendarDays(month);
-
-  if (!visible) {
-    return null;
-  }
-
-  return (
-    <View className="absolute inset-0 z-50 justify-center bg-black/35 px-5">
-      <Pressable className="absolute inset-0" onPress={onClose} />
-      <View className="rounded-2xl bg-white p-4">
-        <View className="mb-4 flex-row items-center justify-between">
-          <Pressable
-            onPress={() => onChangeMonth(addMonths(month, -1))}
-            className="h-9 w-9 items-center justify-center rounded-full bg-gray-100"
-          >
-            <Text className="text-[20px] font-bold text-primary">‹</Text>
-          </Pressable>
-          <Text className="text-[17px] font-extrabold text-ink">
-            {monthNames[month.getMonth()]} {month.getFullYear()}
-          </Text>
-          <Pressable
-            onPress={() => onChangeMonth(addMonths(month, 1))}
-            className="h-9 w-9 items-center justify-center rounded-full bg-gray-100"
-          >
-            <Text className="text-[20px] font-bold text-primary">›</Text>
-          </Pressable>
-        </View>
-
-        <View className="mb-2 flex-row">
-          {weekdayLabels.map((day) => (
-            <Text
-              className="flex-1 text-center text-[11px] font-bold uppercase text-muted"
-              key={day}
-            >
-              {day}
-            </Text>
-          ))}
-        </View>
-
-        <View className="flex-row flex-wrap">
-          {days.map((date, index) => {
-            const disabled = !date || isBeforeToday(date);
-
-            return (
-              <Pressable
-                disabled={disabled}
-                key={date ? date.toISOString() : `empty-${index}`}
-                onPress={() => date && onSelectDate(date)}
-                style={{ width: '14.2857%' }}
-                className="aspect-square items-center justify-center p-1 disabled:opacity-35"
-              >
-                {date && (
-                  <View className="h-9 w-9 items-center justify-center rounded-full bg-primary/10">
-                    <Text className="text-[13px] font-bold text-primary">{date.getDate()}</Text>
-                  </View>
-                )}
-              </Pressable>
-            );
-          })}
-        </View>
-      </View>
-    </View>
-  );
-}
-
-function TimePickerModal({
-  hour,
-  minute,
-  onChangeHour,
-  onChangeMinute,
-  onClose,
-  onConfirm,
-  visible,
-}: {
-  hour: number;
-  minute: number;
-  onChangeHour: (hour: number) => void;
-  onChangeMinute: (minute: number) => void;
-  onClose: () => void;
-  onConfirm: () => void;
-  visible: boolean;
-}) {
-  if (!visible) {
-    return null;
-  }
-
-  return (
-    <View className="absolute inset-0 z-50 justify-center bg-black/35 px-5">
-      <Pressable className="absolute inset-0" onPress={onClose} />
-      <View className="rounded-2xl bg-white p-4">
-        <View className="mb-4 flex-row items-center justify-between">
-          <Text className="text-[19px] font-extrabold text-ink">Choose time</Text>
-          <Text className="text-[17px] font-extrabold text-primary">
-            {formatTimeUnit(hour)}:{formatTimeUnit(minute)}
-          </Text>
-        </View>
-
-        <View className="mb-4 flex-row gap-3">
-          <ScrollView className="max-h-[220px] flex-1 rounded-xl bg-gray-100">
-            {timeHours.map((nextHour) => (
-              <Pressable
-                key={nextHour}
-                onPress={() => onChangeHour(nextHour)}
-                className={`items-center py-3 ${
-                  hour === nextHour ? 'bg-primary' : 'border-b border-white'
-                }`}
-              >
-                <Text
-                  className={`text-[16px] font-bold ${
-                    hour === nextHour ? 'text-white' : 'text-ink'
-                  }`}
-                >
-                  {formatTimeUnit(nextHour)}
-                </Text>
-              </Pressable>
-            ))}
-          </ScrollView>
-
-          <ScrollView className="max-h-[220px] flex-1 rounded-xl bg-gray-100">
-            {timeMinutes.map((nextMinute) => (
-              <Pressable
-                key={nextMinute}
-                onPress={() => onChangeMinute(nextMinute)}
-                className={`items-center py-3 ${
-                  minute === nextMinute ? 'bg-primary' : 'border-b border-white'
-                }`}
-              >
-                <Text
-                  className={`text-[16px] font-bold ${
-                    minute === nextMinute ? 'text-white' : 'text-ink'
-                  }`}
-                >
-                  {formatTimeUnit(nextMinute)}
-                </Text>
-              </Pressable>
-            ))}
-          </ScrollView>
-        </View>
-
-        <Pressable
-          onPress={onConfirm}
-          className="h-12 items-center justify-center rounded-xl bg-primary active:opacity-85"
-        >
-          <Text className="text-[14px] font-semibold text-white">Set time</Text>
-        </Pressable>
-      </View>
-    </View>
-  );
-}
-
-function getCalendarDays(month: Date) {
-  const firstDay = startOfMonth(month);
-  const startOffset = (firstDay.getDay() + 6) % 7;
-  const daysInMonth = new Date(firstDay.getFullYear(), firstDay.getMonth() + 1, 0).getDate();
-  const days: (Date | null)[] = Array.from({ length: startOffset }, () => null);
-
-  for (let day = 1; day <= daysInMonth; day += 1) {
-    days.push(new Date(firstDay.getFullYear(), firstDay.getMonth(), day));
-  }
-
-  return days;
-}
-
-function startOfMonth(date: Date) {
-  return new Date(date.getFullYear(), date.getMonth(), 1);
-}
-
-function addMonths(date: Date, amount: number) {
-  return new Date(date.getFullYear(), date.getMonth() + amount, 1);
-}
-
-function isBeforeToday(date: Date) {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  const comparisonDate = new Date(date);
-  comparisonDate.setHours(0, 0, 0, 0);
-  return comparisonDate < today;
-}
-
-function formatEventDate(date: Date) {
-  return `${weekdayLabels[(date.getDay() + 6) % 7]}, ${monthNames[date.getMonth()].slice(0, 3)} ${date.getDate()}`;
-}
-
-function formatTimeUnit(value: number) {
-  return value.toString().padStart(2, '0');
-}
-
-function OrganizerStatusCard({ status }: { status: 'pending' | 'approved' | 'rejected' }) {
-  const isApproved = status === 'approved';
-  const isRejected = status === 'rejected';
-  const color = isApproved ? '#F4A261' : isRejected ? '#EF4444' : '#F4A261';
-  const Icon = isApproved ? CheckCircle2 : isRejected ? CircleAlert : Building2;
-  const title = isApproved
-    ? 'Organizer approved'
-    : isRejected
-      ? 'Organizer application rejected'
-      : 'Organizer application pending';
-  const message = isApproved
-    ? 'Your institution has been approved. Event creation tools are next.'
-    : isRejected
-      ? 'Your organizer request was not approved. Contact CultureQuest support before applying again.'
-      : 'CultureQuest admin must approve the institution before event creation is enabled.';
-
-  return (
-    <View
-      className="mb-3 flex-row gap-3 rounded-xl border p-3"
-      style={{
-        backgroundColor: `${color}14`,
-        borderColor: `${color}35`,
-      }}
-    >
-      <View
-        className="h-9 w-9 items-center justify-center rounded-full"
-        style={{ backgroundColor: `${color}20` }}
-      >
-        <Icon size={17} color={color} strokeWidth={2.4} />
-      </View>
-      <View className="flex-1">
-        <Text className="font-ui text-[13px] font-bold text-ink">{title}</Text>
-        <Text className="mt-0.5 text-[12px] leading-4 text-muted">{message}</Text>
-      </View>
-    </View>
-  );
-}
-
-function Avatar({
-  initials,
-  uri,
-  size,
-  iconSize,
-}: {
-  initials?: string | null;
-  uri?: string | null;
-  size: number;
-  iconSize: number;
-}) {
-  return (
-    <View
-      className="items-center justify-center overflow-hidden rounded-full bg-primary"
-      style={{ height: size, width: size }}
-    >
-      {uri ? (
-        <Image source={{ uri }} contentFit="cover" style={{ height: size, width: size }} />
-      ) : initials ? (
-        <Text className="font-ui text-[32px] text-white">{initials}</Text>
-      ) : (
-        <User size={iconSize} color="white" strokeWidth={2.2} />
-      )}
-    </View>
-  );
 }
