@@ -1544,7 +1544,7 @@ export default function ProfileScreen({
                       <View className="mb-6 flex-row items-start justify-between gap-4">
                         <View className="min-w-0 flex-1">
                           <Text
-                            className="mb-2 text-[10px] font-bold uppercase leading-[15px] tracking-[1.6px] text-white/60"
+                            className="mb-2 text-[10px] font-bold uppercase leading-[15px] tracking-[1.6px] text-white opacity-65"
                             numberOfLines={1}
                           >
                             {selectedReward.location}
@@ -1557,20 +1557,20 @@ export default function ProfileScreen({
                           </Text>
                         </View>
                         <View className="rounded-full bg-white/10 px-3 py-1.5">
-                          <Text className="text-[10px] font-extrabold uppercase tracking-wide text-white/85">
+                          <Text className="text-[10px] font-extrabold uppercase tracking-wide text-white opacity-90">
                             Partner
                           </Text>
                         </View>
                       </View>
 
-                      <Text className="mb-2 text-[10px] font-bold uppercase leading-[15px] tracking-[2px] text-white/55">
+                      <Text className="mb-2 text-[10px] font-bold uppercase leading-[15px] tracking-[2px] text-white opacity-65">
                         Reward
                       </Text>
                       <Text className="font-heading text-[31px] font-extrabold leading-[36px] text-white">
                         {selectedReward.discount}
                       </Text>
                       <Text
-                        className="mt-4 text-[14px] leading-6 text-white/76"
+                        className="mt-4 text-[14px] leading-6 text-white opacity-90"
                         numberOfLines={rewardDetailsExpanded ? undefined : 3}
                       >
                         {selectedReward.description ??
@@ -1583,10 +1583,10 @@ export default function ProfileScreen({
                           className="flex-row items-center justify-between gap-3 active:opacity-80"
                         >
                           <View className="min-w-0 flex-1">
-                            <Text className="text-[11px] font-extrabold uppercase tracking-[1.8px] text-white/55">
+                            <Text className="text-[11px] font-extrabold uppercase tracking-[1.8px] text-white opacity-65">
                               Redemption details
                             </Text>
-                            <Text className="mt-1 text-[13px] font-semibold leading-5 text-white/78">
+                            <Text className="mt-1 text-[13px] font-semibold leading-5 text-white opacity-90">
                               {selectedReward.condition}
                             </Text>
                           </View>
@@ -1606,7 +1606,7 @@ export default function ProfileScreen({
                                 <Text className="w-5 text-[12px] font-extrabold text-accent">
                                   {index + 1}.
                                 </Text>
-                                <Text className="flex-1 text-[13px] leading-5 text-white/70">
+                                <Text className="flex-1 text-[13px] leading-5 text-white opacity-80">
                                   {step}
                                 </Text>
                               </View>
@@ -1626,7 +1626,7 @@ export default function ProfileScreen({
                     >
                       <View className="mb-4 flex-row items-start justify-between gap-3">
                         <View className="min-w-0 flex-1">
-                          <Text className="text-[10px] font-bold uppercase leading-[16px] tracking-[1.6px] text-white/55">
+                          <Text className="text-[10px] font-bold uppercase leading-[16px] tracking-[1.6px] text-white opacity-65">
                             Staff pickup
                           </Text>
                           <Text
@@ -1652,10 +1652,10 @@ export default function ProfileScreen({
                           <Text
                             className={`text-[11px] font-bold ${
                               selectedRewardIsUsed
-                                ? 'text-white/70'
+                                ? 'text-white opacity-75'
                                 : selectedRewardIsActive
                                   ? 'text-white'
-                                  : 'text-white/70'
+                                  : 'text-white opacity-75'
                             }`}
                           >
                             {selectedRewardIsUsed
@@ -1668,7 +1668,7 @@ export default function ProfileScreen({
                       </View>
 
                       <View className="rounded-[22px] border border-dashed border-accent/80 bg-white/10 px-4 py-5">
-                        <Text className="mb-2 text-center text-[10px] font-bold uppercase leading-[14px] tracking-[1.8px] text-white/55">
+                        <Text className="mb-2 text-center text-[10px] font-bold uppercase leading-[14px] tracking-[1.8px] text-white opacity-65">
                           CultureQuest reward
                         </Text>
                         <Text className="text-center font-heading text-[21px] font-extrabold leading-[27px] text-white">
@@ -1680,16 +1680,16 @@ export default function ProfileScreen({
                           </Text>
                         )}
                         {!selectedRewardState && (
-                          <Text className="mt-4 text-center text-[16px] font-extrabold text-white/70">
+                          <Text className="mt-4 text-center text-[16px] font-extrabold text-white opacity-80">
                             Code hidden until redeem
                           </Text>
                         )}
                         {selectedRewardIsUsed && (
-                          <Text className="mt-4 text-center text-[16px] font-extrabold text-white/70">
+                          <Text className="mt-4 text-center text-[16px] font-extrabold text-white opacity-80">
                             This coupon has already been used.
                           </Text>
                         )}
-                        <Text className="mt-3 text-center text-[12px] leading-4 text-white/65">
+                        <Text className="mt-3 text-center text-[12px] leading-4 text-white opacity-75">
                           {selectedRewardIsActive
                             ? `Valid for ${formatRewardTime(selectedRewardRemainingMs)} at ${
                                 selectedReward.name
