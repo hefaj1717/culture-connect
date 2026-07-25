@@ -13,6 +13,7 @@ import { GestureDetector, type GestureType } from 'react-native-gesture-handler'
 import Animated from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { Colors } from '@/constants/theme';
 import type { RewardPartner } from '@/data/culture';
 import { formatRewardTime, getRewardPickupCode } from '@/data/profile';
 
@@ -43,6 +44,22 @@ export function RewardDetailModal({
   rewardStateExists,
   swipeStyle,
 }: RewardDetailModalProps) {
+  const statusLabel = rewardIsUsed
+    ? 'Used'
+    : rewardIsActive
+      ? formatRewardTime(remainingMs)
+      : 'Not redeemed';
+  const pickupTitle = rewardIsUsed
+    ? 'Coupon used'
+    : rewardIsActive
+      ? 'Show this screen'
+      : 'Ready to redeem';
+  const redeemButtonLabel = rewardIsUsed
+    ? 'Coupon already used'
+    : rewardIsActive
+      ? 'Coupon active'
+      : 'Redeem';
+
   return (
     <Modal animationType="slide" onRequestClose={onClose} visible={!!reward}>
       {reward && (
@@ -63,68 +80,90 @@ export function RewardDetailModal({
                 className="flex-1"
                 contentContainerStyle={{
                   paddingHorizontal: 20,
-                  paddingBottom: 28,
-                  paddingTop: 10,
+                  paddingBottom: 34,
+                  paddingTop: 12,
+                  gap: 16,
                 }}
                 showsVerticalScrollIndicator={false}
               >
-                <View className="mb-5 overflow-hidden rounded-[28px] bg-ink">
+                <View className="overflow-hidden rounded-[30px] bg-ink">
                   <LinearGradient
-                    colors={['rgba(124,58,237,0.9)', 'rgba(36,28,46,0.98)']}
+                    colors={['rgba(124,58,237,0.96)', 'rgba(36,28,46,0.99)']}
                     end={{ x: 1, y: 1 }}
                     start={{ x: 0, y: 0 }}
-                    style={{ paddingBottom: 24, paddingHorizontal: 24, paddingTop: 24 }}
+                    style={{ paddingBottom: 26, paddingHorizontal: 24, paddingTop: 28 }}
                   >
-                    <View className="mb-6 flex-row items-start justify-between gap-4">
+                    <View className="mb-7 flex-row items-start justify-between gap-4">
                       <View className="min-w-0 flex-1">
                         <Text
-                          className="mb-2 text-[10px] font-bold uppercase leading-[15px] tracking-[1.6px] text-white opacity-65"
+                          className="mb-2 text-[10px] font-bold uppercase leading-[15px] tracking-[1.6px]"
+                          style={{ color: 'rgba(255,255,255,0.7)' }}
                           numberOfLines={1}
                         >
                           {reward.location}
                         </Text>
                         <Text
-                          className="font-ui text-[17px] font-extrabold leading-6 text-white"
+                          className="font-ui text-[17px] font-extrabold leading-6"
+                          style={{ color: '#FFFFFF' }}
                           numberOfLines={2}
                         >
                           {reward.name}
                         </Text>
                       </View>
                       <View className="rounded-full bg-white/10 px-3 py-1.5">
-                        <Text className="text-[10px] font-extrabold uppercase tracking-wide text-white opacity-90">
+                        <Text
+                          className="text-[10px] font-extrabold uppercase tracking-wide"
+                          style={{ color: 'rgba(255,255,255,0.9)' }}
+                        >
                           Partner
                         </Text>
                       </View>
                     </View>
 
-                    <Text className="mb-2 text-[10px] font-bold uppercase leading-[15px] tracking-[2px] text-white opacity-65">
+                    <Text
+                      className="mb-2 text-[10px] font-bold uppercase leading-[15px] tracking-[2px]"
+                      style={{ color: 'rgba(255,255,255,0.68)' }}
+                    >
                       Reward
                     </Text>
-                    <Text className="font-heading text-[31px] font-extrabold leading-[36px] text-white">
+                    <Text
+                      className="font-heading text-[31px] font-extrabold leading-[37px]"
+                      style={{ color: '#FFFFFF' }}
+                    >
                       {reward.discount}
                     </Text>
                     <Text
-                      className="mt-4 text-[14px] leading-6 text-white opacity-90"
+                      className="mt-4 text-[14px] leading-6"
+                      style={{ color: 'rgba(255,255,255,0.88)' }}
                       numberOfLines={detailsExpanded ? undefined : 3}
                     >
                       {reward.description ??
                         'Unlock this reward with CultureQuest XP, then show the pickup screen to staff before ordering or paying.'}
                     </Text>
 
-                    <View className="mt-5 border-t border-white/10 pt-4">
+                    <View className="mt-6 rounded-2xl bg-white/10 p-4">
                       <Pressable
                         onPress={onToggleDetails}
                         className="flex-row items-center justify-between gap-3 active:opacity-80"
                       >
                         <View className="min-w-0 flex-1">
-                          <Text className="text-[11px] font-extrabold uppercase tracking-[1.8px] text-white opacity-65">
+                          <Text
+                            className="text-[11px] font-extrabold uppercase tracking-[1.8px]"
+                            style={{ color: 'rgba(255,255,255,0.68)' }}
+                          >
                             Redemption details
                           </Text>
-                          <Text className="mt-1 text-[13px] font-semibold leading-5 text-white opacity-90">
+                          <Text
+                            className="mt-1 text-[13px] font-semibold leading-5"
+                            style={{ color: '#FFFFFF' }}
+                          >
                             {reward.condition}
                           </Text>
                         </View>
-                        <Text className="text-[12px] font-extrabold text-accent">
+                        <Text
+                          className="text-[12px] font-extrabold"
+                          style={{ color: Colors.light.accent }}
+                        >
                           {detailsExpanded ? 'Hide' : 'Show'}
                         </Text>
                       </Pressable>
@@ -137,10 +176,16 @@ export function RewardDetailModal({
                             'Show the pickup card before the reward is applied.',
                           ].map((step, index) => (
                             <View className="flex-row items-start gap-3" key={step}>
-                              <Text className="w-5 text-[12px] font-extrabold text-accent">
+                              <Text
+                                className="w-5 text-[12px] font-extrabold"
+                                style={{ color: Colors.light.accent }}
+                              >
                                 {index + 1}.
                               </Text>
-                              <Text className="flex-1 text-[13px] leading-5 text-white opacity-80">
+                              <Text
+                                className="flex-1 text-[13px] leading-5"
+                                style={{ color: 'rgba(255,255,255,0.82)' }}
+                              >
                                 {step}
                               </Text>
                             </View>
@@ -151,79 +196,96 @@ export function RewardDetailModal({
                   </LinearGradient>
                 </View>
 
-                <View className="mb-3 overflow-hidden rounded-[28px] bg-ink">
+                <View className="overflow-hidden rounded-[30px] bg-ink">
                   <LinearGradient
-                    colors={['rgba(36,28,46,0.98)', 'rgba(124,58,237,0.86)']}
+                    colors={['rgba(36,28,46,0.99)', 'rgba(92,44,180,0.96)']}
                     end={{ x: 1, y: 1 }}
                     start={{ x: 0, y: 0 }}
-                    style={{ paddingBottom: 20, paddingHorizontal: 22, paddingTop: 24 }}
+                    style={{ paddingBottom: 24, paddingHorizontal: 22, paddingTop: 26 }}
                   >
-                    <View className="mb-4 flex-row items-start justify-between gap-3">
+                    <View className="mb-5 flex-row items-start justify-between gap-3">
                       <View className="min-w-0 flex-1">
-                        <Text className="text-[10px] font-bold uppercase leading-[16px] tracking-[1.6px] text-white opacity-65">
+                        <Text
+                          className="text-[10px] font-bold uppercase leading-[16px] tracking-[1.6px]"
+                          style={{ color: 'rgba(255,255,255,0.68)' }}
+                        >
                           Staff pickup
                         </Text>
                         <Text
-                          className="mt-1 font-heading text-[24px] font-extrabold leading-[29px] text-white"
+                          className="mt-1 font-heading text-[25px] font-extrabold leading-[31px]"
+                          style={{ color: '#FFFFFF' }}
                           numberOfLines={2}
                         >
-                          {rewardIsUsed
-                            ? 'Coupon used'
-                            : rewardIsActive
-                              ? 'Show this screen'
-                              : 'Ready to redeem'}
+                          {pickupTitle}
                         </Text>
                       </View>
                       <View
-                        className={`rounded-full px-3 py-1 ${
-                          rewardIsUsed
-                            ? 'bg-white/10'
-                            : rewardIsActive
-                              ? 'bg-primary/20'
-                              : 'bg-white/10'
-                        }`}
+                        className="rounded-full px-3 py-1.5"
+                        style={{
+                          backgroundColor: rewardIsActive
+                            ? 'rgba(244,162,97,0.22)'
+                            : 'rgba(255,255,255,0.12)',
+                        }}
                       >
                         <Text
-                          className={`text-[11px] font-bold ${
-                            rewardIsUsed
-                              ? 'text-white opacity-75'
-                              : rewardIsActive
-                                ? 'text-white'
-                                : 'text-white opacity-75'
-                          }`}
+                          className="text-[11px] font-bold"
+                          style={{
+                            color: rewardIsActive ? Colors.light.accent : 'rgba(255,255,255,0.78)',
+                          }}
                         >
-                          {rewardIsUsed
-                            ? 'Used'
-                            : rewardIsActive
-                              ? formatRewardTime(remainingMs)
-                              : 'Not redeemed'}
+                          {statusLabel}
                         </Text>
                       </View>
                     </View>
 
-                    <View className="rounded-[22px] border border-dashed border-accent/80 bg-white/10 px-4 py-5">
-                      <Text className="mb-2 text-center text-[10px] font-bold uppercase leading-[14px] tracking-[1.8px] text-white opacity-65">
+                    <View
+                      className="rounded-[24px] border border-dashed px-5 py-6"
+                      style={{
+                        backgroundColor: 'rgba(255,255,255,0.1)',
+                        borderColor: Colors.light.accent,
+                      }}
+                    >
+                      <Text
+                        className="mb-3 text-center text-[10px] font-bold uppercase leading-[14px] tracking-[1.8px]"
+                        style={{ color: 'rgba(255,255,255,0.68)' }}
+                      >
                         CultureQuest reward
                       </Text>
-                      <Text className="text-center font-heading text-[21px] font-extrabold leading-[27px] text-white">
+                      <Text
+                        className="text-center font-heading text-[22px] font-extrabold leading-[29px]"
+                        style={{ color: '#FFFFFF' }}
+                      >
                         {reward.discount}
                       </Text>
                       {rewardIsActive && (
-                        <Text className="mt-4 text-center font-ui text-[32px] font-extrabold tracking-widest text-accent">
+                        <Text
+                          className="mt-5 text-center font-ui text-[34px] font-extrabold tracking-widest"
+                          selectable
+                          style={{ color: Colors.light.accent }}
+                        >
                           {getRewardPickupCode(reward)}
                         </Text>
                       )}
                       {!rewardStateExists && (
-                        <Text className="mt-4 text-center text-[16px] font-extrabold text-white opacity-80">
+                        <Text
+                          className="mt-5 text-center text-[16px] font-extrabold"
+                          style={{ color: 'rgba(255,255,255,0.84)' }}
+                        >
                           Code hidden until redeem
                         </Text>
                       )}
                       {rewardIsUsed && (
-                        <Text className="mt-4 text-center text-[16px] font-extrabold text-white opacity-80">
+                        <Text
+                          className="mt-5 text-center text-[16px] font-extrabold"
+                          style={{ color: 'rgba(255,255,255,0.84)' }}
+                        >
                           This coupon has already been used.
                         </Text>
                       )}
-                      <Text className="mt-3 text-center text-[12px] leading-4 text-white opacity-75">
+                      <Text
+                        className="mt-4 text-center text-[12px] leading-5"
+                        style={{ color: 'rgba(255,255,255,0.76)' }}
+                      >
                         {rewardIsActive
                           ? `Valid for ${formatRewardTime(remainingMs)} at ${
                               reward.name
@@ -239,20 +301,16 @@ export function RewardDetailModal({
                 <Pressable
                   onPress={onRedeem}
                   disabled={rewardStateExists}
-                  className={`h-[52px] items-center justify-center rounded-xl active:opacity-85 ${
-                    rewardStateExists ? 'bg-gray-200' : 'bg-primary'
-                  }`}
+                  className="h-[54px] items-center justify-center rounded-2xl active:opacity-85"
+                  style={{
+                    backgroundColor: rewardStateExists ? '#E5E0EA' : Colors.light.primary,
+                  }}
                 >
                   <Text
-                    className={`text-[15px] font-semibold ${
-                      rewardStateExists ? 'text-muted' : 'text-white'
-                    }`}
+                    className="text-[15px] font-semibold"
+                    style={{ color: rewardStateExists ? Colors.light.textSecondary : '#FFFFFF' }}
                   >
-                    {rewardIsUsed
-                      ? 'Coupon already used'
-                      : rewardIsActive
-                        ? 'Coupon active'
-                        : 'Redeem'}
+                    {redeemButtonLabel}
                   </Text>
                 </Pressable>
               </ScrollView>
