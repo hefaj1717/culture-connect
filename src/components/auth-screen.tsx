@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Building2, Check } from 'lucide-react-native';
 import {
   ActivityIndicator,
@@ -28,6 +28,15 @@ const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export function AuthScreen() {
   const { signIn, signUp, verifySignUpCode, resendSignUpCode } = useAuth();
+  const confirmationCodeRef = useRef<TextInput>(null);
+  const firstNameRef = useRef<TextInput>(null);
+  const lastNameRef = useRef<TextInput>(null);
+  const institutionNameRef = useRef<TextInput>(null);
+  const websiteUrlRef = useRef<TextInput>(null);
+  const contactRoleRef = useRef<TextInput>(null);
+  const organizerNoteRef = useRef<TextInput>(null);
+  const emailRef = useRef<TextInput>(null);
+  const passwordRef = useRef<TextInput>(null);
   const [mode, setMode] = useState<'signIn' | 'signUp' | 'confirmSignUp'>('signIn');
   const [email, setEmail] = useState('');
   const [pendingEmail, setPendingEmail] = useState('');
@@ -45,6 +54,24 @@ export function AuthScreen() {
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      if (mode === 'signUp') {
+        firstNameRef.current?.focus();
+        return;
+      }
+
+      if (mode === 'confirmSignUp') {
+        confirmationCodeRef.current?.focus();
+        return;
+      }
+
+      emailRef.current?.focus();
+    }, 280);
+
+    return () => clearTimeout(timeout);
+  }, [mode]);
 
   async function handleSubmit() {
     setError(null);
@@ -193,8 +220,8 @@ export function AuthScreen() {
       <ScrollView
         className="flex-1"
         contentContainerStyle={{ flexGrow: 1 }}
-        keyboardDismissMode="interactive"
-        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
+        keyboardShouldPersistTaps="always"
       >
         <View className="flex-1 bg-white">
           <BrandImage
@@ -229,6 +256,7 @@ export function AuthScreen() {
                   email, or enter the confirmation code if one is shown.
                 </Text>
                 <TextInput
+                  ref={confirmationCodeRef}
                   value={confirmationCode}
                   onChangeText={setConfirmationCode}
                   placeholder="Confirmation code"
@@ -245,6 +273,7 @@ export function AuthScreen() {
             ) : mode === 'signUp' ? (
               <>
                 <TextInput
+                  ref={firstNameRef}
                   value={firstName}
                   onChangeText={setFirstName}
                   placeholder="First name"
@@ -253,9 +282,12 @@ export function AuthScreen() {
                   textContentType="givenName"
                   autoComplete="given-name"
                   returnKeyType="next"
+                  blurOnSubmit={false}
+                  onSubmitEditing={() => lastNameRef.current?.focus()}
                   className="mb-3 rounded-xl border border-gray-300 px-4 py-3 text-[15px] text-ink"
                 />
                 <TextInput
+                  ref={lastNameRef}
                   value={lastName}
                   onChangeText={setLastName}
                   placeholder="Last name"
@@ -264,6 +296,8 @@ export function AuthScreen() {
                   textContentType="familyName"
                   autoComplete="family-name"
                   returnKeyType="next"
+                  blurOnSubmit={false}
+                  onSubmitEditing={() => emailRef.current?.focus()}
                   className="mb-3 rounded-xl border border-gray-300 px-4 py-3 text-[15px] text-ink"
                 />
                 <Text className="mb-2 text-[13px] font-semibold text-ink">City</Text>
@@ -303,12 +337,15 @@ export function AuthScreen() {
                       Organizer application
                     </Text>
                     <TextInput
+                      ref={institutionNameRef}
                       value={institutionName}
                       onChangeText={setInstitutionName}
                       placeholder="Institution or business name"
                       placeholderTextColor="#8B909A"
                       autoCapitalize="words"
                       returnKeyType="next"
+                      blurOnSubmit={false}
+                      onSubmitEditing={() => websiteUrlRef.current?.focus()}
                       className="mb-3 rounded-xl border border-gray-300 bg-white px-4 py-3 text-[15px] text-ink"
                     />
                     <Text className="mb-2 text-[12px] font-semibold text-ink">Type</Text>
@@ -336,6 +373,7 @@ export function AuthScreen() {
                       })}
                     </View>
                     <TextInput
+                      ref={websiteUrlRef}
                       value={websiteUrl}
                       onChangeText={setWebsiteUrl}
                       placeholder="Website or social link"
@@ -343,18 +381,24 @@ export function AuthScreen() {
                       autoCapitalize="none"
                       keyboardType="url"
                       returnKeyType="next"
+                      blurOnSubmit={false}
+                      onSubmitEditing={() => contactRoleRef.current?.focus()}
                       className="mb-3 rounded-xl border border-gray-300 bg-white px-4 py-3 text-[15px] text-ink"
                     />
                     <TextInput
+                      ref={contactRoleRef}
                       value={contactRole}
                       onChangeText={setContactRole}
                       placeholder="Your role, e.g. event manager"
                       placeholderTextColor="#8B909A"
                       autoCapitalize="sentences"
                       returnKeyType="next"
+                      blurOnSubmit={false}
+                      onSubmitEditing={() => organizerNoteRef.current?.focus()}
                       className="mb-3 rounded-xl border border-gray-300 bg-white px-4 py-3 text-[15px] text-ink"
                     />
                     <TextInput
+                      ref={organizerNoteRef}
                       value={organizerNote}
                       onChangeText={setOrganizerNote}
                       placeholder="Short note for CultureQuest admin"
@@ -370,6 +414,7 @@ export function AuthScreen() {
 
             {mode !== 'confirmSignUp' && (
               <TextInput
+                ref={emailRef}
                 value={email}
                 onChangeText={setEmail}
                 placeholder="Email"
@@ -379,12 +424,15 @@ export function AuthScreen() {
                 textContentType="emailAddress"
                 autoComplete="email"
                 returnKeyType="next"
+                blurOnSubmit={false}
+                onSubmitEditing={() => passwordRef.current?.focus()}
                 className="mb-3 rounded-xl border border-gray-300 px-4 py-3 text-[15px] text-ink"
               />
             )}
 
             {mode !== 'confirmSignUp' && (
               <TextInput
+                ref={passwordRef}
                 value={password}
                 onChangeText={setPassword}
                 placeholder="Password"
