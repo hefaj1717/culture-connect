@@ -3,38 +3,18 @@ import { LinearGradient } from 'expo-linear-gradient';
 import {
   ArrowLeft,
   Building2,
-  Camera,
   CalendarPlus,
-  Clapperboard,
   Coffee,
   Compass,
   Crown,
-  Drama,
   Gift,
   Globe,
-  MapPin,
-  Music,
-  Palette,
-  PartyPopper,
-  Search,
   Sparkles,
   TicketCheck,
   Trophy,
 } from 'lucide-react-native';
 import { useEffect, useMemo, useState } from 'react';
-import {
-  ActivityIndicator,
-  Alert,
-  KeyboardAvoidingView,
-  Modal,
-  Platform,
-  Pressable,
-  ScrollView,
-  Text,
-  TextInput,
-  useWindowDimensions,
-  View,
-} from 'react-native';
+import { Alert, Modal, Pressable, ScrollView, Text, useWindowDimensions, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
   runOnJS,
@@ -44,20 +24,14 @@ import Animated, {
 } from 'react-native-reanimated';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { BrandImage } from '@/components/brand-image';
 import {
   BadgeDetailSheet,
   BadgeGridItem,
   type AchievementBadge,
 } from '@/components/profile/badges';
-import { ChoicePill, type ChoiceIcon } from '@/components/profile/choice-pill';
-import {
-  DatePickerModal,
-  TimePickerModal,
-  formatEventDate,
-  formatTimeUnit,
-  startOfMonth,
-} from '@/components/profile/date-time-pickers';
+import { CreateEventModal } from '@/components/profile/create-event-modal';
+import { CreateRewardModal } from '@/components/profile/create-reward-modal';
+import { startOfMonth } from '@/components/profile/date-time-pickers';
 import { EditProfileModal } from '@/components/profile/edit-profile-modal';
 import {
   DigitalPassportSection,
@@ -73,22 +47,12 @@ import {
   type EventLanguage,
   type RewardPartner,
   defaultCityId,
-  defaultEventXp,
-  eventCategoryLabels,
   getCultureCityData,
 } from '@/data/culture';
 import { createOrganizerEvent } from '@/lib/organizer-events';
-import { hasGooglePlacesApiKey, type PlaceSuggestion, searchPlaces } from '@/lib/place-search';
+import { type PlaceSuggestion, searchPlaces } from '@/lib/place-search';
 import { useAuth } from '@/providers/auth-provider';
 
-const eventCategories: EventCategory[] = [
-  'exhibition',
-  'performance',
-  'screening',
-  'workshop',
-  'festival',
-  'concert',
-];
 const rewardRedeemWindowMs = 5 * 60 * 1000;
 
 const xpLevels = [
@@ -795,458 +759,81 @@ export default function ProfileScreen({
         visible={editOpen}
       />
 
-      <Modal
-        animationType="slide"
-        onRequestClose={closeCreateEventWithAnimation}
+      <CreateEventModal
+        calendarMonth={calendarMonth}
+        cityId={savedCityId}
+        createEventError={createEventError}
+        creatingEvent={creatingEvent}
+        datePickerOpen={datePickerOpen}
+        eventCategory={eventCategory}
+        eventDate={eventDate}
+        eventDescription={eventDescription}
+        eventImageUri={eventImageUri}
+        eventIsFree={eventIsFree}
+        eventTime={eventTime}
+        eventTitle={eventTitle}
+        gesture={createEventSwipeGesture}
+        onChangeCalendarMonth={setCalendarMonth}
+        onChangeEventCategory={setEventCategory}
+        onChangeEventDescription={setEventDescription}
+        onChangeEventIsFree={setEventIsFree}
+        onChangeEventTime={setEventTime}
+        onChangeEventTitle={setEventTitle}
+        onChangePlaceQuery={setPlaceQuery}
+        onChangeSelectedHour={setSelectedHour}
+        onChangeSelectedMinute={setSelectedMinute}
+        onClose={closeCreateEventWithAnimation}
+        onCloseDatePicker={() => setDatePickerOpen(false)}
+        onCloseTimePicker={() => setTimePickerOpen(false)}
+        onOpenDatePicker={() => setDatePickerOpen(true)}
+        onOpenTimePicker={() => setTimePickerOpen(true)}
+        onPickEventImage={pickEventImage}
+        onRemoveEventImage={() => setEventImageUri(null)}
+        onSelectDate={setEventDate}
+        onSelectPlace={(place) => {
+          setSelectedPlace(place);
+          setPlaceQuery(place.name);
+          setPlaceSuggestions([]);
+        }}
+        onSubmit={submitEvent}
+        placeQuery={placeQuery}
+        placeSuggestions={placeSuggestions}
+        searchingPlaces={searchingPlaces}
+        selectedHour={selectedHour}
+        selectedMinute={selectedMinute}
+        selectedPlace={selectedPlace}
+        setSelectedPlace={setSelectedPlace}
+        stableModalTopInset={stableModalTopInset}
+        swipeStyle={createEventSwipeStyle}
+        timePickerOpen={timePickerOpen}
         visible={createEventOpen}
-      >
-        <GestureDetector gesture={createEventSwipeGesture}>
-          <Animated.View className="flex-1 bg-white" style={createEventSwipeStyle}>
-            <SafeAreaView className="flex-1 bg-white" edges={['bottom']}>
-              <KeyboardAvoidingView
-                behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-                className="flex-1"
-              >
-                <ScrollView
-                  className="flex-1"
-                  contentContainerStyle={{
-                    paddingHorizontal: 20,
-                    paddingBottom: 36,
-                    paddingTop: stableModalTopInset + 14,
-                  }}
-                  keyboardDismissMode="interactive"
-                  keyboardShouldPersistTaps="handled"
-                >
-                  <Pressable
-                    onPress={closeCreateEventWithAnimation}
-                    className="mb-5 h-10 w-10 items-center justify-center rounded-full bg-gray-100 active:opacity-80"
-                    accessibilityRole="button"
-                    accessibilityLabel="Close create event"
-                  >
-                    <ArrowLeft size={21} color="#756F7B" strokeWidth={2.6} />
-                  </Pressable>
+      />
 
-                  <View className="mb-5 overflow-hidden rounded-3xl bg-ink">
-                    <LinearGradient
-                      colors={['rgba(124,58,237,0.74)', 'rgba(36,28,46,0.98)']}
-                      end={{ x: 1, y: 1 }}
-                      start={{ x: 0, y: 0 }}
-                      style={{ padding: 20 }}
-                    >
-                      <View className="mb-4 h-12 w-12 items-center justify-center rounded-2xl bg-white/15">
-                        <CalendarPlus size={24} color="white" strokeWidth={2.4} />
-                      </View>
-                      <Text className="font-heading text-[29px] font-extrabold leading-[33px] text-white">
-                        Create event
-                      </Text>
-                      <Text className="mt-2 max-w-[290px] text-[13px] leading-5 text-white/80">
-                        Publish a verified city experience students can discover and check into.
-                      </Text>
-                    </LinearGradient>
-                  </View>
-
-                  <Text className="mb-2 text-[13px] font-semibold text-ink">Event title</Text>
-                  <TextInput
-                    value={eventTitle}
-                    onChangeText={setEventTitle}
-                    placeholder="e.g. Student Jazz Night"
-                    placeholderTextColor="#8B909A"
-                    className="mb-4 rounded-xl border border-gray-300 px-4 py-3 text-[15px] text-ink"
-                  />
-
-                  <Text className="mb-2 text-[13px] font-semibold text-ink">Event photo</Text>
-                  <Pressable
-                    onPress={pickEventImage}
-                    className={`mb-4 overflow-hidden rounded-2xl border active:opacity-85 ${
-                      eventImageUri
-                        ? 'border-gray-200 bg-gray-100'
-                        : 'border-primary/40 bg-primary/5'
-                    }`}
-                    style={!eventImageUri ? { borderStyle: 'dashed' } : undefined}
-                  >
-                    {eventImageUri ? (
-                      <BrandImage
-                        source={{ uri: eventImageUri }}
-                        contentFit="cover"
-                        style={{ height: 150, width: '100%' }}
-                        withTextGradient
-                      />
-                    ) : (
-                      <View className="h-[150px] items-center justify-center px-5">
-                        <View className="mb-3 h-11 w-11 items-center justify-center rounded-full bg-primary/15">
-                          <Camera size={20} color="#7C3AED" strokeWidth={2.4} />
-                        </View>
-                        <Text className="text-center font-ui text-[14px] font-bold text-primary">
-                          Add event photo
-                        </Text>
-                        <Text className="mt-1 text-center text-[12px] leading-4 text-muted">
-                          Optional. If you skip it, CultureQuest will use a default event image.
-                        </Text>
-                      </View>
-                    )}
-                  </Pressable>
-
-                  {eventImageUri && (
-                    <Pressable
-                      onPress={() => setEventImageUri(null)}
-                      className="mb-4 h-10 items-center justify-center rounded-xl border border-gray-200 active:opacity-80"
-                    >
-                      <Text className="text-[13px] font-semibold text-muted">Remove photo</Text>
-                    </Pressable>
-                  )}
-
-                  <Text className="mb-2 text-[13px] font-semibold text-ink">Place or address</Text>
-                  <View className="mb-4">
-                    <View className="h-12 flex-row items-center gap-3 rounded-xl border border-gray-300 px-4">
-                      <Search size={16} color="#756F7B" strokeWidth={2.4} />
-                      <TextInput
-                        value={placeQuery}
-                        onChangeText={(value) => {
-                          setPlaceQuery(value);
-                          setSelectedPlace(null);
-                        }}
-                        placeholder={`Search places in ${cityData.name}`}
-                        placeholderTextColor="#8B909A"
-                        className="flex-1 text-[15px] text-ink"
-                      />
-                      {searchingPlaces && <ActivityIndicator color="#7C3AED" size="small" />}
-                    </View>
-                    <Text className="mt-2 text-[11px] leading-4 text-muted">
-                      {hasGooglePlacesApiKey
-                        ? 'Powered by Google Places suggestions.'
-                        : 'Google Places key is missing, so only saved city venues are shown.'}
-                    </Text>
-
-                    {selectedPlace && (
-                      <View className="mt-2 flex-row gap-3 rounded-xl border border-primary/25 bg-primary/10 p-3">
-                        <View className="h-9 w-9 items-center justify-center rounded-full bg-primary/15">
-                          <MapPin size={16} color="#7C3AED" strokeWidth={2.4} />
-                        </View>
-                        <View className="min-w-0 flex-1">
-                          <Text
-                            className="font-ui text-[13px] font-bold text-ink"
-                            numberOfLines={1}
-                          >
-                            {selectedPlace.name}
-                          </Text>
-                          <Text className="text-[11px] leading-4 text-muted" numberOfLines={2}>
-                            {selectedPlace.address}
-                          </Text>
-                        </View>
-                      </View>
-                    )}
-
-                    {placeSuggestions.length > 0 && (
-                      <View className="mt-2 overflow-hidden rounded-xl border border-gray-200 bg-white">
-                        {placeSuggestions.map((place) => (
-                          <Pressable
-                            key={`${place.source}-${place.id}`}
-                            onPress={() => {
-                              setSelectedPlace(place);
-                              setPlaceQuery(place.name);
-                              setPlaceSuggestions([]);
-                            }}
-                            className="flex-row items-start gap-3 border-b border-gray-100 p-3 active:bg-gray-50"
-                          >
-                            <View className="h-9 w-9 items-center justify-center rounded-full bg-primary/10">
-                              <MapPin size={16} color="#7C3AED" strokeWidth={2.4} />
-                            </View>
-                            <View className="min-w-0 flex-1">
-                              <Text
-                                className="font-ui text-[13px] font-bold text-ink"
-                                numberOfLines={1}
-                              >
-                                {place.name}
-                              </Text>
-                              <Text className="text-[11px] leading-4 text-muted" numberOfLines={2}>
-                                {place.address}
-                              </Text>
-                            </View>
-                          </Pressable>
-                        ))}
-                      </View>
-                    )}
-                  </View>
-
-                  <Text className="mb-2 text-[13px] font-semibold text-ink">Category</Text>
-                  <View className="mb-4 flex-row flex-wrap gap-2">
-                    {eventCategories.map((category) => (
-                      <ChoicePill
-                        active={eventCategory === category}
-                        icon={getEventCategoryIcon(category)}
-                        key={category}
-                        label={eventCategoryLabels[category]}
-                        onPress={() => setEventCategory(category)}
-                      />
-                    ))}
-                  </View>
-
-                  <View className="mb-4 flex-row gap-3">
-                    <View className="flex-1">
-                      <Text className="mb-2 text-[13px] font-semibold text-ink">Date</Text>
-                      <Pressable
-                        onPress={() => setDatePickerOpen(true)}
-                        className="h-12 justify-center rounded-xl border border-gray-300 px-4 active:opacity-80"
-                      >
-                        <Text className={`text-[15px] ${eventDate ? 'text-ink' : 'text-muted'}`}>
-                          {eventDate || 'Choose date'}
-                        </Text>
-                      </Pressable>
-                    </View>
-                    <View className="flex-1">
-                      <Text className="mb-2 text-[13px] font-semibold text-ink">Time</Text>
-                      <Pressable
-                        onPress={() => setTimePickerOpen(true)}
-                        className="h-12 justify-center rounded-xl border border-gray-300 px-4 active:opacity-80"
-                      >
-                        <Text className={`text-[15px] ${eventTime ? 'text-ink' : 'text-muted'}`}>
-                          {eventTime || 'Choose time'}
-                        </Text>
-                      </Pressable>
-                    </View>
-                  </View>
-
-                  <Text className="mb-2 text-[13px] font-semibold text-ink">Price</Text>
-                  <View className="mb-3 flex-row gap-2">
-                    <ChoicePill
-                      active={eventIsFree}
-                      label="Free"
-                      onPress={() => setEventIsFree(true)}
-                    />
-                    <ChoicePill
-                      active={!eventIsFree}
-                      label="Paid"
-                      onPress={() => setEventIsFree(false)}
-                    />
-                  </View>
-                  <View className="mb-4 flex-row items-center gap-2 rounded-2xl bg-primary/5 px-3 py-2.5">
-                    <View className="h-7 w-7 items-center justify-center rounded-full bg-primary/10">
-                      <Sparkles size={14} color="#7C3AED" strokeWidth={2.4} />
-                    </View>
-                    <Text className="flex-1 text-[12px] font-semibold leading-4 text-muted">
-                      Attendees earn {defaultEventXp} XP for this event.
-                    </Text>
-                  </View>
-
-                  <Text className="mb-2 text-[13px] font-semibold text-ink">Description</Text>
-                  <TextInput
-                    value={eventDescription}
-                    onChangeText={setEventDescription}
-                    placeholder="What should students know before joining?"
-                    placeholderTextColor="#8B909A"
-                    multiline
-                    textAlignVertical="top"
-                    className="mb-4 min-h-[112px] rounded-xl border border-gray-300 px-4 py-3 text-[15px] leading-5 text-ink"
-                  />
-
-                  {createEventError && (
-                    <Text className="mb-4 text-[13px] font-medium text-destructive">
-                      {createEventError}
-                    </Text>
-                  )}
-
-                  <Pressable
-                    onPress={submitEvent}
-                    disabled={creatingEvent}
-                    className="h-[52px] items-center justify-center rounded-xl bg-primary active:opacity-85 disabled:opacity-60"
-                  >
-                    {creatingEvent ? (
-                      <ActivityIndicator color="white" />
-                    ) : (
-                      <Text className="text-[15px] font-semibold text-white">Publish event</Text>
-                    )}
-                  </Pressable>
-                </ScrollView>
-              </KeyboardAvoidingView>
-            </SafeAreaView>
-            <DatePickerModal
-              month={calendarMonth}
-              onChangeMonth={setCalendarMonth}
-              onClose={() => setDatePickerOpen(false)}
-              onSelectDate={(date) => {
-                setEventDate(formatEventDate(date));
-                setDatePickerOpen(false);
-              }}
-              visible={datePickerOpen}
-            />
-
-            <TimePickerModal
-              hour={selectedHour}
-              minute={selectedMinute}
-              onChangeHour={setSelectedHour}
-              onChangeMinute={setSelectedMinute}
-              onClose={() => setTimePickerOpen(false)}
-              onConfirm={() => {
-                setEventTime(`${formatTimeUnit(selectedHour)}:${formatTimeUnit(selectedMinute)}`);
-                setTimePickerOpen(false);
-              }}
-              visible={timePickerOpen}
-            />
-          </Animated.View>
-        </GestureDetector>
-      </Modal>
-
-      <Modal
-        animationType="slide"
-        onRequestClose={() => setCreateRewardOpen(false)}
+      <CreateRewardModal
+        createRewardError={createRewardError}
+        onChangeRewardDescription={setRewardDescription}
+        onChangeRewardPlaceQuery={setRewardPlaceQuery}
+        onChangeRewardTitle={setRewardTitle}
+        onChangeRewardXp={setRewardXp}
+        onClose={() => setCreateRewardOpen(false)}
+        onSelectRewardPlace={(place) => {
+          setSelectedRewardPlace(place);
+          setRewardPlaceQuery(place.name);
+          setRewardPlaceSuggestions([]);
+        }}
+        onSubmit={submitReward}
+        rewardDescription={rewardDescription}
+        rewardPlaceQuery={rewardPlaceQuery}
+        rewardPlaceSuggestions={rewardPlaceSuggestions}
+        rewardTitle={rewardTitle}
+        rewardXp={rewardXp}
+        savedCityId={savedCityId}
+        searchingRewardPlaces={searchingRewardPlaces}
+        selectedRewardPlace={selectedRewardPlace}
+        setSelectedRewardPlace={setSelectedRewardPlace}
+        stableModalTopInset={stableModalTopInset}
         visible={createRewardOpen}
-      >
-        <SafeAreaView className="flex-1 bg-white" edges={['bottom']}>
-          <KeyboardAvoidingView
-            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-            className="flex-1"
-          >
-            <ScrollView
-              className="flex-1"
-              contentContainerStyle={{
-                paddingHorizontal: 20,
-                paddingBottom: 36,
-                paddingTop: stableModalTopInset + 14,
-              }}
-              keyboardDismissMode="interactive"
-              keyboardShouldPersistTaps="handled"
-            >
-              <Pressable
-                onPress={() => setCreateRewardOpen(false)}
-                className="mb-5 h-10 w-10 items-center justify-center rounded-full bg-gray-100 active:opacity-80"
-                accessibilityRole="button"
-                accessibilityLabel="Close create reward"
-              >
-                <ArrowLeft size={21} color="#756F7B" strokeWidth={2.6} />
-              </Pressable>
-
-              <View className="mb-5 overflow-hidden rounded-3xl bg-ink">
-                <LinearGradient
-                  colors={['rgba(124,58,237,0.74)', 'rgba(36,28,46,0.98)']}
-                  end={{ x: 1, y: 1 }}
-                  start={{ x: 0, y: 0 }}
-                  style={{ padding: 20 }}
-                >
-                  <Text className="font-heading text-[29px] font-extrabold leading-[33px] text-white">
-                    Create reward
-                  </Text>
-                  <Text className="mt-2 max-w-[290px] text-[13px] leading-5 text-white/80">
-                    Add a partner reward students can unlock with CultureQuest XP.
-                  </Text>
-                </LinearGradient>
-              </View>
-
-              <Text className="mb-2 text-[13px] font-semibold text-ink">Reward title</Text>
-              <TextInput
-                value={rewardTitle}
-                onChangeText={setRewardTitle}
-                placeholder="e.g. Free espresso after check-in"
-                placeholderTextColor="#8B909A"
-                className="mb-4 rounded-xl border border-gray-300 px-4 py-3 text-[15px] text-ink"
-              />
-
-              <Text className="mb-2 text-[13px] font-semibold text-ink">Reward place</Text>
-              <View className="mb-4">
-                <View className="h-12 flex-row items-center gap-3 rounded-xl border border-gray-300 px-4">
-                  <Search size={16} color="#756F7B" strokeWidth={2.4} />
-                  <TextInput
-                    value={rewardPlaceQuery}
-                    onChangeText={(value) => {
-                      setRewardPlaceQuery(value);
-                      setSelectedRewardPlace(null);
-                    }}
-                    placeholder={`Search places in ${cityData.name}`}
-                    placeholderTextColor="#8B909A"
-                    className="flex-1 text-[15px] text-ink"
-                  />
-                  {searchingRewardPlaces && <ActivityIndicator color="#7C3AED" size="small" />}
-                </View>
-                <Text className="mt-2 text-[11px] leading-4 text-muted">
-                  {hasGooglePlacesApiKey
-                    ? 'Powered by Google Places suggestions.'
-                    : 'Google Places key is missing, so only saved city venues are shown.'}
-                </Text>
-
-                {selectedRewardPlace && (
-                  <View className="mt-2 flex-row gap-3 rounded-xl border border-primary/25 bg-primary/10 p-3">
-                    <View className="h-9 w-9 items-center justify-center rounded-full bg-primary/15">
-                      <MapPin size={16} color="#7C3AED" strokeWidth={2.4} />
-                    </View>
-                    <View className="min-w-0 flex-1">
-                      <Text className="font-ui text-[13px] font-bold text-ink" numberOfLines={1}>
-                        {selectedRewardPlace.name}
-                      </Text>
-                      <Text className="text-[11px] leading-4 text-muted" numberOfLines={2}>
-                        {selectedRewardPlace.address}
-                      </Text>
-                    </View>
-                  </View>
-                )}
-
-                {rewardPlaceSuggestions.length > 0 && (
-                  <View className="mt-2 overflow-hidden rounded-xl border border-gray-200 bg-white">
-                    {rewardPlaceSuggestions.map((place) => (
-                      <Pressable
-                        key={`${place.source}-${place.id}`}
-                        onPress={() => {
-                          setSelectedRewardPlace(place);
-                          setRewardPlaceQuery(place.name);
-                          setRewardPlaceSuggestions([]);
-                        }}
-                        className="flex-row items-start gap-3 border-b border-gray-100 p-3 active:bg-gray-50"
-                      >
-                        <View className="h-9 w-9 items-center justify-center rounded-full bg-primary/10">
-                          <MapPin size={16} color="#7C3AED" strokeWidth={2.4} />
-                        </View>
-                        <View className="min-w-0 flex-1">
-                          <Text
-                            className="font-ui text-[13px] font-bold text-ink"
-                            numberOfLines={1}
-                          >
-                            {place.name}
-                          </Text>
-                          <Text className="text-[11px] leading-4 text-muted" numberOfLines={2}>
-                            {place.address}
-                          </Text>
-                        </View>
-                      </Pressable>
-                    ))}
-                  </View>
-                )}
-              </View>
-
-              <Text className="mb-2 text-[13px] font-semibold text-ink">XP required</Text>
-              <TextInput
-                value={rewardXp}
-                onChangeText={setRewardXp}
-                keyboardType="number-pad"
-                placeholder="100"
-                placeholderTextColor="#8B909A"
-                className="mb-4 rounded-xl border border-gray-300 px-4 py-3 text-[15px] text-ink"
-              />
-
-              <Text className="mb-2 text-[13px] font-semibold text-ink">Description</Text>
-              <TextInput
-                value={rewardDescription}
-                onChangeText={setRewardDescription}
-                placeholder="What does the student receive and how should staff verify it?"
-                placeholderTextColor="#8B909A"
-                multiline
-                textAlignVertical="top"
-                className="mb-4 min-h-[112px] rounded-xl border border-gray-300 px-4 py-3 text-[15px] leading-5 text-ink"
-              />
-
-              {createRewardError && (
-                <Text className="mb-4 text-[13px] font-medium text-destructive">
-                  {createRewardError}
-                </Text>
-              )}
-
-              <Pressable
-                onPress={submitReward}
-                className="h-[52px] items-center justify-center rounded-xl bg-primary active:opacity-85"
-              >
-                <Text className="text-[15px] font-semibold text-white">Publish reward</Text>
-              </Pressable>
-            </ScrollView>
-          </KeyboardAvoidingView>
-        </SafeAreaView>
-      </Modal>
+      />
 
       <Modal animationType="slide" onRequestClose={closeBadgesWithAnimation} visible={badgesOpen}>
         <GestureDetector gesture={badgesSwipeGesture}>
@@ -1590,23 +1177,4 @@ function getUserInitials(value?: string | null) {
 
 function getDefaultEventLanguage(cityId: CityId): EventLanguage {
   return cityId === 'lublin' ? 'pl' : 'en';
-}
-
-function getEventCategoryIcon(category: EventCategory): ChoiceIcon {
-  switch (category) {
-    case 'exhibition':
-      return Palette;
-    case 'performance':
-      return Drama;
-    case 'screening':
-      return Clapperboard;
-    case 'workshop':
-      return CalendarPlus;
-    case 'festival':
-      return PartyPopper;
-    case 'concert':
-      return Music;
-    default:
-      return CalendarPlus;
-  }
 }
