@@ -1,6 +1,5 @@
-import * as ImagePicker from 'expo-image-picker';
 import { useEffect, useMemo, useState } from 'react';
-import { Alert, ScrollView, Text, useWindowDimensions, View } from 'react-native';
+import { ScrollView, Text, useWindowDimensions, View } from 'react-native';
 import { Gesture } from 'react-native-gesture-handler';
 import { runOnJS, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -8,7 +7,6 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { BadgesModal } from '@/components/profile/badges-modal';
 import { CreateEventModal } from '@/components/profile/create-event-modal';
 import { CreateRewardModal } from '@/components/profile/create-reward-modal';
-import { startOfMonth } from '@/components/profile/date-time-pickers';
 import { EditProfileModal } from '@/components/profile/edit-profile-modal';
 import {
   DigitalPassportSection,
@@ -18,23 +16,12 @@ import {
   RewardsSection,
 } from '@/components/profile/profile-sections';
 import { RewardDetailModal } from '@/components/profile/reward-detail-modal';
-import { Colors } from '@/constants/theme';
-import {
-  type CityId,
-  type EventCategory,
-  type EventLanguage,
-  type RewardPartner,
-  defaultCityId,
-  getCultureCityData,
-} from '@/data/culture';
-import {
-  achievementBadges,
-  type RedeemedRewardState,
-  getXpLevelProgress,
-  rewardRedeemWindowMs,
-} from '@/data/profile';
-import { createOrganizerEvent } from '@/lib/organizer-events';
-import { type PlaceSuggestion, searchPlaces } from '@/lib/place-search';
+import { type CityId, type RewardPartner, defaultCityId, getCultureCityData } from '@/data/culture';
+import { achievementBadges, getXpLevelProgress } from '@/data/profile';
+import { useCreateEventForm } from '@/hooks/profile/use-create-event-form';
+import { useCreateRewardForm } from '@/hooks/profile/use-create-reward-form';
+import { useEditProfileForm } from '@/hooks/profile/use-edit-profile-form';
+import { useRewardRedemption } from '@/hooks/profile/use-reward-redemption';
 import { useAuth } from '@/providers/auth-provider';
 
 type ProfileScreenProps = {
@@ -60,51 +47,6 @@ export default function ProfileScreen({
     updateProfile,
   } = useAuth();
   const { width } = useWindowDimensions();
-  const [editOpen, setEditOpen] = useState(false);
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const [cityId, setCityId] = useState<CityId>(defaultCityId);
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
-  const [profileError, setProfileError] = useState<string | null>(null);
-  const [savingProfile, setSavingProfile] = useState(false);
-  const [createEventOpen, setCreateEventOpen] = useState(false);
-  const [eventTitle, setEventTitle] = useState('');
-  const [placeQuery, setPlaceQuery] = useState('');
-  const [placeSuggestions, setPlaceSuggestions] = useState<PlaceSuggestion[]>([]);
-  const [selectedPlace, setSelectedPlace] = useState<PlaceSuggestion | null>(null);
-  const [searchingPlaces, setSearchingPlaces] = useState(false);
-  const [eventCategory, setEventCategory] = useState<EventCategory>('workshop');
-  const [eventDate, setEventDate] = useState('');
-  const [eventTime, setEventTime] = useState('');
-  const [eventDescription, setEventDescription] = useState('');
-  const [eventImageUri, setEventImageUri] = useState<string | null>(null);
-  const [eventIsFree, setEventIsFree] = useState(true);
-  const [createEventError, setCreateEventError] = useState<string | null>(null);
-  const [creatingEvent, setCreatingEvent] = useState(false);
-  const [createRewardOpen, setCreateRewardOpen] = useState(false);
-  const [rewardTitle, setRewardTitle] = useState('');
-  const [rewardPlaceQuery, setRewardPlaceQuery] = useState('');
-  const [rewardPlaceSuggestions, setRewardPlaceSuggestions] = useState<PlaceSuggestion[]>([]);
-  const [selectedRewardPlace, setSelectedRewardPlace] = useState<PlaceSuggestion | null>(null);
-  const [searchingRewardPlaces, setSearchingRewardPlaces] = useState(false);
-  const [rewardDescription, setRewardDescription] = useState('');
-  const [rewardXp, setRewardXp] = useState('100');
-  const [createRewardError, setCreateRewardError] = useState<string | null>(null);
-  const [badgesOpen, setBadgesOpen] = useState(false);
-  const [selectedBadge, setSelectedBadge] = useState<(typeof achievementBadges)[number] | null>(
-    null,
-  );
-  const [selectedReward, setSelectedReward] = useState<RewardPartner | null>(null);
-  const [rewardDetailsExpanded, setRewardDetailsExpanded] = useState(false);
-  const [redeemedRewards, setRedeemedRewards] = useState<Record<string, RedeemedRewardState>>({});
-  const unlockedBadgeCount = achievementBadges.filter((badge) => badge.unlocked).length;
-  const [rewardNow, setRewardNow] = useState(() => Date.now());
-  const [datePickerOpen, setDatePickerOpen] = useState(false);
-  const [timePickerOpen, setTimePickerOpen] = useState(false);
-  const [calendarMonth, setCalendarMonth] = useState(() => startOfMonth(new Date()));
-  const [selectedHour, setSelectedHour] = useState(19);
-  const [selectedMinute, setSelectedMinute] = useState(0);
-
   const email = session?.user.email ?? 'Student';
   const metadataName = [
     session?.user.user_metadata?.first_name,
@@ -125,6 +67,116 @@ export default function ProfileScreen({
   );
   const savedAvatarUrl = session?.user.user_metadata?.avatar_url || null;
   const levelProgress = getXpLevelProgress(userXp);
+  const editProfileForm = useEditProfileForm({
+    savedAvatarUrl,
+    savedCityId,
+    savedFirstName,
+    savedLastName,
+    updateProfile,
+  });
+  const createEventForm = useCreateEventForm({
+    onEventCreated,
+    savedCityId,
+    userId: session?.user.id,
+  });
+  const createRewardForm = useCreateRewardForm({
+    onRewardCreated,
+    savedCityId,
+  });
+  const rewardRedemption = useRewardRedemption();
+  const {
+    avatarUrl,
+    cityId,
+    editOpen,
+    firstName,
+    lastName,
+    openEditProfile,
+    pickAvatar,
+    profileError,
+    saveProfile,
+    savingProfile,
+    setCityId,
+    setEditOpen,
+    setFirstName,
+    setLastName,
+  } = editProfileForm;
+  const {
+    calendarMonth,
+    createEventError,
+    createEventOpen,
+    creatingEvent,
+    datePickerOpen,
+    eventCategory,
+    eventDate,
+    eventDescription,
+    eventImageUri,
+    eventIsFree,
+    eventTime,
+    eventTitle,
+    openCreateEvent,
+    pickEventImage,
+    placeQuery,
+    placeSuggestions,
+    searchingPlaces,
+    selectedHour,
+    selectedMinute,
+    selectedPlace,
+    selectPlace,
+    setCalendarMonth,
+    setCreateEventOpen,
+    setDatePickerOpen,
+    setEventCategory,
+    setEventDate,
+    setEventDescription,
+    setEventImageUri,
+    setEventIsFree,
+    setEventTime,
+    setEventTitle,
+    setPlaceQuery,
+    setSelectedHour,
+    setSelectedMinute,
+    setSelectedPlace,
+    setTimePickerOpen,
+    submitEvent,
+    timePickerOpen,
+  } = createEventForm;
+  const {
+    createRewardError,
+    createRewardOpen,
+    openCreateReward,
+    rewardDescription,
+    rewardPlaceQuery,
+    rewardPlaceSuggestions,
+    rewardTitle,
+    rewardXp,
+    searchingRewardPlaces,
+    selectedRewardPlace,
+    selectRewardPlace,
+    setCreateRewardOpen,
+    setRewardDescription,
+    setRewardPlaceQuery,
+    setRewardTitle,
+    setRewardXp,
+    setSelectedRewardPlace,
+    submitReward,
+  } = createRewardForm;
+  const {
+    redeemSelectedReward,
+    resetRewardDetailState,
+    rewardDetailsExpanded,
+    selectedReward,
+    selectedRewardIsActive,
+    selectedRewardIsUsed,
+    selectedRewardRemainingMs,
+    selectedRewardState,
+    setRewardDetailsExpanded,
+    setSelectedReward,
+  } = rewardRedemption;
+  const [badgesOpen, setBadgesOpen] = useState(false);
+  const [selectedBadge, setSelectedBadge] = useState<(typeof achievementBadges)[number] | null>(
+    null,
+  );
+  const unlockedBadgeCount = achievementBadges.filter((badge) => badge.unlocked).length;
   const createEventTranslateX = useSharedValue(0);
   const badgesTranslateX = useSharedValue(0);
   const rewardTranslateX = useSharedValue(0);
@@ -151,7 +203,7 @@ export default function ProfileScreen({
 
           createEventTranslateX.value = withTiming(0, { duration: 180 });
         }),
-    [createEventTranslateX, width],
+    [createEventTranslateX, setCreateEventOpen, width],
   );
 
   const createEventSwipeStyle = useAnimatedStyle(() => ({
@@ -209,19 +261,12 @@ export default function ProfileScreen({
 
           rewardTranslateX.value = withTiming(0, { duration: 180 });
         }),
-    [rewardTranslateX, width],
+    [rewardTranslateX, setSelectedReward, width],
   );
 
   const rewardSwipeStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: rewardTranslateX.value }],
   }));
-
-  useEffect(() => {
-    setFirstName(savedFirstName);
-    setLastName(savedLastName);
-    setCityId(savedCityId);
-    setAvatarUrl(savedAvatarUrl);
-  }, [savedAvatarUrl, savedCityId, savedFirstName, savedLastName]);
 
   useEffect(() => {
     if (session?.user.id) {
@@ -247,100 +292,6 @@ export default function ProfileScreen({
     }
   }, [rewardTranslateX, selectedReward]);
 
-  useEffect(() => {
-    if (!selectedReward) return;
-
-    const interval = setInterval(() => {
-      const nextNow = Date.now();
-      setRewardNow(nextNow);
-      setRedeemedRewards((current) => {
-        const rewardState = current[selectedReward.id];
-        if (!rewardState || rewardState.used) return current;
-        if (nextNow - rewardState.redeemedAt < rewardRedeemWindowMs) return current;
-
-        return {
-          ...current,
-          [selectedReward.id]: {
-            ...rewardState,
-            used: true,
-          },
-        };
-      });
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [selectedReward]);
-
-  useEffect(() => {
-    let active = true;
-
-    async function loadPlaceSuggestions() {
-      if (selectedPlace && placeQuery === selectedPlace.name) {
-        setPlaceSuggestions([]);
-        setSearchingPlaces(false);
-        return;
-      }
-
-      if (placeQuery.trim().length < 2) {
-        setPlaceSuggestions([]);
-        setSearchingPlaces(false);
-        return;
-      }
-
-      setSearchingPlaces(true);
-      const suggestions = await searchPlaces(placeQuery, savedCityId);
-      if (!active) return;
-
-      setPlaceSuggestions(suggestions);
-      setSearchingPlaces(false);
-    }
-
-    loadPlaceSuggestions();
-
-    return () => {
-      active = false;
-    };
-  }, [placeQuery, savedCityId, selectedPlace]);
-
-  useEffect(() => {
-    let active = true;
-
-    async function loadRewardPlaceSuggestions() {
-      if (selectedRewardPlace && rewardPlaceQuery === selectedRewardPlace.name) {
-        setRewardPlaceSuggestions([]);
-        setSearchingRewardPlaces(false);
-        return;
-      }
-
-      if (rewardPlaceQuery.trim().length < 2) {
-        setRewardPlaceSuggestions([]);
-        setSearchingRewardPlaces(false);
-        return;
-      }
-
-      setSearchingRewardPlaces(true);
-      const suggestions = await searchPlaces(rewardPlaceQuery, savedCityId);
-      if (!active) return;
-
-      setRewardPlaceSuggestions(suggestions);
-      setSearchingRewardPlaces(false);
-    }
-
-    loadRewardPlaceSuggestions();
-
-    return () => {
-      active = false;
-    };
-  }, [rewardPlaceQuery, savedCityId, selectedRewardPlace]);
-
-  const selectedRewardState = selectedReward ? redeemedRewards[selectedReward.id] : undefined;
-  const selectedRewardIsUsed = !!selectedRewardState?.used;
-  const selectedRewardIsActive = !!selectedRewardState && !selectedRewardIsUsed;
-  const selectedRewardRemainingMs =
-    selectedRewardState && !selectedRewardIsUsed
-      ? Math.max(0, rewardRedeemWindowMs - (rewardNow - selectedRewardState.redeemedAt))
-      : 0;
-
   if (!session) {
     return (
       <View className="flex-1 items-center justify-center bg-white px-6">
@@ -349,82 +300,6 @@ export default function ProfileScreen({
         </Text>
       </View>
     );
-  }
-
-  async function pickAvatar() {
-    setProfileError(null);
-
-    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!permission.granted) {
-      Alert.alert('Photo access needed', 'Allow photo access to choose a profile picture.');
-      return;
-    }
-
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['images'],
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 0.8,
-    });
-
-    if (!result.canceled) {
-      setAvatarUrl(result.assets[0]?.uri ?? null);
-    }
-  }
-
-  async function saveProfile() {
-    const normalizedFirstName = firstName.trim();
-    const normalizedLastName = lastName.trim();
-
-    if (!normalizedFirstName || !normalizedLastName) {
-      setProfileError('Please enter your first and last name.');
-      return;
-    }
-
-    setProfileError(null);
-    setSavingProfile(true);
-    const result = await updateProfile({
-      firstName: normalizedFirstName,
-      lastName: normalizedLastName,
-      cityId,
-      avatarUrl,
-    });
-    setSavingProfile(false);
-
-    if (result.error) {
-      setProfileError(result.error);
-      return;
-    }
-
-    setEditOpen(false);
-  }
-
-  function resetEventForm() {
-    setEventTitle('');
-    setPlaceQuery('');
-    setPlaceSuggestions([]);
-    setSelectedPlace(null);
-    setEventCategory('workshop');
-    setEventDate('');
-    setEventTime('');
-    setEventDescription('');
-    setEventImageUri(null);
-    setEventIsFree(true);
-    setCreateEventError(null);
-    setCalendarMonth(startOfMonth(new Date()));
-    setSelectedHour(19);
-    setSelectedMinute(0);
-  }
-
-  function resetRewardForm() {
-    setRewardTitle('');
-    setRewardPlaceQuery('');
-    setRewardPlaceSuggestions([]);
-    setSelectedRewardPlace(null);
-    setSearchingRewardPlaces(false);
-    setRewardDescription('');
-    setRewardXp('100');
-    setCreateRewardError(null);
   }
 
   function closeCreateEventWithAnimation() {
@@ -445,117 +320,12 @@ export default function ProfileScreen({
   }
 
   function closeRewardWithAnimation() {
-    setRewardDetailsExpanded(false);
+    resetRewardDetailState();
     rewardTranslateX.value = withTiming(width, { duration: 180 }, (finished) => {
       if (finished) {
         runOnJS(setSelectedReward)(null);
       }
     });
-  }
-
-  async function submitEvent() {
-    const normalizedTitle = eventTitle.trim();
-    const normalizedDate = eventDate.trim();
-    const normalizedTime = eventTime.trim();
-    const normalizedDescription = eventDescription.trim();
-
-    if (!session?.user.id) {
-      setCreateEventError('Log in again before publishing an event.');
-      return;
-    }
-    if (!selectedPlace) {
-      setCreateEventError('Select a suggested place so attendance can be location-verified.');
-      return;
-    }
-    if (!normalizedTitle || !normalizedDate || !normalizedTime || !normalizedDescription) {
-      setCreateEventError('Fill in title, date, time, and description.');
-      return;
-    }
-
-    setCreateEventError(null);
-    setCreatingEvent(true);
-    const result = await createOrganizerEvent(session.user.id, {
-      cityId: savedCityId,
-      place: selectedPlace,
-      title: normalizedTitle,
-      description: normalizedDescription,
-      category: eventCategory,
-      date: normalizedDate,
-      time: normalizedTime,
-      language: getDefaultEventLanguage(savedCityId),
-      isFree: eventIsFree,
-      imageUri: eventImageUri,
-    });
-    setCreatingEvent(false);
-
-    if (result.error) {
-      setCreateEventError(result.error);
-      return;
-    }
-
-    setCreateEventOpen(false);
-    resetEventForm();
-    onEventCreated?.();
-    Alert.alert('Event published', 'Your event is now visible in Discover.');
-  }
-
-  function submitReward() {
-    const normalizedTitle = rewardTitle.trim();
-    const normalizedDescription = rewardDescription.trim();
-    const normalizedXp = Number.parseInt(rewardXp.trim(), 10);
-
-    if (!normalizedTitle || !normalizedDescription) {
-      setCreateRewardError('Fill in reward title, place, and description.');
-      return;
-    }
-    if (!selectedRewardPlace) {
-      setCreateRewardError('Select a suggested place for this reward.');
-      return;
-    }
-    if (!Number.isFinite(normalizedXp) || normalizedXp <= 0) {
-      setCreateRewardError('Enter a valid XP amount.');
-      return;
-    }
-
-    const createdReward: RewardPartner = {
-      id: `organizer-reward-${Date.now()}`,
-      name: selectedRewardPlace.name,
-      category: 'cafe',
-      location: selectedRewardPlace.address,
-      discount: normalizedTitle,
-      description: normalizedDescription,
-      condition: `Unlock at ${normalizedXp} XP`,
-      xpCost: normalizedXp,
-      isPopular: false,
-      badge: 'Organizer',
-      color: Colors.light.primary,
-    };
-
-    onRewardCreated?.(createdReward);
-    setCreateRewardOpen(false);
-    resetRewardForm();
-    Alert.alert('Reward created', 'Your reward is now visible in Rewards.');
-  }
-
-  async function pickEventImage() {
-    setCreateEventError(null);
-
-    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!permission.granted) {
-      Alert.alert('Photo access needed', 'Allow photo access to choose an event photo.');
-      return;
-    }
-
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['images'],
-      allowsEditing: true,
-      aspect: [16, 9],
-      quality: 0.82,
-    });
-
-    if (!result.canceled) {
-      setEventImageUri(result.assets[0]?.uri ?? null);
-    }
   }
 
   return (
@@ -575,17 +345,7 @@ export default function ProfileScreen({
           userXp={userXp}
         />
 
-        <ProfileActions
-          onEdit={() => {
-            setProfileError(null);
-            setFirstName(savedFirstName);
-            setLastName(savedLastName);
-            setCityId(savedCityId);
-            setAvatarUrl(savedAvatarUrl);
-            setEditOpen(true);
-          }}
-          onSignOut={signOut}
-        />
+        <ProfileActions onEdit={openEditProfile} onSignOut={signOut} />
 
         <DigitalPassportSection
           badges={achievementBadges}
@@ -598,14 +358,8 @@ export default function ProfileScreen({
 
         <OrganizerToolsSection
           cityName={cityData.name}
-          onCreateEvent={() => {
-            resetEventForm();
-            setCreateEventOpen(true);
-          }}
-          onCreateReward={() => {
-            resetRewardForm();
-            setCreateRewardOpen(true);
-          }}
+          onCreateEvent={openCreateEvent}
+          onCreateReward={openCreateReward}
           status={organizerApplicationStatus}
         />
 
@@ -664,11 +418,7 @@ export default function ProfileScreen({
         onPickEventImage={pickEventImage}
         onRemoveEventImage={() => setEventImageUri(null)}
         onSelectDate={setEventDate}
-        onSelectPlace={(place) => {
-          setSelectedPlace(place);
-          setPlaceQuery(place.name);
-          setPlaceSuggestions([]);
-        }}
+        onSelectPlace={selectPlace}
         onSubmit={submitEvent}
         placeQuery={placeQuery}
         placeSuggestions={placeSuggestions}
@@ -690,11 +440,7 @@ export default function ProfileScreen({
         onChangeRewardTitle={setRewardTitle}
         onChangeRewardXp={setRewardXp}
         onClose={() => setCreateRewardOpen(false)}
-        onSelectRewardPlace={(place) => {
-          setSelectedRewardPlace(place);
-          setRewardPlaceQuery(place.name);
-          setRewardPlaceSuggestions([]);
-        }}
+        onSelectRewardPlace={selectRewardPlace}
         onSubmit={submitReward}
         rewardDescription={rewardDescription}
         rewardPlaceQuery={rewardPlaceQuery}
@@ -726,19 +472,7 @@ export default function ProfileScreen({
         detailsExpanded={rewardDetailsExpanded}
         gesture={rewardSwipeGesture}
         onClose={closeRewardWithAnimation}
-        onRedeem={() => {
-          if (!selectedReward) return;
-
-          const redeemedAt = Date.now();
-          setRewardNow(redeemedAt);
-          setRedeemedRewards((current) => ({
-            ...current,
-            [selectedReward.id]: {
-              redeemedAt,
-              used: false,
-            },
-          }));
-        }}
+        onRedeem={redeemSelectedReward}
         onToggleDetails={() => setRewardDetailsExpanded((current) => !current)}
         remainingMs={selectedRewardRemainingMs}
         reward={selectedReward}
@@ -763,8 +497,4 @@ function getUserInitials(value?: string | null) {
   if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
 
   return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
-}
-
-function getDefaultEventLanguage(cityId: CityId): EventLanguage {
-  return cityId === 'lublin' ? 'pl' : 'en';
 }
