@@ -1,6 +1,6 @@
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
-import { ArrowLeft, ArrowRight, Bell, Globe, Sparkles, User, X } from 'lucide-react-native';
+import { ArrowLeft, ArrowRight, Bell, Globe, User, X } from 'lucide-react-native';
 import {
   Modal,
   Pressable,
@@ -280,12 +280,7 @@ export default function HomeScreen({
                     {event.date} · {event.venueName}
                   </Text>
                   <View className="flex-row flex-wrap items-center gap-2">
-                    <View className="flex-row items-center gap-0.5">
-                      <Sparkles size={12} color="#7C3AED" />
-                      <Text className="text-[12px] font-bold text-primary">
-                        +{event.xpBonus} XP
-                      </Text>
-                    </View>
+                    <Text className="text-[12px] font-bold text-primary">+{event.xpBonus} XP</Text>
                     {event.isFree && (
                       <View className="rounded-full bg-success/10 px-1.5 py-0.5">
                         <Text className="text-[10px] font-bold text-success">Free</Text>

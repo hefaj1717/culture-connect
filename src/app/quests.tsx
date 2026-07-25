@@ -1,13 +1,5 @@
 import { LinearGradient } from 'expo-linear-gradient';
-import {
-  ArrowLeft,
-  BadgeCheck,
-  Clock3,
-  LockKeyhole,
-  MapPin,
-  Route,
-  Sparkles,
-} from 'lucide-react-native';
+import { ArrowLeft, BadgeCheck, Clock3, LockKeyhole, MapPin, Route } from 'lucide-react-native';
 import { useEffect, useMemo, useState } from 'react';
 import {
   Modal,
@@ -28,7 +20,6 @@ import Animated, {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { BrandImage } from '@/components/brand-image';
-import { Colors } from '@/constants/theme';
 import { type CultureCityData, getCultureCityData } from '@/data/culture';
 
 type QuestStop = {
@@ -153,10 +144,7 @@ function QuestCard({ onPress, quest }: { onPress: () => void; quest: Quest }) {
         </Text>
 
         <View className="mb-3 flex-row items-center justify-between">
-          <View className="flex-row items-center gap-1.5">
-            <Sparkles size={15} color={Colors.light.primary} strokeWidth={2.4} />
-            <Text className="text-[13px] font-extrabold text-primary">+{quest.totalXp} XP</Text>
-          </View>
+          <Text className="text-[13px] font-extrabold text-primary">+{quest.totalXp} XP</Text>
           <Text className="text-[12px] font-semibold text-muted">
             {quest.completedStops} of {totalStops} stops completed
           </Text>
@@ -268,12 +256,9 @@ function QuestDetailModal({
 
             <View className="px-5 pt-5">
               <View className="mb-5 flex-row items-center justify-between rounded-2xl bg-primary/10 p-4">
-                <View className="flex-row items-center gap-2">
-                  <Sparkles size={18} color={Colors.light.primary} strokeWidth={2.5} />
-                  <Text className="text-[15px] font-extrabold text-primary">
-                    {quest.totalXp} XP total
-                  </Text>
-                </View>
+                <Text className="text-[15px] font-extrabold text-primary">
+                  {quest.totalXp} XP total
+                </Text>
                 <Text className="text-[13px] font-semibold text-muted">
                   {quest.completedStops}/{quest.stops.length} stops
                 </Text>
@@ -300,11 +285,7 @@ function QuestDetailModal({
                   questCompleted ? 'bg-gray-200' : 'bg-primary active:opacity-85'
                 }`}
               >
-                {questCompleted ? (
-                  <BadgeCheck size={19} color="#756F7B" strokeWidth={2.4} />
-                ) : (
-                  <Sparkles size={18} color="white" strokeWidth={2.4} />
-                )}
+                {questCompleted && <BadgeCheck size={19} color="#756F7B" strokeWidth={2.4} />}
                 <Text
                   className={`font-ui text-[15px] font-extrabold ${
                     questCompleted ? 'text-muted' : 'text-white'
