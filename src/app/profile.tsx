@@ -257,6 +257,9 @@ export default function ProfileScreen({
   const [rewardXp, setRewardXp] = useState('100');
   const [createRewardError, setCreateRewardError] = useState<string | null>(null);
   const [badgesOpen, setBadgesOpen] = useState(false);
+  const [selectedBadge, setSelectedBadge] = useState<(typeof achievementBadges)[number] | null>(
+    null,
+  );
   const [selectedReward, setSelectedReward] = useState<RewardPartner | null>(null);
   const [redeemedRewards, setRedeemedRewards] = useState<Record<string, RedeemedRewardState>>({});
   const unlockedBadgeCount = achievementBadges.filter((badge) => badge.unlocked).length;
@@ -599,6 +602,7 @@ export default function ProfileScreen({
   }
 
   function closeBadgesWithAnimation() {
+    setSelectedBadge(null);
     badgesTranslateX.value = withTiming(width, { duration: 180 }, (finished) => {
       if (finished) {
         runOnJS(setBadgesOpen)(false);
@@ -826,7 +830,14 @@ export default function ProfileScreen({
             contentContainerStyle={{ paddingHorizontal: 20, gap: 12 }}
           >
             {achievementBadges.slice(0, 8).map((badge) => (
-              <PassportBadge badge={badge} key={badge.id} />
+              <PassportBadge
+                badge={badge}
+                key={badge.id}
+                onPress={() => {
+                  setSelectedBadge(badge);
+                  setBadgesOpen(true);
+                }}
+              />
             ))}
           </ScrollView>
         </View>
@@ -1474,12 +1485,20 @@ export default function ProfileScreen({
                   </View>
                 </View>
 
-                <View className="gap-3">
+                <View className="flex-row flex-wrap gap-3">
                   {achievementBadges.map((badge) => (
-                    <BadgeProgressRow badge={badge} key={badge.id} />
+                    <BadgeGridItem
+                      badge={badge}
+                      itemWidth={(width - 64) / 3}
+                      key={badge.id}
+                      onPress={() => setSelectedBadge(badge)}
+                    />
                   ))}
                 </View>
               </ScrollView>
+              {selectedBadge && (
+                <BadgeDetailSheet badge={selectedBadge} onClose={() => setSelectedBadge(null)} />
+              )}
             </SafeAreaView>
           </Animated.View>
         </GestureDetector>
@@ -1817,9 +1836,16 @@ function ProgressRing({
   );
 }
 
-function PassportBadge({ badge }: { badge: (typeof achievementBadges)[number] }) {
+function PassportBadge({
+  badge,
+  onPress,
+}: {
+  badge: (typeof achievementBadges)[number];
+  onPress: () => void;
+}) {
   return (
     <Pressable
+      onPress={onPress}
       className={`w-[104px] rounded-3xl p-3 active:opacity-80 ${
         badge.unlocked ? 'bg-primary/10' : 'bg-gray-100'
       }`}
@@ -1840,7 +1866,15 @@ function PassportBadge({ badge }: { badge: (typeof achievementBadges)[number] })
   );
 }
 
-function BadgeProgressRow({ badge }: { badge: (typeof achievementBadges)[number] }) {
+function BadgeGridItem({
+  badge,
+  itemWidth,
+  onPress,
+}: {
+  badge: (typeof achievementBadges)[number];
+  itemWidth: number;
+  onPress: () => void;
+}) {
   const progress = getBadgeProgress(badge.progress);
   const hasProgress = !badge.unlocked && progress !== null;
   const progressPercent = progress
@@ -1848,48 +1882,91 @@ function BadgeProgressRow({ badge }: { badge: (typeof achievementBadges)[number]
     : 0;
 
   return (
-    <View
-      className={`rounded-3xl border p-4 ${
-        badge.unlocked ? 'border-primary/15 bg-primary/5' : 'border-gray-200 bg-white'
+    <Pressable
+      onPress={onPress}
+      className={`min-h-[138px] rounded-3xl border p-3 active:opacity-80 ${
+        badge.unlocked ? 'border-primary/20 bg-primary/10' : 'border-gray-200 bg-gray-50'
       }`}
+      style={{ width: itemWidth }}
     >
-      <View className="flex-row items-start gap-3">
-        <BadgeIcon badge={badge} className="h-12 w-12 rounded-2xl" iconSize={22} />
+      <BadgeIcon badge={badge} className="mb-3 h-14 w-14 rounded-2xl" iconSize={24} />
+      <Text
+        className={`font-ui text-[12px] font-extrabold leading-4 ${
+          badge.unlocked ? 'text-ink' : 'text-muted'
+        }`}
+        numberOfLines={2}
+      >
+        {badge.title}
+      </Text>
+      <Text className="mt-1 text-[10px] font-bold text-muted" numberOfLines={1}>
+        {badge.unlocked ? 'Unlocked' : badge.progress}
+      </Text>
+      {hasProgress && (
+        <View className="mt-auto pt-3">
+          <View className="h-1.5 overflow-hidden rounded-full bg-primary/10">
+            <View
+              className="h-full rounded-full bg-primary"
+              style={{ width: `${progressPercent}%` }}
+            />
+          </View>
+        </View>
+      )}
+    </Pressable>
+  );
+}
+
+function BadgeDetailSheet({
+  badge,
+  onClose,
+}: {
+  badge: (typeof achievementBadges)[number];
+  onClose: () => void;
+}) {
+  const progress = getBadgeProgress(badge.progress);
+  const progressPercent = progress
+    ? Math.min(100, Math.max(0, (progress.current / progress.total) * 100))
+    : 0;
+
+  return (
+    <View className="absolute inset-x-0 bottom-0 border-t border-gray-200 bg-white px-5 pb-8 pt-4">
+      <View className="mb-4 flex-row items-start gap-4">
+        <BadgeIcon badge={badge} className="h-16 w-16 rounded-3xl" iconSize={28} />
         <View className="min-w-0 flex-1">
           <View className="mb-1 flex-row items-start justify-between gap-3">
-            <Text
-              className={`shrink font-ui text-[15px] font-extrabold ${
-                badge.unlocked ? 'text-ink' : 'text-muted'
-              }`}
-            >
+            <Text className="min-w-0 flex-1 font-heading text-[24px] font-extrabold leading-7 text-ink">
               {badge.title}
             </Text>
-            <View
-              className={`rounded-full px-2 py-0.5 ${
-                badge.unlocked ? 'bg-primary/10' : 'bg-gray-100'
-              }`}
+            <Pressable
+              onPress={onClose}
+              className="h-9 w-9 items-center justify-center rounded-full bg-gray-100 active:opacity-80"
+              accessibilityRole="button"
+              accessibilityLabel="Close badge detail"
             >
-              <Text
-                className={`text-[10px] font-extrabold ${
-                  badge.unlocked ? 'text-primary' : 'text-muted'
-                }`}
-              >
-                {badge.unlocked ? 'Unlocked' : badge.progress}
-              </Text>
-            </View>
+              <X size={18} color="#756F7B" strokeWidth={2.6} />
+            </Pressable>
           </View>
-          <Text className="text-[12px] leading-4 text-muted">{badge.description}</Text>
-          {hasProgress && (
-            <View className="mt-3">
-              <View className="h-1.5 overflow-hidden rounded-full bg-primary/10">
-                <View
-                  className="h-full rounded-full bg-primary"
-                  style={{ width: `${progressPercent}%` }}
-                />
-              </View>
-            </View>
-          )}
+          <Text className="text-[13px] leading-5 text-muted">{badge.description}</Text>
         </View>
+      </View>
+
+      <View className="rounded-2xl bg-primary/5 p-4">
+        <View className="mb-2 flex-row items-center justify-between">
+          <Text className="text-[11px] font-extrabold uppercase tracking-[2px] text-muted">
+            Progress
+          </Text>
+          <Text className="text-[12px] font-extrabold text-primary">
+            {badge.unlocked ? 'Unlocked' : badge.progress}
+          </Text>
+        </View>
+        {progress ? (
+          <View className="h-2 overflow-hidden rounded-full bg-primary/10">
+            <View className="h-full rounded-full bg-primary" style={{ width: `${progressPercent}%` }} />
+          </View>
+        ) : (
+          <Text className="text-[13px] font-semibold text-muted">
+            Keep exploring to unlock this badge.
+          </Text>
+        )}
       </View>
     </View>
   );
