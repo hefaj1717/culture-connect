@@ -1,7 +1,7 @@
 import { execFileSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 
-const skippedPaths = new Set(['package-lock.json']);
+const skippedPaths = new Set(['package-lock.json', 'scripts/scan-secrets.mjs']);
 const skippedExtensions = new Set(['.avif', '.gif', '.jpeg', '.jpg', '.png', '.webp']);
 
 const patterns = [

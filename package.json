@@ -59,6 +59,7 @@
     "security:audit": "npm audit --audit-level=moderate",
     "security:secrets": "node scripts/scan-secrets.mjs",
     "security:check": "npm run security:audit && npm run security:secrets",
+    "quality:frontend": "npm run lint && npx tsc --noEmit && npm run security:check",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
   },
