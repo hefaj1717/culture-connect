@@ -190,7 +190,7 @@ export function AuthScreen() {
     if (result.needsConfirmation) {
       setPendingEmail(normalizedEmail);
       setMode('confirmSignUp');
-      setNotice('Check your inbox. Confirm your email with the link, or enter the code here.');
+      setNotice('Check your inbox. Enter the code if shown, or use the confirmation link.');
       return;
     }
 
@@ -209,7 +209,7 @@ export function AuthScreen() {
     const normalizedCode = confirmationCode.trim();
 
     if (!normalizedEmail || !normalizedCode) {
-      setError('Please enter the confirmation code from your email, or tap the email link.');
+      setError('Please enter the verification code from your email.');
       return;
     }
 
@@ -288,19 +288,20 @@ export function AuthScreen() {
             {mode === 'confirmSignUp' ? (
               <>
                 <Text className="mb-4 text-[14px] leading-5 text-muted">
-                  We sent a confirmation email to {pendingEmail || email}. Tap the link in that
-                  email, or enter the confirmation code if one is shown.
+                  We sent a confirmation email to {pendingEmail || email}. Enter the verification
+                  code if your email shows one, or use the confirmation link.
                 </Text>
                 <AuthInput
                   inputRef={confirmationCodeRef}
                   value={confirmationCode}
                   onChangeText={setConfirmationCode}
-                  placeholder="Confirmation code"
+                  placeholder="Verification code"
                   placeholderTextColor="#8B909A"
                   autoCapitalize="none"
                   keyboardType="number-pad"
                   textContentType="oneTimeCode"
                   autoComplete="one-time-code"
+                  maxLength={8}
                   returnKeyType="done"
                   onSubmitEditing={handleConfirmCode}
                   className="mb-4 rounded-xl border border-gray-300 px-4 py-3 text-[15px] text-ink"
