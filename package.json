@@ -56,8 +56,17 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "lint": "expo lint",
+    "security:audit": "npm audit --audit-level=moderate",
+    "security:secrets": "node scripts/scan-secrets.mjs",
+    "security:check": "npm run security:audit && npm run security:secrets",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
+  },
+  "overrides": {
+    "brace-expansion": "5.0.8",
+    "postcss": "8.5.18",
+    "tar": "7.5.22",
+    "uuid": "11.1.1"
   },
   "private": true
 }
