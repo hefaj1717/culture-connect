@@ -14,11 +14,14 @@ export type OrganizerApplicationInput = {
 };
 
 export type OrganizerApplicationStatus = 'none' | 'pending' | 'approved' | 'rejected';
+export type AppRole = 'admin' | 'organizer' | 'user' | 'guest';
 
 type AuthContextValue = {
   session: Session | null;
   user: User | null;
   loading: boolean;
+  roles: AppRole[];
+  hasRole: (role: AppRole) => boolean;
   organizerApplicationStatus: OrganizerApplicationStatus;
   refreshOrganizerApplicationStatus: () => Promise<void>;
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
@@ -51,6 +54,7 @@ function getUrlParam(url: string, key: string) {
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [roles, setRoles] = useState<AppRole[]>(['guest']);
   const [organizerApplicationStatus, setOrganizerApplicationStatus] =
     useState<OrganizerApplicationStatus>('none');
 
@@ -95,6 +99,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
+  const refreshRoles = useCallback(async () => {
+    if (!session?.user.id) {
+      setRoles(['guest']);
+      return;
+    }
+
+    const { data, error } = await supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', session.user.id);
+
+    if (error) {
+      setRoles(['user']);
+      return;
+    }
+
+    const nextRoles = data
+      .map((row) => row.role)
+      .filter(
+        (role): role is AppRole =>
+          role === 'admin' || role === 'organizer' || role === 'user' || role === 'guest',
+      );
+
+    setRoles(nextRoles.length > 0 ? nextRoles : ['user']);
+  }, [session?.user.id]);
+
   const refreshOrganizerApplicationStatus = useCallback(async () => {
     if (!session?.user.id) {
       setOrganizerApplicationStatus('none');
@@ -137,8 +167,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => clearInterval(refreshInterval);
   }, [refreshOrganizerApplicationStatus, session?.user.id]);
 
+  useEffect(() => {
+    refreshRoles();
+  }, [refreshRoles]);
+
   async function signIn(email: string, password: string) {
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { error } = await supabase.auth.signInWithPassword({
+      email: email.trim().toLowerCase(),
+      password,
+    });
     return { error: error?.message ?? null };
   }
 
@@ -150,6 +187,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     cityId: CityId,
     organizerApplication?: OrganizerApplicationInput | null,
   ) {
+    const normalizedEmail = email.trim().toLowerCase();
     const fullName = `${firstName} ${lastName}`.trim();
     const normalizedOrganizerApplication = organizerApplication
       ? {
@@ -162,7 +200,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       : null;
 
     const { data, error } = await supabase.auth.signUp({
-      email,
+      email: normalizedEmail,
       password,
       options: {
         data: {
@@ -183,7 +221,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   async function verifySignUpCode(email: string, token: string) {
     const { error } = await supabase.auth.verifyOtp({
-      email,
+      email: email.trim().toLowerCase(),
       token,
       type: 'signup',
     });
@@ -192,7 +230,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   async function resendSignUpCode(email: string) {
     const { error } = await supabase.auth.resend({
-      email,
+      email: email.trim().toLowerCase(),
       type: 'signup',
     });
     return { error: error?.message ?? null };
@@ -249,6 +287,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         session,
         user: session?.user ?? null,
         loading,
+        roles,
+        hasRole: (role) => roles.includes(role),
         organizerApplicationStatus,
         refreshOrganizerApplicationStatus,
         signIn,

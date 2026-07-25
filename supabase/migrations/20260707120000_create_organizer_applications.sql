@@ -31,13 +31,22 @@ CREATE TABLE IF NOT EXISTS public.organizer_applications (
 
 ALTER TABLE public.organizer_applications ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Users can view their own organizer applications"
+  ON public.organizer_applications;
+
 CREATE POLICY "Users can view their own organizer applications"
   ON public.organizer_applications FOR SELECT TO authenticated
   USING (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Users can submit their own organizer applications"
+  ON public.organizer_applications;
+
 CREATE POLICY "Users can submit their own organizer applications"
   ON public.organizer_applications FOR INSERT TO authenticated
   WITH CHECK (auth.uid() = user_id AND status = 'pending');
+
+DROP TRIGGER IF EXISTS organizer_applications_set_updated_at
+  ON public.organizer_applications;
 
 CREATE TRIGGER organizer_applications_set_updated_at
   BEFORE UPDATE ON public.organizer_applications
