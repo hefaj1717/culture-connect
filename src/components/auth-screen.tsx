@@ -24,6 +24,7 @@ const organizerTypes = [
   { key: 'student_organization', label: 'Student organization' },
   { key: 'city_partner', label: 'City partner' },
 ];
+const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export function AuthScreen() {
   const { signIn, signUp, verifySignUpCode, resendSignUpCode } = useAuth();
@@ -49,7 +50,7 @@ export function AuthScreen() {
     setError(null);
     setNotice(null);
 
-    const normalizedEmail = email.trim();
+    const normalizedEmail = email.trim().toLowerCase();
     const normalizedFirstName = firstName.trim();
     const normalizedLastName = lastName.trim();
 
@@ -62,8 +63,23 @@ export function AuthScreen() {
       return;
     }
 
-    if (mode === 'signUp' && password.length < 6) {
-      setError('Password must be at least 6 characters.');
+    if (!emailPattern.test(normalizedEmail)) {
+      setError('Please enter a valid email address.');
+      return;
+    }
+
+    if (mode === 'signUp' && password.length < 8) {
+      setError('Password must be at least 8 characters.');
+      return;
+    }
+
+    if (mode === 'signUp' && !/[A-Za-z]/.test(password)) {
+      setError('Password must include at least one letter.');
+      return;
+    }
+
+    if (mode === 'signUp' && !/[0-9]/.test(password)) {
+      setError('Password must include at least one number.');
       return;
     }
 

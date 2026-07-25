@@ -45,9 +45,15 @@ CREATE TABLE IF NOT EXISTS public.organizer_events (
 
 ALTER TABLE public.organizer_events ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Organizer events are viewable by authenticated users"
+  ON public.organizer_events;
+
 CREATE POLICY "Organizer events are viewable by authenticated users"
   ON public.organizer_events FOR SELECT TO authenticated
   USING (status = 'published' OR organizer_user_id = auth.uid());
+
+DROP POLICY IF EXISTS "Approved organizers can create events"
+  ON public.organizer_events;
 
 CREATE POLICY "Approved organizers can create events"
   ON public.organizer_events FOR INSERT TO authenticated
@@ -55,6 +61,9 @@ CREATE POLICY "Approved organizers can create events"
     organizer_user_id = auth.uid()
     AND public.is_approved_organizer(auth.uid())
   );
+
+DROP POLICY IF EXISTS "Approved organizers can update their events"
+  ON public.organizer_events;
 
 CREATE POLICY "Approved organizers can update their events"
   ON public.organizer_events FOR UPDATE TO authenticated
@@ -67,9 +76,15 @@ CREATE POLICY "Approved organizers can update their events"
     AND public.is_approved_organizer(auth.uid())
   );
 
+DROP TRIGGER IF EXISTS organizer_events_set_updated_at
+  ON public.organizer_events;
+
 CREATE TRIGGER organizer_events_set_updated_at
   BEFORE UPDATE ON public.organizer_events
   FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
 
-CREATE INDEX idx_organizer_events_city ON public.organizer_events (city_key, status);
-CREATE INDEX idx_organizer_events_organizer ON public.organizer_events (organizer_user_id);
+CREATE INDEX IF NOT EXISTS idx_organizer_events_city
+  ON public.organizer_events (city_key, status);
+
+CREATE INDEX IF NOT EXISTS idx_organizer_events_organizer
+  ON public.organizer_events (organizer_user_id);
