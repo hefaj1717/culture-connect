@@ -251,12 +251,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   async function verifySignUpCode(email: string, token: string) {
+    const normalizedEmail = email.trim().toLowerCase();
+    const normalizedToken = token.trim();
     const { error } = await supabase.auth.verifyOtp({
-      email: email.trim().toLowerCase(),
-      token,
+      email: normalizedEmail,
+      token: normalizedToken,
+      type: 'email',
+    });
+
+    if (!error) {
+      return { error: null };
+    }
+
+    const fallback = await supabase.auth.verifyOtp({
+      email: normalizedEmail,
+      token: normalizedToken,
       type: 'signup',
     });
-    return { error: error?.message ?? null };
+
+    return { error: fallback.error?.message ?? error.message };
   }
 
   async function resendSignUpCode(email: string) {

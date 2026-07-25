@@ -250,6 +250,13 @@ otp_expiry = 3600
 # admin_email = "admin@email.com"
 # sender_name = "Admin"
 
+# Custom signup confirmation email. Keep this disabled until a custom SMTP provider
+# is configured in Supabase; free-tier projects using the default email provider
+# reject remote template updates.
+# [auth.email.template.confirmation]
+# subject = "Your CultureQuest verification code"
+# content_path = "./supabase/templates/confirmation.html"
+
 # Uncomment to customize email template
 # [auth.email.template.invite]
 # subject = "You have been invited"
