@@ -1,34 +1,11 @@
 import * as ImagePicker from 'expo-image-picker';
-import { LinearGradient } from 'expo-linear-gradient';
-import {
-  ArrowLeft,
-  Building2,
-  CalendarPlus,
-  Coffee,
-  Compass,
-  Crown,
-  Gift,
-  Globe,
-  Sparkles,
-  TicketCheck,
-  Trophy,
-} from 'lucide-react-native';
 import { useEffect, useMemo, useState } from 'react';
-import { Alert, Modal, Pressable, ScrollView, Text, useWindowDimensions, View } from 'react-native';
-import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import Animated, {
-  runOnJS,
-  useAnimatedStyle,
-  useSharedValue,
-  withTiming,
-} from 'react-native-reanimated';
+import { Alert, ScrollView, Text, useWindowDimensions, View } from 'react-native';
+import { Gesture } from 'react-native-gesture-handler';
+import { runOnJS, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import {
-  BadgeDetailSheet,
-  BadgeGridItem,
-  type AchievementBadge,
-} from '@/components/profile/badges';
+import { BadgesModal } from '@/components/profile/badges-modal';
 import { CreateEventModal } from '@/components/profile/create-event-modal';
 import { CreateRewardModal } from '@/components/profile/create-reward-modal';
 import { startOfMonth } from '@/components/profile/date-time-pickers';
@@ -40,6 +17,7 @@ import {
   ProfileRankCard,
   RewardsSection,
 } from '@/components/profile/profile-sections';
+import { RewardDetailModal } from '@/components/profile/reward-detail-modal';
 import { Colors } from '@/constants/theme';
 import {
   type CityId,
@@ -49,118 +27,15 @@ import {
   defaultCityId,
   getCultureCityData,
 } from '@/data/culture';
+import {
+  achievementBadges,
+  type RedeemedRewardState,
+  getXpLevelProgress,
+  rewardRedeemWindowMs,
+} from '@/data/profile';
 import { createOrganizerEvent } from '@/lib/organizer-events';
 import { type PlaceSuggestion, searchPlaces } from '@/lib/place-search';
 import { useAuth } from '@/providers/auth-provider';
-
-const rewardRedeemWindowMs = 5 * 60 * 1000;
-
-const xpLevels = [
-  { name: 'Newcomer', minXp: 0 },
-  { name: 'Explorer', minXp: 200 },
-  { name: 'Connector', minXp: 600 },
-  { name: 'Influencer', minXp: 1200 },
-  { name: 'Tastemaker', minXp: 2000 },
-  { name: 'City Legend', minXp: 3200 },
-];
-
-type RedeemedRewardState = {
-  redeemedAt: number;
-  used: boolean;
-};
-
-const achievementBadges: AchievementBadge[] = [
-  {
-    id: 'first-quest',
-    title: 'First Quest',
-    description: 'Attend your first CultureQuest event.',
-    progress: '0 / 1',
-    unlocked: false,
-    icon: TicketCheck,
-    color: Colors.light.primary,
-  },
-  {
-    id: 'culture-regular',
-    title: 'Culture Regular',
-    description: 'Attend 10 events across your city.',
-    progress: '0 / 10',
-    unlocked: false,
-    icon: CalendarPlus,
-    color: Colors.light.primary,
-  },
-  {
-    id: 'reward-hunter',
-    title: 'Reward Hunter',
-    description: 'Redeem 10 rewards from local partners.',
-    progress: '0 / 10',
-    unlocked: false,
-    icon: Gift,
-    color: Colors.light.primary,
-  },
-  {
-    id: 'museum-mind',
-    title: 'Museum Mind',
-    description: 'Check in at 5 museum or gallery events.',
-    progress: '0 / 5',
-    unlocked: false,
-    icon: Building2,
-    color: Colors.light.primary,
-  },
-  {
-    id: 'city-explorer',
-    title: 'City Explorer',
-    description: 'Visit 8 different venues in one city.',
-    progress: '0 / 8',
-    unlocked: false,
-    icon: Compass,
-    color: Colors.light.primary,
-  },
-  {
-    id: 'social-spark',
-    title: 'Social Spark',
-    description: 'Mark Going on 5 events before attending.',
-    progress: '0 / 5',
-    unlocked: false,
-    icon: Sparkles,
-    color: Colors.light.primary,
-  },
-  {
-    id: 'international-eye',
-    title: 'International Eye',
-    description: 'Join 3 multilingual or international events.',
-    progress: '0 / 3',
-    unlocked: false,
-    icon: Globe,
-    color: Colors.light.primary,
-  },
-  {
-    id: 'coffee-route',
-    title: 'Coffee Route',
-    description: 'Redeem rewards at 3 cafe partners.',
-    progress: '0 / 3',
-    unlocked: false,
-    icon: Coffee,
-    color: Colors.light.primary,
-  },
-  {
-    id: 'top-week',
-    title: 'Top 10 Week',
-    description: 'Reach the weekly city leaderboard top 10.',
-    progress: 'Not ranked',
-    unlocked: false,
-    icon: Trophy,
-    color: Colors.light.primary,
-  },
-  {
-    id: 'founding-student',
-    title: 'Founding Student',
-    description: 'Join CultureQuest during the pilot season.',
-    progress: 'Locked',
-    unlocked: false,
-    icon: Crown,
-    color: Colors.light.primary,
-  },
-];
 
 type ProfileScreenProps = {
   onEventCreated?: () => void;
@@ -223,7 +98,6 @@ export default function ProfileScreen({
   const [rewardDetailsExpanded, setRewardDetailsExpanded] = useState(false);
   const [redeemedRewards, setRedeemedRewards] = useState<Record<string, RedeemedRewardState>>({});
   const unlockedBadgeCount = achievementBadges.filter((badge) => badge.unlocked).length;
-  const totalBadgeCount = achievementBadges.length;
   const [rewardNow, setRewardNow] = useState(() => Date.now());
   const [datePickerOpen, setDatePickerOpen] = useState(false);
   const [timePickerOpen, setTimePickerOpen] = useState(false);
@@ -835,330 +709,46 @@ export default function ProfileScreen({
         visible={createRewardOpen}
       />
 
-      <Modal animationType="slide" onRequestClose={closeBadgesWithAnimation} visible={badgesOpen}>
-        <GestureDetector gesture={badgesSwipeGesture}>
-          <Animated.View className="flex-1 bg-white" style={badgesSwipeStyle}>
-            <SafeAreaView className="flex-1 bg-white" edges={['bottom']}>
-              <ScrollView
-                className="flex-1"
-                contentContainerStyle={{
-                  paddingHorizontal: 20,
-                  paddingBottom: 36,
-                  paddingTop: stableModalTopInset + 18,
-                }}
-                showsVerticalScrollIndicator={false}
-              >
-                <View className="mb-5 flex-row items-center justify-between">
-                  <Pressable
-                    onPress={closeBadgesWithAnimation}
-                    className="h-10 w-10 items-center justify-center rounded-full bg-gray-100 active:opacity-80"
-                    accessibilityRole="button"
-                    accessibilityLabel="Close badges"
-                  >
-                    <ArrowLeft size={21} color="#756F7B" strokeWidth={2.6} />
-                  </Pressable>
-                  <View className="rounded-full bg-primary/10 px-3 py-1.5">
-                    <Text className="text-[12px] font-extrabold text-primary">
-                      {unlockedBadgeCount} / {totalBadgeCount} completed
-                    </Text>
-                  </View>
-                </View>
+      <BadgesModal
+        badges={achievementBadges}
+        gesture={badgesSwipeGesture}
+        itemWidth={(width - 64) / 3}
+        onClose={closeBadgesWithAnimation}
+        onSelectBadge={setSelectedBadge}
+        selectedBadge={selectedBadge}
+        stableModalTopInset={stableModalTopInset}
+        swipeStyle={badgesSwipeStyle}
+        unlockedBadgeCount={unlockedBadgeCount}
+        visible={badgesOpen}
+      />
 
-                <View className="flex-row flex-wrap gap-3">
-                  {achievementBadges.map((badge) => (
-                    <BadgeGridItem
-                      badge={badge}
-                      itemWidth={(width - 64) / 3}
-                      key={badge.id}
-                      onPress={() => setSelectedBadge(badge)}
-                    />
-                  ))}
-                </View>
-              </ScrollView>
-              {selectedBadge && (
-                <BadgeDetailSheet badge={selectedBadge} onClose={() => setSelectedBadge(null)} />
-              )}
-            </SafeAreaView>
-          </Animated.View>
-        </GestureDetector>
-      </Modal>
+      <RewardDetailModal
+        detailsExpanded={rewardDetailsExpanded}
+        gesture={rewardSwipeGesture}
+        onClose={closeRewardWithAnimation}
+        onRedeem={() => {
+          if (!selectedReward) return;
 
-      <Modal
-        animationType="slide"
-        onRequestClose={closeRewardWithAnimation}
-        visible={!!selectedReward}
-      >
-        {selectedReward && (
-          <GestureDetector gesture={rewardSwipeGesture}>
-            <Animated.View className="flex-1 bg-white" style={rewardSwipeStyle}>
-              <SafeAreaView className="flex-1 bg-white" edges={['top', 'bottom']}>
-                <View className="bg-white px-5 pb-3 pt-2">
-                  <Pressable
-                    onPress={closeRewardWithAnimation}
-                    className="h-10 w-10 items-center justify-center rounded-full bg-gray-100 active:opacity-80"
-                    accessibilityRole="button"
-                    accessibilityLabel="Close reward"
-                  >
-                    <ArrowLeft size={21} color="#756F7B" strokeWidth={2.6} />
-                  </Pressable>
-                </View>
-                <ScrollView
-                  className="flex-1"
-                  contentContainerStyle={{
-                    paddingHorizontal: 20,
-                    paddingBottom: 28,
-                    paddingTop: 10,
-                  }}
-                  showsVerticalScrollIndicator={false}
-                >
-                  <View className="mb-5 overflow-hidden rounded-[28px] bg-ink">
-                    <LinearGradient
-                      colors={['rgba(124,58,237,0.9)', 'rgba(36,28,46,0.98)']}
-                      end={{ x: 1, y: 1 }}
-                      start={{ x: 0, y: 0 }}
-                      style={{ paddingBottom: 24, paddingHorizontal: 24, paddingTop: 24 }}
-                    >
-                      <View className="mb-6 flex-row items-start justify-between gap-4">
-                        <View className="min-w-0 flex-1">
-                          <Text
-                            className="mb-2 text-[10px] font-bold uppercase leading-[15px] tracking-[1.6px] text-white opacity-65"
-                            numberOfLines={1}
-                          >
-                            {selectedReward.location}
-                          </Text>
-                          <Text
-                            className="font-ui text-[17px] font-extrabold leading-6 text-white"
-                            numberOfLines={2}
-                          >
-                            {selectedReward.name}
-                          </Text>
-                        </View>
-                        <View className="rounded-full bg-white/10 px-3 py-1.5">
-                          <Text className="text-[10px] font-extrabold uppercase tracking-wide text-white opacity-90">
-                            Partner
-                          </Text>
-                        </View>
-                      </View>
-
-                      <Text className="mb-2 text-[10px] font-bold uppercase leading-[15px] tracking-[2px] text-white opacity-65">
-                        Reward
-                      </Text>
-                      <Text className="font-heading text-[31px] font-extrabold leading-[36px] text-white">
-                        {selectedReward.discount}
-                      </Text>
-                      <Text
-                        className="mt-4 text-[14px] leading-6 text-white opacity-90"
-                        numberOfLines={rewardDetailsExpanded ? undefined : 3}
-                      >
-                        {selectedReward.description ??
-                          'Unlock this reward with CultureQuest XP, then show the pickup screen to staff before ordering or paying.'}
-                      </Text>
-
-                      <View className="mt-5 border-t border-white/10 pt-4">
-                        <Pressable
-                          onPress={() => setRewardDetailsExpanded((current) => !current)}
-                          className="flex-row items-center justify-between gap-3 active:opacity-80"
-                        >
-                          <View className="min-w-0 flex-1">
-                            <Text className="text-[11px] font-extrabold uppercase tracking-[1.8px] text-white opacity-65">
-                              Redemption details
-                            </Text>
-                            <Text className="mt-1 text-[13px] font-semibold leading-5 text-white opacity-90">
-                              {selectedReward.condition}
-                            </Text>
-                          </View>
-                          <Text className="text-[12px] font-extrabold text-accent">
-                            {rewardDetailsExpanded ? 'Hide' : 'Show'}
-                          </Text>
-                        </Pressable>
-
-                        {rewardDetailsExpanded && (
-                          <View className="mt-4 gap-2">
-                            {[
-                              `Visit ${selectedReward.name}.`,
-                              'Tap Redeem only when you are with staff.',
-                              'Show the pickup card before the reward is applied.',
-                            ].map((step, index) => (
-                              <View className="flex-row items-start gap-3" key={step}>
-                                <Text className="w-5 text-[12px] font-extrabold text-accent">
-                                  {index + 1}.
-                                </Text>
-                                <Text className="flex-1 text-[13px] leading-5 text-white opacity-80">
-                                  {step}
-                                </Text>
-                              </View>
-                            ))}
-                          </View>
-                        )}
-                      </View>
-                    </LinearGradient>
-                  </View>
-
-                  <View className="mb-3 overflow-hidden rounded-[28px] bg-ink">
-                    <LinearGradient
-                      colors={['rgba(36,28,46,0.98)', 'rgba(124,58,237,0.86)']}
-                      end={{ x: 1, y: 1 }}
-                      start={{ x: 0, y: 0 }}
-                      style={{ paddingBottom: 20, paddingHorizontal: 22, paddingTop: 24 }}
-                    >
-                      <View className="mb-4 flex-row items-start justify-between gap-3">
-                        <View className="min-w-0 flex-1">
-                          <Text className="text-[10px] font-bold uppercase leading-[16px] tracking-[1.6px] text-white opacity-65">
-                            Staff pickup
-                          </Text>
-                          <Text
-                            className="mt-1 font-heading text-[24px] font-extrabold leading-[29px] text-white"
-                            numberOfLines={2}
-                          >
-                            {selectedRewardIsUsed
-                              ? 'Coupon used'
-                              : selectedRewardIsActive
-                                ? 'Show this screen'
-                                : 'Ready to redeem'}
-                          </Text>
-                        </View>
-                        <View
-                          className={`rounded-full px-3 py-1 ${
-                            selectedRewardIsUsed
-                              ? 'bg-white/10'
-                              : selectedRewardIsActive
-                                ? 'bg-primary/20'
-                                : 'bg-white/10'
-                          }`}
-                        >
-                          <Text
-                            className={`text-[11px] font-bold ${
-                              selectedRewardIsUsed
-                                ? 'text-white opacity-75'
-                                : selectedRewardIsActive
-                                  ? 'text-white'
-                                  : 'text-white opacity-75'
-                            }`}
-                          >
-                            {selectedRewardIsUsed
-                              ? 'Used'
-                              : selectedRewardIsActive
-                                ? formatRewardTime(selectedRewardRemainingMs)
-                                : 'Not redeemed'}
-                          </Text>
-                        </View>
-                      </View>
-
-                      <View className="rounded-[22px] border border-dashed border-accent/80 bg-white/10 px-4 py-5">
-                        <Text className="mb-2 text-center text-[10px] font-bold uppercase leading-[14px] tracking-[1.8px] text-white opacity-65">
-                          CultureQuest reward
-                        </Text>
-                        <Text className="text-center font-heading text-[21px] font-extrabold leading-[27px] text-white">
-                          {selectedReward.discount}
-                        </Text>
-                        {selectedRewardIsActive && (
-                          <Text className="mt-4 text-center font-ui text-[32px] font-extrabold tracking-widest text-accent">
-                            {getRewardPickupCode(selectedReward)}
-                          </Text>
-                        )}
-                        {!selectedRewardState && (
-                          <Text className="mt-4 text-center text-[16px] font-extrabold text-white opacity-80">
-                            Code hidden until redeem
-                          </Text>
-                        )}
-                        {selectedRewardIsUsed && (
-                          <Text className="mt-4 text-center text-[16px] font-extrabold text-white opacity-80">
-                            This coupon has already been used.
-                          </Text>
-                        )}
-                        <Text className="mt-3 text-center text-[12px] leading-4 text-white opacity-75">
-                          {selectedRewardIsActive
-                            ? `Valid for ${formatRewardTime(selectedRewardRemainingMs)} at ${
-                                selectedReward.name
-                              }. Staff confirms before applying the reward.`
-                            : selectedRewardIsUsed
-                              ? 'The reward code is no longer visible after use.'
-                              : 'Tap Redeem only when you are ready to show this screen to staff.'}
-                        </Text>
-                      </View>
-                    </LinearGradient>
-                  </View>
-
-                  <Pressable
-                    onPress={() => {
-                      const redeemedAt = Date.now();
-                      setRewardNow(redeemedAt);
-                      setRedeemedRewards((current) => ({
-                        ...current,
-                        [selectedReward.id]: {
-                          redeemedAt,
-                          used: false,
-                        },
-                      }));
-                    }}
-                    disabled={!!selectedRewardState}
-                    className={`h-[52px] items-center justify-center rounded-xl active:opacity-85 ${
-                      selectedRewardState ? 'bg-gray-200' : 'bg-primary'
-                    }`}
-                  >
-                    <Text
-                      className={`text-[15px] font-semibold ${
-                        selectedRewardState ? 'text-muted' : 'text-white'
-                      }`}
-                    >
-                      {selectedRewardIsUsed
-                        ? 'Coupon already used'
-                        : selectedRewardIsActive
-                          ? 'Coupon active'
-                          : 'Redeem'}
-                    </Text>
-                  </Pressable>
-                </ScrollView>
-              </SafeAreaView>
-            </Animated.View>
-          </GestureDetector>
-        )}
-      </Modal>
+          const redeemedAt = Date.now();
+          setRewardNow(redeemedAt);
+          setRedeemedRewards((current) => ({
+            ...current,
+            [selectedReward.id]: {
+              redeemedAt,
+              used: false,
+            },
+          }));
+        }}
+        onToggleDetails={() => setRewardDetailsExpanded((current) => !current)}
+        remainingMs={selectedRewardRemainingMs}
+        reward={selectedReward}
+        rewardIsActive={selectedRewardIsActive}
+        rewardIsUsed={selectedRewardIsUsed}
+        rewardStateExists={!!selectedRewardState}
+        swipeStyle={rewardSwipeStyle}
+      />
     </SafeAreaView>
   );
-}
-
-function getRewardPickupCode(reward: RewardPartner) {
-  return `CQ-${
-    reward.id
-      .replace(/[^a-z0-9]/gi, '')
-      .slice(-4)
-      .toUpperCase() || 'REWD'
-  }`;
-}
-
-function formatRewardTime(milliseconds: number) {
-  const totalSeconds = Math.max(0, Math.ceil(milliseconds / 1000));
-  const minutes = Math.floor(totalSeconds / 60);
-  const seconds = totalSeconds % 60;
-
-  return `${minutes}:${seconds.toString().padStart(2, '0')}`;
-}
-
-function getXpLevelProgress(xp: number) {
-  const currentLevel = [...xpLevels].reverse().find((level) => xp >= level.minXp) ?? xpLevels[0];
-  const currentIndex = xpLevels.findIndex((level) => level.name === currentLevel.name);
-  const nextLevel = xpLevels[currentIndex + 1] ?? null;
-
-  if (!nextLevel) {
-    return {
-      currentLevel,
-      nextLevel,
-      progressPercent: 100,
-      xpToNext: 0,
-    };
-  }
-
-  const levelSpan = nextLevel.minXp - currentLevel.minXp;
-  const xpInsideLevel = xp - currentLevel.minXp;
-  const progressPercent = Math.min(100, Math.max(0, (xpInsideLevel / levelSpan) * 100));
-
-  return {
-    currentLevel,
-    nextLevel,
-    progressPercent,
-    xpToNext: nextLevel.minXp - xp,
-  };
 }
 
 function getUserInitials(value?: string | null) {
