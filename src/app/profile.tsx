@@ -52,7 +52,6 @@ import Animated, {
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Circle } from 'react-native-svg';
 
-import { AuthScreen } from '@/components/auth-screen';
 import { BrandImage } from '@/components/brand-image';
 import { CitySelector } from '@/components/city-selector';
 import { Colors } from '@/constants/theme';
@@ -506,7 +505,13 @@ export default function ProfileScreen({
       : 0;
 
   if (!session) {
-    return <AuthScreen />;
+    return (
+      <View className="flex-1 items-center justify-center bg-white px-6">
+        <Text className="text-center font-body text-[15px] text-muted">
+          Log in to view your profile.
+        </Text>
+      </View>
+    );
   }
 
   async function pickAvatar() {

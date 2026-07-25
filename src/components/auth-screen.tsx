@@ -6,6 +6,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   Pressable,
+  type TextInputProps,
   ScrollView,
   StyleSheet,
   Text,
@@ -25,6 +26,41 @@ const organizerTypes = [
   { key: 'city_partner', label: 'City partner' },
 ];
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+type AuthInputProps = TextInputProps & {
+  inputClassName?: string;
+  inputRef?: ((node: TextInput | null) => void) | { current: TextInput | null };
+  className?: string;
+};
+
+function AuthInput({ inputRef, inputClassName, className, ...props }: AuthInputProps) {
+  const internalRef = useRef<TextInput>(null);
+
+  function focusInput() {
+    internalRef.current?.focus();
+  }
+
+  return (
+    <Pressable onPress={focusInput}>
+      <TextInput
+        ref={(node) => {
+          internalRef.current = node;
+          if (typeof inputRef === 'function') {
+            inputRef(node);
+          } else if (inputRef) {
+            inputRef.current = node;
+          }
+        }}
+        {...props}
+        className={
+          inputClassName ??
+          className ??
+          'min-h-[48px] rounded-xl border border-gray-300 px-4 py-3 text-[15px] text-ink'
+        }
+      />
+    </Pressable>
+  );
+}
 
 export function AuthScreen() {
   const { signIn, signUp, verifySignUpCode, resendSignUpCode } = useAuth();
@@ -255,8 +291,8 @@ export function AuthScreen() {
                   We sent a confirmation email to {pendingEmail || email}. Tap the link in that
                   email, or enter the confirmation code if one is shown.
                 </Text>
-                <TextInput
-                  ref={confirmationCodeRef}
+                <AuthInput
+                  inputRef={confirmationCodeRef}
                   value={confirmationCode}
                   onChangeText={setConfirmationCode}
                   placeholder="Confirmation code"
@@ -272,8 +308,8 @@ export function AuthScreen() {
               </>
             ) : mode === 'signUp' ? (
               <>
-                <TextInput
-                  ref={firstNameRef}
+                <AuthInput
+                  inputRef={firstNameRef}
                   value={firstName}
                   onChangeText={setFirstName}
                   placeholder="First name"
@@ -286,8 +322,8 @@ export function AuthScreen() {
                   onSubmitEditing={() => lastNameRef.current?.focus()}
                   className="mb-3 rounded-xl border border-gray-300 px-4 py-3 text-[15px] text-ink"
                 />
-                <TextInput
-                  ref={lastNameRef}
+                <AuthInput
+                  inputRef={lastNameRef}
                   value={lastName}
                   onChangeText={setLastName}
                   placeholder="Last name"
@@ -336,8 +372,8 @@ export function AuthScreen() {
                     <Text className="mb-3 text-[13px] font-semibold text-ink">
                       Organizer application
                     </Text>
-                    <TextInput
-                      ref={institutionNameRef}
+                    <AuthInput
+                      inputRef={institutionNameRef}
                       value={institutionName}
                       onChangeText={setInstitutionName}
                       placeholder="Institution or business name"
@@ -372,8 +408,8 @@ export function AuthScreen() {
                         );
                       })}
                     </View>
-                    <TextInput
-                      ref={websiteUrlRef}
+                    <AuthInput
+                      inputRef={websiteUrlRef}
                       value={websiteUrl}
                       onChangeText={setWebsiteUrl}
                       placeholder="Website or social link"
@@ -385,8 +421,8 @@ export function AuthScreen() {
                       onSubmitEditing={() => contactRoleRef.current?.focus()}
                       className="mb-3 rounded-xl border border-gray-300 bg-white px-4 py-3 text-[15px] text-ink"
                     />
-                    <TextInput
-                      ref={contactRoleRef}
+                    <AuthInput
+                      inputRef={contactRoleRef}
                       value={contactRole}
                       onChangeText={setContactRole}
                       placeholder="Your role, e.g. event manager"
@@ -397,8 +433,8 @@ export function AuthScreen() {
                       onSubmitEditing={() => organizerNoteRef.current?.focus()}
                       className="mb-3 rounded-xl border border-gray-300 bg-white px-4 py-3 text-[15px] text-ink"
                     />
-                    <TextInput
-                      ref={organizerNoteRef}
+                    <AuthInput
+                      inputRef={organizerNoteRef}
                       value={organizerNote}
                       onChangeText={setOrganizerNote}
                       placeholder="Short note for CultureQuest admin"
@@ -413,8 +449,8 @@ export function AuthScreen() {
             ) : null}
 
             {mode !== 'confirmSignUp' && (
-              <TextInput
-                ref={emailRef}
+              <AuthInput
+                inputRef={emailRef}
                 value={email}
                 onChangeText={setEmail}
                 placeholder="Email"
@@ -431,8 +467,8 @@ export function AuthScreen() {
             )}
 
             {mode !== 'confirmSignUp' && (
-              <TextInput
-                ref={passwordRef}
+              <AuthInput
+                inputRef={passwordRef}
                 value={password}
                 onChangeText={setPassword}
                 placeholder="Password"
