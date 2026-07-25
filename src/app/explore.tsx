@@ -10,7 +10,6 @@ import {
   MapPin,
   QrCode,
   Search,
-  Sparkles,
   Star,
   Users,
   X,
@@ -693,10 +692,11 @@ function EventDetailModal({
                     icon={<Users size={17} color="#7C3AED" />}
                     label={`${event.attendeeCount} people taking part`}
                   />
-                  <InfoRow
-                    icon={<Sparkles size={17} color="#7C3AED" />}
-                    label={`+${event.xpBonus} XP after confirmed attendance`}
-                  />
+                  <View className="rounded-2xl bg-primary/5 px-3 py-2.5">
+                    <Text className="text-[13px] font-semibold text-primary">
+                      +{event.xpBonus} XP after confirmed attendance
+                    </Text>
+                  </View>
                 </View>
 
                 <Text className="mb-2 font-ui text-[16px] font-extrabold text-ink">

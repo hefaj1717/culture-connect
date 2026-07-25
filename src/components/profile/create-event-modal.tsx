@@ -10,7 +10,6 @@ import {
   Palette,
   PartyPopper,
   Search,
-  Sparkles,
 } from 'lucide-react-native';
 import {
   ActivityIndicator,
@@ -360,10 +359,7 @@ export function CreateEventModal({
                     onPress={() => onChangeEventIsFree(false)}
                   />
                 </View>
-                <View className="mb-4 flex-row items-center gap-2 rounded-2xl bg-primary/5 px-3 py-2.5">
-                  <View className="h-7 w-7 items-center justify-center rounded-full bg-primary/10">
-                    <Sparkles size={14} color="#7C3AED" strokeWidth={2.4} />
-                  </View>
+                <View className="mb-4 rounded-2xl bg-primary/5 px-3 py-2.5">
                   <Text className="flex-1 text-[12px] font-semibold leading-4 text-muted">
                     Attendees earn {defaultEventXp} XP for this event.
                   </Text>

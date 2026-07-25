@@ -1,11 +1,9 @@
-import { Sparkles } from 'lucide-react-native';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 
 import { PassportBadge, type AchievementBadge } from '@/components/profile/badges';
 import { OrganizerStatusCard, OrganizerVerifiedBadge } from '@/components/profile/organizer-status';
 import { RankAvatar } from '@/components/profile/profile-avatar';
 import { RewardPartnerRow } from '@/components/profile/reward-partner-row';
-import { Colors } from '@/constants/theme';
 import type { RewardPartner } from '@/data/culture';
 
 type OrganizerStatus = 'none' | 'pending' | 'approved' | 'rejected';
@@ -65,8 +63,7 @@ export function ProfileRankCard({
       <View className="mb-4 rounded-2xl bg-canvas p-4">
         <View className="mb-3 flex-row items-end justify-between gap-4">
           <View>
-            <View className="mb-1 flex-row items-center gap-1.5">
-              <Sparkles size={15} color={Colors.light.primary} strokeWidth={2.4} />
+            <View className="mb-1">
               <Text className="text-[11px] font-semibold uppercase tracking-wide text-muted">
                 Total XP
               </Text>
