@@ -298,31 +298,39 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return { error: 'You must be logged in to update your profile.' };
     }
 
-    const fullName = `${firstName} ${lastName}`.trim();
-    const { error } = await supabase.auth.updateUser({
-      data: {
-        first_name: firstName,
-        last_name: lastName,
-        full_name: fullName,
-        city_id: cityId || defaultCityId,
-        avatar_url: avatarUrl ?? null,
-      },
-    });
-    if (error) {
-      return { error: error.message };
-    }
+    const normalizedFirstName = firstName.trim();
+    const normalizedLastName = lastName.trim();
+    const normalizedCityId = cityId || defaultCityId;
+    const normalizedAvatarUrl = avatarUrl ?? null;
+    const fullName = `${normalizedFirstName} ${normalizedLastName}`.trim();
 
     const { error: profileError } = await supabase.from('profiles').upsert(
       {
         id: session.user.id,
         username: fullName,
-        avatar_url: avatarUrl ?? null,
+        first_name: normalizedFirstName,
+        last_name: normalizedLastName,
+        city_key: normalizedCityId,
+        avatar_url: normalizedAvatarUrl,
       },
       { onConflict: 'id' },
     );
 
     if (profileError) {
-      console.warn('Profile metadata saved, but profiles sync failed:', profileError.message);
+      return { error: profileError.message };
+    }
+
+    const { error } = await supabase.auth.updateUser({
+      data: {
+        first_name: normalizedFirstName,
+        last_name: normalizedLastName,
+        full_name: fullName,
+        city_id: normalizedCityId,
+        avatar_url: normalizedAvatarUrl,
+      },
+    });
+    if (error) {
+      return { error: error.message };
     }
 
     return { error: null };
