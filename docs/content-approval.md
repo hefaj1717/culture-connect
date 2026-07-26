@@ -58,6 +58,7 @@ where id = 'REWARD_ID_HERE';
 
 Admin users can create quests from the app Profile tab after the
 `20260726133000_add_quest_image_uploads.sql` migration has been applied.
+Persistent XP requires `20260726134500_persistent_xp_transactions.sql`.
 
 ```sql
 with created_quest as (
