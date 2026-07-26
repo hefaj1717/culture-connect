@@ -1,4 +1,12 @@
-import { ArrowLeft, CalendarDays, ChevronRight, Clock, MapPin } from 'lucide-react-native';
+import {
+  ArrowLeft,
+  CalendarDays,
+  CheckCircle2,
+  ChevronRight,
+  Clock,
+  MapPin,
+  Users,
+} from 'lucide-react-native';
 import { useState, type ReactNode } from 'react';
 import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -478,6 +486,7 @@ function EventHistoryRow({
         <Text className="mt-1 text-[13px] font-medium text-muted" numberOfLines={1}>
           {event.venueName} · {event.time}
         </Text>
+        <HistoryEngagementStats event={event} status={status} />
       </View>
     </Pressable>
   );
@@ -515,6 +524,7 @@ function OrganizerEventRow({
         <Text className="mt-1 text-[13px] font-medium text-muted" numberOfLines={1}>
           {event.venueName} · {event.time}
         </Text>
+        <HistoryEngagementStats event={event} />
       </View>
     </Pressable>
   );
@@ -577,6 +587,18 @@ function HistoryEventDetail({
             icon={<Clock size={17} color="#7C3AED" />}
             label={`${event.date}, ${event.time}`}
           />
+          <View className="flex-row gap-2">
+            <HistoryStatPill
+              icon={<Users size={15} color="#7C3AED" strokeWidth={2.4} />}
+              label="Interested"
+              value={getHistoryEngagement(event, status).interested}
+            />
+            <HistoryStatPill
+              icon={<CheckCircle2 size={15} color="#7C3AED" strokeWidth={2.4} />}
+              label="Attended"
+              value={getHistoryEngagement(event, status).attended}
+            />
+          </View>
           <View className="rounded-2xl bg-primary/5 px-3 py-2.5">
             <Text className="text-[13px] font-semibold text-primary">
               +{event.xpBonus} XP after confirmed attendance
@@ -605,6 +627,60 @@ function HistoryInfoRow({ icon, label }: { icon: ReactNode; label: string }) {
       <Text className="flex-1 text-[13px] font-medium text-ink/75">{label}</Text>
     </View>
   );
+}
+
+function HistoryEngagementStats({
+  event,
+  status,
+}: {
+  event: CultureEvent;
+  status?: UserEventStatus;
+}) {
+  const engagement = getHistoryEngagement(event, status);
+
+  return (
+    <View className="mt-3 flex-row gap-2">
+      <HistoryStatPill
+        icon={<Users size={14} color="#7C3AED" strokeWidth={2.4} />}
+        label="Interested"
+        value={engagement.interested}
+      />
+      <HistoryStatPill
+        icon={<CheckCircle2 size={14} color="#7C3AED" strokeWidth={2.4} />}
+        label="Attended"
+        value={engagement.attended}
+      />
+    </View>
+  );
+}
+
+function HistoryStatPill({
+  icon,
+  label,
+  value,
+}: {
+  icon: ReactNode;
+  label: string;
+  value: number;
+}) {
+  return (
+    <View className="min-w-0 flex-1 flex-row items-center gap-1.5 rounded-2xl bg-primary/5 px-2.5 py-2">
+      {icon}
+      <Text className="min-w-0 flex-1 text-[11px] font-semibold text-ink/70" numberOfLines={1}>
+        {value.toLocaleString()} {label}
+      </Text>
+    </View>
+  );
+}
+
+function getHistoryEngagement(event: CultureEvent, status?: UserEventStatus) {
+  const interestedBase = event.interestedCount ?? 0;
+  const attendedBase = event.attendeeCount ?? 0;
+
+  return {
+    interested: Math.max(interestedBase, status === 'interested' || status === 'going' ? 1 : 0),
+    attended: Math.max(attendedBase, status === 'attended' ? 1 : 0),
+  };
 }
 
 function getEventImageSource(event: CultureEvent) {
