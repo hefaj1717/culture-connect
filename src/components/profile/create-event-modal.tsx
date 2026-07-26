@@ -13,6 +13,7 @@ import {
 } from 'lucide-react-native';
 import {
   ActivityIndicator,
+  Keyboard,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -27,6 +28,7 @@ import {
 import { GestureDetector, type GestureType } from 'react-native-gesture-handler';
 import Animated from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRef } from 'react';
 
 import { BrandImage } from '@/components/brand-image';
 import { ChoicePill, type ChoiceIcon } from '@/components/profile/choice-pill';
@@ -146,6 +148,23 @@ export function CreateEventModal({
   visible,
 }: CreateEventModalProps) {
   const cityData = getCultureCityData(cityId);
+  const scrollViewRef = useRef<ScrollView>(null);
+
+  function focusFormArea(y: number) {
+    setTimeout(() => {
+      scrollViewRef.current?.scrollTo({ animated: true, y });
+    }, 80);
+  }
+
+  function openDatePicker() {
+    Keyboard.dismiss();
+    onOpenDatePicker();
+  }
+
+  function openTimePicker() {
+    Keyboard.dismiss();
+    onOpenTimePicker();
+  }
 
   return (
     <Modal animationType="slide" onRequestClose={onClose} visible={visible}>
@@ -157,10 +176,11 @@ export function CreateEventModal({
               className="flex-1"
             >
               <ScrollView
+                ref={scrollViewRef}
                 className="flex-1"
                 contentContainerStyle={{
                   paddingHorizontal: 20,
-                  paddingBottom: 36,
+                  paddingBottom: 120,
                   paddingTop: stableModalTopInset + 14,
                 }}
                 keyboardDismissMode="interactive"
@@ -198,6 +218,7 @@ export function CreateEventModal({
                 <TextInput
                   value={eventTitle}
                   onChangeText={onChangeEventTitle}
+                  onFocus={() => focusFormArea(150)}
                   placeholder="e.g. Student Jazz Night"
                   placeholderTextColor="#8B909A"
                   className="mb-4 rounded-xl border border-gray-300 px-4 py-3 text-[15px] text-ink"
@@ -252,6 +273,7 @@ export function CreateEventModal({
                         onChangePlaceQuery(value);
                         setSelectedPlace(null);
                       }}
+                      onFocus={() => focusFormArea(390)}
                       placeholder={`Search places in ${cityData.name}`}
                       placeholderTextColor="#8B909A"
                       className="flex-1 text-[15px] text-ink"
@@ -285,7 +307,10 @@ export function CreateEventModal({
                       {placeSuggestions.map((place) => (
                         <Pressable
                           key={`${place.source}-${place.id}`}
-                          onPress={() => onSelectPlace(place)}
+                          onPress={() => {
+                            Keyboard.dismiss();
+                            onSelectPlace(place);
+                          }}
                           className="flex-row items-start gap-3 border-b border-gray-100 p-3 active:bg-gray-50"
                         >
                           <View className="h-9 w-9 items-center justify-center rounded-full bg-primary/10">
@@ -325,7 +350,7 @@ export function CreateEventModal({
                   <View className="flex-1">
                     <Text className="mb-2 text-[13px] font-semibold text-ink">Date</Text>
                     <Pressable
-                      onPress={onOpenDatePicker}
+                      onPress={openDatePicker}
                       className="h-12 justify-center rounded-xl border border-gray-300 px-4 active:opacity-80"
                     >
                       <Text className={`text-[15px] ${eventDate ? 'text-ink' : 'text-muted'}`}>
@@ -336,7 +361,7 @@ export function CreateEventModal({
                   <View className="flex-1">
                     <Text className="mb-2 text-[13px] font-semibold text-ink">Time</Text>
                     <Pressable
-                      onPress={onOpenTimePicker}
+                      onPress={openTimePicker}
                       className="h-12 justify-center rounded-xl border border-gray-300 px-4 active:opacity-80"
                     >
                       <Text className={`text-[15px] ${eventTime ? 'text-ink' : 'text-muted'}`}>
@@ -369,6 +394,7 @@ export function CreateEventModal({
                 <TextInput
                   value={eventDescription}
                   onChangeText={onChangeEventDescription}
+                  onFocus={() => focusFormArea(820)}
                   placeholder="What should students know before joining?"
                   placeholderTextColor="#8B909A"
                   multiline
