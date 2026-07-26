@@ -1253,6 +1253,10 @@ function OrganizerEventQrModal({
 }) {
   const qrCardRef = useRef<View>(null);
   const [sharing, setSharing] = useState(false);
+  const { closeWithAnimation, gesture, swipeStyle } = useHistorySwipeBack({
+    onSwipeBack: onClose,
+    visible,
+  });
 
   async function shareQrPass() {
     if (!qrCardRef.current || sharing) return;
@@ -1284,91 +1288,95 @@ function OrganizerEventQrModal({
   }
 
   return (
-    <Modal animationType="slide" onRequestClose={onClose} visible={visible}>
-      <SafeAreaView className="flex-1 bg-white" edges={['bottom']}>
-        <View className="bg-white px-5 pb-3" style={{ paddingTop: stableModalTopInset + 6 }}>
-          <Pressable
-            onPress={onClose}
-            className="h-10 w-10 items-center justify-center rounded-full bg-gray-100 active:opacity-80"
-          >
-            <ArrowLeft size={21} color="#756F7B" strokeWidth={2.6} />
-          </Pressable>
-        </View>
-
-        <ScrollView
-          className="flex-1"
-          contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 36, paddingTop: 12 }}
-          showsVerticalScrollIndicator={false}
-        >
-          <View
-            ref={qrCardRef}
-            collapsable={false}
-            className="overflow-hidden rounded-[30px] bg-ink"
-            style={{ boxShadow: '0 14px 28px rgba(36, 28, 46, 0.14)' }}
-          >
-            <LinearGradient
-              colors={['rgba(124,58,237,0.88)', 'rgba(36,28,46,0.99)']}
-              end={{ x: 1, y: 1 }}
-              start={{ x: 0, y: 0 }}
-              style={{ padding: 24 }}
-            >
-              <Text className="text-[11px] font-extrabold uppercase tracking-[2px] text-white/60">
-                CultureQuest check-in
-              </Text>
-              <Text className="mt-2 font-heading text-[30px] font-extrabold leading-[34px] text-white">
-                {event.title}
-              </Text>
-              <Text
-                className="mt-2 text-[14px] font-semibold leading-5"
-                style={{ color: 'rgba(255,255,255,0.78)' }}
+    <Modal animationType="slide" onRequestClose={closeWithAnimation} visible={visible}>
+      <GestureDetector gesture={gesture}>
+        <Animated.View className="flex-1 bg-white" style={swipeStyle}>
+          <SafeAreaView className="flex-1 bg-white" edges={['bottom']}>
+            <View className="bg-white px-5 pb-3" style={{ paddingTop: stableModalTopInset + 6 }}>
+              <Pressable
+                onPress={closeWithAnimation}
+                className="h-10 w-10 items-center justify-center rounded-full bg-gray-100 active:opacity-80"
               >
-                {event.venueName} · {event.date}, {formatEventTimeRange(event)}
-              </Text>
+                <ArrowLeft size={21} color="#756F7B" strokeWidth={2.6} />
+              </Pressable>
+            </View>
 
-              <View className="mt-7 items-center rounded-[28px] bg-white p-6">
-                <QRCode
-                  backgroundColor="#FFFFFF"
-                  color={Colors.light.ink}
-                  size={220}
-                  value={event.checkInCode}
-                />
-                <Text className="mt-5 text-center text-[11px] font-extrabold uppercase tracking-[1.8px] text-muted">
-                  Backup code
-                </Text>
-                <Text className="mt-1 text-center font-ui text-[22px] font-extrabold tracking-[2px] text-ink">
-                  {event.checkInCode}
+            <ScrollView
+              className="flex-1"
+              contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 36, paddingTop: 12 }}
+              showsVerticalScrollIndicator={false}
+            >
+              <View
+                ref={qrCardRef}
+                collapsable={false}
+                className="overflow-hidden rounded-[30px] bg-ink"
+                style={{ boxShadow: '0 14px 28px rgba(36, 28, 46, 0.14)' }}
+              >
+                <LinearGradient
+                  colors={['rgba(124,58,237,0.88)', 'rgba(36,28,46,0.99)']}
+                  end={{ x: 1, y: 1 }}
+                  start={{ x: 0, y: 0 }}
+                  style={{ padding: 24 }}
+                >
+                  <Text className="text-[11px] font-extrabold uppercase tracking-[2px] text-white/60">
+                    CultureQuest check-in
+                  </Text>
+                  <Text className="mt-2 font-heading text-[30px] font-extrabold leading-[34px] text-white">
+                    {event.title}
+                  </Text>
+                  <Text
+                    className="mt-2 text-[14px] font-semibold leading-5"
+                    style={{ color: 'rgba(255,255,255,0.78)' }}
+                  >
+                    {event.venueName} · {event.date}, {formatEventTimeRange(event)}
+                  </Text>
+
+                  <View className="mt-7 items-center rounded-[28px] bg-white p-6">
+                    <QRCode
+                      backgroundColor="#FFFFFF"
+                      color={Colors.light.ink}
+                      size={220}
+                      value={event.checkInCode}
+                    />
+                    <Text className="mt-5 text-center text-[11px] font-extrabold uppercase tracking-[1.8px] text-muted">
+                      Backup code
+                    </Text>
+                    <Text className="mt-1 text-center font-ui text-[22px] font-extrabold tracking-[2px] text-ink">
+                      {event.checkInCode}
+                    </Text>
+                  </View>
+
+                  <Text
+                    className="mt-5 text-center text-[12px] leading-5"
+                    style={{ color: 'rgba(255,255,255,0.72)' }}
+                  >
+                    Place this card at the venue entrance. Students must scan it in CultureQuest
+                    while they are within 500m of the venue.
+                  </Text>
+                </LinearGradient>
+              </View>
+
+              <View className="mt-4 rounded-2xl border border-gray-200 bg-white p-4">
+                <Text className="font-ui text-[15px] font-extrabold text-ink">Organizer note</Text>
+                <Text className="mt-1 text-[13px] leading-5 text-muted">
+                  Share this PNG with the venue, save it to Files, or print it from the iOS share
+                  sheet. The QR code contains only the event check-in code.
                 </Text>
               </View>
 
-              <Text
-                className="mt-5 text-center text-[12px] leading-5"
-                style={{ color: 'rgba(255,255,255,0.72)' }}
+              <Pressable
+                disabled={sharing}
+                onPress={shareQrPass}
+                className="mt-4 h-[52px] flex-row items-center justify-center rounded-2xl bg-primary active:opacity-85 disabled:opacity-60"
               >
-                Place this card at the venue entrance. Students must scan it in CultureQuest while
-                they are within 500m of the venue.
-              </Text>
-            </LinearGradient>
-          </View>
-
-          <View className="mt-4 rounded-2xl border border-gray-200 bg-white p-4">
-            <Text className="font-ui text-[15px] font-extrabold text-ink">Organizer note</Text>
-            <Text className="mt-1 text-[13px] leading-5 text-muted">
-              Share this PNG with the venue, save it to Files, or print it from the iOS share sheet.
-              The QR code contains only the event check-in code.
-            </Text>
-          </View>
-
-          <Pressable
-            disabled={sharing}
-            onPress={shareQrPass}
-            className="mt-4 h-[52px] flex-row items-center justify-center rounded-2xl bg-primary active:opacity-85 disabled:opacity-60"
-          >
-            <Text className="text-[15px] font-extrabold text-white">
-              {sharing ? 'Preparing PNG...' : 'Share / save PNG'}
-            </Text>
-          </Pressable>
-        </ScrollView>
-      </SafeAreaView>
+                <Text className="text-[15px] font-extrabold text-white">
+                  {sharing ? 'Preparing PNG...' : 'Share / save PNG'}
+                </Text>
+              </Pressable>
+            </ScrollView>
+          </SafeAreaView>
+        </Animated.View>
+      </GestureDetector>
     </Modal>
   );
 }
