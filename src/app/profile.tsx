@@ -11,8 +11,10 @@ import { EditProfileModal } from '@/components/profile/edit-profile-modal';
 import {
   DigitalPassportSection,
   OrganizerToolsSection,
+  OrganizerEventHistorySection,
   ProfileActions,
   ProfileRankCard,
+  UserActivitySection,
   RewardsSection,
 } from '@/components/profile/profile-sections';
 import { RewardDetailModal } from '@/components/profile/reward-detail-modal';
@@ -22,20 +24,26 @@ import { useCreateEventForm } from '@/hooks/profile/use-create-event-form';
 import { useCreateRewardForm } from '@/hooks/profile/use-create-reward-form';
 import { useEditProfileForm } from '@/hooks/profile/use-edit-profile-form';
 import { useRewardRedemption } from '@/hooks/profile/use-reward-redemption';
+import type { UserEventHistoryItem } from '@/lib/event-history';
+import { fetchMyOrganizerEvents, type ManagedOrganizerEvent } from '@/lib/organizer-events';
 import { fetchOrganizerRewards } from '@/lib/organizer-rewards';
 import { useAuth } from '@/providers/auth-provider';
 
 type ProfileScreenProps = {
+  eventsRefreshKey?: number;
   onEventCreated?: () => void;
   onRewardCreated?: () => void;
   rewardsRefreshKey?: number;
+  userEventHistory?: UserEventHistoryItem[];
   userXp?: number;
 };
 
 export default function ProfileScreen({
+  eventsRefreshKey = 0,
   onEventCreated,
   onRewardCreated,
   rewardsRefreshKey = 0,
+  userEventHistory = [],
   userXp = 0,
 }: ProfileScreenProps = {}) {
   const insets = useSafeAreaInsets();
@@ -63,6 +71,8 @@ export default function ProfileScreen({
     session?.user.user_metadata?.city_id === 'lublin' ? 'lublin' : defaultCityId;
   const cityData = getCultureCityData(savedCityId);
   const [approvedRewards, setApprovedRewards] = useState<RewardPartner[]>([]);
+  const [myOrganizerEvents, setMyOrganizerEvents] = useState<ManagedOrganizerEvent[]>([]);
+  const [myOrganizerEventsError, setMyOrganizerEventsError] = useState<string | null>(null);
   const [rewardsError, setRewardsError] = useState<string | null>(null);
   const savedAvatarUrl = session?.user.user_metadata?.avatar_url || null;
   const levelProgress = getXpLevelProgress(userXp);
@@ -294,6 +304,34 @@ export default function ProfileScreen({
   }, [rewardsRefreshKey, savedCityId]);
 
   useEffect(() => {
+    const userId = session?.user.id;
+
+    if (!userId || organizerApplicationStatus !== 'approved') {
+      setMyOrganizerEvents([]);
+      setMyOrganizerEventsError(null);
+      return;
+    }
+
+    const userIdForLoad = userId;
+    const cityIdForLoad = cityData.id;
+    let active = true;
+
+    async function loadMyOrganizerEvents() {
+      const result = await fetchMyOrganizerEvents(userIdForLoad, cityIdForLoad);
+      if (!active) return;
+
+      setMyOrganizerEvents(result.events);
+      setMyOrganizerEventsError(result.error);
+    }
+
+    loadMyOrganizerEvents();
+
+    return () => {
+      active = false;
+    };
+  }, [cityData.id, eventsRefreshKey, organizerApplicationStatus, session?.user.id]);
+
+  useEffect(() => {
     if (createEventOpen) {
       createEventTranslateX.value = 0;
     }
@@ -366,6 +404,8 @@ export default function ProfileScreen({
 
         <ProfileActions onEdit={openEditProfile} onSignOut={signOut} />
 
+        <UserActivitySection history={userEventHistory} />
+
         <DigitalPassportSection
           badges={achievementBadges}
           onOpenAll={() => setBadgesOpen(true)}
@@ -381,6 +421,10 @@ export default function ProfileScreen({
           onCreateReward={openCreateReward}
           status={organizerApplicationStatus}
         />
+
+        {organizerApplicationStatus === 'approved' && (
+          <OrganizerEventHistorySection error={myOrganizerEventsError} events={myOrganizerEvents} />
+        )}
 
         <RewardsSection
           cityName={cityData.name}

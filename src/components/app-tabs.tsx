@@ -17,6 +17,13 @@ import ProfileScreen from '@/app/profile';
 import QuestsScreen from '@/app/quests';
 import { Colors, FontTokens } from '@/constants/theme';
 import { getCultureCityData, type CultureEvent } from '@/data/culture';
+import {
+  buildUserEventHistory,
+  fetchUserEventResponses,
+  removeUserEventResponse,
+  setUserEventResponse,
+  type UserEventStatus,
+} from '@/lib/event-history';
 import { fetchOrganizerEvents } from '@/lib/organizer-events';
 import { useAuth } from '@/providers/auth-provider';
 
@@ -57,6 +64,7 @@ function AuthenticatedTabs() {
   const [approvedEvents, setApprovedEvents] = useState<CultureEvent[]>([]);
   const [userXp, setUserXp] = useState(0);
   const [checkedInEventIds, setCheckedInEventIds] = useState<string[]>([]);
+  const [eventStatuses, setEventStatuses] = useState<Record<string, UserEventStatus>>({});
   const [completedQuestIds, setCompletedQuestIds] = useState<string[]>([]);
   const checkedInEventIdsRef = useRef(new Set<string>());
   const completedQuestIdsRef = useRef(new Set<string>());
@@ -74,6 +82,10 @@ function AuthenticatedTabs() {
   );
   const avatarUrl = user?.user_metadata?.avatar_url ?? null;
   const cityData = getCultureCityData(user?.user_metadata?.city_id);
+  const userEventHistory = useMemo(
+    () => buildUserEventHistory(approvedEvents, eventStatuses, checkedInEventIds),
+    [approvedEvents, checkedInEventIds, eventStatuses],
+  );
 
   useEffect(() => {
     let active = true;
@@ -92,6 +104,33 @@ function AuthenticatedTabs() {
     };
   }, [cityData.id, organizerEventsVersion]);
 
+  useEffect(() => {
+    const userId = user?.id;
+
+    if (!userId) {
+      setEventStatuses({});
+      return;
+    }
+
+    const userIdForLoad = userId;
+    let active = true;
+
+    async function loadEventResponses() {
+      const result = await fetchUserEventResponses(userIdForLoad);
+      if (!active) return;
+
+      if (!result.error) {
+        setEventStatuses(result.responses);
+      }
+    }
+
+    loadEventResponses();
+
+    return () => {
+      active = false;
+    };
+  }, [user?.id]);
+
   function goToTab(index: number) {
     setActiveIndex(index);
     translateX.value = withTiming(-index * width, { duration: 220 });
@@ -109,8 +148,35 @@ function AuthenticatedTabs() {
 
     checkedInEventIdsRef.current.add(event.id);
     setCheckedInEventIds([...checkedInEventIdsRef.current]);
+    setEventStatuses((current) => ({ ...current, [event.id]: 'attended' }));
+    if (user?.id) {
+      void setUserEventResponse(user.id, event.id, 'attended');
+    }
     setUserXp((currentXp) => currentXp + event.xpBonus);
     return true;
+  }
+
+  function updateEventStatus(eventId: string, status: UserEventStatus | null) {
+    setEventStatuses((current) => {
+      const nextStatuses = { ...current };
+
+      if (!status) {
+        delete nextStatuses[eventId];
+      } else {
+        nextStatuses[eventId] = status;
+      }
+
+      return nextStatuses;
+    });
+
+    if (!user?.id) return;
+
+    if (!status) {
+      void removeUserEventResponse(user.id, eventId);
+      return;
+    }
+
+    void setUserEventResponse(user.id, eventId, status);
   }
 
   function awardQuestCompletionXp(questId: string, totalXp: number) {
@@ -187,7 +253,9 @@ function AuthenticatedTabs() {
               cityData={cityData}
               events={approvedEvents}
               eventsRefreshKey={organizerEventsVersion}
+              eventStatuses={eventStatuses}
               onEventCheckIn={awardEventCheckInXp}
+              onEventStatusChange={updateEventStatus}
               openEventId={eventOpenRequest?.eventId}
               openEventNonce={eventOpenRequest?.nonce}
             />
@@ -201,7 +269,9 @@ function AuthenticatedTabs() {
           </View>
           <View style={{ width }}>
             <ProfileScreen
+              eventsRefreshKey={organizerEventsVersion}
               rewardsRefreshKey={rewardsRefreshKey}
+              userEventHistory={userEventHistory}
               userXp={userXp}
               onEventCreated={() => {
                 setOrganizerEventsVersion((version) => version + 1);

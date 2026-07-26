@@ -43,9 +43,14 @@ type OrganizerEventRow = {
   image_kind: CultureEvent['organizerImage'];
   image_url: string | null;
   check_in_code: string;
+  status?: OrganizerEventStatus;
 };
 
 const EVENT_IMAGES_BUCKET = 'event-images';
+export type OrganizerEventStatus = 'draft' | 'pending' | 'approved' | 'rejected' | 'cancelled';
+export type ManagedOrganizerEvent = CultureEvent & {
+  reviewStatus: OrganizerEventStatus;
+};
 
 export async function fetchOrganizerEvents(cityId: CityId) {
   const { data, error } = await supabase
@@ -64,6 +69,34 @@ export async function fetchOrganizerEvents(cityId: CityId) {
   return {
     events: (data ?? []).map(mapOrganizerEventRow),
     error: null,
+  };
+}
+
+export async function fetchMyOrganizerEvents(userId: string, cityId?: CityId) {
+  let query = supabase
+    .from('organizer_events')
+    .select(
+      'id, city_key, venue_key, venue_name, venue_address, venue_latitude, venue_longitude, title, description, category, date_label, time_label, xp_bonus, language, is_free, is_international, attendee_count, image_kind, image_url, check_in_code, status',
+    )
+    .eq('organizer_user_id', userId)
+    .order('created_at', { ascending: false });
+
+  if (cityId) {
+    query = query.eq('city_key', cityId);
+  }
+
+  const { data, error } = await query;
+
+  if (error) {
+    return { error: error.message, events: [] as ManagedOrganizerEvent[] };
+  }
+
+  return {
+    error: null,
+    events: (data ?? []).map((row) => ({
+      ...mapOrganizerEventRow(row),
+      reviewStatus: row.status ?? 'pending',
+    })),
   };
 }
 
