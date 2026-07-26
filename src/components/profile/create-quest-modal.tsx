@@ -11,7 +11,11 @@ import {
   Text,
   TextInput,
   View,
+  type StyleProp,
+  type ViewStyle,
 } from 'react-native';
+import { GestureDetector, type GestureType } from 'react-native-gesture-handler';
+import Animated from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { cultureCities, type CityId } from '@/data/culture';
@@ -25,6 +29,7 @@ type QuestDraftStop = {
 type CreateQuestModalProps = {
   createQuestError: string | null;
   creatingQuest: boolean;
+  gesture: GestureType;
   onAddStop: () => void;
   onChangeCity: (value: CityId) => void;
   onChangeDescription: (value: string) => void;
@@ -47,12 +52,14 @@ type CreateQuestModalProps = {
   questTitle: string;
   questXp: string;
   stableModalTopInset: number;
+  swipeStyle: StyleProp<ViewStyle>;
   visible: boolean;
 };
 
 export function CreateQuestModal({
   createQuestError,
   creatingQuest,
+  gesture,
   onAddStop,
   onChangeCity,
   onChangeDescription,
@@ -75,248 +82,257 @@ export function CreateQuestModal({
   questTitle,
   questXp,
   stableModalTopInset,
+  swipeStyle,
   visible,
 }: CreateQuestModalProps) {
   return (
     <Modal animationType="slide" onRequestClose={onClose} visible={visible}>
-      <SafeAreaView className="flex-1 bg-white" edges={['bottom']}>
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-          className="flex-1"
-        >
-          <ScrollView
-            className="flex-1"
-            contentContainerStyle={{
-              paddingHorizontal: 20,
-              paddingBottom: 36,
-              paddingTop: stableModalTopInset + 14,
-            }}
-            keyboardDismissMode="interactive"
-            keyboardShouldPersistTaps="handled"
-            showsVerticalScrollIndicator={false}
-          >
-            <Pressable
-              onPress={onClose}
-              className="mb-5 h-10 w-10 items-center justify-center rounded-full bg-gray-100 active:opacity-80"
-              accessibilityRole="button"
-              accessibilityLabel="Close create quest"
+      <GestureDetector gesture={gesture}>
+        <Animated.View className="flex-1 bg-white" style={swipeStyle}>
+          <SafeAreaView className="flex-1 bg-white" edges={['bottom']}>
+            <KeyboardAvoidingView
+              behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+              className="flex-1"
             >
-              <ArrowLeft size={21} color="#756F7B" strokeWidth={2.6} />
-            </Pressable>
-
-            <View className="mb-5 overflow-hidden rounded-3xl bg-ink">
-              <LinearGradient
-                colors={['rgba(124,58,237,0.74)', 'rgba(36,28,46,0.98)']}
-                end={{ x: 1, y: 1 }}
-                start={{ x: 0, y: 0 }}
-                style={{ padding: 20 }}
+              <ScrollView
+                className="flex-1"
+                contentContainerStyle={{
+                  paddingHorizontal: 20,
+                  paddingBottom: 36,
+                  paddingTop: stableModalTopInset + 14,
+                }}
+                keyboardDismissMode="interactive"
+                keyboardShouldPersistTaps="handled"
+                showsVerticalScrollIndicator={false}
               >
-                <View className="mb-4 h-12 w-12 items-center justify-center rounded-2xl bg-white/15">
-                  <Route size={24} color="white" strokeWidth={2.4} />
-                </View>
-                <Text className="font-heading text-[29px] font-extrabold leading-[33px] text-white">
-                  Create quest
-                </Text>
-                <Text className="mt-2 max-w-[300px] text-[13px] leading-5 text-white/80">
-                  Build a curated city trail that appears in the Quests tab.
-                </Text>
-              </LinearGradient>
-            </View>
-
-            <Text className="mb-2 text-[13px] font-semibold text-ink">City</Text>
-            <View className="mb-4 flex-row gap-2">
-              {cultureCities.map((city) => (
-                <ChoiceChip
-                  active={questCityId === city.id}
-                  key={city.id}
-                  label={city.name}
-                  onPress={() => onChangeCity(city.id)}
-                />
-              ))}
-            </View>
-
-            <Text className="mb-2 text-[13px] font-semibold text-ink">Quest title</Text>
-            <TextInput
-              value={questTitle}
-              onChangeText={onChangeTitle}
-              placeholder="e.g. Old Town Culture Trail"
-              placeholderTextColor="#8B909A"
-              className="mb-4 rounded-xl border border-gray-300 px-4 py-3 text-[15px] text-ink"
-            />
-
-            <Text className="mb-2 text-[13px] font-semibold text-ink">Theme</Text>
-            <TextInput
-              value={questTheme}
-              onChangeText={onChangeTheme}
-              placeholder="City route"
-              placeholderTextColor="#8B909A"
-              className="mb-4 rounded-xl border border-gray-300 px-4 py-3 text-[15px] text-ink"
-            />
-
-            <Text className="mb-2 text-[13px] font-semibold text-ink">Description</Text>
-            <TextInput
-              value={questDescription}
-              onChangeText={onChangeDescription}
-              placeholder="What story does this trail tell?"
-              placeholderTextColor="#8B909A"
-              multiline
-              textAlignVertical="top"
-              className="mb-4 min-h-[104px] rounded-xl border border-gray-300 px-4 py-3 text-[15px] leading-5 text-ink"
-            />
-
-            <Text className="mb-2 text-[13px] font-semibold text-ink">Quest photo</Text>
-            <Pressable
-              onPress={onPickQuestImage}
-              className={`mb-4 h-[154px] overflow-hidden rounded-2xl border ${
-                questImageUri
-                  ? 'border-gray-200 bg-gray-100'
-                  : 'border-dashed border-primary/45 bg-primary/5'
-              }`}
-            >
-              {questImageUri ? (
-                <>
-                  <Image source={{ uri: questImageUri }} style={{ flex: 1 }} contentFit="cover" />
-                  <LinearGradient
-                    colors={['transparent', 'rgba(36,28,46,0.58)']}
-                    style={{
-                      bottom: 0,
-                      left: 0,
-                      position: 'absolute',
-                      right: 0,
-                      top: 0,
-                    }}
-                  />
-                  <View className="absolute bottom-4 left-4">
-                    <Text className="text-[12px] font-extrabold text-white">Change photo</Text>
-                  </View>
-                  <Pressable
-                    onPress={onRemoveQuestImage}
-                    className="absolute right-3 top-3 h-8 w-8 items-center justify-center rounded-full bg-black/45 active:opacity-80"
-                  >
-                    <X size={16} color="white" strokeWidth={2.5} />
-                  </Pressable>
-                </>
-              ) : (
-                <View className="flex-1 items-center justify-center px-6">
-                  <View className="mb-3 h-11 w-11 items-center justify-center rounded-2xl bg-primary/10">
-                    <Camera size={21} color="#7C3AED" strokeWidth={2.5} />
-                  </View>
-                  <Text className="text-center text-[14px] font-extrabold text-primary">
-                    Add quest photo
-                  </Text>
-                  <Text className="mt-1 text-center text-[12px] leading-4 text-muted">
-                    Optional. If you skip it, CultureQuest will use a default trail image.
-                  </Text>
-                </View>
-              )}
-            </Pressable>
-
-            <View className="mb-4 flex-row gap-3">
-              <View className="flex-1">
-                <Text className="mb-2 text-[13px] font-semibold text-ink">Total XP</Text>
-                <TextInput
-                  value={questXp}
-                  onChangeText={onChangeXp}
-                  keyboardType="number-pad"
-                  placeholder="150"
-                  placeholderTextColor="#8B909A"
-                  className="rounded-xl border border-gray-300 px-4 py-3 text-[15px] text-ink"
-                />
-              </View>
-              <View className="flex-1">
-                <Text className="mb-2 text-[13px] font-semibold text-ink">Status</Text>
-                <View className="flex-row gap-2">
-                  <ChoiceChip
-                    active={questStatus === 'approved'}
-                    label="Live"
-                    onPress={() => onChangeStatus('approved')}
-                  />
-                  <ChoiceChip
-                    active={questStatus === 'draft'}
-                    label="Draft"
-                    onPress={() => onChangeStatus('draft')}
-                  />
-                </View>
-              </View>
-            </View>
-
-            <View className="mb-3 flex-row items-center justify-between">
-              <Text className="font-heading text-[22px] font-extrabold text-ink">Stops</Text>
-              <Pressable
-                onPress={onAddStop}
-                className="h-9 flex-row items-center gap-1 rounded-full bg-primary px-3 active:opacity-85"
-              >
-                <Plus size={16} color="white" strokeWidth={2.6} />
-                <Text className="text-[12px] font-extrabold text-white">Add</Text>
-              </Pressable>
-            </View>
-
-            <View className="gap-3">
-              {questStops.map((stop, index) => (
-                <View
-                  className="rounded-2xl border border-gray-200 bg-white p-4"
-                  key={`quest-stop-${index}`}
+                <Pressable
+                  onPress={onClose}
+                  className="mb-5 h-10 w-10 items-center justify-center rounded-full bg-gray-100 active:opacity-80"
+                  accessibilityRole="button"
+                  accessibilityLabel="Close create quest"
                 >
-                  <View className="mb-3 flex-row items-center justify-between">
-                    <Text className="text-[12px] font-semibold uppercase tracking-wide text-muted">
-                      Stop {index + 1}
+                  <ArrowLeft size={21} color="#756F7B" strokeWidth={2.6} />
+                </Pressable>
+
+                <View className="mb-5 overflow-hidden rounded-3xl bg-ink">
+                  <LinearGradient
+                    colors={['rgba(124,58,237,0.74)', 'rgba(36,28,46,0.98)']}
+                    end={{ x: 1, y: 1 }}
+                    start={{ x: 0, y: 0 }}
+                    style={{ padding: 20 }}
+                  >
+                    <View className="mb-4 h-12 w-12 items-center justify-center rounded-2xl bg-white/15">
+                      <Route size={24} color="white" strokeWidth={2.4} />
+                    </View>
+                    <Text className="font-heading text-[29px] font-extrabold leading-[33px] text-white">
+                      Create quest
                     </Text>
-                    {questStops.length > 1 && (
-                      <Pressable
-                        onPress={() => onRemoveStop(index)}
-                        className="h-8 w-8 items-center justify-center rounded-full bg-gray-100 active:opacity-80"
-                      >
-                        <Minus size={16} color="#756F7B" strokeWidth={2.5} />
-                      </Pressable>
-                    )}
-                  </View>
-                  <TextInput
-                    value={stop.title}
-                    onChangeText={(value) => onChangeStop(index, 'title', value)}
-                    placeholder="Stop title"
-                    placeholderTextColor="#8B909A"
-                    className="mb-3 rounded-xl border border-gray-300 px-4 py-3 text-[15px] text-ink"
-                  />
-                  <TextInput
-                    value={stop.description}
-                    onChangeText={(value) => onChangeStop(index, 'description', value)}
-                    placeholder="What should students do here?"
-                    placeholderTextColor="#8B909A"
-                    multiline
-                    textAlignVertical="top"
-                    className="mb-3 min-h-[82px] rounded-xl border border-gray-300 px-4 py-3 text-[15px] leading-5 text-ink"
-                  />
-                  <TextInput
-                    value={stop.eta}
-                    onChangeText={(value) => onChangeStop(index, 'eta', value)}
-                    placeholder="ETA, e.g. 7 min"
-                    placeholderTextColor="#8B909A"
-                    className="rounded-xl border border-gray-300 px-4 py-3 text-[15px] text-ink"
-                  />
+                    <Text className="mt-2 max-w-[300px] text-[13px] leading-5 text-white/80">
+                      Build a curated city trail that appears in the Quests tab.
+                    </Text>
+                  </LinearGradient>
                 </View>
-              ))}
-            </View>
 
-            {createQuestError && (
-              <Text className="mt-4 text-[13px] font-medium text-destructive">
-                {createQuestError}
-              </Text>
-            )}
+                <Text className="mb-2 text-[13px] font-semibold text-ink">City</Text>
+                <View className="mb-4 flex-row gap-2">
+                  {cultureCities.map((city) => (
+                    <ChoiceChip
+                      active={questCityId === city.id}
+                      key={city.id}
+                      label={city.name}
+                      onPress={() => onChangeCity(city.id)}
+                    />
+                  ))}
+                </View>
 
-            <Pressable
-              onPress={onSubmit}
-              disabled={creatingQuest}
-              className="mt-5 h-[52px] items-center justify-center rounded-xl bg-primary active:opacity-85"
-            >
-              {creatingQuest ? (
-                <ActivityIndicator color="white" />
-              ) : (
-                <Text className="text-[15px] font-semibold text-white">Create quest</Text>
-              )}
-            </Pressable>
-          </ScrollView>
-        </KeyboardAvoidingView>
-      </SafeAreaView>
+                <Text className="mb-2 text-[13px] font-semibold text-ink">Quest title</Text>
+                <TextInput
+                  value={questTitle}
+                  onChangeText={onChangeTitle}
+                  placeholder="e.g. Old Town Culture Trail"
+                  placeholderTextColor="#8B909A"
+                  className="mb-4 rounded-xl border border-gray-300 px-4 py-3 text-[15px] text-ink"
+                />
+
+                <Text className="mb-2 text-[13px] font-semibold text-ink">Theme</Text>
+                <TextInput
+                  value={questTheme}
+                  onChangeText={onChangeTheme}
+                  placeholder="City route"
+                  placeholderTextColor="#8B909A"
+                  className="mb-4 rounded-xl border border-gray-300 px-4 py-3 text-[15px] text-ink"
+                />
+
+                <Text className="mb-2 text-[13px] font-semibold text-ink">Description</Text>
+                <TextInput
+                  value={questDescription}
+                  onChangeText={onChangeDescription}
+                  placeholder="What story does this trail tell?"
+                  placeholderTextColor="#8B909A"
+                  multiline
+                  textAlignVertical="top"
+                  className="mb-4 min-h-[104px] rounded-xl border border-gray-300 px-4 py-3 text-[15px] leading-5 text-ink"
+                />
+
+                <Text className="mb-2 text-[13px] font-semibold text-ink">Quest photo</Text>
+                <Pressable
+                  onPress={onPickQuestImage}
+                  className={`mb-4 h-[154px] overflow-hidden rounded-2xl border ${
+                    questImageUri
+                      ? 'border-gray-200 bg-gray-100'
+                      : 'border-dashed border-primary/45 bg-primary/5'
+                  }`}
+                >
+                  {questImageUri ? (
+                    <>
+                      <Image
+                        source={{ uri: questImageUri }}
+                        style={{ flex: 1 }}
+                        contentFit="cover"
+                      />
+                      <LinearGradient
+                        colors={['transparent', 'rgba(36,28,46,0.58)']}
+                        style={{
+                          bottom: 0,
+                          left: 0,
+                          position: 'absolute',
+                          right: 0,
+                          top: 0,
+                        }}
+                      />
+                      <View className="absolute bottom-4 left-4">
+                        <Text className="text-[12px] font-extrabold text-white">Change photo</Text>
+                      </View>
+                      <Pressable
+                        onPress={onRemoveQuestImage}
+                        className="absolute right-3 top-3 h-8 w-8 items-center justify-center rounded-full bg-black/45 active:opacity-80"
+                      >
+                        <X size={16} color="white" strokeWidth={2.5} />
+                      </Pressable>
+                    </>
+                  ) : (
+                    <View className="flex-1 items-center justify-center px-6">
+                      <View className="mb-3 h-11 w-11 items-center justify-center rounded-2xl bg-primary/10">
+                        <Camera size={21} color="#7C3AED" strokeWidth={2.5} />
+                      </View>
+                      <Text className="text-center text-[14px] font-extrabold text-primary">
+                        Add quest photo
+                      </Text>
+                      <Text className="mt-1 text-center text-[12px] leading-4 text-muted">
+                        Optional. If you skip it, CultureQuest will use a default trail image.
+                      </Text>
+                    </View>
+                  )}
+                </Pressable>
+
+                <View className="mb-4 flex-row gap-3">
+                  <View className="flex-1">
+                    <Text className="mb-2 text-[13px] font-semibold text-ink">Total XP</Text>
+                    <TextInput
+                      value={questXp}
+                      onChangeText={onChangeXp}
+                      keyboardType="number-pad"
+                      placeholder="150"
+                      placeholderTextColor="#8B909A"
+                      className="rounded-xl border border-gray-300 px-4 py-3 text-[15px] text-ink"
+                    />
+                  </View>
+                  <View className="flex-1">
+                    <Text className="mb-2 text-[13px] font-semibold text-ink">Status</Text>
+                    <View className="flex-row gap-2">
+                      <ChoiceChip
+                        active={questStatus === 'approved'}
+                        label="Live"
+                        onPress={() => onChangeStatus('approved')}
+                      />
+                      <ChoiceChip
+                        active={questStatus === 'draft'}
+                        label="Draft"
+                        onPress={() => onChangeStatus('draft')}
+                      />
+                    </View>
+                  </View>
+                </View>
+
+                <View className="mb-3 flex-row items-center justify-between">
+                  <Text className="font-heading text-[22px] font-extrabold text-ink">Stops</Text>
+                  <Pressable
+                    onPress={onAddStop}
+                    className="h-9 flex-row items-center gap-1 rounded-full bg-primary px-3 active:opacity-85"
+                  >
+                    <Plus size={16} color="white" strokeWidth={2.6} />
+                    <Text className="text-[12px] font-extrabold text-white">Add</Text>
+                  </Pressable>
+                </View>
+
+                <View className="gap-3">
+                  {questStops.map((stop, index) => (
+                    <View
+                      className="rounded-2xl border border-gray-200 bg-white p-4"
+                      key={`quest-stop-${index}`}
+                    >
+                      <View className="mb-3 flex-row items-center justify-between">
+                        <Text className="text-[12px] font-semibold uppercase tracking-wide text-muted">
+                          Stop {index + 1}
+                        </Text>
+                        {questStops.length > 1 && (
+                          <Pressable
+                            onPress={() => onRemoveStop(index)}
+                            className="h-8 w-8 items-center justify-center rounded-full bg-gray-100 active:opacity-80"
+                          >
+                            <Minus size={16} color="#756F7B" strokeWidth={2.5} />
+                          </Pressable>
+                        )}
+                      </View>
+                      <TextInput
+                        value={stop.title}
+                        onChangeText={(value) => onChangeStop(index, 'title', value)}
+                        placeholder="Stop title"
+                        placeholderTextColor="#8B909A"
+                        className="mb-3 rounded-xl border border-gray-300 px-4 py-3 text-[15px] text-ink"
+                      />
+                      <TextInput
+                        value={stop.description}
+                        onChangeText={(value) => onChangeStop(index, 'description', value)}
+                        placeholder="What should students do here?"
+                        placeholderTextColor="#8B909A"
+                        multiline
+                        textAlignVertical="top"
+                        className="mb-3 min-h-[82px] rounded-xl border border-gray-300 px-4 py-3 text-[15px] leading-5 text-ink"
+                      />
+                      <TextInput
+                        value={stop.eta}
+                        onChangeText={(value) => onChangeStop(index, 'eta', value)}
+                        placeholder="ETA, e.g. 7 min"
+                        placeholderTextColor="#8B909A"
+                        className="rounded-xl border border-gray-300 px-4 py-3 text-[15px] text-ink"
+                      />
+                    </View>
+                  ))}
+                </View>
+
+                {createQuestError && (
+                  <Text className="mt-4 text-[13px] font-medium text-destructive">
+                    {createQuestError}
+                  </Text>
+                )}
+
+                <Pressable
+                  onPress={onSubmit}
+                  disabled={creatingQuest}
+                  className="mt-5 h-[52px] items-center justify-center rounded-xl bg-primary active:opacity-85"
+                >
+                  {creatingQuest ? (
+                    <ActivityIndicator color="white" />
+                  ) : (
+                    <Text className="text-[15px] font-semibold text-white">Create quest</Text>
+                  )}
+                </Pressable>
+              </ScrollView>
+            </KeyboardAvoidingView>
+          </SafeAreaView>
+        </Animated.View>
+      </GestureDetector>
     </Modal>
   );
 }
