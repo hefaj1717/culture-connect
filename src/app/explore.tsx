@@ -45,6 +45,7 @@ import {
   languageLabels,
 } from '@/data/culture';
 import { fetchOrganizerEvents } from '@/lib/organizer-events';
+import type { UserEventStatus } from '@/lib/event-history';
 
 const audienceFilters = [
   { key: 'all', label: 'All Events' },
@@ -60,7 +61,9 @@ type ExploreScreenProps = {
   cityData?: CultureCityData;
   events?: CultureEvent[];
   eventsRefreshKey?: number;
+  eventStatuses?: Record<string, UserEventStatus>;
   onEventCheckIn?: (event: CultureEvent) => boolean;
+  onEventStatusChange?: (eventId: string, status: UserEventStatus | null) => void;
   openEventId?: string;
   openEventNonce?: number;
 };
@@ -70,7 +73,9 @@ export default function ExploreScreen({
   cityData = getCultureCityData(),
   events: approvedEventsProp,
   eventsRefreshKey = 0,
+  eventStatuses = {},
   onEventCheckIn,
+  onEventStatusChange,
   openEventId,
   openEventNonce,
 }: ExploreScreenProps) {
@@ -79,7 +84,6 @@ export default function ExploreScreen({
   const [tab, setTab] = useState<'events' | 'venues'>('events');
   const [audienceFilter, setAudienceFilter] = useState('all');
   const [selectedEvent, setSelectedEvent] = useState<CultureEvent | null>(null);
-  const [eventStatuses, setEventStatuses] = useState<Record<string, 'interested' | 'going'>>({});
   const [confirmedCheckIns, setConfirmedCheckIns] = useState<Record<string, boolean>>({});
   const [organizerEvents, setOrganizerEvents] = useState<CultureEvent[]>([]);
   const [organizerEventsError, setOrganizerEventsError] = useState<string | null>(null);
@@ -158,6 +162,12 @@ export default function ExploreScreen({
     setTab('events');
     setSelectedEvent(eventToOpen);
   }, [allEvents, openEventId, openEventNonce]);
+
+  const selectedEventStatus = selectedEvent ? eventStatuses[selectedEvent.id] : undefined;
+  const selectedDetailStatus =
+    selectedEventStatus === 'interested' || selectedEventStatus === 'going'
+      ? selectedEventStatus
+      : undefined;
 
   return (
     <View className="flex-1 bg-white">
@@ -442,21 +452,10 @@ export default function ExploreScreen({
           return onEventCheckIn?.(event) ?? false;
         }}
         onClose={() => setSelectedEvent(null)}
-        onToggleStatus={(eventId, status) =>
-          setEventStatuses((current) => {
-            if (current[eventId] === status) {
-              const nextStatuses = { ...current };
-              delete nextStatuses[eventId];
-              return nextStatuses;
-            }
-
-            return {
-              ...current,
-              [eventId]: status,
-            };
-          })
-        }
-        status={selectedEvent ? eventStatuses[selectedEvent.id] : undefined}
+        onToggleStatus={(eventId, status) => {
+          onEventStatusChange?.(eventId, eventStatuses[eventId] === status ? null : status);
+        }}
+        status={selectedDetailStatus}
       />
     </View>
   );

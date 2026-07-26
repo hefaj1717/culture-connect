@@ -4,7 +4,9 @@ import { PassportBadge, type AchievementBadge } from '@/components/profile/badge
 import { OrganizerStatusCard, OrganizerVerifiedBadge } from '@/components/profile/organizer-status';
 import { RankAvatar } from '@/components/profile/profile-avatar';
 import { RewardPartnerRow } from '@/components/profile/reward-partner-row';
-import type { RewardPartner } from '@/data/culture';
+import type { CultureEvent, RewardPartner } from '@/data/culture';
+import type { UserEventHistoryItem, UserEventStatus } from '@/lib/event-history';
+import type { ManagedOrganizerEvent, OrganizerEventStatus } from '@/lib/organizer-events';
 
 type OrganizerStatus = 'none' | 'pending' | 'approved' | 'rejected';
 
@@ -121,6 +123,40 @@ export function ProfileActions({ onEdit, onSignOut }: ProfileActionsProps) {
   );
 }
 
+type UserActivitySectionProps = {
+  history: UserEventHistoryItem[];
+};
+
+export function UserActivitySection({ history }: UserActivitySectionProps) {
+  return (
+    <View className="mb-6 px-5">
+      <View className="mb-3 flex-row items-center justify-between">
+        <Text className="font-heading text-[22px] font-extrabold text-ink">My activity</Text>
+        <Text className="text-[11px] font-semibold text-primary">{history.length}</Text>
+      </View>
+
+      {history.length === 0 ? (
+        <View className="rounded-3xl border border-gray-200 bg-white p-5">
+          <Text className="font-ui text-[15px] font-extrabold text-ink">No saved events yet</Text>
+          <Text className="mt-1 text-[13px] leading-5 text-muted">
+            Events you mark as Interested, Going, or Attended will appear here.
+          </Text>
+        </View>
+      ) : (
+        <View className="gap-2">
+          {history.slice(0, 6).map((item) => (
+            <EventHistoryRow
+              event={item.event}
+              key={`${item.event.id}-${item.status}`}
+              status={item.status}
+            />
+          ))}
+        </View>
+      )}
+    </View>
+  );
+}
+
 type DigitalPassportSectionProps = {
   badges: AchievementBadge[];
   onOpenAll: () => void;
@@ -218,6 +254,124 @@ export function OrganizerToolsSection({
       )}
     </View>
   );
+}
+
+type OrganizerEventHistorySectionProps = {
+  error?: string | null;
+  events: ManagedOrganizerEvent[];
+};
+
+export function OrganizerEventHistorySection({ error, events }: OrganizerEventHistorySectionProps) {
+  return (
+    <View className="mb-6 px-5">
+      <View className="mb-3 flex-row items-center justify-between">
+        <Text className="font-heading text-[22px] font-extrabold text-ink">My events</Text>
+        <Text className="text-[11px] font-semibold text-primary">{events.length}</Text>
+      </View>
+
+      {error && (
+        <View className="rounded-2xl border border-secondary/20 bg-secondary/10 p-3">
+          <Text className="text-[12px] leading-4 text-muted">
+            Your event history could not load yet. Apply the latest Supabase migration if needed.
+          </Text>
+        </View>
+      )}
+
+      {!error && events.length === 0 && (
+        <View className="rounded-3xl border border-gray-200 bg-white p-5">
+          <Text className="font-ui text-[15px] font-extrabold text-ink">
+            No organizer events yet
+          </Text>
+          <Text className="mt-1 text-[13px] leading-5 text-muted">
+            Events you submit for review will appear here with their approval status.
+          </Text>
+        </View>
+      )}
+
+      <View className="gap-2">
+        {events.map((event) => (
+          <OrganizerEventRow event={event} key={event.id} />
+        ))}
+      </View>
+    </View>
+  );
+}
+
+function EventHistoryRow({ event, status }: { event: CultureEvent; status: UserEventStatus }) {
+  return (
+    <View className="flex-row items-center gap-3 rounded-2xl border border-gray-200 bg-white p-3">
+      <View className="h-10 w-10 items-center justify-center rounded-2xl bg-primary/10">
+        <Text className="text-[12px] font-extrabold text-primary">{event.date.slice(0, 3)}</Text>
+      </View>
+      <View className="min-w-0 flex-1">
+        <Text className="font-ui text-[14px] font-extrabold text-ink" numberOfLines={1}>
+          {event.title}
+        </Text>
+        <Text className="mt-0.5 text-[12px] text-muted" numberOfLines={1}>
+          {event.venueName} · {event.time}
+        </Text>
+      </View>
+      <UserEventStatusPill status={status} />
+    </View>
+  );
+}
+
+function OrganizerEventRow({ event }: { event: ManagedOrganizerEvent }) {
+  return (
+    <View className="rounded-2xl border border-gray-200 bg-white p-3">
+      <View className="mb-2 flex-row items-start justify-between gap-3">
+        <View className="min-w-0 flex-1">
+          <Text className="font-ui text-[14px] font-extrabold text-ink" numberOfLines={1}>
+            {event.title}
+          </Text>
+          <Text className="mt-0.5 text-[12px] text-muted" numberOfLines={1}>
+            {event.date} · {event.venueName}
+          </Text>
+        </View>
+        <OrganizerEventStatusPill status={event.reviewStatus} />
+      </View>
+      <Text className="text-[12px] leading-4 text-muted" numberOfLines={2}>
+        {event.description}
+      </Text>
+    </View>
+  );
+}
+
+function UserEventStatusPill({ status }: { status: UserEventStatus }) {
+  const label = status === 'attended' ? 'Attended' : status === 'going' ? 'Going' : 'Interested';
+
+  return (
+    <View className="rounded-full bg-primary/10 px-2.5 py-1">
+      <Text className="text-[10px] font-extrabold text-primary">{label}</Text>
+    </View>
+  );
+}
+
+function OrganizerEventStatusPill({ status }: { status: OrganizerEventStatus }) {
+  const statusStyle = getOrganizerEventStatusStyle(status);
+
+  return (
+    <View className={`rounded-full px-2.5 py-1 ${statusStyle.container}`}>
+      <Text className={`text-[10px] font-extrabold ${statusStyle.text}`}>{statusStyle.label}</Text>
+    </View>
+  );
+}
+
+function getOrganizerEventStatusStyle(status: OrganizerEventStatus) {
+  if (status === 'approved') {
+    return { container: 'bg-primary/10', label: 'Approved', text: 'text-primary' };
+  }
+  if (status === 'rejected') {
+    return { container: 'bg-destructive/10', label: 'Rejected', text: 'text-destructive' };
+  }
+  if (status === 'cancelled') {
+    return { container: 'bg-gray-100', label: 'Cancelled', text: 'text-muted' };
+  }
+  if (status === 'draft') {
+    return { container: 'bg-gray-100', label: 'Draft', text: 'text-muted' };
+  }
+
+  return { container: 'bg-secondary/12', label: 'Pending', text: 'text-secondary' };
 }
 
 type RewardsSectionProps = {
