@@ -26,12 +26,14 @@ import { fetchApprovedQuests, type Quest, type QuestStop } from '@/lib/quests';
 type QuestsScreenProps = {
   cityData?: CultureCityData;
   completedQuestIds?: string[];
+  questsRefreshKey?: number;
   onQuestCompleted?: (questId: string, totalXp: number) => boolean;
 };
 
 export default function QuestsScreen({
   cityData = getCultureCityData(),
   completedQuestIds = [],
+  questsRefreshKey = 0,
   onQuestCompleted,
 }: QuestsScreenProps) {
   const insets = useSafeAreaInsets();
@@ -62,7 +64,7 @@ export default function QuestsScreen({
     return () => {
       active = false;
     };
-  }, [cityData.id]);
+  }, [cityData.id, questsRefreshKey]);
 
   return (
     <View className="flex-1 bg-white">

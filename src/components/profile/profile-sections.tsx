@@ -297,6 +297,32 @@ export function OrganizerToolsSection({
   );
 }
 
+type AdminToolsSectionProps = {
+  onCreateQuest: () => void;
+};
+
+export function AdminToolsSection({ onCreateQuest }: AdminToolsSectionProps) {
+  return (
+    <View className="mb-6 px-5">
+      <View className="mb-3 flex-row items-center justify-between">
+        <Text className="font-heading text-[22px] font-extrabold text-ink">Admin Tools</Text>
+      </View>
+      <View className="rounded-3xl border border-primary/10 bg-ink p-4">
+        <Text className="font-heading text-[20px] font-extrabold text-white">Quest curation</Text>
+        <Text className="mt-1 text-[13px] leading-5 text-white/70">
+          Create official CultureQuest city trails for students.
+        </Text>
+        <Pressable
+          onPress={onCreateQuest}
+          className="mt-4 h-11 flex-row items-center justify-center rounded-xl bg-primary active:opacity-85"
+        >
+          <Text className="text-[14px] font-semibold text-white">Create quest</Text>
+        </Pressable>
+      </View>
+    </View>
+  );
+}
+
 type OrganizerEventHistorySectionProps = {
   error?: string | null;
   events: ManagedOrganizerEvent[];

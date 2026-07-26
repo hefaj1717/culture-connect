@@ -6,9 +6,11 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { BadgesModal } from '@/components/profile/badges-modal';
 import { CreateEventModal } from '@/components/profile/create-event-modal';
+import { CreateQuestModal } from '@/components/profile/create-quest-modal';
 import { CreateRewardModal } from '@/components/profile/create-reward-modal';
 import { EditProfileModal } from '@/components/profile/edit-profile-modal';
 import {
+  AdminToolsSection,
   DigitalPassportSection,
   OrganizerEventHistoryModal,
   OrganizerToolsSection,
@@ -23,6 +25,7 @@ import { RewardDetailModal } from '@/components/profile/reward-detail-modal';
 import { type CityId, type RewardPartner, defaultCityId, getCultureCityData } from '@/data/culture';
 import { achievementBadges, getXpLevelProgress } from '@/data/profile';
 import { useCreateEventForm } from '@/hooks/profile/use-create-event-form';
+import { useCreateQuestForm } from '@/hooks/profile/use-create-quest-form';
 import { useCreateRewardForm } from '@/hooks/profile/use-create-reward-form';
 import { useEditProfileForm } from '@/hooks/profile/use-edit-profile-form';
 import { useRewardRedemption } from '@/hooks/profile/use-reward-redemption';
@@ -34,6 +37,7 @@ import { useAuth } from '@/providers/auth-provider';
 type ProfileScreenProps = {
   eventsRefreshKey?: number;
   onEventCreated?: () => void;
+  onQuestCreated?: () => void;
   onRewardCreated?: () => void;
   rewardsRefreshKey?: number;
   userEventHistory?: UserEventHistoryItem[];
@@ -43,6 +47,7 @@ type ProfileScreenProps = {
 export default function ProfileScreen({
   eventsRefreshKey = 0,
   onEventCreated,
+  onQuestCreated,
   onRewardCreated,
   rewardsRefreshKey = 0,
   userEventHistory = [],
@@ -53,6 +58,7 @@ export default function ProfileScreen({
   const {
     organizerApplicationStatus,
     refreshOrganizerApplicationStatus,
+    hasRole,
     session,
     signOut,
     updateProfile,
@@ -92,6 +98,11 @@ export default function ProfileScreen({
   });
   const createRewardForm = useCreateRewardForm({
     onRewardCreated,
+    savedCityId,
+    userId: session?.user.id,
+  });
+  const createQuestForm = useCreateQuestForm({
+    onQuestCreated,
     savedCityId,
     userId: session?.user.id,
   });
@@ -173,6 +184,32 @@ export default function ProfileScreen({
     setSelectedRewardPlace,
     submitReward,
   } = createRewardForm;
+  const {
+    addQuestStop,
+    createQuestError,
+    createQuestOpen,
+    creatingQuest,
+    openCreateQuest,
+    questCityId,
+    questDescription,
+    questImage,
+    questStatus,
+    questStops,
+    questTheme,
+    questTitle,
+    questXp,
+    removeQuestStop,
+    setCreateQuestOpen,
+    setQuestCityId,
+    setQuestDescription,
+    setQuestImage,
+    setQuestStatus,
+    setQuestTheme,
+    setQuestTitle,
+    setQuestXp,
+    submitQuest,
+    updateQuestStop,
+  } = createQuestForm;
   const {
     redeemSelectedReward,
     resetRewardDetailState,
@@ -429,6 +466,8 @@ export default function ProfileScreen({
           status={organizerApplicationStatus}
         />
 
+        {hasRole('admin') && <AdminToolsSection onCreateQuest={openCreateQuest} />}
+
         {organizerApplicationStatus === 'approved' && (
           <OrganizerEventHistorySection
             error={myOrganizerEventsError}
@@ -529,6 +568,33 @@ export default function ProfileScreen({
         setSelectedRewardPlace={setSelectedRewardPlace}
         stableModalTopInset={stableModalTopInset}
         visible={createRewardOpen}
+      />
+
+      <CreateQuestModal
+        createQuestError={createQuestError}
+        creatingQuest={creatingQuest}
+        onAddStop={addQuestStop}
+        onChangeCity={setQuestCityId}
+        onChangeDescription={setQuestDescription}
+        onChangeImage={setQuestImage}
+        onChangeStatus={setQuestStatus}
+        onChangeStop={updateQuestStop}
+        onChangeTheme={setQuestTheme}
+        onChangeTitle={setQuestTitle}
+        onChangeXp={setQuestXp}
+        onClose={() => setCreateQuestOpen(false)}
+        onRemoveStop={removeQuestStop}
+        onSubmit={submitQuest}
+        questCityId={questCityId}
+        questDescription={questDescription}
+        questImage={questImage}
+        questStatus={questStatus}
+        questStops={questStops}
+        questTheme={questTheme}
+        questTitle={questTitle}
+        questXp={questXp}
+        stableModalTopInset={stableModalTopInset}
+        visible={createQuestOpen}
       />
 
       <BadgesModal
