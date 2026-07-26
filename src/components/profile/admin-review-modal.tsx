@@ -9,7 +9,11 @@ import {
   StyleSheet,
   Text,
   View,
+  type StyleProp,
+  type ViewStyle,
 } from 'react-native';
+import { GestureDetector, type GestureType } from 'react-native-gesture-handler';
+import Animated from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BrandImage } from '@/components/brand-image';
@@ -22,6 +26,7 @@ type ReviewContentKind = 'event' | 'reward';
 type AdminReviewModalProps = {
   error: string | null;
   events: PendingAdminEvent[];
+  gesture: GestureType;
   loading: boolean;
   onClose: () => void;
   onRefresh: () => void;
@@ -29,12 +34,14 @@ type AdminReviewModalProps = {
   rewards: PendingAdminReward[];
   reviewingContentId: string | null;
   stableModalTopInset: number;
+  swipeStyle: StyleProp<ViewStyle>;
   visible: boolean;
 };
 
 export function AdminReviewModal({
   error,
   events,
+  gesture,
   loading,
   onClose,
   onRefresh,
@@ -42,6 +49,7 @@ export function AdminReviewModal({
   rewards,
   reviewingContentId,
   stableModalTopInset,
+  swipeStyle,
   visible,
 }: AdminReviewModalProps) {
   const [activeTab, setActiveTab] = useState<ReviewTab>('events');
@@ -49,117 +57,121 @@ export function AdminReviewModal({
 
   return (
     <Modal animationType="slide" onRequestClose={onClose} visible={visible}>
-      <SafeAreaView className="flex-1 bg-white" edges={['bottom']}>
-        <ScrollView
-          className="flex-1"
-          contentContainerStyle={{
-            paddingHorizontal: 20,
-            paddingBottom: 36,
-            paddingTop: stableModalTopInset + 14,
-          }}
-          showsVerticalScrollIndicator={false}
-        >
-          <View className="mb-5 flex-row items-center justify-between">
-            <Pressable
-              onPress={onClose}
-              className="h-10 w-10 items-center justify-center rounded-full bg-gray-100 active:opacity-80"
-              accessibilityRole="button"
-              accessibilityLabel="Close content review"
+      <GestureDetector gesture={gesture}>
+        <Animated.View className="flex-1 bg-white" style={swipeStyle}>
+          <SafeAreaView className="flex-1 bg-white" edges={['bottom']}>
+            <ScrollView
+              className="flex-1"
+              contentContainerStyle={{
+                paddingHorizontal: 20,
+                paddingBottom: 36,
+                paddingTop: stableModalTopInset + 14,
+              }}
+              showsVerticalScrollIndicator={false}
             >
-              <ArrowLeft size={21} color="#756F7B" strokeWidth={2.6} />
-            </Pressable>
-            <Pressable
-              onPress={onRefresh}
-              className="h-10 w-10 items-center justify-center rounded-full bg-primary/10 active:opacity-80"
-              accessibilityRole="button"
-              accessibilityLabel="Refresh pending content"
-            >
-              <RefreshCw size={18} color="#7C3AED" strokeWidth={2.5} />
-            </Pressable>
-          </View>
+              <View className="mb-5 flex-row items-center justify-between">
+                <Pressable
+                  onPress={onClose}
+                  className="h-10 w-10 items-center justify-center rounded-full bg-gray-100 active:opacity-80"
+                  accessibilityRole="button"
+                  accessibilityLabel="Close content review"
+                >
+                  <ArrowLeft size={21} color="#756F7B" strokeWidth={2.6} />
+                </Pressable>
+                <Pressable
+                  onPress={onRefresh}
+                  className="h-10 w-10 items-center justify-center rounded-full bg-primary/10 active:opacity-80"
+                  accessibilityRole="button"
+                  accessibilityLabel="Refresh pending content"
+                >
+                  <RefreshCw size={18} color="#7C3AED" strokeWidth={2.5} />
+                </Pressable>
+              </View>
 
-          <View className="mb-5 overflow-hidden rounded-3xl bg-ink">
-            <LinearGradient
-              colors={['rgba(124,58,237,0.72)', 'rgba(36,28,46,0.98)']}
-              end={{ x: 1, y: 1 }}
-              start={{ x: 0, y: 0 }}
-              style={{ padding: 20 }}
-            >
-              <Text className="text-[12px] font-semibold uppercase tracking-wide text-white/70">
-                Admin review
-              </Text>
-              <Text className="mt-1 font-heading text-[29px] font-extrabold leading-[33px] text-white">
-                Approve what goes live.
-              </Text>
-              <Text
-                className="mt-2 max-w-[300px] text-[13px] leading-5 text-white/80"
-                style={{ color: 'rgba(255,255,255,0.82)' }}
-              >
-                Review organizer submissions before students see them in CultureQuest.
-              </Text>
-            </LinearGradient>
-          </View>
+              <View className="mb-5 overflow-hidden rounded-3xl bg-ink">
+                <LinearGradient
+                  colors={['rgba(124,58,237,0.72)', 'rgba(36,28,46,0.98)']}
+                  end={{ x: 1, y: 1 }}
+                  start={{ x: 0, y: 0 }}
+                  style={{ padding: 20 }}
+                >
+                  <Text className="text-[12px] font-semibold uppercase tracking-wide text-white/70">
+                    Admin review
+                  </Text>
+                  <Text className="mt-1 font-heading text-[29px] font-extrabold leading-[33px] text-white">
+                    Approve what goes live.
+                  </Text>
+                  <Text
+                    className="mt-2 max-w-[300px] text-[13px] leading-5 text-white/80"
+                    style={{ color: 'rgba(255,255,255,0.82)' }}
+                  >
+                    Review organizer submissions before students see them in CultureQuest.
+                  </Text>
+                </LinearGradient>
+              </View>
 
-          <View className="mb-4 flex-row gap-2 rounded-2xl bg-gray-100 p-1">
-            <ReviewTabButton
-              active={activeTab === 'events'}
-              count={events.length}
-              label="Events"
-              onPress={() => setActiveTab('events')}
-            />
-            <ReviewTabButton
-              active={activeTab === 'rewards'}
-              count={rewards.length}
-              label="Rewards"
-              onPress={() => setActiveTab('rewards')}
-            />
-          </View>
+              <View className="mb-4 flex-row gap-2 rounded-2xl bg-gray-100 p-1">
+                <ReviewTabButton
+                  active={activeTab === 'events'}
+                  count={events.length}
+                  label="Events"
+                  onPress={() => setActiveTab('events')}
+                />
+                <ReviewTabButton
+                  active={activeTab === 'rewards'}
+                  count={rewards.length}
+                  label="Rewards"
+                  onPress={() => setActiveTab('rewards')}
+                />
+              </View>
 
-          {error && (
-            <View className="mb-4 rounded-2xl border border-destructive/20 bg-destructive/10 p-4">
-              <Text className="text-[13px] leading-5 text-destructive">{error}</Text>
-            </View>
-          )}
+              {error && (
+                <View className="mb-4 rounded-2xl border border-destructive/20 bg-destructive/10 p-4">
+                  <Text className="text-[13px] leading-5 text-destructive">{error}</Text>
+                </View>
+              )}
 
-          {loading ? (
-            <View className="items-center justify-center rounded-3xl border border-gray-200 bg-white p-8">
-              <ActivityIndicator color="#7C3AED" />
-              <Text className="mt-3 text-[13px] font-semibold text-muted">
-                Loading pending {activeTab}
-              </Text>
-            </View>
-          ) : activeItemsCount === 0 ? (
-            <View className="rounded-3xl border border-primary/10 bg-primary/5 p-5">
-              <Text className="font-heading text-[22px] font-extrabold text-ink">
-                Nothing to review
-              </Text>
-              <Text className="mt-2 text-[13px] leading-5 text-muted">
-                Pending {activeTab} will appear here as soon as organizers submit them.
-              </Text>
-            </View>
-          ) : (
-            <View className="gap-4">
-              {activeTab === 'events'
-                ? events.map((event) => (
-                    <PendingEventCard
-                      event={event}
-                      key={event.id}
-                      onReview={onReview}
-                      reviewingContentId={reviewingContentId}
-                    />
-                  ))
-                : rewards.map((reward) => (
-                    <PendingRewardCard
-                      key={reward.id}
-                      onReview={onReview}
-                      reward={reward}
-                      reviewingContentId={reviewingContentId}
-                    />
-                  ))}
-            </View>
-          )}
-        </ScrollView>
-      </SafeAreaView>
+              {loading ? (
+                <View className="items-center justify-center rounded-3xl border border-gray-200 bg-white p-8">
+                  <ActivityIndicator color="#7C3AED" />
+                  <Text className="mt-3 text-[13px] font-semibold text-muted">
+                    Loading pending {activeTab}
+                  </Text>
+                </View>
+              ) : activeItemsCount === 0 ? (
+                <View className="rounded-3xl border border-primary/10 bg-primary/5 p-5">
+                  <Text className="font-heading text-[22px] font-extrabold text-ink">
+                    Nothing to review
+                  </Text>
+                  <Text className="mt-2 text-[13px] leading-5 text-muted">
+                    Pending {activeTab} will appear here as soon as organizers submit them.
+                  </Text>
+                </View>
+              ) : (
+                <View className="gap-4">
+                  {activeTab === 'events'
+                    ? events.map((event) => (
+                        <PendingEventCard
+                          event={event}
+                          key={event.id}
+                          onReview={onReview}
+                          reviewingContentId={reviewingContentId}
+                        />
+                      ))
+                    : rewards.map((reward) => (
+                        <PendingRewardCard
+                          key={reward.id}
+                          onReview={onReview}
+                          reward={reward}
+                          reviewingContentId={reviewingContentId}
+                        />
+                      ))}
+                </View>
+              )}
+            </ScrollView>
+          </SafeAreaView>
+        </Animated.View>
+      </GestureDetector>
     </Modal>
   );
 }

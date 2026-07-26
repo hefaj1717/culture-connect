@@ -297,6 +297,8 @@ export default function ProfileScreen({
   );
   const unlockedBadgeCount = achievementBadges.filter((badge) => badge.unlocked).length;
   const createEventTranslateX = useSharedValue(0);
+  const createQuestTranslateX = useSharedValue(0);
+  const adminReviewTranslateX = useSharedValue(0);
   const badgesTranslateX = useSharedValue(0);
   const rewardTranslateX = useSharedValue(0);
 
@@ -327,6 +329,64 @@ export default function ProfileScreen({
 
   const createEventSwipeStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: createEventTranslateX.value }],
+  }));
+
+  const createQuestSwipeGesture = useMemo(
+    () =>
+      Gesture.Pan()
+        .activeOffsetX([-999, 18])
+        .failOffsetY([-35, 35])
+        .onUpdate((event) => {
+          createQuestTranslateX.value = Math.max(0, event.translationX);
+        })
+        .onEnd((event) => {
+          const shouldClose = createQuestTranslateX.value > width * 0.28 || event.velocityX > 700;
+
+          if (shouldClose) {
+            createQuestTranslateX.value = withTiming(width, { duration: 180 }, (finished) => {
+              if (finished) {
+                runOnJS(setCreateQuestOpen)(false);
+              }
+            });
+            return;
+          }
+
+          createQuestTranslateX.value = withTiming(0, { duration: 180 });
+        }),
+    [createQuestTranslateX, setCreateQuestOpen, width],
+  );
+
+  const createQuestSwipeStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: createQuestTranslateX.value }],
+  }));
+
+  const adminReviewSwipeGesture = useMemo(
+    () =>
+      Gesture.Pan()
+        .activeOffsetX([-999, 18])
+        .failOffsetY([-35, 35])
+        .onUpdate((event) => {
+          adminReviewTranslateX.value = Math.max(0, event.translationX);
+        })
+        .onEnd((event) => {
+          const shouldClose = adminReviewTranslateX.value > width * 0.28 || event.velocityX > 700;
+
+          if (shouldClose) {
+            adminReviewTranslateX.value = withTiming(width, { duration: 180 }, (finished) => {
+              if (finished) {
+                runOnJS(setAdminReviewOpen)(false);
+              }
+            });
+            return;
+          }
+
+          adminReviewTranslateX.value = withTiming(0, { duration: 180 });
+        }),
+    [adminReviewTranslateX, setAdminReviewOpen, width],
+  );
+
+  const adminReviewSwipeStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: adminReviewTranslateX.value }],
   }));
 
   const badgesSwipeGesture = useMemo(
@@ -453,6 +513,18 @@ export default function ProfileScreen({
   }, [createEventOpen, createEventTranslateX]);
 
   useEffect(() => {
+    if (createQuestOpen) {
+      createQuestTranslateX.value = 0;
+    }
+  }, [createQuestOpen, createQuestTranslateX]);
+
+  useEffect(() => {
+    if (adminReviewOpen) {
+      adminReviewTranslateX.value = 0;
+    }
+  }, [adminReviewOpen, adminReviewTranslateX]);
+
+  useEffect(() => {
     if (badgesOpen) {
       badgesTranslateX.value = 0;
     }
@@ -478,6 +550,22 @@ export default function ProfileScreen({
     createEventTranslateX.value = withTiming(width, { duration: 180 }, (finished) => {
       if (finished) {
         runOnJS(setCreateEventOpen)(false);
+      }
+    });
+  }
+
+  function closeCreateQuestWithAnimation() {
+    createQuestTranslateX.value = withTiming(width, { duration: 180 }, (finished) => {
+      if (finished) {
+        runOnJS(setCreateQuestOpen)(false);
+      }
+    });
+  }
+
+  function closeAdminReviewWithAnimation() {
+    adminReviewTranslateX.value = withTiming(width, { duration: 180 }, (finished) => {
+      if (finished) {
+        runOnJS(setAdminReviewOpen)(false);
       }
     });
   }
@@ -681,6 +769,7 @@ export default function ProfileScreen({
       <CreateQuestModal
         createQuestError={createQuestError}
         creatingQuest={creatingQuest}
+        gesture={createQuestSwipeGesture}
         onAddStop={addQuestStop}
         onChangeCity={setQuestCityId}
         onChangeDescription={setQuestDescription}
@@ -689,7 +778,7 @@ export default function ProfileScreen({
         onChangeTheme={setQuestTheme}
         onChangeTitle={setQuestTitle}
         onChangeXp={setQuestXp}
-        onClose={() => setCreateQuestOpen(false)}
+        onClose={closeCreateQuestWithAnimation}
         onPickQuestImage={pickQuestImage}
         onRemoveQuestImage={() => setQuestImageUri(null)}
         onRemoveStop={removeQuestStop}
@@ -703,19 +792,22 @@ export default function ProfileScreen({
         questTitle={questTitle}
         questXp={questXp}
         stableModalTopInset={stableModalTopInset}
+        swipeStyle={createQuestSwipeStyle}
         visible={createQuestOpen}
       />
 
       <AdminReviewModal
         error={adminReviewError}
         events={pendingEvents}
+        gesture={adminReviewSwipeGesture}
         loading={adminReviewLoading}
-        onClose={() => setAdminReviewOpen(false)}
+        onClose={closeAdminReviewWithAnimation}
         onRefresh={refreshPendingContent}
         onReview={reviewContent}
         rewards={pendingRewards}
         reviewingContentId={reviewingContentId}
         stableModalTopInset={stableModalTopInset}
+        swipeStyle={adminReviewSwipeStyle}
         visible={adminReviewOpen}
       />
 
