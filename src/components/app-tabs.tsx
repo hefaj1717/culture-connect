@@ -356,7 +356,14 @@ function AuthenticatedTabs() {
       >
         <TabButton
           active={activeIndex === 0}
-          icon={<Home size={24} color={activeIndex === 0 ? ACTIVE : INACTIVE} />}
+          icon={
+            <Home
+              size={24}
+              color={activeIndex === 0 ? ACTIVE : INACTIVE}
+              fill={activeIndex === 0 ? ACTIVE : 'none'}
+              strokeWidth={activeIndex === 0 ? 2.6 : 2.2}
+            />
+          }
           label="Home"
           position={1}
           onPress={() => goToTab(0)}
@@ -364,7 +371,12 @@ function AuthenticatedTabs() {
         <TabButton
           active={activeIndex === 1}
           icon={
-            <Compass size={23} color={activeIndex === 1 ? ACTIVE : INACTIVE} strokeWidth={2.3} />
+            <Compass
+              size={23}
+              color={activeIndex === 1 ? ACTIVE : INACTIVE}
+              fill={activeIndex === 1 ? ACTIVE : 'none'}
+              strokeWidth={activeIndex === 1 ? 2.6 : 2.3}
+            />
           }
           label="Discover"
           position={2}
@@ -372,14 +384,28 @@ function AuthenticatedTabs() {
         />
         <TabButton
           active={activeIndex === 2}
-          icon={<Route size={23} color={activeIndex === 2 ? ACTIVE : INACTIVE} strokeWidth={2.3} />}
+          icon={
+            <Route
+              size={23}
+              color={activeIndex === 2 ? ACTIVE : INACTIVE}
+              fill={activeIndex === 2 ? ACTIVE : 'none'}
+              strokeWidth={activeIndex === 2 ? 2.6 : 2.3}
+            />
+          }
           label="Quests"
           position={3}
           onPress={() => goToTab(2)}
         />
         <TabButton
           active={activeIndex === 3}
-          icon={<User size={24} color={activeIndex === 3 ? ACTIVE : INACTIVE} />}
+          icon={
+            <User
+              size={24}
+              color={activeIndex === 3 ? ACTIVE : INACTIVE}
+              fill={activeIndex === 3 ? ACTIVE : 'none'}
+              strokeWidth={activeIndex === 3 ? 2.6 : 2.2}
+            />
+          }
           label="Profile"
           position={4}
           onPress={() => goToTab(3)}

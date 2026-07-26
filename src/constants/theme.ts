@@ -17,6 +17,12 @@ export const Colors = {
     primary: '#7C3AED',
     ink: '#241C2E',
     accent: '#F4A261',
+    accentDeep: '#E76F51',
+    badgeQuest: '#7C3AED',
+    badgeSocial: '#F4A261',
+    badgeExplore: '#14B8A6',
+    badgeCulture: '#E76F51',
+    progressTrack: '#D8CDD4',
     success: '#2F9E73',
   },
   dark: {
@@ -28,6 +34,12 @@ export const Colors = {
     primary: '#A78BFA',
     ink: '#241C2E',
     accent: '#F4A261',
+    accentDeep: '#E76F51',
+    badgeQuest: '#A78BFA',
+    badgeSocial: '#F4A261',
+    badgeExplore: '#2DD4BF',
+    badgeCulture: '#FB8B71',
+    progressTrack: '#5B5066',
     success: '#4CC38D',
   },
 } as const;
@@ -62,6 +74,20 @@ export const FontTokens = {
   ui: 'Inter_600SemiBold',
   caption: 'Inter_500Medium',
   numeric: 'PlayfairDisplay_800ExtraBold',
+} as const;
+
+export const GamificationColors = {
+  xp: Colors.light.accent,
+  xpDeep: Colors.light.accentDeep,
+  progressTrack: Colors.light.progressTrack,
+  badges: {
+    quest: Colors.light.badgeQuest,
+    social: Colors.light.badgeSocial,
+    exploration: Colors.light.badgeExplore,
+    culture: Colors.light.badgeCulture,
+    reward: Colors.light.accent,
+    status: Colors.light.success,
+  },
 } as const;
 
 export const Spacing = {

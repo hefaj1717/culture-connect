@@ -1,8 +1,13 @@
-import { X } from 'lucide-react-native';
+import { LockKeyhole, X } from 'lucide-react-native';
 import type { ComponentType } from 'react';
 import { Pressable, Text, View } from 'react-native';
 
+import { GamificationColors } from '@/constants/theme';
+
+export type BadgeCategory = keyof typeof GamificationColors.badges;
+
 export type AchievementBadge = {
+  category: BadgeCategory;
   color: string;
   description: string;
   icon: ComponentType<{
@@ -27,9 +32,10 @@ export function PassportBadge({
   return (
     <Pressable
       onPress={onPress}
-      className={`w-[104px] rounded-3xl p-3 active:opacity-80 ${
-        badge.unlocked ? 'bg-primary/10' : 'bg-gray-100'
+      className={`w-[104px] rounded-3xl border p-3 active:opacity-80 ${
+        badge.unlocked ? 'border-white bg-white' : 'border-gray-200 bg-gray-100'
       }`}
+      style={badge.unlocked ? { boxShadow: '0 10px 20px rgba(36, 28, 46, 0.10)' } : undefined}
     >
       <BadgeIcon badge={badge} className="mb-3 h-14 w-14 rounded-2xl" iconSize={25} />
       <Text
@@ -66,9 +72,12 @@ export function BadgeGridItem({
     <Pressable
       onPress={onPress}
       className={`min-h-[138px] rounded-3xl border p-3 active:opacity-80 ${
-        badge.unlocked ? 'border-primary/20 bg-primary/10' : 'border-gray-200 bg-gray-50'
+        badge.unlocked ? 'border-white bg-white' : 'border-gray-200 bg-gray-50'
       }`}
-      style={{ width: itemWidth }}
+      style={[
+        { width: itemWidth },
+        badge.unlocked ? { boxShadow: '0 10px 20px rgba(36, 28, 46, 0.10)' } : undefined,
+      ]}
     >
       <BadgeIcon badge={badge} className="mb-3 h-14 w-14 rounded-2xl" iconSize={24} />
       <Text
@@ -84,9 +93,9 @@ export function BadgeGridItem({
       </Text>
       {hasProgress && (
         <View className="mt-auto pt-3">
-          <View className="h-1.5 overflow-hidden rounded-full bg-primary/10">
+          <View className="h-2 overflow-hidden rounded-full bg-progressTrack">
             <View
-              className="h-full rounded-full bg-primary"
+              className="h-full rounded-full bg-accent"
               style={{ width: `${progressPercent}%` }}
             />
           </View>
@@ -130,19 +139,19 @@ export function BadgeDetailSheet({
         </View>
       </View>
 
-      <View className="rounded-2xl bg-primary/5 p-4">
+      <View className="rounded-2xl bg-accent/10 p-4">
         <View className="mb-2 flex-row items-center justify-between">
           <Text className="text-[11px] font-extrabold uppercase tracking-[2px] text-muted">
             Progress
           </Text>
-          <Text className="text-[12px] font-extrabold text-primary">
+          <Text className="text-[12px] font-extrabold text-accentDeep">
             {badge.unlocked ? 'Unlocked' : badge.progress}
           </Text>
         </View>
         {progress ? (
-          <View className="h-2 overflow-hidden rounded-full bg-primary/10">
+          <View className="h-3 overflow-hidden rounded-full bg-progressTrack">
             <View
-              className="h-full rounded-full bg-primary"
+              className="h-full rounded-full bg-accent"
               style={{ width: `${progressPercent}%` }}
             />
           </View>
@@ -166,10 +175,12 @@ function BadgeIcon({
   iconSize: number;
 }) {
   const Icon = badge.icon;
+  const categoryColor = GamificationColors.badges[badge.category] ?? badge.color;
 
   return (
     <View
-      className={`items-center justify-center ${badge.unlocked ? 'bg-primary' : 'bg-gray-200'} ${className}`}
+      className={`relative items-center justify-center ${badge.unlocked ? '' : 'bg-gray-200'} ${className}`}
+      style={badge.unlocked ? { backgroundColor: categoryColor } : undefined}
     >
       <Icon
         size={iconSize}
@@ -177,6 +188,11 @@ function BadgeIcon({
         strokeWidth={2.4}
         fill={badge.unlocked ? 'rgba(255,255,255,0.16)' : 'transparent'}
       />
+      {!badge.unlocked && (
+        <View className="absolute -right-1 -top-1 h-6 w-6 items-center justify-center rounded-full border-2 border-white bg-ink">
+          <LockKeyhole size={11} color="white" strokeWidth={2.8} />
+        </View>
+      )}
     </View>
   );
 }

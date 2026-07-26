@@ -3,7 +3,7 @@ import { User } from 'lucide-react-native';
 import { Text, View } from 'react-native';
 import Svg, { Circle } from 'react-native-svg';
 
-import { Colors } from '@/constants/theme';
+import { GamificationColors } from '@/constants/theme';
 
 type AvatarProps = {
   iconSize: number;
@@ -37,13 +37,13 @@ type RankAvatarProps = {
 
 export function RankAvatar({ initials, progressPercent, uri }: RankAvatarProps) {
   return (
-    <View className="relative h-[90px] w-[90px] items-center justify-center">
-      <ProgressRing progressPercent={progressPercent} size={90} strokeWidth={6} />
-      <View className="h-[70px] w-[70px] items-center justify-center overflow-hidden rounded-full bg-white/15">
+    <View className="relative h-[96px] w-[96px] items-center justify-center">
+      <ProgressRing progressPercent={progressPercent} size={96} strokeWidth={8} />
+      <View className="h-[72px] w-[72px] items-center justify-center overflow-hidden rounded-full bg-white/15">
         {uri ? (
-          <Image source={{ uri }} contentFit="cover" style={{ height: 70, width: 70 }} />
+          <Image source={{ uri }} contentFit="cover" style={{ height: 72, width: 72 }} />
         ) : (
-          <View className="h-[70px] w-[70px] items-center justify-center bg-primary">
+          <View className="h-[72px] w-[72px] items-center justify-center bg-primary">
             <Text className="font-ui text-[22px] font-extrabold text-white">
               {initials ?? 'CQ'}
             </Text>
@@ -75,7 +75,7 @@ function ProgressRing({
         cy={size / 2}
         fill="transparent"
         r={radius}
-        stroke="rgba(255,255,255,0.3)"
+        stroke="rgba(244,162,97,0.22)"
         strokeWidth={strokeWidth}
       />
       <Circle
@@ -83,7 +83,7 @@ function ProgressRing({
         cy={size / 2}
         fill="transparent"
         r={radius}
-        stroke={Colors.light.accent}
+        stroke={GamificationColors.xp}
         strokeDasharray={`${circumference} ${circumference}`}
         strokeDashoffset={strokeDashoffset}
         strokeLinecap="round"
