@@ -21,25 +21,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { BrandImage } from '@/components/brand-image';
 import { type CultureCityData, getCultureCityData } from '@/data/culture';
-
-type QuestStop = {
-  id: string;
-  title: string;
-  description: string;
-  eta: string;
-  completed: boolean;
-};
-
-type Quest = {
-  id: string;
-  title: string;
-  theme: string;
-  description: string;
-  totalXp: number;
-  completedStops: number;
-  image: 'museum' | 'cafe' | 'theater';
-  stops: QuestStop[];
-};
+import { fetchApprovedQuests, type Quest, type QuestStop } from '@/lib/quests';
 
 type QuestsScreenProps = {
   cityData?: CultureCityData;
@@ -53,14 +35,34 @@ export default function QuestsScreen({
   onQuestCompleted,
 }: QuestsScreenProps) {
   const insets = useSafeAreaInsets();
+  const [approvedQuests, setApprovedQuests] = useState<Quest[]>([]);
+  const [questsError, setQuestsError] = useState<string | null>(null);
   const [selectedQuest, setSelectedQuest] = useState<Quest | null>(null);
   const quests = useMemo(
-    () => applyCompletedQuestState(getQuestData(cityData.id), completedQuestIds),
-    [cityData.id, completedQuestIds],
+    () => applyCompletedQuestState(approvedQuests, completedQuestIds),
+    [approvedQuests, completedQuestIds],
   );
   const selectedQuestView = selectedQuest
     ? (quests.find((quest) => quest.id === selectedQuest.id) ?? selectedQuest)
     : null;
+
+  useEffect(() => {
+    let active = true;
+
+    async function loadQuests() {
+      const result = await fetchApprovedQuests(cityData.id);
+      if (!active) return;
+
+      setApprovedQuests(result.quests);
+      setQuestsError(result.error);
+    }
+
+    loadQuests();
+
+    return () => {
+      active = false;
+    };
+  }, [cityData.id]);
 
   return (
     <View className="flex-1 bg-white">
@@ -94,6 +96,26 @@ export default function QuestsScreen({
             Active paths
           </Text>
 
+          {questsError && (
+            <View className="mb-4 rounded-2xl border border-secondary/20 bg-secondary/10 p-4">
+              <Text className="text-[13px] leading-5 text-muted">
+                Quests could not load yet. Apply the latest Supabase migration if you have not done
+                it.
+              </Text>
+            </View>
+          )}
+
+          {!questsError && quests.length === 0 && (
+            <View className="rounded-3xl border border-gray-200 bg-white p-5">
+              <Text className="font-heading text-[22px] font-extrabold text-ink">
+                No active quests yet
+              </Text>
+              <Text className="mt-2 text-[13px] leading-5 text-muted">
+                CultureQuest-curated paths for {cityData.name} will appear here after admin review.
+              </Text>
+            </View>
+          )}
+
           <View className="gap-4">
             {quests.map((quest) => (
               <QuestCard key={quest.id} quest={quest} onPress={() => setSelectedQuest(quest)} />
@@ -113,7 +135,8 @@ export default function QuestsScreen({
 
 function QuestCard({ onPress, quest }: { onPress: () => void; quest: Quest }) {
   const totalStops = quest.stops.length;
-  const progressPercent = Math.round((quest.completedStops / totalStops) * 100);
+  const progressPercent =
+    totalStops > 0 ? Math.round((quest.completedStops / totalStops) * 100) : 0;
 
   return (
     <Pressable
@@ -215,7 +238,8 @@ function QuestDetailModal({
   }
 
   if (!quest) return null;
-  const questCompleted = quest.completedStops >= quest.stops.length;
+  const questCompleted = quest.stops.length > 0 && quest.completedStops >= quest.stops.length;
+  const questHasStops = quest.stops.length > 0;
 
   return (
     <Modal animationType="slide" onRequestClose={closeWithAnimation} visible>
@@ -279,10 +303,10 @@ function QuestDetailModal({
               </View>
 
               <Pressable
-                disabled={questCompleted}
+                disabled={questCompleted || !questHasStops}
                 onPress={() => onCompleteQuest(quest)}
                 className={`mt-2 h-[52px] flex-row items-center justify-center gap-2 rounded-2xl ${
-                  questCompleted ? 'bg-gray-200' : 'bg-primary active:opacity-85'
+                  questCompleted || !questHasStops ? 'bg-gray-200' : 'bg-primary active:opacity-85'
                 }`}
               >
                 {questCompleted && <BadgeCheck size={19} color="#756F7B" strokeWidth={2.4} />}
@@ -291,7 +315,11 @@ function QuestDetailModal({
                     questCompleted ? 'text-muted' : 'text-white'
                   }`}
                 >
-                  {questCompleted ? 'Quest completed' : `Complete quest +${quest.totalXp} XP`}
+                  {questCompleted
+                    ? 'Quest completed'
+                    : questHasStops
+                      ? `Complete quest +${quest.totalXp} XP`
+                      : 'Stops coming soon'}
                 </Text>
               </Pressable>
             </View>
@@ -354,168 +382,6 @@ function applyCompletedQuestState(quests: Quest[], completedQuestIds: string[]) 
       stops: quest.stops.map((stop) => ({ ...stop, completed: true })),
     };
   });
-}
-
-function getQuestData(cityId: CultureCityData['id']): Quest[] {
-  if (cityId === 'lublin') {
-    return [
-      {
-        id: 'lublin-modernist-trail',
-        title: 'The Modernist Architecture Trail',
-        theme: 'Architecture',
-        description:
-          'A walk through Lublin facades, student landmarks, and bold post-war details hiding in plain sight.',
-        totalXp: 250,
-        completedStops: 0,
-        image: 'museum',
-        stops: [
-          {
-            id: 'cs1',
-            title: 'Plac Litewski start',
-            description: 'Begin at the main square and read the trail briefing.',
-            eta: '5 min',
-            completed: false,
-          },
-          {
-            id: 'cs2',
-            title: 'Centre for Culture facade',
-            description: 'Find the geometric entry detail and scan the location marker.',
-            eta: '8 min',
-            completed: false,
-          },
-          {
-            id: 'cs3',
-            title: 'Old Town contrast point',
-            description: 'Compare the route notes with the older city fabric nearby.',
-            eta: '12 min',
-            completed: false,
-          },
-          {
-            id: 'cs4',
-            title: 'Student cafe checkpoint',
-            description: 'Finish with a partner cafe stop and unlock the quest XP.',
-            eta: '10 min',
-            completed: false,
-          },
-        ],
-      },
-      {
-        id: 'lublin-night-culture',
-        title: 'After-Class Culture Loop',
-        theme: 'Student night',
-        description:
-          'Three evening stops for film, small gigs, and a cafe reward after the last check-in.',
-        totalXp: 180,
-        completedStops: 0,
-        image: 'cafe',
-        stops: [
-          {
-            id: 'ns1',
-            title: 'Bookland Lublin',
-            description: 'Pick up the first clue from the staff counter.',
-            eta: '6 min',
-            completed: false,
-          },
-          {
-            id: 'ns2',
-            title: 'Perlowy Browar',
-            description: 'Check the event board and save one upcoming concert.',
-            eta: '10 min',
-            completed: false,
-          },
-          {
-            id: 'ns3',
-            title: 'Heca Cafe',
-            description: 'Scan the final QR and unlock the route reward.',
-            eta: '7 min',
-            completed: false,
-          },
-        ],
-      },
-    ];
-  }
-
-  return [
-    {
-      id: 'leuven-modernist-trail',
-      title: 'The Modernist Architecture Trail',
-      theme: 'Architecture',
-      description:
-        'A curated route from campus corners to cultural venues that shaped Leuven’s modern student life.',
-      totalXp: 250,
-      completedStops: 0,
-      image: 'museum',
-      stops: [
-        {
-          id: 'ms1',
-          title: 'University Library steps',
-          description: 'Start with the city skyline and read the route intro.',
-          eta: '5 min',
-          completed: false,
-        },
-        {
-          id: 'ms2',
-          title: 'M-Museum Leuven',
-          description: 'Find the courtyard perspective and confirm the stop.',
-          eta: '9 min',
-          completed: false,
-        },
-        {
-          id: 'ms3',
-          title: 'STUK Arts Centre',
-          description: 'Spot the contemporary performance posters by the entry.',
-          eta: '12 min',
-          completed: false,
-        },
-        {
-          id: 'ms4',
-          title: '30CC Cultural Centre',
-          description: 'Finish the trail with the city programme board.',
-          eta: '8 min',
-          completed: false,
-        },
-        {
-          id: 'ms5',
-          title: 'Cafe reward stop',
-          description: 'Claim the final check-in and unlock your quest XP.',
-          eta: '6 min',
-          completed: false,
-        },
-      ],
-    },
-    {
-      id: 'leuven-first-weekend',
-      title: 'First Weekend Explorer',
-      theme: 'Newcomer',
-      description: 'A compact trail for students who want the city to feel familiar before Monday.',
-      totalXp: 160,
-      completedStops: 0,
-      image: 'theater',
-      stops: [
-        {
-          id: 'fw1',
-          title: 'STUK welcome board',
-          description: 'Save one performance and scan the entry marker.',
-          eta: '7 min',
-          completed: false,
-        },
-        {
-          id: 'fw2',
-          title: 'M-Museum quick visit',
-          description: 'Check in near the entrance and browse the highlighted room.',
-          eta: '14 min',
-          completed: false,
-        },
-        {
-          id: 'fw3',
-          title: 'Student cafe finish',
-          description: 'End the loop with a partner reward preview.',
-          eta: '6 min',
-          completed: false,
-        },
-      ],
-    },
-  ];
 }
 
 function getQuestImageSource(image: Quest['image']) {

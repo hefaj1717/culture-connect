@@ -24,7 +24,12 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { BrandImage } from '@/components/brand-image';
 import { Colors } from '@/constants/theme';
 import { cultureMapStyle } from '@/constants/map-style';
-import { type CultureCityData, getCultureCityData, languageLabels } from '@/data/culture';
+import {
+  type CultureCityData,
+  type CultureEvent,
+  getCultureCityData,
+  languageLabels,
+} from '@/data/culture';
 import type { OrganizerApplicationStatus } from '@/providers/auth-provider';
 
 const notifications = [
@@ -55,6 +60,7 @@ type HomeScreenProps = {
   avatarInitials?: string | null;
   avatarUrl?: string | null;
   cityData?: CultureCityData;
+  events?: CultureEvent[];
   organizerApplicationStatus?: OrganizerApplicationStatus;
   onOpenDiscover?: () => void;
   onOpenEvent?: (eventId: string) => void;
@@ -65,16 +71,17 @@ export default function HomeScreen({
   avatarInitials,
   avatarUrl,
   cityData = getCultureCityData(),
+  events = [],
   organizerApplicationStatus = 'none',
   onOpenDiscover,
   onOpenEvent,
   onOpenProfile,
 }: HomeScreenProps) {
-  const happeningNow = cityData.events.slice(0, 3);
+  const happeningNow = events.slice(0, 3);
   const activitySpots = useMemo(() => {
     const venuesWithEvents = cityData.venues
       .map((venue) => {
-        const venueEvents = cityData.events.filter((event) => event.venueId === venue.id);
+        const venueEvents = events.filter((event) => event.venueId === venue.id);
 
         return {
           id: venue.id,
@@ -109,7 +116,7 @@ export default function HomeScreen({
         };
       })
       .sort((a, b) => b.activityScore - a.activityScore);
-  }, [cityData]);
+  }, [cityData.venues, events]);
   const [selectedActivityId, setSelectedActivityId] = useState<string | null>(null);
   const selectedActivitySpot =
     activitySpots.find((spot) => spot.id === selectedActivityId) ?? activitySpots[0];
@@ -259,43 +266,56 @@ export default function HomeScreen({
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={{ paddingHorizontal: 20, gap: 12 }}
           >
-            {happeningNow.map((event) => (
-              <Pressable
-                onPress={onOpenDiscover}
-                className="w-[220px] overflow-hidden rounded-2xl border border-gray-200 bg-white active:opacity-85"
-                key={event.id}
-              >
-                <View className="h-[112px] bg-gray-200">
-                  <BrandImage
-                    source={getEventImageSource(event)}
-                    contentFit="cover"
-                    style={StyleSheet.absoluteFillObject}
-                  />
-                </View>
-                <View className="p-3">
-                  <Text className="mb-1 text-[14px] font-bold text-ink" numberOfLines={2}>
-                    {event.title}
-                  </Text>
-                  <Text className="mb-2 text-[12px] text-muted" numberOfLines={1}>
-                    {event.date} · {event.venueName}
-                  </Text>
-                  <View className="flex-row flex-wrap items-center gap-2">
-                    <Text className="text-[12px] font-bold text-primary">+{event.xpBonus} XP</Text>
-                    {event.isFree && (
-                      <View className="rounded-full bg-success/10 px-1.5 py-0.5">
-                        <Text className="text-[10px] font-bold text-success">Free</Text>
-                      </View>
-                    )}
-                    <View className="flex-row items-center gap-1">
-                      <Globe size={12} color="#756F7B" />
-                      <Text className="text-[11px] font-medium text-muted">
-                        {languageLabels[event.language]}
+            {happeningNow.length === 0 ? (
+              <View className="w-[260px] rounded-2xl border border-gray-200 bg-white p-4">
+                <Text className="font-ui text-[15px] font-extrabold text-ink">
+                  No approved events yet
+                </Text>
+                <Text className="mt-1 text-[12px] leading-4 text-muted">
+                  Approved organizer events for {cityData.name} will appear here.
+                </Text>
+              </View>
+            ) : (
+              happeningNow.map((event) => (
+                <Pressable
+                  onPress={() => onOpenEvent?.(event.id)}
+                  className="w-[220px] overflow-hidden rounded-2xl border border-gray-200 bg-white active:opacity-85"
+                  key={event.id}
+                >
+                  <View className="h-[112px] bg-gray-200">
+                    <BrandImage
+                      source={getEventImageSource(event)}
+                      contentFit="cover"
+                      style={StyleSheet.absoluteFillObject}
+                    />
+                  </View>
+                  <View className="p-3">
+                    <Text className="mb-1 text-[14px] font-bold text-ink" numberOfLines={2}>
+                      {event.title}
+                    </Text>
+                    <Text className="mb-2 text-[12px] text-muted" numberOfLines={1}>
+                      {event.date} · {event.venueName}
+                    </Text>
+                    <View className="flex-row flex-wrap items-center gap-2">
+                      <Text className="text-[12px] font-bold text-primary">
+                        +{event.xpBonus} XP
                       </Text>
+                      {event.isFree && (
+                        <View className="rounded-full bg-success/10 px-1.5 py-0.5">
+                          <Text className="text-[10px] font-bold text-success">Free</Text>
+                        </View>
+                      )}
+                      <View className="flex-row items-center gap-1">
+                        <Globe size={12} color="#756F7B" />
+                        <Text className="text-[11px] font-medium text-muted">
+                          {languageLabels[event.language]}
+                        </Text>
+                      </View>
                     </View>
                   </View>
-                </View>
-              </Pressable>
-            ))}
+                </Pressable>
+              ))
+            )}
           </ScrollView>
         </View>
 
@@ -771,7 +791,7 @@ function getLeaderboardRows(cityId: CultureCityData['id']): LeaderboardRow[] {
   ];
 }
 
-function getEventImageSource(event: CultureCityData['events'][number]) {
+function getEventImageSource(event: CultureEvent) {
   if (event.imageUrl) {
     return { uri: event.imageUrl };
   }

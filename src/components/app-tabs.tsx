@@ -1,6 +1,6 @@
 import { StatusBar } from 'expo-status-bar';
 import { Compass, Home, Route, User } from 'lucide-react-native';
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, Text, useWindowDimensions, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
@@ -16,7 +16,8 @@ import HomeScreen from '@/app/index';
 import ProfileScreen from '@/app/profile';
 import QuestsScreen from '@/app/quests';
 import { Colors, FontTokens } from '@/constants/theme';
-import { getCultureCityData, type CultureEvent, type RewardPartner } from '@/data/culture';
+import { getCultureCityData, type CultureEvent } from '@/data/culture';
+import { fetchOrganizerEvents } from '@/lib/organizer-events';
 import { useAuth } from '@/providers/auth-provider';
 
 const ACTIVE = Colors.light.primary;
@@ -52,7 +53,8 @@ function AuthenticatedTabs() {
   const { organizerApplicationStatus, user } = useAuth();
   const [activeIndex, setActiveIndex] = useState(0);
   const [organizerEventsVersion, setOrganizerEventsVersion] = useState(0);
-  const [organizerRewards, setOrganizerRewards] = useState<RewardPartner[]>([]);
+  const [rewardsRefreshKey, setRewardsRefreshKey] = useState(0);
+  const [approvedEvents, setApprovedEvents] = useState<CultureEvent[]>([]);
   const [userXp, setUserXp] = useState(0);
   const [checkedInEventIds, setCheckedInEventIds] = useState<string[]>([]);
   const [completedQuestIds, setCompletedQuestIds] = useState<string[]>([]);
@@ -72,6 +74,23 @@ function AuthenticatedTabs() {
   );
   const avatarUrl = user?.user_metadata?.avatar_url ?? null;
   const cityData = getCultureCityData(user?.user_metadata?.city_id);
+
+  useEffect(() => {
+    let active = true;
+
+    async function loadApprovedEvents() {
+      const result = await fetchOrganizerEvents(cityData.id);
+      if (!active) return;
+
+      setApprovedEvents(result.events);
+    }
+
+    loadApprovedEvents();
+
+    return () => {
+      active = false;
+    };
+  }, [cityData.id, organizerEventsVersion]);
 
   function goToTab(index: number) {
     setActiveIndex(index);
@@ -155,6 +174,7 @@ function AuthenticatedTabs() {
               avatarInitials={avatarInitials}
               avatarUrl={avatarUrl}
               cityData={cityData}
+              events={approvedEvents}
               organizerApplicationStatus={organizerApplicationStatus}
               onOpenDiscover={() => goToTab(1)}
               onOpenEvent={openDiscoverEvent}
@@ -165,6 +185,7 @@ function AuthenticatedTabs() {
             <ExploreScreen
               checkedInEventIds={checkedInEventIds}
               cityData={cityData}
+              events={approvedEvents}
               eventsRefreshKey={organizerEventsVersion}
               onEventCheckIn={awardEventCheckInXp}
               openEventId={eventOpenRequest?.eventId}
@@ -180,14 +201,13 @@ function AuthenticatedTabs() {
           </View>
           <View style={{ width }}>
             <ProfileScreen
-              organizerRewards={organizerRewards}
+              rewardsRefreshKey={rewardsRefreshKey}
               userXp={userXp}
               onEventCreated={() => {
                 setOrganizerEventsVersion((version) => version + 1);
-                goToTab(1);
               }}
-              onRewardCreated={(reward) => {
-                setOrganizerRewards((current) => [reward, ...current]);
+              onRewardCreated={() => {
+                setRewardsRefreshKey((version) => version + 1);
               }}
             />
           </View>

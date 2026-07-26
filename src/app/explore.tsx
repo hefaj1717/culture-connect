@@ -58,6 +58,7 @@ const EVENT_CHECK_IN_RADIUS_METERS = 500;
 type ExploreScreenProps = {
   checkedInEventIds?: string[];
   cityData?: CultureCityData;
+  events?: CultureEvent[];
   eventsRefreshKey?: number;
   onEventCheckIn?: (event: CultureEvent) => boolean;
   openEventId?: string;
@@ -67,6 +68,7 @@ type ExploreScreenProps = {
 export default function ExploreScreen({
   checkedInEventIds = [],
   cityData = getCultureCityData(),
+  events: approvedEventsProp,
   eventsRefreshKey = 0,
   onEventCheckIn,
   openEventId,
@@ -81,13 +83,19 @@ export default function ExploreScreen({
   const [confirmedCheckIns, setConfirmedCheckIns] = useState<Record<string, boolean>>({});
   const [organizerEvents, setOrganizerEvents] = useState<CultureEvent[]>([]);
   const [organizerEventsError, setOrganizerEventsError] = useState<string | null>(null);
-  const { events, venues } = cityData;
-  const allEvents = useMemo(() => [...organizerEvents, ...events], [events, organizerEvents]);
+  const { venues } = cityData;
+  const allEvents = approvedEventsProp ?? organizerEvents;
 
   useEffect(() => {
     let active = true;
 
     async function loadOrganizerEvents() {
+      if (approvedEventsProp) {
+        setOrganizerEvents([]);
+        setOrganizerEventsError(null);
+        return;
+      }
+
       const result = await fetchOrganizerEvents(cityData.id);
       if (!active) return;
 
@@ -100,7 +108,7 @@ export default function ExploreScreen({
     return () => {
       active = false;
     };
-  }, [cityData.id, eventsRefreshKey]);
+  }, [approvedEventsProp, cityData.id, eventsRefreshKey]);
 
   const normalizedSearch = search.trim().toLowerCase();
 

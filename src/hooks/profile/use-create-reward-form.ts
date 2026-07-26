@@ -1,16 +1,21 @@
 import { useEffect, useState } from 'react';
 import { Alert } from 'react-native';
 
-import { Colors } from '@/constants/theme';
-import { type CityId, type RewardPartner } from '@/data/culture';
+import { type CityId } from '@/data/culture';
+import { createOrganizerReward } from '@/lib/organizer-rewards';
 import { type PlaceSuggestion, searchPlaces } from '@/lib/place-search';
 
 type UseCreateRewardFormInput = {
-  onRewardCreated?: (reward: RewardPartner) => void;
+  onRewardCreated?: () => void;
   savedCityId: CityId;
+  userId?: string;
 };
 
-export function useCreateRewardForm({ onRewardCreated, savedCityId }: UseCreateRewardFormInput) {
+export function useCreateRewardForm({
+  onRewardCreated,
+  savedCityId,
+  userId,
+}: UseCreateRewardFormInput) {
   const [createRewardOpen, setCreateRewardOpen] = useState(false);
   const [rewardTitle, setRewardTitle] = useState('');
   const [rewardPlaceQuery, setRewardPlaceQuery] = useState('');
@@ -20,6 +25,7 @@ export function useCreateRewardForm({ onRewardCreated, savedCityId }: UseCreateR
   const [rewardDescription, setRewardDescription] = useState('');
   const [rewardXp, setRewardXp] = useState('100');
   const [createRewardError, setCreateRewardError] = useState<string | null>(null);
+  const [creatingReward, setCreatingReward] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -74,11 +80,15 @@ export function useCreateRewardForm({ onRewardCreated, savedCityId }: UseCreateR
     setRewardPlaceSuggestions([]);
   }
 
-  function submitReward() {
+  async function submitReward() {
     const normalizedTitle = rewardTitle.trim();
     const normalizedDescription = rewardDescription.trim();
     const normalizedXp = Number.parseInt(rewardXp.trim(), 10);
 
+    if (!userId) {
+      setCreateRewardError('Log in again before submitting a reward.');
+      return;
+    }
     if (!normalizedTitle || !normalizedDescription) {
       setCreateRewardError('Fill in reward title, place, and description.');
       return;
@@ -92,29 +102,32 @@ export function useCreateRewardForm({ onRewardCreated, savedCityId }: UseCreateR
       return;
     }
 
-    const createdReward: RewardPartner = {
-      id: `organizer-reward-${Date.now()}`,
-      name: selectedRewardPlace.name,
-      category: 'cafe',
-      location: selectedRewardPlace.address,
-      discount: normalizedTitle,
+    setCreateRewardError(null);
+    setCreatingReward(true);
+    const result = await createOrganizerReward(userId, {
+      cityId: savedCityId,
       description: normalizedDescription,
-      condition: `Unlock at ${normalizedXp} XP`,
+      place: selectedRewardPlace,
+      title: normalizedTitle,
       xpCost: normalizedXp,
-      isPopular: false,
-      badge: 'Organizer',
-      color: Colors.light.primary,
-    };
+    });
+    setCreatingReward(false);
 
-    onRewardCreated?.(createdReward);
+    if (result.error) {
+      setCreateRewardError(result.error);
+      return;
+    }
+
+    onRewardCreated?.();
     setCreateRewardOpen(false);
     resetRewardForm();
-    Alert.alert('Reward created', 'Your reward is now visible in Rewards.');
+    Alert.alert('Reward submitted', 'CultureQuest will review it before students can see it.');
   }
 
   return {
     createRewardError,
     createRewardOpen,
+    creatingReward,
     openCreateReward,
     resetRewardForm,
     rewardDescription,
