@@ -59,6 +59,8 @@ type ExploreScreenProps = {
   checkedInEventIds?: string[];
   cityData?: CultureCityData;
   events?: CultureEvent[];
+  eventsError?: string | null;
+  eventsLoading?: boolean;
   eventsRefreshKey?: number;
   eventStatuses?: Record<string, UserEventStatus>;
   onEventCheckIn?: (event: CultureEvent) => boolean;
@@ -71,6 +73,8 @@ export default function ExploreScreen({
   checkedInEventIds = [],
   cityData = getCultureCityData(),
   events: approvedEventsProp,
+  eventsError: approvedEventsError = null,
+  eventsLoading: approvedEventsLoading = false,
   eventsRefreshKey = 0,
   eventStatuses = {},
   onEventCheckIn,
@@ -86,24 +90,31 @@ export default function ExploreScreen({
   const [confirmedCheckIns, setConfirmedCheckIns] = useState<Record<string, boolean>>({});
   const [organizerEvents, setOrganizerEvents] = useState<CultureEvent[]>([]);
   const [organizerEventsError, setOrganizerEventsError] = useState<string | null>(null);
+  const [organizerEventsLoading, setOrganizerEventsLoading] = useState(false);
   const { venues } = cityData;
+  const hasApprovedEventsProp = approvedEventsProp !== undefined;
   const allEvents = approvedEventsProp ?? organizerEvents;
+  const eventsError = hasApprovedEventsProp ? approvedEventsError : organizerEventsError;
+  const eventsLoading = hasApprovedEventsProp ? approvedEventsLoading : organizerEventsLoading;
 
   useEffect(() => {
     let active = true;
 
     async function loadOrganizerEvents() {
-      if (approvedEventsProp) {
+      if (hasApprovedEventsProp) {
         setOrganizerEvents([]);
         setOrganizerEventsError(null);
+        setOrganizerEventsLoading(false);
         return;
       }
 
+      setOrganizerEventsLoading(true);
       const result = await fetchOrganizerEvents(cityData.id);
       if (!active) return;
 
       setOrganizerEvents(result.events);
       setOrganizerEventsError(result.error);
+      setOrganizerEventsLoading(false);
     }
 
     loadOrganizerEvents();
@@ -111,7 +122,7 @@ export default function ExploreScreen({
     return () => {
       active = false;
     };
-  }, [approvedEventsProp, cityData.id, eventsRefreshKey]);
+  }, [cityData.id, eventsRefreshKey, hasApprovedEventsProp]);
 
   const normalizedSearch = search.trim().toLowerCase();
 
@@ -310,11 +321,11 @@ export default function ExploreScreen({
             )}
 
             <View className="px-5">
-              {organizerEventsError && (
+              {eventsError && (
                 <View className="mb-3 rounded-xl bg-secondary/10 p-3">
                   <Text className="text-[12px] leading-4 text-muted">
-                    Organizer events could not load yet. Apply the latest Supabase migration if you
-                    have not done it.
+                    Approved events could not load from Supabase. Apply the latest migration or
+                    check your connection.
                   </Text>
                 </View>
               )}
@@ -329,9 +340,17 @@ export default function ExploreScreen({
                       : 'Coming Up'}
               </Text>
 
-              {filteredEvents.length === 0 ? (
+              {eventsLoading ? (
                 <View className="items-center py-12">
-                  <Text className="text-[14px] text-muted">No events found for this filter.</Text>
+                  <Text className="text-[14px] text-muted">Loading approved events...</Text>
+                </View>
+              ) : filteredEvents.length === 0 ? (
+                <View className="items-center py-12">
+                  <Text className="text-[14px] text-muted">
+                    {eventsError
+                      ? 'Events are unavailable right now.'
+                      : 'No approved events found for this filter.'}
+                  </Text>
                 </View>
               ) : (
                 <View className="gap-3">
