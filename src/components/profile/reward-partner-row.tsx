@@ -3,23 +3,38 @@ import { Pressable, Text, View } from 'react-native';
 
 import { BrandImage } from '@/components/brand-image';
 import type { RewardPartner } from '@/data/culture';
+import type { RedeemedRewardState } from '@/data/profile';
 
 type RewardPartnerRowProps = {
   onPress: () => void;
+  redemption?: RedeemedRewardState;
   reward: RewardPartner;
   userXp: number;
   variantIndex: number;
 };
 
-export function RewardPartnerRow({ onPress, reward, userXp, variantIndex }: RewardPartnerRowProps) {
-  const isUnlocked = userXp >= reward.xpCost;
+export function RewardPartnerRow({
+  onPress,
+  redemption,
+  reward,
+  userXp,
+  variantIndex,
+}: RewardPartnerRowProps) {
+  const isUsed = !!redemption?.used;
+  const isActive = !!redemption && !isUsed;
+  const isUnlocked = userXp >= reward.xpCost && !isUsed && !isActive;
   const xpRemaining = Math.max(0, reward.xpCost - userXp);
+  const rowState = isUsed ? 'used' : isActive ? 'active' : isUnlocked ? 'ready' : 'locked';
 
   return (
     <Pressable
       onPress={onPress}
       className={`rounded-[26px] border p-3 active:opacity-85 ${
-        isUnlocked ? 'border-accent/30 bg-accent/10' : 'border-gray-200 bg-white'
+        rowState === 'ready'
+          ? 'border-accent/30 bg-accent/10'
+          : rowState === 'active'
+            ? 'border-primary/25 bg-primary/10'
+            : 'border-gray-200 bg-white'
       }`}
       style={{ boxShadow: '0 8px 18px rgba(36, 28, 46, 0.06)' }}
     >
@@ -38,7 +53,7 @@ export function RewardPartnerRow({ onPress, reward, userXp, variantIndex }: Rewa
               <Text className="min-w-0 flex-1 text-[11px] font-extrabold uppercase tracking-wide text-muted">
                 {formatVenueName(reward.name)}
               </Text>
-              <RewardStatusPill isUnlocked={isUnlocked} />
+              <RewardStatusPill state={rowState} />
             </View>
 
             <Text
@@ -54,17 +69,39 @@ export function RewardPartnerRow({ onPress, reward, userXp, variantIndex }: Rewa
 
           <View className="mt-3 flex-row items-center justify-between gap-3">
             <Text className="min-w-0 flex-1 text-[12px] font-semibold text-muted" numberOfLines={1}>
-              {isUnlocked ? 'Available now' : `${xpRemaining.toLocaleString()} XP left`}
+              {rowState === 'used'
+                ? 'Coupon already used'
+                : rowState === 'active'
+                  ? 'Coupon active'
+                  : rowState === 'ready'
+                    ? 'Available now'
+                    : `${xpRemaining.toLocaleString()} XP left`}
             </Text>
             <View
-              className={`rounded-full px-3 py-1.5 ${isUnlocked ? 'bg-primary' : 'bg-accent/15'}`}
+              className={`rounded-full px-3 py-1.5 ${
+                rowState === 'used'
+                  ? 'bg-gray-100'
+                  : rowState === 'ready'
+                    ? 'bg-primary'
+                    : 'bg-accent/15'
+              }`}
             >
               <Text
                 className={`text-[12px] font-extrabold ${
-                  isUnlocked ? 'text-white' : 'text-accentDeep'
+                  rowState === 'used'
+                    ? 'text-muted'
+                    : rowState === 'ready'
+                      ? 'text-white'
+                      : 'text-accentDeep'
                 }`}
               >
-                {isUnlocked ? 'Redeem' : `${reward.xpCost} XP`}
+                {rowState === 'used'
+                  ? 'Used'
+                  : rowState === 'active'
+                    ? 'Open'
+                    : rowState === 'ready'
+                      ? 'Redeem'
+                      : `${reward.xpCost} XP`}
               </Text>
             </View>
           </View>
@@ -74,20 +111,35 @@ export function RewardPartnerRow({ onPress, reward, userXp, variantIndex }: Rewa
   );
 }
 
-function RewardStatusPill({ isUnlocked }: { isUnlocked: boolean }) {
+type RewardRowState = 'active' | 'locked' | 'ready' | 'used';
+
+function RewardStatusPill({ state }: { state: RewardRowState }) {
+  const isReady = state === 'ready';
+  const isActive = state === 'active';
+  const label =
+    state === 'used'
+      ? 'USED'
+      : state === 'active'
+        ? 'ACTIVE'
+        : state === 'ready'
+          ? 'READY'
+          : 'LOCKED';
+
   return (
     <View
       className={`flex-row items-center gap-1 rounded-full px-2 py-1 ${
-        isUnlocked ? 'bg-accent/20' : 'bg-gray-100'
+        isReady ? 'bg-accent/20' : isActive ? 'bg-primary/15' : 'bg-gray-100'
       }`}
     >
-      {isUnlocked ? (
+      {isReady || isActive ? (
         <CheckCircle2 size={12} color="#F4A261" strokeWidth={2.6} />
       ) : (
         <LockKeyhole size={12} color="#756F7B" strokeWidth={2.5} />
       )}
-      <Text className={`text-[10px] font-extrabold ${isUnlocked ? 'text-ink' : 'text-muted'}`}>
-        {isUnlocked ? 'READY' : 'LOCKED'}
+      <Text
+        className={`text-[10px] font-extrabold ${isReady || isActive ? 'text-ink' : 'text-muted'}`}
+      >
+        {label}
       </Text>
     </View>
   );

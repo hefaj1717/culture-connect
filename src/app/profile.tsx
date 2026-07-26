@@ -243,6 +243,7 @@ export default function ProfileScreen({
     setAdminReviewOpen,
   } = adminModeration;
   const {
+    redeemedRewards,
     redeemSelectedReward,
     resetRewardDetailState,
     rewardDetailsExpanded,
@@ -496,6 +497,7 @@ export default function ProfileScreen({
           error={rewardsError ?? rewardRedemptionsError}
           onOpenAll={() => setRewardsListOpen(true)}
           onSelectReward={setSelectedReward}
+          redeemedRewards={redeemedRewards}
           rewards={approvedRewards}
           userXp={userXp}
         />
@@ -703,6 +705,7 @@ export default function ProfileScreen({
         cityName={cityData.name}
         onClose={() => setRewardsListOpen(false)}
         onSelectReward={setSelectedReward}
+        redeemedRewards={redeemedRewards}
         rewards={approvedRewards}
         stableModalTopInset={stableModalTopInset}
         userXp={userXp}

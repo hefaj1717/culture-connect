@@ -126,6 +126,7 @@ export function useRewardRedemption({
   }
 
   return {
+    redeemedRewards,
     redeemSelectedReward,
     resetRewardDetailState,
     rewardRedeemError,

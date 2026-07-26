@@ -37,6 +37,7 @@ import { RankAvatar } from '@/components/profile/profile-avatar';
 import { RewardPartnerRow } from '@/components/profile/reward-partner-row';
 import { Colors, GamificationColors } from '@/constants/theme';
 import { eventCategoryLabels, type CultureEvent, type RewardPartner } from '@/data/culture';
+import type { RedeemedRewardState } from '@/data/profile';
 import { getEventEngagement } from '@/lib/event-engagement';
 import type { UserEventHistoryItem, UserEventStatus } from '@/lib/event-history';
 import type { ManagedOrganizerEvent, OrganizerEventStatus } from '@/lib/organizer-events';
@@ -1133,6 +1134,7 @@ type RewardsSectionProps = {
   error?: string | null;
   onOpenAll: () => void;
   onSelectReward: (reward: RewardPartner) => void;
+  redeemedRewards: Record<string, RedeemedRewardState>;
   rewards: RewardPartner[];
   userXp: number;
 };
@@ -1142,10 +1144,11 @@ export function RewardsSection({
   error,
   onOpenAll,
   onSelectReward,
+  redeemedRewards,
   rewards,
   userXp,
 }: RewardsSectionProps) {
-  const featuredReward = getFeaturedReward(rewards, userXp);
+  const featuredReward = getFeaturedReward(rewards, userXp, redeemedRewards);
   const hasMoreRewards = rewards.length > 1;
 
   return (
@@ -1185,6 +1188,7 @@ export function RewardsSection({
           <RewardPartnerRow
             reward={featuredReward.reward}
             onPress={() => onSelectReward(featuredReward.reward)}
+            redemption={redeemedRewards[featuredReward.reward.id]}
             userXp={userXp}
             variantIndex={featuredReward.index}
           />
@@ -1198,6 +1202,7 @@ export function RewardsListModal({
   cityName,
   onClose,
   onSelectReward,
+  redeemedRewards,
   rewards,
   stableModalTopInset,
   userXp,
@@ -1206,6 +1211,7 @@ export function RewardsListModal({
   cityName: string;
   onClose: () => void;
   onSelectReward: (reward: RewardPartner) => void;
+  redeemedRewards: Record<string, RedeemedRewardState>;
   rewards: RewardPartner[];
   stableModalTopInset: number;
   userXp: number;
@@ -1239,13 +1245,14 @@ export function RewardsListModal({
           }}
           showsVerticalScrollIndicator={false}
         >
-          {getRewardDisplayOrder(rewards, userXp).map(({ index, reward }) => (
+          {getRewardDisplayOrder(rewards, userXp, redeemedRewards).map(({ index, reward }) => (
             <RewardPartnerRow
               key={reward.id}
               onPress={() => {
                 onClose();
                 onSelectReward(reward);
               }}
+              redemption={redeemedRewards[reward.id]}
               reward={reward}
               userXp={userXp}
               variantIndex={index}
@@ -1257,21 +1264,48 @@ export function RewardsListModal({
   );
 }
 
-function getFeaturedReward(rewards: RewardPartner[], userXp: number) {
-  return getRewardDisplayOrder(rewards, userXp)[0] ?? null;
+function getFeaturedReward(
+  rewards: RewardPartner[],
+  userXp: number,
+  redeemedRewards: Record<string, RedeemedRewardState>,
+) {
+  return getRewardDisplayOrder(rewards, userXp, redeemedRewards)[0] ?? null;
 }
 
-function getRewardDisplayOrder(rewards: RewardPartner[], userXp: number) {
+function getRewardDisplayOrder(
+  rewards: RewardPartner[],
+  userXp: number,
+  redeemedRewards: Record<string, RedeemedRewardState>,
+) {
   return rewards
     .map((reward, index) => ({ index, reward }))
     .sort((first, second) => {
-      const firstUnlocked = userXp >= first.reward.xpCost;
-      const secondUnlocked = userXp >= second.reward.xpCost;
+      const firstPriority = getRewardSortPriority(
+        first.reward,
+        userXp,
+        redeemedRewards[first.reward.id],
+      );
+      const secondPriority = getRewardSortPriority(
+        second.reward,
+        userXp,
+        redeemedRewards[second.reward.id],
+      );
 
-      if (firstUnlocked !== secondUnlocked) {
-        return Number(secondUnlocked) - Number(firstUnlocked);
+      if (firstPriority !== secondPriority) {
+        return firstPriority - secondPriority;
       }
 
-      return first.reward.xpCost - second.reward.xpCost;
+      return first.index - second.index;
     });
+}
+
+function getRewardSortPriority(
+  reward: RewardPartner,
+  userXp: number,
+  redemption?: RedeemedRewardState,
+) {
+  if (redemption?.used) return 3;
+  if (userXp >= reward.xpCost && !redemption) return 0;
+  if (redemption) return 1;
+  return 2;
 }
