@@ -20,6 +20,7 @@ import {
   ProfileRankCard,
   UserActivityHistoryModal,
   UserActivitySection,
+  RewardsListModal,
   RewardsSection,
 } from '@/components/profile/profile-sections';
 import { RewardDetailModal } from '@/components/profile/reward-detail-modal';
@@ -250,6 +251,7 @@ export default function ProfileScreen({
   const [activityHistoryOpen, setActivityHistoryOpen] = useState(false);
   const [accountActionsOpen, setAccountActionsOpen] = useState(false);
   const [organizerHistoryOpen, setOrganizerHistoryOpen] = useState(false);
+  const [rewardsListOpen, setRewardsListOpen] = useState(false);
   const [selectedBadge, setSelectedBadge] = useState<(typeof achievementBadges)[number] | null>(
     null,
   );
@@ -479,6 +481,7 @@ export default function ProfileScreen({
         <RewardsSection
           cityName={cityData.name}
           error={rewardsError}
+          onOpenAll={() => setRewardsListOpen(true)}
           onSelectReward={setSelectedReward}
           rewards={approvedRewards}
           userXp={userXp}
@@ -681,6 +684,16 @@ export default function ProfileScreen({
         onClose={() => setOrganizerHistoryOpen(false)}
         stableModalTopInset={stableModalTopInset}
         visible={organizerHistoryOpen}
+      />
+
+      <RewardsListModal
+        cityName={cityData.name}
+        onClose={() => setRewardsListOpen(false)}
+        onSelectReward={setSelectedReward}
+        rewards={approvedRewards}
+        stableModalTopInset={stableModalTopInset}
+        userXp={userXp}
+        visible={rewardsListOpen}
       />
 
       <RewardDetailModal

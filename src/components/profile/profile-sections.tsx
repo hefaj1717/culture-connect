@@ -1131,6 +1131,7 @@ function getOrganizerEventStatusStyle(status: OrganizerEventStatus) {
 type RewardsSectionProps = {
   cityName: string;
   error?: string | null;
+  onOpenAll: () => void;
   onSelectReward: (reward: RewardPartner) => void;
   rewards: RewardPartner[];
   userXp: number;
@@ -1139,15 +1140,25 @@ type RewardsSectionProps = {
 export function RewardsSection({
   cityName,
   error,
+  onOpenAll,
   onSelectReward,
   rewards,
   userXp,
 }: RewardsSectionProps) {
+  const featuredReward = getFeaturedReward(rewards, userXp);
+  const hasMoreRewards = rewards.length > 1;
+
   return (
     <View className="mb-6 px-5">
       <View className="mb-3 flex-row items-center justify-between">
         <Text className="font-heading text-[22px] font-extrabold text-ink">Rewards</Text>
-        <Text className="text-[11px] font-semibold text-primary">{cityName}</Text>
+        {hasMoreRewards ? (
+          <Pressable onPress={onOpenAll} className="active:opacity-75">
+            <Text className="text-[12px] font-extrabold text-primary">View all</Text>
+          </Pressable>
+        ) : (
+          <Text className="text-[11px] font-semibold text-primary">{cityName}</Text>
+        )}
       </View>
 
       {error && (
@@ -1169,17 +1180,98 @@ export function RewardsSection({
         </View>
       )}
 
-      <View className="gap-3">
-        {rewards.map((reward, index) => (
+      {featuredReward && (
+        <View>
           <RewardPartnerRow
-            key={reward.id}
-            reward={reward}
-            onPress={() => onSelectReward(reward)}
+            reward={featuredReward.reward}
+            onPress={() => onSelectReward(featuredReward.reward)}
             userXp={userXp}
-            variantIndex={index}
+            variantIndex={featuredReward.index}
           />
-        ))}
-      </View>
+        </View>
+      )}
     </View>
   );
+}
+
+export function RewardsListModal({
+  cityName,
+  onClose,
+  onSelectReward,
+  rewards,
+  stableModalTopInset,
+  userXp,
+  visible,
+}: {
+  cityName: string;
+  onClose: () => void;
+  onSelectReward: (reward: RewardPartner) => void;
+  rewards: RewardPartner[];
+  stableModalTopInset: number;
+  userXp: number;
+  visible: boolean;
+}) {
+  return (
+    <Modal animationType="slide" onRequestClose={onClose} visible={visible}>
+      <SafeAreaView className="flex-1 bg-white" edges={['bottom']}>
+        <View className="bg-white px-5 pb-3" style={{ paddingTop: stableModalTopInset + 6 }}>
+          <View className="flex-row items-center justify-between">
+            <Pressable
+              onPress={onClose}
+              className="h-10 w-10 items-center justify-center rounded-full bg-gray-100 active:opacity-80"
+            >
+              <ArrowLeft size={21} color="#756F7B" strokeWidth={2.6} />
+            </Pressable>
+            <View className="items-end">
+              <Text className="font-heading text-[25px] font-extrabold text-ink">Rewards</Text>
+              <Text className="text-[12px] font-semibold text-primary">{cityName}</Text>
+            </View>
+          </View>
+        </View>
+
+        <ScrollView
+          className="flex-1"
+          contentContainerStyle={{
+            gap: 12,
+            paddingHorizontal: 20,
+            paddingTop: 12,
+            paddingBottom: 36,
+          }}
+          showsVerticalScrollIndicator={false}
+        >
+          {getRewardDisplayOrder(rewards, userXp).map(({ index, reward }) => (
+            <RewardPartnerRow
+              key={reward.id}
+              onPress={() => {
+                onClose();
+                onSelectReward(reward);
+              }}
+              reward={reward}
+              userXp={userXp}
+              variantIndex={index}
+            />
+          ))}
+        </ScrollView>
+      </SafeAreaView>
+    </Modal>
+  );
+}
+
+function getFeaturedReward(rewards: RewardPartner[], userXp: number) {
+  return getRewardDisplayOrder(rewards, userXp)[0] ?? null;
+}
+
+function getRewardDisplayOrder(rewards: RewardPartner[], userXp: number) {
+  return rewards
+    .map((reward, index) => ({ index, reward }))
+    .sort((first, second) => {
+      const firstUnlocked = userXp >= first.reward.xpCost;
+      const secondUnlocked = userXp >= second.reward.xpCost;
+
+      if (firstUnlocked !== secondUnlocked) {
+        return Number(secondUnlocked) - Number(firstUnlocked);
+      }
+
+      return first.reward.xpCost - second.reward.xpCost;
+    });
 }
