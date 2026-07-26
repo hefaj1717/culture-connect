@@ -19,8 +19,9 @@ export function RewardPartnerRow({ onPress, reward, userXp, variantIndex }: Rewa
     <Pressable
       onPress={onPress}
       className={`rounded-[26px] border p-3 active:opacity-85 ${
-        isUnlocked ? 'border-primary/20 bg-primary/5' : 'border-gray-200 bg-white'
+        isUnlocked ? 'border-accent/30 bg-accent/10' : 'border-gray-200 bg-white'
       }`}
+      style={{ boxShadow: '0 8px 18px rgba(36, 28, 46, 0.06)' }}
     >
       <View className="flex-row gap-3">
         <View className="h-[94px] w-[94px] overflow-hidden rounded-[22px] bg-gray-100">
@@ -56,11 +57,11 @@ export function RewardPartnerRow({ onPress, reward, userXp, variantIndex }: Rewa
               {isUnlocked ? 'Available now' : `${xpRemaining.toLocaleString()} XP left`}
             </Text>
             <View
-              className={`rounded-full px-3 py-1.5 ${isUnlocked ? 'bg-primary' : 'bg-primary/10'}`}
+              className={`rounded-full px-3 py-1.5 ${isUnlocked ? 'bg-primary' : 'bg-accent/15'}`}
             >
               <Text
                 className={`text-[12px] font-extrabold ${
-                  isUnlocked ? 'text-white' : 'text-primary'
+                  isUnlocked ? 'text-white' : 'text-accentDeep'
                 }`}
               >
                 {isUnlocked ? 'Redeem' : `${reward.xpCost} XP`}
@@ -77,7 +78,7 @@ function RewardStatusPill({ isUnlocked }: { isUnlocked: boolean }) {
   return (
     <View
       className={`flex-row items-center gap-1 rounded-full px-2 py-1 ${
-        isUnlocked ? 'bg-accent/15' : 'bg-gray-100'
+        isUnlocked ? 'bg-accent/20' : 'bg-gray-100'
       }`}
     >
       {isUnlocked ? (

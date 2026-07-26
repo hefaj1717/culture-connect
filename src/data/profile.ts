@@ -12,7 +12,7 @@ import {
 } from 'lucide-react-native';
 
 import type { AchievementBadge } from '@/components/profile/badges';
-import { Colors } from '@/constants/theme';
+import { GamificationColors } from '@/constants/theme';
 import type { RewardPartner } from '@/data/culture';
 
 export const rewardRedeemWindowMs = 5 * 60 * 1000;
@@ -39,7 +39,8 @@ export const achievementBadges: AchievementBadge[] = [
     progress: '0 / 1',
     unlocked: false,
     icon: TicketCheck,
-    color: Colors.light.primary,
+    category: 'quest',
+    color: GamificationColors.badges.quest,
   },
   {
     id: 'culture-regular',
@@ -48,7 +49,8 @@ export const achievementBadges: AchievementBadge[] = [
     progress: '0 / 10',
     unlocked: false,
     icon: CalendarPlus,
-    color: Colors.light.primary,
+    category: 'culture',
+    color: GamificationColors.badges.culture,
   },
   {
     id: 'reward-hunter',
@@ -57,7 +59,8 @@ export const achievementBadges: AchievementBadge[] = [
     progress: '0 / 10',
     unlocked: false,
     icon: Gift,
-    color: Colors.light.primary,
+    category: 'reward',
+    color: GamificationColors.badges.reward,
   },
   {
     id: 'museum-mind',
@@ -66,7 +69,8 @@ export const achievementBadges: AchievementBadge[] = [
     progress: '0 / 5',
     unlocked: false,
     icon: Building2,
-    color: Colors.light.primary,
+    category: 'culture',
+    color: GamificationColors.badges.culture,
   },
   {
     id: 'city-explorer',
@@ -75,7 +79,8 @@ export const achievementBadges: AchievementBadge[] = [
     progress: '0 / 8',
     unlocked: false,
     icon: Compass,
-    color: Colors.light.primary,
+    category: 'exploration',
+    color: GamificationColors.badges.exploration,
   },
   {
     id: 'social-spark',
@@ -84,7 +89,8 @@ export const achievementBadges: AchievementBadge[] = [
     progress: '0 / 5',
     unlocked: false,
     icon: Sparkles,
-    color: Colors.light.primary,
+    category: 'social',
+    color: GamificationColors.badges.social,
   },
   {
     id: 'international-eye',
@@ -93,7 +99,8 @@ export const achievementBadges: AchievementBadge[] = [
     progress: '0 / 3',
     unlocked: false,
     icon: Globe,
-    color: Colors.light.primary,
+    category: 'exploration',
+    color: GamificationColors.badges.exploration,
   },
   {
     id: 'coffee-route',
@@ -102,7 +109,8 @@ export const achievementBadges: AchievementBadge[] = [
     progress: '0 / 3',
     unlocked: false,
     icon: Coffee,
-    color: Colors.light.primary,
+    category: 'reward',
+    color: GamificationColors.badges.reward,
   },
   {
     id: 'top-week',
@@ -111,7 +119,8 @@ export const achievementBadges: AchievementBadge[] = [
     progress: 'Not ranked',
     unlocked: false,
     icon: Trophy,
-    color: Colors.light.primary,
+    category: 'status',
+    color: GamificationColors.badges.status,
   },
   {
     id: 'founding-student',
@@ -120,7 +129,8 @@ export const achievementBadges: AchievementBadge[] = [
     progress: 'Locked',
     unlocked: false,
     icon: Crown,
-    color: Colors.light.primary,
+    category: 'status',
+    color: GamificationColors.badges.status,
   },
 ];
 

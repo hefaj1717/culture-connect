@@ -28,12 +28,14 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
 
 import { BrandImage } from '@/components/brand-image';
 import { PassportBadge, type AchievementBadge } from '@/components/profile/badges';
 import { OrganizerStatusCard, OrganizerVerifiedBadge } from '@/components/profile/organizer-status';
 import { RankAvatar } from '@/components/profile/profile-avatar';
 import { RewardPartnerRow } from '@/components/profile/reward-partner-row';
+import { Colors, GamificationColors } from '@/constants/theme';
 import { eventCategoryLabels, type CultureEvent, type RewardPartner } from '@/data/culture';
 import { getEventEngagement } from '@/lib/event-engagement';
 import type { UserEventHistoryItem, UserEventStatus } from '@/lib/event-history';
@@ -88,7 +90,10 @@ export function ProfileRankCard({
   userXp,
 }: ProfileRankCardProps) {
   return (
-    <View className="mx-5 mb-5 rounded-[28px] border border-gray-200 bg-white p-4">
+    <View
+      className="mx-5 mb-5 rounded-[28px] border border-gray-200 bg-white p-4"
+      style={{ boxShadow: '0 10px 24px rgba(36, 28, 46, 0.08)' }}
+    >
       <View className="mb-5 flex-row items-center gap-4">
         <RankAvatar
           initials={avatarInitials}
@@ -106,7 +111,7 @@ export function ProfileRankCard({
               onPress={onOpenSettings}
               className="h-10 w-10 items-center justify-center rounded-full bg-canvas active:opacity-80"
             >
-              <Settings size={19} color="#756F7B" strokeWidth={2.4} />
+              <Settings size={19} color={Colors.light.primary} strokeWidth={2.4} />
             </Pressable>
           </View>
           {organizerStatus === 'approved' && (
@@ -120,7 +125,7 @@ export function ProfileRankCard({
         </View>
       </View>
 
-      <View className="mb-4 rounded-2xl bg-canvas p-4">
+      <View className="mb-4 rounded-2xl border border-accent/15 bg-canvas p-4">
         <View className="mb-3 flex-row items-end justify-between gap-4">
           <View>
             <View className="mb-1">
@@ -128,7 +133,7 @@ export function ProfileRankCard({
                 Total XP
               </Text>
             </View>
-            <Text className="font-ui text-[34px] font-extrabold leading-[38px] text-ink">
+            <Text className="font-heading text-[54px] font-extrabold leading-[58px] text-ink">
               {userXp.toLocaleString()}
             </Text>
           </View>
@@ -138,18 +143,42 @@ export function ProfileRankCard({
                 ? `${levelProgress.xpToNext.toLocaleString()} XP to ${levelProgress.nextLevel.name}`
                 : 'Top city rank reached'}
             </Text>
-            <Text className="mt-1 text-[13px] font-extrabold text-primary">
+            <Text className="mt-1 text-[16px] font-extrabold text-accentDeep">
               {Math.round(levelProgress.progressPercent)}%
             </Text>
           </View>
         </View>
-        <View className="h-2 overflow-hidden rounded-full bg-primary/10">
-          <View
-            className="h-full rounded-full bg-primary"
-            style={{ width: `${levelProgress.progressPercent}%` }}
-          />
-        </View>
+        <XpProgressBar progressPercent={levelProgress.progressPercent} />
       </View>
+    </View>
+  );
+}
+
+function XpProgressBar({ progressPercent }: { progressPercent: number }) {
+  const safeProgress = Math.min(100, Math.max(0, progressPercent));
+
+  return (
+    <View
+      className="relative h-4 overflow-hidden rounded-full"
+      style={{ backgroundColor: GamificationColors.progressTrack }}
+    >
+      <LinearGradient
+        colors={[Colors.light.accent, Colors.light.accentDeep]}
+        start={{ x: 0, y: 0.5 }}
+        end={{ x: 1, y: 0.5 }}
+        style={{
+          height: '100%',
+          width: `${safeProgress}%`,
+          borderRadius: 999,
+        }}
+      />
+      {[25, 50, 75].map((tick) => (
+        <View
+          key={tick}
+          className="absolute top-0 h-full w-px bg-white/45"
+          style={{ left: `${tick}%` }}
+        />
+      ))}
     </View>
   );
 }
@@ -255,9 +284,10 @@ export function UserActivitySection({ history, onOpenAll }: UserActivitySectionP
       <Pressable
         onPress={onOpenAll}
         className="flex-row items-center gap-3 rounded-3xl border border-primary/10 bg-primary/5 p-4 active:opacity-85"
+        style={{ boxShadow: '0 8px 18px rgba(36, 28, 46, 0.05)' }}
       >
         <View className="h-12 w-12 items-center justify-center rounded-2xl bg-white">
-          <CalendarDays size={20} color="#7C3AED" strokeWidth={2.4} />
+          <CalendarDays size={20} color={Colors.light.primary} strokeWidth={2.4} />
         </View>
         <View className="min-w-0 flex-1">
           <Text className="font-heading text-[20px] font-extrabold text-ink">My activity</Text>
@@ -267,7 +297,7 @@ export function UserActivitySection({ history, onOpenAll }: UserActivitySectionP
               : 'Interested, going, and attended events'}
           </Text>
         </View>
-        <ChevronRight size={18} color="#7C3AED" strokeWidth={2.5} />
+        <ChevronRight size={18} color={Colors.light.primary} strokeWidth={2.5} />
       </Pressable>
     </View>
   );
@@ -335,7 +365,10 @@ export function OrganizerToolsSection({
       </View>
 
       {status === 'approved' ? (
-        <View className="rounded-3xl border border-primary/10 bg-primary/5 p-4">
+        <View
+          className="rounded-3xl border border-primary/10 bg-primary/5 p-4"
+          style={{ boxShadow: '0 8px 18px rgba(36, 28, 46, 0.05)' }}
+        >
           <View className="mb-4">
             <View className="mb-1 flex-row items-start justify-between gap-3">
               <Text className="min-w-0 flex-1 font-heading text-[20px] font-extrabold text-ink">
@@ -446,7 +479,7 @@ export function OrganizerEventHistorySection({
           className="flex-row items-center gap-3 rounded-3xl border border-gray-200 bg-white p-4 active:opacity-85"
         >
           <View className="h-12 w-12 items-center justify-center rounded-2xl bg-canvas">
-            <CalendarDays size={20} color="#7C3AED" strokeWidth={2.4} />
+            <CalendarDays size={20} color={Colors.light.primary} strokeWidth={2.4} />
           </View>
           <View className="min-w-0 flex-1">
             <Text className="font-heading text-[20px] font-extrabold text-ink">My events</Text>
@@ -456,7 +489,7 @@ export function OrganizerEventHistorySection({
                 : 'Submitted, pending, and past events'}
             </Text>
           </View>
-          <ChevronRight size={18} color="#7C3AED" strokeWidth={2.5} />
+          <ChevronRight size={18} color={Colors.light.primary} strokeWidth={2.5} />
         </Pressable>
       )}
     </View>
