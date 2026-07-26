@@ -416,6 +416,11 @@ export default function ProfileScreen({
 
         <ProfileActions onEdit={openEditProfile} onSignOut={signOut} />
 
+        <UserActivitySection
+          history={userEventHistory}
+          onOpenAll={() => setActivityHistoryOpen(true)}
+        />
+
         <DigitalPassportSection
           badges={achievementBadges}
           onOpenAll={() => setBadgesOpen(true)}
@@ -423,11 +428,6 @@ export default function ProfileScreen({
             setSelectedBadge(badge);
             setBadgesOpen(true);
           }}
-        />
-
-        <UserActivitySection
-          history={userEventHistory}
-          onOpenAll={() => setActivityHistoryOpen(true)}
         />
 
         <OrganizerToolsSection
