@@ -260,16 +260,16 @@ export function OrganizerToolsSection({
       </View>
 
       {status === 'approved' ? (
-        <View className="rounded-3xl border border-primary/10 bg-ink p-4">
+        <View className="rounded-3xl border border-primary/10 bg-primary/5 p-4">
           <View className="mb-4">
             <View className="mb-1 flex-row items-start justify-between gap-3">
-              <Text className="min-w-0 flex-1 font-heading text-[20px] font-extrabold text-white">
+              <Text className="min-w-0 flex-1 font-heading text-[20px] font-extrabold text-ink">
                 Event maker tools
               </Text>
               <OrganizerVerifiedBadge compact />
             </View>
             <View className="min-w-0 flex-1">
-              <Text className="mt-1 text-[13px] leading-5 text-white/70">
+              <Text className="mt-1 text-[13px] leading-5 text-muted">
                 Create and publish events for {cityName}.
               </Text>
             </View>
@@ -284,9 +284,9 @@ export function OrganizerToolsSection({
             </Pressable>
             <Pressable
               onPress={onCreateReward}
-              className="h-11 flex-row items-center justify-center rounded-xl border border-white/15 bg-white/10 active:opacity-85"
+              className="h-11 flex-row items-center justify-center rounded-xl border border-primary/25 bg-white active:opacity-85"
             >
-              <Text className="text-[14px] font-semibold text-white">Create reward</Text>
+              <Text className="text-[14px] font-semibold text-primary">Create reward</Text>
             </Pressable>
           </View>
         </View>
