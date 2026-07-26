@@ -1,6 +1,15 @@
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
-import { ArrowLeft, ArrowRight, Bell, Globe, User, X } from 'lucide-react-native';
+import {
+  ArrowLeft,
+  ArrowRight,
+  Bell,
+  CheckCircle2,
+  Globe,
+  User,
+  Users,
+  X,
+} from 'lucide-react-native';
 import {
   Modal,
   Pressable,
@@ -10,7 +19,7 @@ import {
   useWindowDimensions,
   View,
 } from 'react-native';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import MapView, { Circle as MapCircle, Marker } from 'react-native-maps';
 import Animated, {
@@ -30,6 +39,8 @@ import {
   getCultureCityData,
   languageLabels,
 } from '@/data/culture';
+import { getEventEngagement } from '@/lib/event-engagement';
+import type { UserEventStatus } from '@/lib/event-history';
 import type { OrganizerApplicationStatus } from '@/providers/auth-provider';
 
 const notifications = [
@@ -61,6 +72,7 @@ type HomeScreenProps = {
   avatarUrl?: string | null;
   cityData?: CultureCityData;
   events?: CultureEvent[];
+  eventStatuses?: Record<string, UserEventStatus>;
   organizerApplicationStatus?: OrganizerApplicationStatus;
   onOpenDiscover?: () => void;
   onOpenEvent?: (eventId: string) => void;
@@ -72,6 +84,7 @@ export default function HomeScreen({
   avatarUrl,
   cityData = getCultureCityData(),
   events = [],
+  eventStatuses = {},
   organizerApplicationStatus = 'none',
   onOpenDiscover,
   onOpenEvent,
@@ -85,8 +98,9 @@ export default function HomeScreen({
         name: string;
         address: string;
         eventCount: number;
-        attendeeCount: number;
+        attendedCount: number;
         nextEvent: CultureEvent;
+        interestedCount: number;
         coordinates: { latitude: number; longitude: number };
       }[]
     >((spots, event) => {
@@ -97,10 +111,12 @@ export default function HomeScreen({
 
       if (!coordinates) return spots;
 
+      const engagement = getEventEngagement(event, eventStatuses[event.id]);
       const existingSpot = spots.find((spot) => spot.id === event.venueId);
       if (existingSpot) {
         existingSpot.eventCount += 1;
-        existingSpot.attendeeCount += event.attendeeCount;
+        existingSpot.attendedCount += engagement.attended;
+        existingSpot.interestedCount += engagement.interested;
         return spots;
       }
 
@@ -110,8 +126,9 @@ export default function HomeScreen({
           id: event.venueId,
           name: event.venueName,
           address: event.venueAddress ?? knownVenue?.address ?? cityData.name,
+          attendedCount: engagement.attended,
           eventCount: 1,
-          attendeeCount: event.attendeeCount,
+          interestedCount: engagement.interested,
           nextEvent: event,
           coordinates,
         },
@@ -121,13 +138,16 @@ export default function HomeScreen({
     if (mapSpots.length === 0) return [];
 
     const maxActivity = Math.max(
-      ...mapSpots.map((spot) => spot.attendeeCount + spot.eventCount * 35),
+      ...mapSpots.map(
+        (spot) => spot.interestedCount * 12 + spot.attendedCount * 24 + spot.eventCount * 35,
+      ),
       1,
     );
 
     return mapSpots
       .map((spot) => {
-        const activityScore = spot.attendeeCount + spot.eventCount * 35;
+        const activityScore =
+          spot.interestedCount * 12 + spot.attendedCount * 24 + spot.eventCount * 35;
         const intensity = activityScore / maxActivity;
 
         return {
@@ -139,7 +159,7 @@ export default function HomeScreen({
         };
       })
       .sort((a, b) => b.activityScore - a.activityScore);
-  }, [cityData.name, cityData.venues, events]);
+  }, [cityData.name, cityData.venues, eventStatuses, events]);
   const [selectedActivityId, setSelectedActivityId] = useState<string | null>(null);
   const selectedActivitySpot =
     activitySpots.find((spot) => spot.id === selectedActivityId) ?? activitySpots[0];
@@ -319,6 +339,16 @@ export default function HomeScreen({
                     <Text className="mb-2 text-[12px] text-muted" numberOfLines={1}>
                       {event.date} · {event.venueName}
                     </Text>
+                    <View className="mb-2 flex-row gap-1.5">
+                      <MiniEngagementStat
+                        icon={<Users size={12} color="#7C3AED" strokeWidth={2.4} />}
+                        value={getEventEngagement(event, eventStatuses[event.id]).interested}
+                      />
+                      <MiniEngagementStat
+                        icon={<CheckCircle2 size={12} color="#7C3AED" strokeWidth={2.4} />}
+                        value={getEventEngagement(event, eventStatuses[event.id]).attended}
+                      />
+                    </View>
                     <View className="flex-row flex-wrap items-center gap-2">
                       <Text className="text-[12px] font-bold text-primary">
                         +{event.xpBonus} XP
@@ -432,9 +462,10 @@ export default function HomeScreen({
                       {selectedActivitySpot.nextEvent.title}
                     </Text>
                   </Pressable>
-                  <View className="rounded-full bg-secondary/12 px-3 py-1.5">
-                    <Text className="text-[12px] font-bold text-secondary">
-                      {selectedActivitySpot.attendeeCount} people
+                  <View className="max-w-[150px] rounded-full bg-secondary/12 px-3 py-1.5">
+                    <Text className="text-[12px] font-bold text-secondary" numberOfLines={1}>
+                      {selectedActivitySpot.interestedCount.toLocaleString()} interested ·{' '}
+                      {selectedActivitySpot.attendedCount.toLocaleString()} attended
                     </Text>
                   </View>
                 </View>
@@ -838,6 +869,15 @@ function getActivityColor(intensity: number) {
   if (intensity >= 0.78) return '#EF4444';
   if (intensity >= 0.52) return '#F97316';
   return '#F59E0B';
+}
+
+function MiniEngagementStat({ icon, value }: { icon: ReactNode; value: number }) {
+  return (
+    <View className="flex-row items-center gap-1 rounded-full bg-primary/5 px-2 py-1">
+      {icon}
+      <Text className="text-[10px] font-extrabold text-primary">{value.toLocaleString()}</Text>
+    </View>
+  );
 }
 
 function getCityMapRegion(cityData: CultureCityData) {

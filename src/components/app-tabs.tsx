@@ -24,6 +24,7 @@ import {
   setUserEventResponse,
   type UserEventStatus,
 } from '@/lib/event-history';
+import { updateEventEngagementCounts } from '@/lib/event-engagement';
 import { fetchOrganizerEvents } from '@/lib/organizer-events';
 import { useAuth } from '@/providers/auth-provider';
 
@@ -146,8 +147,12 @@ function AuthenticatedTabs() {
       return false;
     }
 
+    const previousStatus = eventStatuses[event.id] ?? null;
     checkedInEventIdsRef.current.add(event.id);
     setCheckedInEventIds([...checkedInEventIdsRef.current]);
+    setApprovedEvents((current) =>
+      updateEventEngagementCounts(current, event.id, previousStatus, 'attended'),
+    );
     setEventStatuses((current) => ({ ...current, [event.id]: 'attended' }));
     if (user?.id) {
       void setUserEventResponse(user.id, event.id, 'attended');
@@ -157,6 +162,11 @@ function AuthenticatedTabs() {
   }
 
   function updateEventStatus(eventId: string, status: UserEventStatus | null) {
+    const previousStatus = eventStatuses[eventId] ?? null;
+    setApprovedEvents((current) =>
+      updateEventEngagementCounts(current, eventId, previousStatus, status),
+    );
+
     setEventStatuses((current) => {
       const nextStatuses = { ...current };
 
@@ -241,6 +251,7 @@ function AuthenticatedTabs() {
               avatarUrl={avatarUrl}
               cityData={cityData}
               events={approvedEvents}
+              eventStatuses={eventStatuses}
               organizerApplicationStatus={organizerApplicationStatus}
               onOpenDiscover={() => goToTab(1)}
               onOpenEvent={openDiscoverEvent}

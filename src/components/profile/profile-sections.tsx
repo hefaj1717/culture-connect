@@ -17,10 +17,29 @@ import { OrganizerStatusCard, OrganizerVerifiedBadge } from '@/components/profil
 import { RankAvatar } from '@/components/profile/profile-avatar';
 import { RewardPartnerRow } from '@/components/profile/reward-partner-row';
 import { eventCategoryLabels, type CultureEvent, type RewardPartner } from '@/data/culture';
+import { getEventEngagement } from '@/lib/event-engagement';
 import type { UserEventHistoryItem, UserEventStatus } from '@/lib/event-history';
 import type { ManagedOrganizerEvent, OrganizerEventStatus } from '@/lib/organizer-events';
 
 type OrganizerStatus = 'none' | 'pending' | 'approved' | 'rejected';
+type ActivityHistoryFilter = 'all' | UserEventStatus;
+type OrganizerHistoryFilter = 'all' | 'pending' | 'approved' | 'rejected' | 'past' | 'cancelled';
+
+const activityHistoryFilters: { key: ActivityHistoryFilter; label: string }[] = [
+  { key: 'all', label: 'All' },
+  { key: 'interested', label: 'Interested' },
+  { key: 'going', label: 'Going' },
+  { key: 'attended', label: 'Attended' },
+];
+
+const organizerHistoryFilters: { key: OrganizerHistoryFilter; label: string }[] = [
+  { key: 'all', label: 'All' },
+  { key: 'pending', label: 'Pending' },
+  { key: 'approved', label: 'Approved' },
+  { key: 'rejected', label: 'Rejected' },
+  { key: 'past', label: 'Past' },
+  { key: 'cancelled', label: 'Cancelled' },
+];
 
 type LevelProgress = {
   currentLevel: { name: string; minXp: number };
@@ -319,9 +338,12 @@ export function UserActivityHistoryModal({
   visible: boolean;
 }) {
   const [selectedEvent, setSelectedEvent] = useState<CultureEvent | null>(null);
+  const [activityFilter, setActivityFilter] = useState<ActivityHistoryFilter>('all');
   const selectedHistoryItem = selectedEvent
     ? history.find((item) => item.event.id === selectedEvent.id)
     : null;
+  const filteredHistory =
+    activityFilter === 'all' ? history : history.filter((item) => item.status === activityFilter);
 
   return (
     <Modal animationType="slide" onRequestClose={onClose} visible={visible}>
@@ -343,6 +365,11 @@ export function UserActivityHistoryModal({
                 <ArrowLeft size={21} color="#756F7B" strokeWidth={2.6} />
               </Pressable>
             </View>
+            <HistoryFilterBar
+              activeKey={activityFilter}
+              filters={activityHistoryFilters}
+              onSelect={setActivityFilter}
+            />
 
             <ScrollView
               className="flex-1"
@@ -359,8 +386,13 @@ export function UserActivityHistoryModal({
                   body="Events you mark as Interested, Going, or Attended will appear here."
                   title="No saved events yet"
                 />
+              ) : filteredHistory.length === 0 ? (
+                <HistoryEmptyState
+                  body={`No ${getActivityFilterEmptyLabel(activityFilter)} events in your history yet.`}
+                  title="Nothing here yet"
+                />
               ) : (
-                history.map((item) => (
+                filteredHistory.map((item) => (
                   <EventHistoryRow
                     event={item.event}
                     key={`${item.event.id}-${item.status}-full`}
@@ -389,6 +421,15 @@ export function OrganizerEventHistoryModal({
   visible: boolean;
 }) {
   const [selectedEvent, setSelectedEvent] = useState<ManagedOrganizerEvent | null>(null);
+  const [organizerFilter, setOrganizerFilter] = useState<OrganizerHistoryFilter>('all');
+  const filteredEvents =
+    organizerFilter === 'all'
+      ? events
+      : events.filter((event) =>
+          organizerFilter === 'past'
+            ? event.reviewStatus === 'approved' && isPastEventDateLabel(event.date)
+            : event.reviewStatus === organizerFilter,
+        );
 
   return (
     <Modal animationType="slide" onRequestClose={onClose} visible={visible}>
@@ -410,6 +451,11 @@ export function OrganizerEventHistoryModal({
                 <ArrowLeft size={21} color="#756F7B" strokeWidth={2.6} />
               </Pressable>
             </View>
+            <HistoryFilterBar
+              activeKey={organizerFilter}
+              filters={organizerHistoryFilters}
+              onSelect={setOrganizerFilter}
+            />
 
             <ScrollView
               className="flex-1"
@@ -426,8 +472,13 @@ export function OrganizerEventHistoryModal({
                   body="Events you submit for review will appear here with their approval status."
                   title="No organizer events yet"
                 />
+              ) : filteredEvents.length === 0 ? (
+                <HistoryEmptyState
+                  body={`No ${getOrganizerFilterEmptyLabel(organizerFilter)} events in your organizer history.`}
+                  title="Nothing here yet"
+                />
               ) : (
-                events.map((event) => (
+                filteredEvents.map((event) => (
                   <OrganizerEventRow
                     event={event}
                     key={`${event.id}-full`}
@@ -450,6 +501,85 @@ function HistoryEmptyState({ body, title }: { body: string; title: string }) {
       <Text className="mt-1 text-[13px] leading-5 text-muted">{body}</Text>
     </View>
   );
+}
+
+function HistoryFilterBar<T extends string>({
+  activeKey,
+  filters,
+  onSelect,
+}: {
+  activeKey: T;
+  filters: { key: T; label: string }[];
+  onSelect: (key: T) => void;
+}) {
+  return (
+    <ScrollView
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      contentContainerStyle={{ gap: 8, paddingHorizontal: 20, paddingTop: 8, paddingBottom: 8 }}
+    >
+      {filters.map((filter) => {
+        const active = activeKey === filter.key;
+
+        return (
+          <Pressable
+            key={filter.key}
+            onPress={() => onSelect(filter.key)}
+            className={`rounded-full px-4 py-2 ${
+              active ? 'bg-primary' : 'border border-gray-200 bg-gray-100'
+            }`}
+          >
+            <Text className={`text-[12px] font-semibold ${active ? 'text-white' : 'text-muted'}`}>
+              {filter.label}
+            </Text>
+          </Pressable>
+        );
+      })}
+    </ScrollView>
+  );
+}
+
+function getActivityFilterEmptyLabel(filter: ActivityHistoryFilter) {
+  if (filter === 'going') return 'going';
+  if (filter === 'attended') return 'attended';
+  if (filter === 'interested') return 'interested';
+  return 'saved';
+}
+
+function getOrganizerFilterEmptyLabel(filter: OrganizerHistoryFilter) {
+  if (filter === 'cancelled') return 'cancelled';
+  if (filter === 'approved') return 'approved';
+  if (filter === 'rejected') return 'rejected';
+  if (filter === 'pending') return 'pending';
+  if (filter === 'past') return 'past';
+  return 'submitted';
+}
+
+function isPastEventDateLabel(dateLabel: string) {
+  const match = dateLabel.match(/\b([A-Z][a-z]{2,8})\s+(\d{1,2})\b/);
+  if (!match) return false;
+
+  const monthIndex = [
+    'jan',
+    'feb',
+    'mar',
+    'apr',
+    'may',
+    'jun',
+    'jul',
+    'aug',
+    'sep',
+    'oct',
+    'nov',
+    'dec',
+  ].indexOf(match[1].slice(0, 3).toLowerCase());
+
+  if (monthIndex < 0) return false;
+
+  const today = new Date();
+  const eventDate = new Date(today.getFullYear(), monthIndex, Number(match[2]), 23, 59, 59);
+
+  return eventDate.getTime() < today.getTime();
 }
 
 function EventHistoryRow({
@@ -591,12 +721,12 @@ function HistoryEventDetail({
             <HistoryStatPill
               icon={<Users size={15} color="#7C3AED" strokeWidth={2.4} />}
               label="Interested"
-              value={getHistoryEngagement(event, status).interested}
+              value={getEventEngagement(event, status).interested}
             />
             <HistoryStatPill
               icon={<CheckCircle2 size={15} color="#7C3AED" strokeWidth={2.4} />}
               label="Attended"
-              value={getHistoryEngagement(event, status).attended}
+              value={getEventEngagement(event, status).attended}
             />
           </View>
           <View className="rounded-2xl bg-primary/5 px-3 py-2.5">
@@ -636,7 +766,7 @@ function HistoryEngagementStats({
   event: CultureEvent;
   status?: UserEventStatus;
 }) {
-  const engagement = getHistoryEngagement(event, status);
+  const engagement = getEventEngagement(event, status);
 
   return (
     <View className="mt-3 flex-row gap-2">
@@ -671,16 +801,6 @@ function HistoryStatPill({
       </Text>
     </View>
   );
-}
-
-function getHistoryEngagement(event: CultureEvent, status?: UserEventStatus) {
-  const interestedBase = event.interestedCount ?? 0;
-  const attendedBase = event.attendeeCount ?? 0;
-
-  return {
-    interested: Math.max(interestedBase, status === 'interested' || status === 'going' ? 1 : 0),
-    attended: Math.max(attendedBase, status === 'attended' ? 1 : 0),
-  };
 }
 
 function getEventImageSource(event: CultureEvent) {
