@@ -15,7 +15,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { Colors } from '@/constants/theme';
 import type { RewardPartner } from '@/data/culture';
-import { formatRewardTime, getRewardPickupCode } from '@/data/profile';
+import { formatRewardTime } from '@/data/profile';
 
 type RewardDetailModalProps = {
   detailsExpanded: boolean;
@@ -23,12 +23,18 @@ type RewardDetailModalProps = {
   onClose: () => void;
   onRedeem: () => void;
   onToggleDetails: () => void;
+  pickupCode: string | null;
   remainingMs: number;
   reward: RewardPartner | null;
+  rewardCanRedeem: boolean;
+  rewardRedeemError: string | null;
+  rewardRedeeming: boolean;
   rewardIsActive: boolean;
   rewardIsUsed: boolean;
   rewardStateExists: boolean;
+  rewardXpNeeded: number;
   swipeStyle: StyleProp<ViewStyle>;
+  userXp: number;
 };
 
 export function RewardDetailModal({
@@ -37,29 +43,44 @@ export function RewardDetailModal({
   onClose,
   onRedeem,
   onToggleDetails,
+  pickupCode,
   remainingMs,
   reward,
+  rewardCanRedeem,
+  rewardRedeemError,
+  rewardRedeeming,
   rewardIsActive,
   rewardIsUsed,
   rewardStateExists,
+  rewardXpNeeded,
   swipeStyle,
+  userXp,
 }: RewardDetailModalProps) {
   const statusLabel = rewardIsUsed
     ? 'Used'
     : rewardIsActive
       ? formatRewardTime(remainingMs)
-      : 'Not redeemed';
+      : rewardCanRedeem
+        ? 'Ready'
+        : 'Locked';
   const pickupTitle = rewardIsUsed
     ? 'Coupon used'
     : rewardIsActive
       ? 'Show this screen'
-      : 'Ready to redeem';
+      : rewardCanRedeem
+        ? 'Ready to redeem'
+        : 'Keep earning XP';
   const redeemButtonLabel = rewardIsUsed
     ? 'Coupon already used'
     : rewardIsActive
       ? 'Coupon active'
-      : 'Redeem';
+      : rewardRedeeming
+        ? 'Redeeming...'
+        : rewardCanRedeem
+          ? 'Redeem'
+          : `Need ${rewardXpNeeded.toLocaleString()} more XP`;
   const venueName = formatVenueName(reward?.name);
+  const redeemDisabled = rewardStateExists || rewardRedeeming || !rewardCanRedeem;
 
   return (
     <Modal animationType="slide" onRequestClose={onClose} visible={!!reward}>
@@ -147,7 +168,9 @@ export function RewardDetailModal({
                             className="text-[14px] font-extrabold leading-5"
                             style={{ color: '#FFFFFF' }}
                           >
-                            {reward.condition}
+                            {rewardCanRedeem || rewardStateExists
+                              ? reward.condition
+                              : `${userXp.toLocaleString()} / ${reward.xpCost.toLocaleString()} XP`}
                           </Text>
                         </View>
                         <Text
@@ -220,7 +243,10 @@ export function RewardDetailModal({
                         <Text
                           className="text-[11px] font-bold"
                           style={{
-                            color: rewardIsActive ? Colors.light.accent : 'rgba(255,255,255,0.78)',
+                            color:
+                              rewardIsActive || rewardCanRedeem
+                                ? Colors.light.accent
+                                : 'rgba(255,255,255,0.78)',
                           }}
                         >
                           {statusLabel}
@@ -253,15 +279,23 @@ export function RewardDetailModal({
                           selectable
                           style={{ color: Colors.light.accent }}
                         >
-                          {getRewardPickupCode(reward)}
+                          {pickupCode}
                         </Text>
                       )}
-                      {!rewardStateExists && (
+                      {!rewardStateExists && rewardCanRedeem && (
                         <Text
                           className="mt-5 text-center text-[16px] font-extrabold"
                           style={{ color: 'rgba(255,255,255,0.84)' }}
                         >
                           Code hidden until redeem
+                        </Text>
+                      )}
+                      {!rewardStateExists && !rewardCanRedeem && (
+                        <Text
+                          className="mt-5 text-center text-[16px] font-extrabold"
+                          style={{ color: 'rgba(255,255,255,0.84)' }}
+                        >
+                          You need {rewardXpNeeded.toLocaleString()} more XP
                         </Text>
                       )}
                       {rewardIsUsed && (
@@ -282,23 +316,33 @@ export function RewardDetailModal({
                             )} at ${venueName}. Staff confirms before applying the reward.`
                           : rewardIsUsed
                             ? 'The reward code is no longer visible after use.'
-                            : 'Tap Redeem only when you are ready to show this screen to staff.'}
+                            : rewardCanRedeem
+                              ? 'Tap Redeem only when you are ready to show this screen to staff.'
+                              : 'Attend events and complete quests to unlock this reward.'}
                       </Text>
                     </View>
                   </LinearGradient>
                 </View>
 
+                {rewardRedeemError && (
+                  <View className="rounded-2xl border border-accent/25 bg-accent/10 p-4">
+                    <Text className="text-[13px] font-semibold leading-5 text-ink">
+                      {rewardRedeemError}
+                    </Text>
+                  </View>
+                )}
+
                 <Pressable
                   onPress={onRedeem}
-                  disabled={rewardStateExists}
+                  disabled={redeemDisabled}
                   className="h-[54px] items-center justify-center rounded-2xl active:opacity-85"
                   style={{
-                    backgroundColor: rewardStateExists ? '#E5E0EA' : Colors.light.primary,
+                    backgroundColor: redeemDisabled ? '#E5E0EA' : Colors.light.primary,
                   }}
                 >
                   <Text
                     className="text-[15px] font-semibold"
-                    style={{ color: rewardStateExists ? Colors.light.textSecondary : '#FFFFFF' }}
+                    style={{ color: redeemDisabled ? Colors.light.textSecondary : '#FFFFFF' }}
                   >
                     {redeemButtonLabel}
                   </Text>

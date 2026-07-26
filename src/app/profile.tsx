@@ -42,6 +42,7 @@ type ProfileScreenProps = {
   onEventCreated?: () => void;
   onQuestCreated?: () => void;
   onRewardCreated?: () => void;
+  onUserXpChange?: (nextXp: number) => void;
   rewardsRefreshKey?: number;
   userEventHistory?: UserEventHistoryItem[];
   userXp?: number;
@@ -52,6 +53,7 @@ export default function ProfileScreen({
   onEventCreated,
   onQuestCreated,
   onRewardCreated,
+  onUserXpChange,
   rewardsRefreshKey = 0,
   userEventHistory = [],
   userXp = 0,
@@ -118,7 +120,12 @@ export default function ProfileScreen({
     },
     userId: session?.user.id,
   });
-  const rewardRedemption = useRewardRedemption();
+  const rewardRedemption = useRewardRedemption({
+    onUserXpChange,
+    rewards: approvedRewards,
+    userId: session?.user.id,
+    userXp,
+  });
   const {
     avatarUrl,
     cityId,
@@ -239,11 +246,17 @@ export default function ProfileScreen({
     redeemSelectedReward,
     resetRewardDetailState,
     rewardDetailsExpanded,
+    rewardRedeemError,
+    rewardRedeeming,
+    rewardRedemptionsError,
     selectedReward,
+    selectedRewardCanRedeem,
     selectedRewardIsActive,
     selectedRewardIsUsed,
+    selectedRewardPickupCode,
     selectedRewardRemainingMs,
     selectedRewardState,
+    selectedRewardXpNeeded,
     setRewardDetailsExpanded,
     setSelectedReward,
   } = rewardRedemption;
@@ -480,7 +493,7 @@ export default function ProfileScreen({
 
         <RewardsSection
           cityName={cityData.name}
-          error={rewardsError}
+          error={rewardsError ?? rewardRedemptionsError}
           onOpenAll={() => setRewardsListOpen(true)}
           onSelectReward={setSelectedReward}
           rewards={approvedRewards}
@@ -702,12 +715,18 @@ export default function ProfileScreen({
         onClose={closeRewardWithAnimation}
         onRedeem={redeemSelectedReward}
         onToggleDetails={() => setRewardDetailsExpanded((current) => !current)}
+        pickupCode={selectedRewardPickupCode}
         remainingMs={selectedRewardRemainingMs}
         reward={selectedReward}
+        rewardCanRedeem={selectedRewardCanRedeem}
+        rewardRedeemError={rewardRedeemError}
+        rewardRedeeming={rewardRedeeming}
         rewardIsActive={selectedRewardIsActive}
         rewardIsUsed={selectedRewardIsUsed}
         rewardStateExists={!!selectedRewardState}
+        rewardXpNeeded={selectedRewardXpNeeded}
         swipeStyle={rewardSwipeStyle}
+        userXp={userXp}
       />
     </SafeAreaView>
   );

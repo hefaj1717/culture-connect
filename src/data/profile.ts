@@ -27,8 +27,11 @@ export const xpLevels = [
 ];
 
 export type RedeemedRewardState = {
+  code: string;
+  expiresAt: number;
   redeemedAt: number;
   used: boolean;
+  usedAt: number | null;
 };
 
 export const achievementBadges: AchievementBadge[] = [
