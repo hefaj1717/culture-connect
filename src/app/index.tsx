@@ -79,45 +79,44 @@ export default function HomeScreen({
 }: HomeScreenProps) {
   const happeningNow = events.slice(0, 3);
   const activitySpots = useMemo(() => {
-    const venueSpots = cityData.venues
-      .map((venue) => {
-        const venueEvents = events.filter(
-          (event) => event.venueId === venue.id || event.venueName === venue.name,
-        );
+    const mapSpots = events.reduce<
+      {
+        id: string;
+        name: string;
+        address: string;
+        eventCount: number;
+        attendeeCount: number;
+        nextEvent: CultureEvent;
+        coordinates: { latitude: number; longitude: number };
+      }[]
+    >((spots, event) => {
+      const knownVenue = cityData.venues.find(
+        (venue) => venue.id === event.venueId || venue.name === event.venueName,
+      );
+      const coordinates = event.venueCoordinates ?? knownVenue?.coordinates;
 
-        return {
-          id: venue.id,
-          name: venue.name,
-          address: venue.address,
-          eventCount: venueEvents.length,
-          attendeeCount:
-            venueEvents.reduce((total, event) => total + event.attendeeCount, 0) ||
-            Math.max(12, Math.round(venue.checkIns * 0.18)),
-          nextEvent: venueEvents[0],
-          coordinates: venue.coordinates,
-        };
-      })
-      .filter((spot) => !!spot.coordinates);
+      if (!coordinates) return spots;
 
-    const eventOnlySpots = events
-      .filter(
-        (event) =>
-          event.venueCoordinates &&
-          !cityData.venues.some(
-            (venue) => venue.id === event.venueId || venue.name === event.venueName,
-          ),
-      )
-      .map((event) => ({
-        id: event.venueId,
-        name: event.venueName,
-        address: event.venueAddress ?? cityData.name,
-        eventCount: 1,
-        attendeeCount: event.attendeeCount,
-        nextEvent: event,
-        coordinates: event.venueCoordinates!,
-      }));
+      const existingSpot = spots.find((spot) => spot.id === event.venueId);
+      if (existingSpot) {
+        existingSpot.eventCount += 1;
+        existingSpot.attendeeCount += event.attendeeCount;
+        return spots;
+      }
 
-    const mapSpots = [...venueSpots, ...eventOnlySpots];
+      return [
+        ...spots,
+        {
+          id: event.venueId,
+          name: event.venueName,
+          address: event.venueAddress ?? knownVenue?.address ?? cityData.name,
+          eventCount: 1,
+          attendeeCount: event.attendeeCount,
+          nextEvent: event,
+          coordinates,
+        },
+      ];
+    }, []);
 
     if (mapSpots.length === 0) return [];
 
@@ -343,97 +342,94 @@ export default function HomeScreen({
           </ScrollView>
         </View>
 
-        {activitySpots.length > 0 && selectedActivitySpot && (
-          <View className="bg-white px-5 pb-8">
-            <View className="mb-3 flex-row items-center justify-between">
-              <Text className="text-[11px] font-semibold uppercase tracking-wide text-muted">
-                City activity
-              </Text>
-              <Text className="text-[11px] font-semibold text-primary">Now + upcoming</Text>
-            </View>
+        <View className="bg-white px-5 pb-8">
+          <View className="mb-3 flex-row items-center justify-between">
+            <Text className="text-[11px] font-semibold uppercase tracking-wide text-muted">
+              City activity
+            </Text>
+            <Text className="text-[11px] font-semibold text-primary">Approved events only</Text>
+          </View>
 
-            <View className="overflow-hidden rounded-3xl border border-gray-200 bg-[#EAF0F7]">
-              <View className="h-[210px]">
-                <MapView
-                  initialRegion={activityMapRegion}
-                  customMapStyle={cultureMapStyle}
-                  key={cityData.id}
-                  mapType="standard"
-                  pitchEnabled={false}
-                  rotateEnabled={false}
-                  showsBuildings
-                  showsCompass={false}
-                  showsPointsOfInterest
-                  showsScale={false}
-                  showsUserLocation={false}
-                  style={StyleSheet.absoluteFillObject}
-                  toolbarEnabled={false}
-                >
-                  {activitySpots.map((spot) => (
-                    <MapCircle
-                      center={spot.coordinates}
-                      fillColor={`${spot.color}45`}
-                      key={`${spot.id}-heat`}
-                      radius={spot.radius}
-                      strokeColor={`${spot.color}88`}
-                      strokeWidth={1}
-                    />
-                  ))}
+          <View className="overflow-hidden rounded-3xl border border-gray-200 bg-[#EAF0F7]">
+            <View className="h-[210px]">
+              <MapView
+                initialRegion={activityMapRegion}
+                customMapStyle={cultureMapStyle}
+                key={cityData.id}
+                mapType="standard"
+                pitchEnabled={false}
+                rotateEnabled={false}
+                showsBuildings
+                showsCompass={false}
+                showsPointsOfInterest
+                showsScale={false}
+                showsUserLocation={false}
+                style={StyleSheet.absoluteFillObject}
+                toolbarEnabled={false}
+              >
+                {activitySpots.map((spot) => (
+                  <MapCircle
+                    center={spot.coordinates}
+                    fillColor={`${spot.color}45`}
+                    key={`${spot.id}-heat`}
+                    radius={spot.radius}
+                    strokeColor={`${spot.color}88`}
+                    strokeWidth={1}
+                  />
+                ))}
 
-                  {activitySpots.map((spot) => (
-                    <Marker
-                      coordinate={spot.coordinates}
-                      anchor={{ x: 0.5, y: 0.5 }}
-                      key={spot.id}
-                      onPress={() => setSelectedActivityId(spot.id)}
-                      tracksViewChanges={false}
+                {activitySpots.map((spot) => (
+                  <Marker
+                    coordinate={spot.coordinates}
+                    anchor={{ x: 0.5, y: 0.5 }}
+                    key={spot.id}
+                    onPress={() => setSelectedActivityId(spot.id)}
+                    tracksViewChanges={false}
+                  >
+                    <View
+                      className="h-7 w-7 items-center justify-center rounded-full border-2 border-white"
+                      style={{
+                        backgroundColor:
+                          selectedActivitySpot?.id === spot.id ? spot.color : `${spot.color}22`,
+                      }}
                     >
                       <View
-                        className="h-7 w-7 items-center justify-center rounded-full border-2 border-white"
-                        style={{
-                          backgroundColor:
-                            selectedActivitySpot.id === spot.id ? spot.color : `${spot.color}22`,
-                        }}
-                      >
-                        <View
-                          className={`rounded-full border-2 border-white ${
-                            selectedActivitySpot.id === spot.id ? 'h-4 w-4' : 'h-3.5 w-3.5'
-                          }`}
-                          style={{ backgroundColor: spot.color }}
-                        />
-                      </View>
-                    </Marker>
-                  ))}
-                </MapView>
-                <View
-                  pointerEvents="none"
-                  className="absolute inset-0 bg-ink/5"
-                  style={{ backgroundColor: `${Colors.light.ink}08` }}
-                />
-                <View className="absolute left-5 top-5 rounded-full bg-white/80 px-3 py-1">
-                  <Text className="text-[11px] font-bold text-primary">{cityData.name}</Text>
-                </View>
-                <View className="absolute bottom-3 right-3 rounded-full bg-white/90 px-3 py-1">
-                  <Text className="text-[10px] font-bold text-muted">Live map</Text>
-                </View>
+                        className={`rounded-full border-2 border-white ${
+                          selectedActivitySpot?.id === spot.id ? 'h-4 w-4' : 'h-3.5 w-3.5'
+                        }`}
+                        style={{ backgroundColor: spot.color }}
+                      />
+                    </View>
+                  </Marker>
+                ))}
+              </MapView>
+              <View
+                pointerEvents="none"
+                className="absolute inset-0 bg-ink/5"
+                style={{ backgroundColor: `${Colors.light.ink}08` }}
+              />
+              <View className="absolute left-5 top-5 rounded-full bg-white/80 px-3 py-1">
+                <Text className="text-[11px] font-bold text-primary">{cityData.name}</Text>
               </View>
+              <View className="absolute bottom-3 right-3 rounded-full bg-white/90 px-3 py-1">
+                <Text className="text-[10px] font-bold text-muted">
+                  {activitySpots.length > 0 ? 'Live map' : 'No live events'}
+                </Text>
+              </View>
+            </View>
 
-              <View className="border-t border-gray-200 bg-white px-4 py-3">
+            <View className="border-t border-gray-200 bg-white px-4 py-3">
+              {selectedActivitySpot ? (
                 <View className="mb-3 flex-row items-start justify-between gap-3">
                   <Pressable
-                    onPress={() => {
-                      if (selectedActivitySpot.nextEvent) {
-                        onOpenEvent?.(selectedActivitySpot.nextEvent.id);
-                      }
-                    }}
+                    onPress={() => onOpenEvent?.(selectedActivitySpot.nextEvent.id)}
                     className="min-w-0 flex-1 active:opacity-70"
-                    disabled={!selectedActivitySpot.nextEvent}
                   >
                     <Text className="font-ui text-[15px] font-bold text-ink" numberOfLines={1}>
                       {selectedActivitySpot.name}
                     </Text>
                     <Text className="mt-0.5 text-[12px] text-muted" numberOfLines={1}>
-                      {selectedActivitySpot.nextEvent?.title || 'Upcoming culture activity nearby'}
+                      {selectedActivitySpot.nextEvent.title}
                     </Text>
                   </Pressable>
                   <View className="rounded-full bg-secondary/12 px-3 py-1.5">
@@ -442,18 +438,27 @@ export default function HomeScreen({
                     </Text>
                   </View>
                 </View>
+              ) : (
+                <View className="mb-3">
+                  <Text className="font-ui text-[15px] font-bold text-ink">
+                    No approved event activity yet
+                  </Text>
+                  <Text className="mt-0.5 text-[12px] leading-4 text-muted">
+                    Once an organizer event is approved, it will appear on this map.
+                  </Text>
+                </View>
+              )}
 
-                <Pressable
-                  onPress={onOpenDiscover}
-                  className="h-10 flex-row items-center justify-center gap-2 rounded-xl bg-primary active:opacity-85"
-                >
-                  <Text className="text-[13px] font-semibold text-white">Open Discover</Text>
-                  <ArrowRight size={14} color="white" />
-                </Pressable>
-              </View>
+              <Pressable
+                onPress={onOpenDiscover}
+                className="h-10 flex-row items-center justify-center gap-2 rounded-xl bg-primary active:opacity-85"
+              >
+                <Text className="text-[13px] font-semibold text-white">Open Discover</Text>
+                <ArrowRight size={14} color="white" />
+              </Pressable>
             </View>
           </View>
-        )}
+        </View>
 
         <View className="px-5 pb-8">
           <Pressable
