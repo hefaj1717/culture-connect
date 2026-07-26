@@ -1318,7 +1318,10 @@ function OrganizerEventQrModal({
               <Text className="mt-2 font-heading text-[30px] font-extrabold leading-[34px] text-white">
                 {event.title}
               </Text>
-              <Text className="mt-2 text-[14px] font-semibold leading-5 text-white/72">
+              <Text
+                className="mt-2 text-[14px] font-semibold leading-5"
+                style={{ color: 'rgba(255,255,255,0.78)' }}
+              >
                 {event.venueName} · {event.date}, {formatEventTimeRange(event)}
               </Text>
 
@@ -1337,7 +1340,10 @@ function OrganizerEventQrModal({
                 </Text>
               </View>
 
-              <Text className="mt-5 text-center text-[12px] leading-5 text-white/62">
+              <Text
+                className="mt-5 text-center text-[12px] leading-5"
+                style={{ color: 'rgba(255,255,255,0.72)' }}
+              >
                 Place this card at the venue entrance. Students must scan it in CultureQuest while
                 they are within 500m of the venue.
               </Text>
