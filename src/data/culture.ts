@@ -60,6 +60,7 @@ export type CultureEvent = {
   language: EventLanguage;
   isInternational: boolean;
   isFree: boolean;
+  interestedCount?: number;
   attendeeCount: number;
   organizerName: string;
   organizerImage: 'museum' | 'cafe' | 'theater';

@@ -39,6 +39,7 @@ type OrganizerEventRow = {
   language: EventLanguage;
   is_free: boolean;
   is_international: boolean;
+  interested_count?: number | null;
   attendee_count: number;
   image_kind: CultureEvent['organizerImage'];
   image_url: string | null;
@@ -47,45 +48,67 @@ type OrganizerEventRow = {
 };
 
 const EVENT_IMAGES_BUCKET = 'event-images';
+const ORGANIZER_EVENT_SELECT =
+  'id, city_key, venue_key, venue_name, venue_address, venue_latitude, venue_longitude, title, description, category, date_label, time_label, xp_bonus, language, is_free, is_international, interested_count, attendee_count, image_kind, image_url, check_in_code';
+const LEGACY_ORGANIZER_EVENT_SELECT =
+  'id, city_key, venue_key, venue_name, venue_address, venue_latitude, venue_longitude, title, description, category, date_label, time_label, xp_bonus, language, is_free, is_international, attendee_count, image_kind, image_url, check_in_code';
+const ORGANIZER_EVENT_WITH_STATUS_SELECT = `${ORGANIZER_EVENT_SELECT}, status`;
+const LEGACY_ORGANIZER_EVENT_WITH_STATUS_SELECT = `${LEGACY_ORGANIZER_EVENT_SELECT}, status`;
+
 export type OrganizerEventStatus = 'draft' | 'pending' | 'approved' | 'rejected' | 'cancelled';
 export type ManagedOrganizerEvent = CultureEvent & {
   reviewStatus: OrganizerEventStatus;
 };
 
 export async function fetchOrganizerEvents(cityId: CityId) {
-  const { data, error } = await supabase
-    .from('organizer_events')
-    .select(
-      'id, city_key, venue_key, venue_name, venue_address, venue_latitude, venue_longitude, title, description, category, date_label, time_label, xp_bonus, language, is_free, is_international, attendee_count, image_kind, image_url, check_in_code',
-    )
-    .eq('city_key', cityId)
-    .eq('status', 'approved')
-    .order('created_at', { ascending: false });
+  const queryApprovedEvents = (selectColumns: string) =>
+    supabase
+      .from('organizer_events')
+      .select(selectColumns)
+      .eq('city_key', cityId)
+      .eq('status', 'approved')
+      .order('created_at', { ascending: false });
+
+  let { data, error } = await queryApprovedEvents(ORGANIZER_EVENT_SELECT);
+
+  if (isMissingInterestedCountError(error?.message)) {
+    const legacyResult = await queryApprovedEvents(LEGACY_ORGANIZER_EVENT_SELECT);
+    data = legacyResult.data;
+    error = legacyResult.error;
+  }
 
   if (error) {
     return { events: [] as CultureEvent[], error: error.message };
   }
 
   return {
-    events: (data ?? []).map(mapOrganizerEventRow),
+    events: ((data ?? []) as unknown as OrganizerEventRow[]).map(mapOrganizerEventRow),
     error: null,
   };
 }
 
 export async function fetchMyOrganizerEvents(userId: string, cityId?: CityId) {
-  let query = supabase
-    .from('organizer_events')
-    .select(
-      'id, city_key, venue_key, venue_name, venue_address, venue_latitude, venue_longitude, title, description, category, date_label, time_label, xp_bonus, language, is_free, is_international, attendee_count, image_kind, image_url, check_in_code, status',
-    )
-    .eq('organizer_user_id', userId)
-    .order('created_at', { ascending: false });
+  const queryMyEvents = (selectColumns: string) => {
+    let query = supabase
+      .from('organizer_events')
+      .select(selectColumns)
+      .eq('organizer_user_id', userId)
+      .order('created_at', { ascending: false });
 
-  if (cityId) {
-    query = query.eq('city_key', cityId);
+    if (cityId) {
+      query = query.eq('city_key', cityId);
+    }
+
+    return query;
+  };
+
+  let { data, error } = await queryMyEvents(ORGANIZER_EVENT_WITH_STATUS_SELECT);
+
+  if (isMissingInterestedCountError(error?.message)) {
+    const legacyResult = await queryMyEvents(LEGACY_ORGANIZER_EVENT_WITH_STATUS_SELECT);
+    data = legacyResult.data;
+    error = legacyResult.error;
   }
-
-  const { data, error } = await query;
 
   if (error) {
     return { error: error.message, events: [] as ManagedOrganizerEvent[] };
@@ -93,7 +116,7 @@ export async function fetchMyOrganizerEvents(userId: string, cityId?: CityId) {
 
   return {
     error: null,
-    events: (data ?? []).map((row) => ({
+    events: ((data ?? []) as unknown as OrganizerEventRow[]).map((row) => ({
       ...mapOrganizerEventRow(row),
       reviewStatus: row.status ?? 'pending',
     })),
@@ -150,6 +173,7 @@ function mapOrganizerEventRow(row: OrganizerEventRow): CultureEvent {
     language: row.language,
     isInternational: row.is_international,
     isFree: row.is_free,
+    interestedCount: row.interested_count ?? 0,
     attendeeCount: row.attendee_count,
     organizerName: 'Verified CultureQuest organizer',
     organizerImage: row.image_kind,
@@ -164,6 +188,10 @@ function mapOrganizerEventRow(row: OrganizerEventRow): CultureEvent {
           }
         : undefined,
   };
+}
+
+function isMissingInterestedCountError(message?: string | null) {
+  return !!message && message.includes('interested_count');
 }
 
 async function uploadOrganizerEventImage(userId: string, imageUri: string) {
