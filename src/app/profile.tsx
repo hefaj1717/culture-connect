@@ -476,6 +476,14 @@ export default function ProfileScreen({
           userXp={userXp}
         />
 
+        <RewardsSection
+          cityName={cityData.name}
+          error={rewardsError}
+          onSelectReward={setSelectedReward}
+          rewards={approvedRewards}
+          userXp={userXp}
+        />
+
         <DigitalPassportSection
           badges={sortedAchievementBadges}
           onOpenAll={() => setBadgesOpen(true)}
@@ -483,14 +491,6 @@ export default function ProfileScreen({
             setSelectedBadge(badge);
             setBadgesOpen(true);
           }}
-        />
-
-        <RewardsSection
-          cityName={cityData.name}
-          error={rewardsError}
-          onSelectReward={setSelectedReward}
-          rewards={approvedRewards}
-          userXp={userXp}
         />
 
         <OrganizerToolsSection
