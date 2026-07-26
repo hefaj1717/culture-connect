@@ -336,6 +336,7 @@ function AuthenticatedTabs() {
               onQuestCreated={() => {
                 setQuestsRefreshKey((version) => version + 1);
               }}
+              onUserXpChange={setUserXp}
             />
           </View>
         </Animated.View>
