@@ -14,6 +14,7 @@ export type CreateOrganizerRewardInput = {
 type OrganizerRewardRow = {
   id: string;
   city_key: CityId;
+  created_at?: string;
   place_key: string;
   place_name: string;
   place_address: string;
@@ -22,14 +23,25 @@ type OrganizerRewardRow = {
   xp_cost: number;
   category: RewardPartner['category'];
   image_url: string | null;
+  rejection_reason?: string | null;
+  status?: OrganizerRewardStatus;
 };
+
+export type OrganizerRewardStatus = 'draft' | 'pending' | 'approved' | 'rejected' | 'archived';
+export type ManagedOrganizerReward = RewardPartner & {
+  createdAt: string;
+  reviewStatus: OrganizerRewardStatus;
+  rejectionReason?: string | null;
+};
+
+const ORGANIZER_REWARD_SELECT =
+  'id, city_key, place_key, place_name, place_address, title, description, xp_cost, category, image_url';
+const ORGANIZER_REWARD_WITH_STATUS_SELECT = `${ORGANIZER_REWARD_SELECT}, status, rejection_reason, created_at`;
 
 export async function fetchOrganizerRewards(cityId: CityId) {
   const { data, error } = await supabase
     .from('organizer_rewards')
-    .select(
-      'id, city_key, place_key, place_name, place_address, title, description, xp_cost, category, image_url',
-    )
+    .select(ORGANIZER_REWARD_SELECT)
     .eq('city_key', cityId)
     .eq('status', 'approved')
     .order('created_at', { ascending: false });
@@ -41,6 +53,34 @@ export async function fetchOrganizerRewards(cityId: CityId) {
   return {
     error: null,
     rewards: (data ?? []).map(mapOrganizerRewardRow),
+  };
+}
+
+export async function fetchMyOrganizerRewards(userId: string, cityId?: CityId) {
+  let query = supabase
+    .from('organizer_rewards')
+    .select(ORGANIZER_REWARD_WITH_STATUS_SELECT)
+    .eq('organizer_user_id', userId)
+    .order('created_at', { ascending: false });
+
+  if (cityId) {
+    query = query.eq('city_key', cityId);
+  }
+
+  const { data, error } = await query;
+
+  if (error) {
+    return { error: error.message, rewards: [] as ManagedOrganizerReward[] };
+  }
+
+  return {
+    error: null,
+    rewards: ((data ?? []) as unknown as OrganizerRewardRow[]).map((row) => ({
+      ...mapOrganizerRewardRow(row),
+      createdAt: row.created_at ?? new Date().toISOString(),
+      reviewStatus: row.status ?? 'pending',
+      rejectionReason: row.rejection_reason ?? null,
+    })),
   };
 }
 
