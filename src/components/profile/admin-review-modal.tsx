@@ -231,7 +231,7 @@ function PendingEventCard({
         <InfoLine icon={<MapPin size={15} color="#7C3AED" />} text={event.venueName} />
         <InfoLine
           icon={<CalendarDays size={15} color="#7C3AED" />}
-          text={`${event.date}, ${event.time}`}
+          text={`${event.date}, ${formatPendingEventTimeRange(event)}`}
         />
         <Text className="mt-3 text-[13px] leading-5 text-muted" numberOfLines={3}>
           {event.description}
@@ -244,6 +244,10 @@ function PendingEventCard({
       </View>
     </View>
   );
+}
+
+function formatPendingEventTimeRange(event: PendingAdminEvent) {
+  return event.endTime ? `${event.time}-${event.endTime}` : event.time;
 }
 
 function PendingRewardCard({

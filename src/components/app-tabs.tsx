@@ -89,6 +89,10 @@ function AuthenticatedTabs() {
   );
   const avatarUrl = user?.user_metadata?.avatar_url ?? null;
   const cityData = getCultureCityData(user?.user_metadata?.city_id);
+  const publicEvents = useMemo(
+    () => approvedEvents.filter((event) => !isEventEnded(event)),
+    [approvedEvents],
+  );
   const userEventHistory = useMemo(
     () => buildUserEventHistory(approvedEvents, eventStatuses, checkedInEventIds),
     [approvedEvents, checkedInEventIds, eventStatuses],
@@ -301,7 +305,7 @@ function AuthenticatedTabs() {
               avatarInitials={avatarInitials}
               avatarUrl={avatarUrl}
               cityData={cityData}
-              events={approvedEvents}
+              events={publicEvents}
               eventsError={approvedEventsError}
               eventsLoading={approvedEventsLoading}
               eventStatuses={eventStatuses}
@@ -315,7 +319,7 @@ function AuthenticatedTabs() {
             <ExploreScreen
               checkedInEventIds={checkedInEventIds}
               cityData={cityData}
-              events={approvedEvents}
+              events={publicEvents}
               eventsError={approvedEventsError}
               eventsLoading={approvedEventsLoading}
               eventsRefreshKey={organizerEventsVersion}
@@ -427,6 +431,15 @@ function AuthenticatedTabs() {
       </View>
     </View>
   );
+}
+
+function isEventEnded(event: CultureEvent) {
+  if (!event.endsAt) return false;
+
+  const endsAt = Date.parse(event.endsAt);
+  if (Number.isNaN(endsAt)) return false;
+
+  return endsAt <= Date.now();
 }
 
 function getUserInitials(value?: string | null) {

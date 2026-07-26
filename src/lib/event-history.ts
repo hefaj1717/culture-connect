@@ -89,6 +89,7 @@ export function buildUserEventHistory(
       const status = checkedIn.has(event.id) ? 'attended' : responses[event.id];
 
       if (!status) return null;
+      if (isEventEnded(event) && status !== 'attended') return null;
 
       return {
         event,
@@ -96,4 +97,13 @@ export function buildUserEventHistory(
       };
     })
     .filter((item): item is UserEventHistoryItem => !!item);
+}
+
+function isEventEnded(event: CultureEvent) {
+  if (!event.endsAt) return false;
+
+  const endsAt = Date.parse(event.endsAt);
+  if (Number.isNaN(endsAt)) return false;
+
+  return endsAt <= Date.now();
 }

@@ -1030,7 +1030,7 @@ function EventHistoryRow({
           {event.title}
         </Text>
         <Text className="mt-1 text-[13px] font-medium text-muted" numberOfLines={1}>
-          {event.venueName} · {event.time}
+          {event.venueName} · {formatEventTimeRange(event)}
         </Text>
         <HistoryEngagementStats event={event} status={status} />
       </View>
@@ -1068,7 +1068,7 @@ function OrganizerEventRow({
           {event.title}
         </Text>
         <Text className="mt-1 text-[13px] font-medium text-muted" numberOfLines={1}>
-          {event.venueName} · {event.time}
+          {event.venueName} · {formatEventTimeRange(event)}
         </Text>
         <HistoryEngagementStats event={event} />
       </View>
@@ -1189,7 +1189,7 @@ function HistoryEventDetail({
             <HistoryInfoRow icon={<MapPin size={17} color="#7C3AED" />} label={event.venueName} />
             <HistoryInfoRow
               icon={<Clock size={17} color="#7C3AED" />}
-              label={`${event.date}, ${event.time}`}
+              label={`${event.date}, ${formatEventTimeRange(event)}`}
             />
             <View className="flex-row gap-2">
               <HistoryStatPill
@@ -1319,7 +1319,7 @@ function OrganizerEventQrModal({
                 {event.title}
               </Text>
               <Text className="mt-2 text-[14px] font-semibold leading-5 text-white/72">
-                {event.venueName} · {event.date}, {event.time}
+                {event.venueName} · {event.date}, {formatEventTimeRange(event)}
               </Text>
 
               <View className="mt-7 items-center rounded-[28px] bg-white p-6">
@@ -1528,6 +1528,10 @@ function formatSubmittedDate(value: string) {
     day: 'numeric',
     month: 'short',
   });
+}
+
+function formatEventTimeRange(event: CultureEvent) {
+  return event.endTime ? `${event.time}-${event.endTime}` : event.time;
 }
 
 type RewardsSectionProps = {

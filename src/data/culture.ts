@@ -51,7 +51,10 @@ export type CultureEvent = {
   venueName: string;
   category: EventCategory;
   date: string;
+  endsAt?: string;
+  endTime?: string;
   time: string;
+  startsAt?: string;
   description: string;
   xpBonus: number;
   isFeatured: boolean;
