@@ -1,5 +1,14 @@
 import { LinearGradient } from 'expo-linear-gradient';
-import { ArrowLeft, CalendarDays, Check, Gift, MapPin, RefreshCw, X } from 'lucide-react-native';
+import {
+  ArrowLeft,
+  CalendarDays,
+  Check,
+  Gift,
+  MapPin,
+  RefreshCw,
+  UserRound,
+  X,
+} from 'lucide-react-native';
 import { useState } from 'react';
 import {
   ActivityIndicator,
@@ -245,6 +254,10 @@ function PendingEventCard({
           icon={<CalendarDays size={15} color="#7C3AED" />}
           text={`${event.date}, ${formatPendingEventTimeRange(event)}`}
         />
+        <InfoLine
+          icon={<UserRound size={15} color="#7C3AED" />}
+          text={`Submitted by ${event.organizerName}`}
+        />
         <Text className="mt-3 text-[13px] leading-5 text-muted" numberOfLines={3}>
           {event.description}
         </Text>
@@ -296,6 +309,10 @@ function PendingRewardCard({
         {reward.description}
       </Text>
       <InfoLine icon={<MapPin size={15} color="#7C3AED" />} text={reward.placeAddress} />
+      <InfoLine
+        icon={<UserRound size={15} color="#7C3AED" />}
+        text={`Submitted by ${reward.organizerName}`}
+      />
       <ReviewActions
         busy={busy}
         onApprove={() => onReview('reward', reward.id, 'approved')}
