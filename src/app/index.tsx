@@ -72,6 +72,8 @@ type HomeScreenProps = {
   avatarUrl?: string | null;
   cityData?: CultureCityData;
   events?: CultureEvent[];
+  eventsError?: string | null;
+  eventsLoading?: boolean;
   eventStatuses?: Record<string, UserEventStatus>;
   organizerApplicationStatus?: OrganizerApplicationStatus;
   onOpenDiscover?: () => void;
@@ -84,6 +86,8 @@ export default function HomeScreen({
   avatarUrl,
   cityData = getCultureCityData(),
   events = [],
+  eventsError = null,
+  eventsLoading = false,
   eventStatuses = {},
   organizerApplicationStatus = 'none',
   onOpenDiscover,
@@ -309,7 +313,17 @@ export default function HomeScreen({
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={{ paddingHorizontal: 20, gap: 12 }}
           >
-            {happeningNow.length === 0 ? (
+            {eventsLoading ? (
+              <HomeEventStateCard
+                body={`Loading approved events for ${cityData.name}.`}
+                title="Loading events"
+              />
+            ) : eventsError ? (
+              <HomeEventStateCard
+                body="Check your Supabase connection or apply the latest migrations, then refresh the app."
+                title="Events could not load"
+              />
+            ) : happeningNow.length === 0 ? (
               <View className="w-[260px] rounded-2xl border border-gray-200 bg-white p-4">
                 <Text className="font-ui text-[15px] font-extrabold text-ink">
                   No approved events yet
@@ -443,13 +457,26 @@ export default function HomeScreen({
               </View>
               <View className="absolute bottom-3 right-3 rounded-full bg-white/90 px-3 py-1">
                 <Text className="text-[10px] font-bold text-muted">
-                  {activitySpots.length > 0 ? 'Live map' : 'No live events'}
+                  {eventsLoading
+                    ? 'Loading events'
+                    : activitySpots.length > 0
+                      ? 'Live map'
+                      : 'No live events'}
                 </Text>
               </View>
             </View>
 
             <View className="border-t border-gray-200 bg-white px-4 py-3">
-              {selectedActivitySpot ? (
+              {eventsError ? (
+                <View className="mb-3">
+                  <Text className="font-ui text-[15px] font-bold text-ink">
+                    Event activity unavailable
+                  </Text>
+                  <Text className="mt-0.5 text-[12px] leading-4 text-muted">
+                    Approved events could not load from Supabase.
+                  </Text>
+                </View>
+              ) : selectedActivitySpot ? (
                 <View className="mb-3 flex-row items-start justify-between gap-3">
                   <Pressable
                     onPress={() => onOpenEvent?.(selectedActivitySpot.nextEvent.id)}
@@ -475,7 +502,9 @@ export default function HomeScreen({
                     No approved event activity yet
                   </Text>
                   <Text className="mt-0.5 text-[12px] leading-4 text-muted">
-                    Once an organizer event is approved, it will appear on this map.
+                    {eventsLoading
+                      ? 'Loading approved organizer events for this city.'
+                      : 'Once an organizer event is approved, it will appear on this map.'}
                   </Text>
                 </View>
               )}
@@ -876,6 +905,15 @@ function MiniEngagementStat({ icon, value }: { icon: ReactNode; value: number })
     <View className="flex-row items-center gap-1 rounded-full bg-primary/5 px-2 py-1">
       {icon}
       <Text className="text-[10px] font-extrabold text-primary">{value.toLocaleString()}</Text>
+    </View>
+  );
+}
+
+function HomeEventStateCard({ body, title }: { body: string; title: string }) {
+  return (
+    <View className="w-[260px] rounded-2xl border border-gray-200 bg-white p-4">
+      <Text className="font-ui text-[15px] font-extrabold text-ink">{title}</Text>
+      <Text className="mt-1 text-[12px] leading-4 text-muted">{body}</Text>
     </View>
   );
 }

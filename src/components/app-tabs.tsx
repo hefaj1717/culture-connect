@@ -63,6 +63,8 @@ function AuthenticatedTabs() {
   const [organizerEventsVersion, setOrganizerEventsVersion] = useState(0);
   const [rewardsRefreshKey, setRewardsRefreshKey] = useState(0);
   const [approvedEvents, setApprovedEvents] = useState<CultureEvent[]>([]);
+  const [approvedEventsError, setApprovedEventsError] = useState<string | null>(null);
+  const [approvedEventsLoading, setApprovedEventsLoading] = useState(true);
   const [userXp, setUserXp] = useState(0);
   const [checkedInEventIds, setCheckedInEventIds] = useState<string[]>([]);
   const [eventStatuses, setEventStatuses] = useState<Record<string, UserEventStatus>>({});
@@ -92,10 +94,13 @@ function AuthenticatedTabs() {
     let active = true;
 
     async function loadApprovedEvents() {
+      setApprovedEventsLoading(true);
       const result = await fetchOrganizerEvents(cityData.id);
       if (!active) return;
 
       setApprovedEvents(result.events);
+      setApprovedEventsError(result.error);
+      setApprovedEventsLoading(false);
     }
 
     loadApprovedEvents();
@@ -251,6 +256,8 @@ function AuthenticatedTabs() {
               avatarUrl={avatarUrl}
               cityData={cityData}
               events={approvedEvents}
+              eventsError={approvedEventsError}
+              eventsLoading={approvedEventsLoading}
               eventStatuses={eventStatuses}
               organizerApplicationStatus={organizerApplicationStatus}
               onOpenDiscover={() => goToTab(1)}
@@ -263,6 +270,8 @@ function AuthenticatedTabs() {
               checkedInEventIds={checkedInEventIds}
               cityData={cityData}
               events={approvedEvents}
+              eventsError={approvedEventsError}
+              eventsLoading={approvedEventsLoading}
               eventsRefreshKey={organizerEventsVersion}
               eventStatuses={eventStatuses}
               onEventCheckIn={awardEventCheckInXp}
