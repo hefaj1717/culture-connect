@@ -115,8 +115,8 @@ export function EditProfileModal({
             </View>
 
             <Text className="mb-6 text-[12px] leading-4 text-muted">
-              Profile photos are stored on this device for now. Cloud avatar uploads will be added
-              when we set up production storage.
+              Profile details are saved to your account. Profile photos are kept as a device image
+              until cloud avatar storage is enabled.
             </Text>
 
             {profileError && (

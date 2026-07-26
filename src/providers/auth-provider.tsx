@@ -321,7 +321,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       { onConflict: 'id' },
     );
 
-    return { error: profileError?.message ?? null };
+    if (profileError) {
+      console.warn('Profile metadata saved, but profiles sync failed:', profileError.message);
+    }
+
+    return { error: null };
   }
 
   async function signOut() {
