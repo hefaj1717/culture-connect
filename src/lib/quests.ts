@@ -20,6 +20,26 @@ export type Quest = {
   stops: QuestStop[];
 };
 
+export type QuestImageKind = Quest['image'];
+
+export type CreateQuestStopInput = {
+  title: string;
+  description: string;
+  eta: string;
+};
+
+export type CreateQuestInput = {
+  cityId: CityId;
+  createdBy: string;
+  description: string;
+  image: QuestImageKind;
+  status: 'draft' | 'approved';
+  stops: CreateQuestStopInput[];
+  theme: string;
+  title: string;
+  totalXp: number;
+};
+
 type QuestRow = {
   id: string;
   title: string;
@@ -97,4 +117,56 @@ export async function fetchApprovedQuests(cityId: CityId) {
       stops: stopsByQuestId[quest.id] ?? [],
     })),
   };
+}
+
+export async function createQuest(input: CreateQuestInput) {
+  const normalizedStops = input.stops
+    .map((stop) => ({
+      description: stop.description.trim(),
+      eta: stop.eta.trim() || '5 min',
+      title: stop.title.trim(),
+    }))
+    .filter((stop) => stop.title && stop.description);
+
+  const { data: questRow, error: questError } = await supabase
+    .from('quests')
+    .insert({
+      city_key: input.cityId,
+      created_by: input.createdBy,
+      description: input.description,
+      image_kind: input.image,
+      status: input.status,
+      theme: input.theme,
+      title: input.title,
+      total_xp: input.totalXp,
+    })
+    .select('id')
+    .single();
+
+  if (questError) {
+    return { error: questError.message, questId: null };
+  }
+
+  const questId = (questRow as { id: string }).id;
+
+  if (normalizedStops.length === 0) {
+    return { error: null, questId };
+  }
+
+  const { error: stopsError } = await supabase.from('quest_stops').insert(
+    normalizedStops.map((stop, index) => ({
+      description: stop.description,
+      eta: stop.eta,
+      position: index + 1,
+      quest_id: questId,
+      title: stop.title,
+    })),
+  );
+
+  if (stopsError) {
+    await supabase.from('quests').delete().eq('id', questId);
+    return { error: stopsError.message, questId: null };
+  }
+
+  return { error: null, questId };
 }

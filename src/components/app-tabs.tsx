@@ -61,6 +61,7 @@ function AuthenticatedTabs() {
   const { organizerApplicationStatus, user } = useAuth();
   const [activeIndex, setActiveIndex] = useState(0);
   const [organizerEventsVersion, setOrganizerEventsVersion] = useState(0);
+  const [questsRefreshKey, setQuestsRefreshKey] = useState(0);
   const [rewardsRefreshKey, setRewardsRefreshKey] = useState(0);
   const [approvedEvents, setApprovedEvents] = useState<CultureEvent[]>([]);
   const [approvedEventsError, setApprovedEventsError] = useState<string | null>(null);
@@ -285,6 +286,7 @@ function AuthenticatedTabs() {
               cityData={cityData}
               completedQuestIds={completedQuestIds}
               onQuestCompleted={awardQuestCompletionXp}
+              questsRefreshKey={questsRefreshKey}
             />
           </View>
           <View style={{ width }}>
@@ -298,6 +300,9 @@ function AuthenticatedTabs() {
               }}
               onRewardCreated={() => {
                 setRewardsRefreshKey((version) => version + 1);
+              }}
+              onQuestCreated={() => {
+                setQuestsRefreshKey((version) => version + 1);
               }}
             />
           </View>
