@@ -7,6 +7,7 @@ export type PendingAdminEvent = {
   createdAt: string;
   date: string;
   description: string;
+  endTime?: string | null;
   id: string;
   imageUrl?: string | null;
   time: string;
@@ -33,6 +34,7 @@ type PendingEventRow = {
   created_at: string;
   date_label: string;
   description: string;
+  end_time_label?: string | null;
   id: string;
   image_url: string | null;
   time_label: string;
@@ -58,7 +60,7 @@ export async function fetchPendingAdminContent() {
     supabase
       .from('organizer_events')
       .select(
-        'id, city_key, venue_name, venue_address, title, description, category, date_label, time_label, image_url, created_at',
+        'id, city_key, venue_name, venue_address, title, description, category, date_label, time_label, end_time_label, image_url, created_at',
       )
       .eq('status', 'pending')
       .order('created_at', { ascending: true }),
@@ -144,6 +146,7 @@ function mapPendingEvent(row: PendingEventRow): PendingAdminEvent {
     createdAt: row.created_at,
     date: row.date_label,
     description: row.description,
+    endTime: row.end_time_label,
     id: row.id,
     imageUrl: row.image_url,
     time: row.time_label,

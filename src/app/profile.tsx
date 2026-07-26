@@ -158,7 +158,9 @@ export default function ProfileScreen({
     datePickerOpen,
     eventCategory,
     eventDate,
+    eventDateValue,
     eventDescription,
+    eventEndTime,
     eventImageUri,
     eventIsFree,
     eventTime,
@@ -170,6 +172,8 @@ export default function ProfileScreen({
     searchingPlaces,
     selectedHour,
     selectedMinute,
+    selectedEndHour,
+    selectedEndMinute,
     selectedPlace,
     selectPlace,
     setCalendarMonth,
@@ -177,7 +181,9 @@ export default function ProfileScreen({
     setDatePickerOpen,
     setEventCategory,
     setEventDate,
+    setEventDateValue,
     setEventDescription,
+    setEventEndTime,
     setEventImageUri,
     setEventIsFree,
     setEventTime,
@@ -185,10 +191,14 @@ export default function ProfileScreen({
     setPlaceQuery,
     setSelectedHour,
     setSelectedMinute,
+    setSelectedEndHour,
+    setSelectedEndMinute,
     setSelectedPlace,
     setTimePickerOpen,
+    setTimePickerTarget,
     submitEvent,
     timePickerOpen,
+    timePickerTarget,
   } = createEventForm;
   const {
     createRewardError,
@@ -595,7 +605,9 @@ export default function ProfileScreen({
         datePickerOpen={datePickerOpen}
         eventCategory={eventCategory}
         eventDate={eventDate}
+        eventDateValue={eventDateValue}
         eventDescription={eventDescription}
+        eventEndTime={eventEndTime}
         eventImageUri={eventImageUri}
         eventIsFree={eventIsFree}
         eventTime={eventTime}
@@ -604,20 +616,27 @@ export default function ProfileScreen({
         onChangeCalendarMonth={setCalendarMonth}
         onChangeEventCategory={setEventCategory}
         onChangeEventDescription={setEventDescription}
+        onChangeEventEndTime={setEventEndTime}
         onChangeEventIsFree={setEventIsFree}
         onChangeEventTime={setEventTime}
         onChangeEventTitle={setEventTitle}
         onChangePlaceQuery={setPlaceQuery}
         onChangeSelectedHour={setSelectedHour}
         onChangeSelectedMinute={setSelectedMinute}
+        onChangeSelectedEndHour={setSelectedEndHour}
+        onChangeSelectedEndMinute={setSelectedEndMinute}
         onClose={closeCreateEventWithAnimation}
         onCloseDatePicker={() => setDatePickerOpen(false)}
         onCloseTimePicker={() => setTimePickerOpen(false)}
         onOpenDatePicker={() => setDatePickerOpen(true)}
-        onOpenTimePicker={() => setTimePickerOpen(true)}
+        onOpenTimePicker={(target) => {
+          setTimePickerTarget(target);
+          setTimePickerOpen(true);
+        }}
         onPickEventImage={pickEventImage}
         onRemoveEventImage={() => setEventImageUri(null)}
         onSelectDate={setEventDate}
+        onSelectDateValue={setEventDateValue}
         onSelectPlace={selectPlace}
         onSubmit={submitEvent}
         placeQuery={placeQuery}
@@ -625,11 +644,14 @@ export default function ProfileScreen({
         searchingPlaces={searchingPlaces}
         selectedHour={selectedHour}
         selectedMinute={selectedMinute}
+        selectedEndHour={selectedEndHour}
+        selectedEndMinute={selectedEndMinute}
         selectedPlace={selectedPlace}
         setSelectedPlace={setSelectedPlace}
         stableModalTopInset={stableModalTopInset}
         swipeStyle={createEventSwipeStyle}
         timePickerOpen={timePickerOpen}
+        timePickerTarget={timePickerTarget}
         visible={createEventOpen}
       />
 

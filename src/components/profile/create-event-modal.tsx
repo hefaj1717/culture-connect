@@ -55,7 +55,9 @@ type CreateEventModalProps = {
   datePickerOpen: boolean;
   eventCategory: EventCategory;
   eventDate: string;
+  eventDateValue: Date | null;
   eventDescription: string;
+  eventEndTime: string;
   eventImageUri: string | null;
   eventIsFree: boolean;
   eventTime: string;
@@ -64,25 +66,31 @@ type CreateEventModalProps = {
   onChangeCalendarMonth: (date: Date) => void;
   onChangeEventCategory: (category: EventCategory) => void;
   onChangeEventDescription: (value: string) => void;
+  onChangeEventEndTime: (value: string) => void;
   onChangeEventIsFree: (value: boolean) => void;
   onChangeEventTime: (value: string) => void;
   onChangeEventTitle: (value: string) => void;
   onChangePlaceQuery: (value: string) => void;
+  onChangeSelectedEndHour: (value: number) => void;
+  onChangeSelectedEndMinute: (value: number) => void;
   onChangeSelectedHour: (value: number) => void;
   onChangeSelectedMinute: (value: number) => void;
   onClose: () => void;
   onCloseDatePicker: () => void;
   onCloseTimePicker: () => void;
   onOpenDatePicker: () => void;
-  onOpenTimePicker: () => void;
+  onOpenTimePicker: (target: 'end' | 'start') => void;
   onPickEventImage: () => void;
   onRemoveEventImage: () => void;
   onSelectDate: (value: string) => void;
+  onSelectDateValue: (value: Date) => void;
   onSelectPlace: (place: PlaceSuggestion) => void;
   onSubmit: () => void;
   placeQuery: string;
   placeSuggestions: PlaceSuggestion[];
   searchingPlaces: boolean;
+  selectedEndHour: number;
+  selectedEndMinute: number;
   selectedHour: number;
   selectedMinute: number;
   selectedPlace: PlaceSuggestion | null;
@@ -90,6 +98,7 @@ type CreateEventModalProps = {
   stableModalTopInset: number;
   swipeStyle: StyleProp<ViewStyle>;
   timePickerOpen: boolean;
+  timePickerTarget: 'end' | 'start';
   visible: boolean;
 };
 
@@ -110,7 +119,9 @@ export function CreateEventModal({
   datePickerOpen,
   eventCategory,
   eventDate,
+  eventDateValue,
   eventDescription,
+  eventEndTime,
   eventImageUri,
   eventIsFree,
   eventTime,
@@ -119,10 +130,13 @@ export function CreateEventModal({
   onChangeCalendarMonth,
   onChangeEventCategory,
   onChangeEventDescription,
+  onChangeEventEndTime,
   onChangeEventIsFree,
   onChangeEventTime,
   onChangeEventTitle,
   onChangePlaceQuery,
+  onChangeSelectedEndHour,
+  onChangeSelectedEndMinute,
   onChangeSelectedHour,
   onChangeSelectedMinute,
   onClose,
@@ -133,11 +147,14 @@ export function CreateEventModal({
   onPickEventImage,
   onRemoveEventImage,
   onSelectDate,
+  onSelectDateValue,
   onSelectPlace,
   onSubmit,
   placeQuery,
   placeSuggestions,
   searchingPlaces,
+  selectedEndHour,
+  selectedEndMinute,
   selectedHour,
   selectedMinute,
   selectedPlace,
@@ -145,6 +162,7 @@ export function CreateEventModal({
   stableModalTopInset,
   swipeStyle,
   timePickerOpen,
+  timePickerTarget,
   visible,
 }: CreateEventModalProps) {
   const cityData = getCultureCityData(cityId);
@@ -161,9 +179,9 @@ export function CreateEventModal({
     onOpenDatePicker();
   }
 
-  function openTimePicker() {
+  function openTimePicker(target: 'end' | 'start') {
     Keyboard.dismiss();
-    onOpenTimePicker();
+    onOpenTimePicker(target);
   }
 
   return (
@@ -346,7 +364,7 @@ export function CreateEventModal({
                   ))}
                 </View>
 
-                <View className="mb-4 flex-row gap-3">
+                <View className="mb-4">
                   <View className="flex-1">
                     <Text className="mb-2 text-[13px] font-semibold text-ink">Date</Text>
                     <Pressable
@@ -358,18 +376,39 @@ export function CreateEventModal({
                       </Text>
                     </Pressable>
                   </View>
-                  <View className="flex-1">
-                    <Text className="mb-2 text-[13px] font-semibold text-ink">Time</Text>
-                    <Pressable
-                      onPress={openTimePicker}
-                      className="h-12 justify-center rounded-xl border border-gray-300 px-4 active:opacity-80"
-                    >
-                      <Text className={`text-[15px] ${eventTime ? 'text-ink' : 'text-muted'}`}>
-                        {eventTime || 'Choose time'}
-                      </Text>
-                    </Pressable>
+                  <View className="mt-3 flex-row gap-3">
+                    <View className="flex-1">
+                      <Text className="mb-2 text-[13px] font-semibold text-ink">Starts</Text>
+                      <Pressable
+                        onPress={() => openTimePicker('start')}
+                        className="h-12 justify-center rounded-xl border border-gray-300 px-4 active:opacity-80"
+                      >
+                        <Text className={`text-[15px] ${eventTime ? 'text-ink' : 'text-muted'}`}>
+                          {eventTime || 'Start time'}
+                        </Text>
+                      </Pressable>
+                    </View>
+                    <View className="flex-1">
+                      <Text className="mb-2 text-[13px] font-semibold text-ink">Ends</Text>
+                      <Pressable
+                        onPress={() => openTimePicker('end')}
+                        className="h-12 justify-center rounded-xl border border-gray-300 px-4 active:opacity-80"
+                      >
+                        <Text className={`text-[15px] ${eventEndTime ? 'text-ink' : 'text-muted'}`}>
+                          {eventEndTime || 'End time'}
+                        </Text>
+                      </Pressable>
+                    </View>
                   </View>
                 </View>
+
+                {eventDateValue && eventTime && eventEndTime && (
+                  <View className="mb-4 rounded-2xl bg-canvas px-3 py-2.5">
+                    <Text className="text-[12px] font-semibold leading-4 text-muted">
+                      QR check-in works only on {eventDate}, from {eventTime} to {eventEndTime}.
+                    </Text>
+                  </View>
+                )}
 
                 <Text className="mb-2 text-[13px] font-semibold text-ink">Price</Text>
                 <View className="mb-3 flex-row gap-2">
@@ -428,21 +467,31 @@ export function CreateEventModal({
             onClose={onCloseDatePicker}
             onSelectDate={(date) => {
               onSelectDate(formatEventDate(date));
+              onSelectDateValue(date);
               onCloseDatePicker();
             }}
             visible={datePickerOpen}
           />
 
           <TimePickerModal
-            hour={selectedHour}
-            minute={selectedMinute}
-            onChangeHour={onChangeSelectedHour}
-            onChangeMinute={onChangeSelectedMinute}
+            hour={timePickerTarget === 'start' ? selectedHour : selectedEndHour}
+            minute={timePickerTarget === 'start' ? selectedMinute : selectedEndMinute}
+            onChangeHour={
+              timePickerTarget === 'start' ? onChangeSelectedHour : onChangeSelectedEndHour
+            }
+            onChangeMinute={
+              timePickerTarget === 'start' ? onChangeSelectedMinute : onChangeSelectedEndMinute
+            }
             onClose={onCloseTimePicker}
             onConfirm={() => {
-              onChangeEventTime(
-                `${formatTimeUnit(selectedHour)}:${formatTimeUnit(selectedMinute)}`,
-              );
+              const hour = timePickerTarget === 'start' ? selectedHour : selectedEndHour;
+              const minute = timePickerTarget === 'start' ? selectedMinute : selectedEndMinute;
+              const nextTime = `${formatTimeUnit(hour)}:${formatTimeUnit(minute)}`;
+              if (timePickerTarget === 'start') {
+                onChangeEventTime(nextTime);
+              } else {
+                onChangeEventEndTime(nextTime);
+              }
               onCloseTimePicker();
             }}
             visible={timePickerOpen}

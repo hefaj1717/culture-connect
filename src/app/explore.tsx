@@ -308,7 +308,7 @@ export default function ExploreScreen({
                       <View className="flex-row items-center gap-1">
                         <Clock size={13} color="#756F7B" />
                         <Text className="text-[12px] text-muted">
-                          {featuredEvent.date}, {featuredEvent.time}
+                          {featuredEvent.date}, {formatEventTimeRange(featuredEvent)}
                         </Text>
                       </View>
                       <View className="flex-row items-center gap-1">
@@ -391,7 +391,9 @@ export default function ExploreScreen({
                         <View className="flex-row flex-wrap items-center gap-2.5">
                           <View className="flex-row items-center gap-1">
                             <Clock size={12} color="#756F7B" />
-                            <Text className="text-[12px] text-muted">{event.time}</Text>
+                            <Text className="text-[12px] text-muted">
+                              {formatEventTimeRange(event)}
+                            </Text>
                           </View>
                           <EventEngagementPills
                             attended={getEventEngagement(event, eventStatuses[event.id]).attended}
@@ -562,10 +564,28 @@ function EventDetailModal({
 
   if (!event) return null;
 
-  const verifiedVenue = venue ?? getEventLocationVenue(event);
-  const detailEngagement = getEventEngagement(event, checkedIn ? 'attended' : status);
+  const activeEvent = event;
+  const verifiedVenue = venue ?? getEventLocationVenue(activeEvent);
+  const detailEngagement = getEventEngagement(activeEvent, checkedIn ? 'attended' : status);
+  const checkInWindowState = getCheckInWindowState(activeEvent);
 
   async function verifyVenueDistance() {
+    const currentWindowState = getCheckInWindowState(activeEvent);
+    if (currentWindowState === 'not-started') {
+      return {
+        allowed: false,
+        location: null,
+        message: 'Check-in is not open yet. Try again when the event starts.',
+      };
+    }
+    if (currentWindowState === 'ended') {
+      return {
+        allowed: false,
+        location: null,
+        message: 'Check-in for this event has already closed.',
+      };
+    }
+
     if (!verifiedVenue) {
       return {
         allowed: false,
@@ -745,7 +765,7 @@ function EventDetailModal({
                   <InfoRow icon={<MapPin size={17} color="#7C3AED" />} label={event.venueName} />
                   <InfoRow
                     icon={<Clock size={17} color="#7C3AED" />}
-                    label={`${event.date}, ${event.time}`}
+                    label={`${event.date}, ${formatEventTimeRange(event)}`}
                   />
                   <InfoRow
                     icon={<Users size={17} color="#7C3AED" />}
@@ -795,12 +815,18 @@ function EventDetailModal({
                     )}
                     <Pressable
                       onPress={openScanner}
-                      disabled={checkingLocation}
+                      disabled={checkingLocation || checkInWindowState !== 'open'}
                       className="h-[52px] flex-row items-center justify-center gap-2 rounded-xl bg-primary active:opacity-85 disabled:opacity-60"
                     >
                       <QrCode size={19} color="white" strokeWidth={2.4} />
                       <Text className="text-[15px] font-semibold text-white">
-                        {checkingLocation ? 'Checking location...' : 'Scan event QR'}
+                        {checkingLocation
+                          ? 'Checking location...'
+                          : checkInWindowState === 'not-started'
+                            ? 'Check-in opens at start time'
+                            : checkInWindowState === 'ended'
+                              ? 'Check-in closed'
+                              : 'Scan event QR'}
                       </Text>
                     </Pressable>
                   </>
@@ -940,7 +966,7 @@ function getEventLocationVenue(event: CultureEvent): Venue | null {
     category: 'cultural-centre',
     address: event.venueAddress ?? event.venueName,
     description: event.description,
-    hours: event.time,
+    hours: formatEventTimeRange(event),
     rating: 0,
     checkIns: 0,
     xpReward: event.xpBonus,
@@ -960,6 +986,26 @@ function getOrganizerImageSource(image: CultureEvent['organizerImage']) {
   }
 
   return require('@/assets/images/culture/venue-museum.jpg');
+}
+
+function formatEventTimeRange(event: CultureEvent) {
+  return event.endTime ? `${event.time}-${event.endTime}` : event.time;
+}
+
+function getCheckInWindowState(event: CultureEvent) {
+  const now = Date.now();
+  const startsAt = event.startsAt ? Date.parse(event.startsAt) : null;
+  const endsAt = event.endsAt ? Date.parse(event.endsAt) : null;
+
+  if (startsAt && !Number.isNaN(startsAt) && now < startsAt) {
+    return 'not-started';
+  }
+
+  if (endsAt && !Number.isNaN(endsAt) && now > endsAt) {
+    return 'ended';
+  }
+
+  return 'open';
 }
 
 function getDistanceMeters(

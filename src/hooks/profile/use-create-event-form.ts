@@ -26,6 +26,8 @@ export function useCreateEventForm({
   const [searchingPlaces, setSearchingPlaces] = useState(false);
   const [eventCategory, setEventCategory] = useState<EventCategory>('workshop');
   const [eventDate, setEventDate] = useState('');
+  const [eventDateValue, setEventDateValue] = useState<Date | null>(null);
+  const [eventEndTime, setEventEndTime] = useState('');
   const [eventTime, setEventTime] = useState('');
   const [eventDescription, setEventDescription] = useState('');
   const [eventImageUri, setEventImageUri] = useState<string | null>(null);
@@ -34,9 +36,12 @@ export function useCreateEventForm({
   const [creatingEvent, setCreatingEvent] = useState(false);
   const [datePickerOpen, setDatePickerOpen] = useState(false);
   const [timePickerOpen, setTimePickerOpen] = useState(false);
+  const [timePickerTarget, setTimePickerTarget] = useState<'end' | 'start'>('start');
   const [calendarMonth, setCalendarMonth] = useState(() => startOfMonth(new Date()));
   const [selectedHour, setSelectedHour] = useState(19);
   const [selectedMinute, setSelectedMinute] = useState(0);
+  const [selectedEndHour, setSelectedEndHour] = useState(21);
+  const [selectedEndMinute, setSelectedEndMinute] = useState(0);
 
   useEffect(() => {
     let active = true;
@@ -76,6 +81,8 @@ export function useCreateEventForm({
     setSelectedPlace(null);
     setEventCategory('workshop');
     setEventDate('');
+    setEventDateValue(null);
+    setEventEndTime('');
     setEventTime('');
     setEventDescription('');
     setEventImageUri(null);
@@ -84,6 +91,9 @@ export function useCreateEventForm({
     setCalendarMonth(startOfMonth(new Date()));
     setSelectedHour(19);
     setSelectedMinute(0);
+    setSelectedEndHour(21);
+    setSelectedEndMinute(0);
+    setTimePickerTarget('start');
   }
 
   function openCreateEvent() {
@@ -100,8 +110,11 @@ export function useCreateEventForm({
   async function submitEvent() {
     const normalizedTitle = eventTitle.trim();
     const normalizedDate = eventDate.trim();
+    const normalizedEndTime = eventEndTime.trim();
     const normalizedTime = eventTime.trim();
     const normalizedDescription = eventDescription.trim();
+    const startsAt = eventDateValue ? buildLocalEventDate(eventDateValue, normalizedTime) : null;
+    const endsAt = eventDateValue ? buildLocalEventDate(eventDateValue, normalizedEndTime) : null;
 
     if (!userId) {
       setCreateEventError('Log in again before publishing an event.');
@@ -111,8 +124,20 @@ export function useCreateEventForm({
       setCreateEventError('Select a suggested place so attendance can be location-verified.');
       return;
     }
-    if (!normalizedTitle || !normalizedDate || !normalizedTime || !normalizedDescription) {
-      setCreateEventError('Fill in title, date, time, and description.');
+    if (
+      !normalizedTitle ||
+      !normalizedDate ||
+      !normalizedTime ||
+      !normalizedEndTime ||
+      !normalizedDescription ||
+      !startsAt ||
+      !endsAt
+    ) {
+      setCreateEventError('Fill in title, date, start time, end time, and description.');
+      return;
+    }
+    if (endsAt <= startsAt) {
+      setCreateEventError('End time must be later than the start time.');
       return;
     }
 
@@ -125,7 +150,10 @@ export function useCreateEventForm({
       description: normalizedDescription,
       category: eventCategory,
       date: normalizedDate,
+      endTime: normalizedEndTime,
+      endsAt: endsAt.toISOString(),
       time: normalizedTime,
+      startsAt: startsAt.toISOString(),
       language: getDefaultEventLanguage(savedCityId),
       isFree: eventIsFree,
       imageUri: eventImageUri,
@@ -170,8 +198,10 @@ export function useCreateEventForm({
     createEventOpen,
     creatingEvent,
     datePickerOpen,
+    eventEndTime,
     eventCategory,
     eventDate,
+    eventDateValue,
     eventDescription,
     eventImageUri,
     eventIsFree,
@@ -185,6 +215,8 @@ export function useCreateEventForm({
     searchingPlaces,
     selectedHour,
     selectedMinute,
+    selectedEndHour,
+    selectedEndMinute,
     selectedPlace,
     selectPlace,
     setCalendarMonth,
@@ -192,7 +224,9 @@ export function useCreateEventForm({
     setDatePickerOpen,
     setEventCategory,
     setEventDate,
+    setEventDateValue,
     setEventDescription,
+    setEventEndTime,
     setEventImageUri,
     setEventIsFree,
     setEventTime,
@@ -200,13 +234,26 @@ export function useCreateEventForm({
     setPlaceQuery,
     setSelectedHour,
     setSelectedMinute,
+    setSelectedEndHour,
+    setSelectedEndMinute,
     setSelectedPlace,
     setTimePickerOpen,
+    setTimePickerTarget,
     submitEvent,
     timePickerOpen,
+    timePickerTarget,
   };
 }
 
 function getDefaultEventLanguage(cityId: CityId): EventLanguage {
   return cityId === 'lublin' ? 'pl' : 'en';
+}
+
+function buildLocalEventDate(date: Date, time: string) {
+  const match = time.match(/^(\d{2}):(\d{2})$/);
+  if (!match) return null;
+
+  const nextDate = new Date(date);
+  nextDate.setHours(Number(match[1]), Number(match[2]), 0, 0);
+  return nextDate;
 }

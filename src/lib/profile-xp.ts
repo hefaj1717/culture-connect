@@ -104,6 +104,9 @@ export async function confirmOrganizerEventAttendance({
 function getAttendanceErrorMessage(error?: string, distance?: number) {
   if (error === 'not_authenticated') return 'Log in again to confirm attendance.';
   if (error === 'event_unavailable') return 'This event is not available for check-in.';
+  if (error === 'event_not_started')
+    return 'Check-in is not open yet. Try again when the event starts.';
+  if (error === 'event_finished') return 'Check-in for this event has already closed.';
   if (error === 'wrong_code') return 'This QR code does not match this event.';
   if (error === 'missing_location') return 'This event is missing venue location data.';
   if (error === 'too_far') {

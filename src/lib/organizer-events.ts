@@ -16,7 +16,10 @@ export type CreateOrganizerEventInput = {
   description: string;
   category: EventCategory;
   date: string;
+  endsAt: string;
+  endTime: string;
   time: string;
+  startsAt: string;
   language: EventLanguage;
   isFree: boolean;
   imageUri?: string | null;
@@ -34,7 +37,10 @@ type OrganizerEventRow = {
   description: string;
   category: EventCategory;
   date_label: string;
+  end_time_label?: string | null;
+  ends_at?: string | null;
   time_label: string;
+  starts_at?: string | null;
   xp_bonus: number;
   language: EventLanguage;
   is_free: boolean;
@@ -49,7 +55,7 @@ type OrganizerEventRow = {
 
 const EVENT_IMAGES_BUCKET = 'event-images';
 const ORGANIZER_EVENT_SELECT =
-  'id, city_key, venue_key, venue_name, venue_address, venue_latitude, venue_longitude, title, description, category, date_label, time_label, xp_bonus, language, is_free, is_international, interested_count, attendee_count, image_kind, image_url, check_in_code';
+  'id, city_key, venue_key, venue_name, venue_address, venue_latitude, venue_longitude, title, description, category, date_label, time_label, end_time_label, starts_at, ends_at, xp_bonus, language, is_free, is_international, interested_count, attendee_count, image_kind, image_url, check_in_code';
 const LEGACY_ORGANIZER_EVENT_SELECT =
   'id, city_key, venue_key, venue_name, venue_address, venue_latitude, venue_longitude, title, description, category, date_label, time_label, xp_bonus, language, is_free, is_international, attendee_count, image_kind, image_url, check_in_code';
 const ORGANIZER_EVENT_WITH_STATUS_SELECT = `${ORGANIZER_EVENT_SELECT}, status`;
@@ -71,7 +77,7 @@ export async function fetchOrganizerEvents(cityId: CityId) {
 
   let { data, error } = await queryApprovedEvents(ORGANIZER_EVENT_SELECT);
 
-  if (isMissingInterestedCountError(error?.message)) {
+  if (isLegacyOrganizerEventsShapeError(error?.message)) {
     const legacyResult = await queryApprovedEvents(LEGACY_ORGANIZER_EVENT_SELECT);
     data = legacyResult.data;
     error = legacyResult.error;
@@ -104,7 +110,7 @@ export async function fetchMyOrganizerEvents(userId: string, cityId?: CityId) {
 
   let { data, error } = await queryMyEvents(ORGANIZER_EVENT_WITH_STATUS_SELECT);
 
-  if (isMissingInterestedCountError(error?.message)) {
+  if (isLegacyOrganizerEventsShapeError(error?.message)) {
     const legacyResult = await queryMyEvents(LEGACY_ORGANIZER_EVENT_WITH_STATUS_SELECT);
     data = legacyResult.data;
     error = legacyResult.error;
@@ -144,7 +150,10 @@ export async function createOrganizerEvent(userId: string, input: CreateOrganize
     description: input.description,
     category: input.category,
     date_label: input.date,
+    end_time_label: input.endTime,
+    ends_at: input.endsAt,
     time_label: input.time,
+    starts_at: input.startsAt,
     xp_bonus: defaultEventXp,
     language: input.language,
     is_free: input.isFree,
@@ -165,7 +174,10 @@ function mapOrganizerEventRow(row: OrganizerEventRow): CultureEvent {
     venueName: row.venue_name,
     category: row.category,
     date: row.date_label,
+    endsAt: row.ends_at ?? undefined,
+    endTime: row.end_time_label ?? undefined,
     time: row.time_label,
+    startsAt: row.starts_at ?? undefined,
     description: row.description,
     xpBonus: defaultEventXp,
     isFeatured: false,
@@ -190,8 +202,14 @@ function mapOrganizerEventRow(row: OrganizerEventRow): CultureEvent {
   };
 }
 
-function isMissingInterestedCountError(message?: string | null) {
-  return !!message && message.includes('interested_count');
+function isLegacyOrganizerEventsShapeError(message?: string | null) {
+  return (
+    !!message &&
+    (message.includes('interested_count') ||
+      message.includes('end_time_label') ||
+      message.includes('starts_at') ||
+      message.includes('ends_at'))
+  );
 }
 
 async function uploadOrganizerEventImage(userId: string, imageUri: string) {
