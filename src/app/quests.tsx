@@ -147,7 +147,7 @@ function QuestCard({ onPress, quest }: { onPress: () => void; quest: Quest }) {
     >
       <View className="h-[142px] bg-gray-200">
         <BrandImage
-          source={getQuestImageSource(quest.image)}
+          source={getQuestImageSource(quest.image, quest.imageUrl)}
           contentFit="cover"
           style={StyleSheet.absoluteFillObject}
           withTextGradient
@@ -254,7 +254,7 @@ function QuestDetailModal({
           >
             <View className="relative h-[270px] bg-gray-200">
               <BrandImage
-                source={getQuestImageSource(quest.image)}
+                source={getQuestImageSource(quest.image, quest.imageUrl)}
                 contentFit="cover"
                 style={StyleSheet.absoluteFillObject}
                 withTextGradient
@@ -386,7 +386,11 @@ function applyCompletedQuestState(quests: Quest[], completedQuestIds: string[]) 
   });
 }
 
-function getQuestImageSource(image: Quest['image']) {
+function getQuestImageSource(image: Quest['image'], imageUrl?: string) {
+  if (imageUrl) {
+    return { uri: imageUrl };
+  }
+
   if (image === 'cafe') {
     return require('@/assets/images/culture/venue-cafe.jpg');
   }

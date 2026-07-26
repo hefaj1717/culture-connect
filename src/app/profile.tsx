@@ -190,9 +190,10 @@ export default function ProfileScreen({
     createQuestOpen,
     creatingQuest,
     openCreateQuest,
+    pickQuestImage,
     questCityId,
     questDescription,
-    questImage,
+    questImageUri,
     questStatus,
     questStops,
     questTheme,
@@ -202,7 +203,7 @@ export default function ProfileScreen({
     setCreateQuestOpen,
     setQuestCityId,
     setQuestDescription,
-    setQuestImage,
+    setQuestImageUri,
     setQuestStatus,
     setQuestTheme,
     setQuestTitle,
@@ -576,18 +577,19 @@ export default function ProfileScreen({
         onAddStop={addQuestStop}
         onChangeCity={setQuestCityId}
         onChangeDescription={setQuestDescription}
-        onChangeImage={setQuestImage}
         onChangeStatus={setQuestStatus}
         onChangeStop={updateQuestStop}
         onChangeTheme={setQuestTheme}
         onChangeTitle={setQuestTitle}
         onChangeXp={setQuestXp}
         onClose={() => setCreateQuestOpen(false)}
+        onPickQuestImage={pickQuestImage}
+        onRemoveQuestImage={() => setQuestImageUri(null)}
         onRemoveStop={removeQuestStop}
         onSubmit={submitQuest}
         questCityId={questCityId}
         questDescription={questDescription}
-        questImage={questImage}
+        questImageUri={questImageUri}
         questStatus={questStatus}
         questStops={questStops}
         questTheme={questTheme}

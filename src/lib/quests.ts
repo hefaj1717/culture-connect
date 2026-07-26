@@ -17,6 +17,7 @@ export type Quest = {
   totalXp: number;
   completedStops: number;
   image: 'museum' | 'cafe' | 'theater';
+  imageUrl?: string;
   stops: QuestStop[];
 };
 
@@ -33,6 +34,7 @@ export type CreateQuestInput = {
   createdBy: string;
   description: string;
   image: QuestImageKind;
+  imageUri?: string | null;
   status: 'draft' | 'approved';
   stops: CreateQuestStopInput[];
   theme: string;
@@ -47,6 +49,7 @@ type QuestRow = {
   description: string;
   total_xp: number;
   image_kind: Quest['image'];
+  image_url?: string | null;
 };
 
 type QuestStopRow = {
@@ -58,19 +61,32 @@ type QuestStopRow = {
   position: number;
 };
 
+const QUEST_IMAGES_BUCKET = 'quest-images';
+const QUEST_SELECT = 'id, title, theme, description, total_xp, image_kind, image_url';
+const LEGACY_QUEST_SELECT = 'id, title, theme, description, total_xp, image_kind';
+
 export async function fetchApprovedQuests(cityId: CityId) {
-  const { data: questRows, error: questsError } = await supabase
-    .from('quests')
-    .select('id, title, theme, description, total_xp, image_kind')
-    .eq('city_key', cityId)
-    .eq('status', 'approved')
-    .order('created_at', { ascending: false });
+  const queryApprovedQuests = (selectColumns: string) =>
+    supabase
+      .from('quests')
+      .select(selectColumns)
+      .eq('city_key', cityId)
+      .eq('status', 'approved')
+      .order('created_at', { ascending: false });
+
+  let { data: questRows, error: questsError } = await queryApprovedQuests(QUEST_SELECT);
+
+  if (isMissingImageUrlError(questsError?.message)) {
+    const legacyResult = await queryApprovedQuests(LEGACY_QUEST_SELECT);
+    questRows = legacyResult.data;
+    questsError = legacyResult.error;
+  }
 
   if (questsError) {
     return { error: questsError.message, quests: [] as Quest[] };
   }
 
-  const quests = (questRows ?? []) as QuestRow[];
+  const quests = (questRows ?? []) as unknown as QuestRow[];
   if (quests.length === 0) {
     return { error: null, quests: [] as Quest[] };
   }
@@ -114,12 +130,21 @@ export async function fetchApprovedQuests(cityId: CityId) {
       totalXp: quest.total_xp,
       completedStops: 0,
       image: quest.image_kind,
+      imageUrl: quest.image_url ?? undefined,
       stops: stopsByQuestId[quest.id] ?? [],
     })),
   };
 }
 
 export async function createQuest(input: CreateQuestInput) {
+  const uploadedImage = input.imageUri
+    ? await uploadQuestImage(input.createdBy, input.imageUri)
+    : null;
+
+  if (uploadedImage?.error) {
+    return { error: uploadedImage.error, questId: null };
+  }
+
   const normalizedStops = input.stops
     .map((stop) => ({
       description: stop.description.trim(),
@@ -135,6 +160,7 @@ export async function createQuest(input: CreateQuestInput) {
       created_by: input.createdBy,
       description: input.description,
       image_kind: input.image,
+      image_url: uploadedImage?.url ?? null,
       status: input.status,
       theme: input.theme,
       title: input.title,
@@ -169,4 +195,44 @@ export async function createQuest(input: CreateQuestInput) {
   }
 
   return { error: null, questId };
+}
+
+async function uploadQuestImage(userId: string, imageUri: string) {
+  try {
+    const response = await fetch(imageUri);
+    const arrayBuffer = await response.arrayBuffer();
+    const extension = getImageExtension(imageUri);
+    const contentType = getImageContentType(extension);
+    const path = `${userId}/${Date.now()}.${extension}`;
+
+    const { error } = await supabase.storage.from(QUEST_IMAGES_BUCKET).upload(path, arrayBuffer, {
+      contentType,
+      upsert: false,
+    });
+
+    if (error) {
+      return { url: null, error: error.message };
+    }
+
+    const { data } = supabase.storage.from(QUEST_IMAGES_BUCKET).getPublicUrl(path);
+    return { url: data.publicUrl, error: null };
+  } catch {
+    return { url: null, error: 'Could not upload the quest photo.' };
+  }
+}
+
+function getImageExtension(uri: string) {
+  const match = uri.toLowerCase().match(/\.(jpg|jpeg|png|webp)(?:\?|$)/);
+  if (!match) return 'jpg';
+  return match[1] === 'jpeg' ? 'jpg' : match[1];
+}
+
+function getImageContentType(extension: string) {
+  if (extension === 'png') return 'image/png';
+  if (extension === 'webp') return 'image/webp';
+  return 'image/jpeg';
+}
+
+function isMissingImageUrlError(message?: string | null) {
+  return !!message && message.includes('image_url');
 }
