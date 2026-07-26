@@ -1,5 +1,6 @@
 import { LinearGradient } from 'expo-linear-gradient';
-import { ArrowLeft, Minus, Plus, Route } from 'lucide-react-native';
+import { Image } from 'expo-image';
+import { ArrowLeft, Camera, Minus, Plus, Route, X } from 'lucide-react-native';
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -14,7 +15,6 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { cultureCities, type CityId } from '@/data/culture';
-import { type QuestImageKind } from '@/lib/quests';
 
 type QuestDraftStop = {
   description: string;
@@ -28,18 +28,19 @@ type CreateQuestModalProps = {
   onAddStop: () => void;
   onChangeCity: (value: CityId) => void;
   onChangeDescription: (value: string) => void;
-  onChangeImage: (value: QuestImageKind) => void;
   onChangeStatus: (value: 'draft' | 'approved') => void;
   onChangeStop: (index: number, key: keyof QuestDraftStop, value: string) => void;
   onChangeTheme: (value: string) => void;
   onChangeTitle: (value: string) => void;
   onChangeXp: (value: string) => void;
   onClose: () => void;
+  onPickQuestImage: () => void;
+  onRemoveQuestImage: () => void;
   onRemoveStop: (index: number) => void;
   onSubmit: () => void;
   questCityId: CityId;
   questDescription: string;
-  questImage: QuestImageKind;
+  questImageUri: string | null;
   questStatus: 'draft' | 'approved';
   questStops: QuestDraftStop[];
   questTheme: string;
@@ -49,30 +50,25 @@ type CreateQuestModalProps = {
   visible: boolean;
 };
 
-const questImageOptions: { key: QuestImageKind; label: string }[] = [
-  { key: 'museum', label: 'Museum' },
-  { key: 'cafe', label: 'Cafe' },
-  { key: 'theater', label: 'Theater' },
-];
-
 export function CreateQuestModal({
   createQuestError,
   creatingQuest,
   onAddStop,
   onChangeCity,
   onChangeDescription,
-  onChangeImage,
   onChangeStatus,
   onChangeStop,
   onChangeTheme,
   onChangeTitle,
   onChangeXp,
   onClose,
+  onPickQuestImage,
+  onRemoveQuestImage,
   onRemoveStop,
   onSubmit,
   questCityId,
   questDescription,
-  questImage,
+  questImageUri,
   questStatus,
   questStops,
   questTheme,
@@ -168,6 +164,53 @@ export function CreateQuestModal({
               className="mb-4 min-h-[104px] rounded-xl border border-gray-300 px-4 py-3 text-[15px] leading-5 text-ink"
             />
 
+            <Text className="mb-2 text-[13px] font-semibold text-ink">Quest photo</Text>
+            <Pressable
+              onPress={onPickQuestImage}
+              className={`mb-4 h-[154px] overflow-hidden rounded-2xl border ${
+                questImageUri
+                  ? 'border-gray-200 bg-gray-100'
+                  : 'border-dashed border-primary/45 bg-primary/5'
+              }`}
+            >
+              {questImageUri ? (
+                <>
+                  <Image source={{ uri: questImageUri }} style={{ flex: 1 }} contentFit="cover" />
+                  <LinearGradient
+                    colors={['transparent', 'rgba(36,28,46,0.58)']}
+                    style={{
+                      bottom: 0,
+                      left: 0,
+                      position: 'absolute',
+                      right: 0,
+                      top: 0,
+                    }}
+                  />
+                  <View className="absolute bottom-4 left-4">
+                    <Text className="text-[12px] font-extrabold text-white">Change photo</Text>
+                  </View>
+                  <Pressable
+                    onPress={onRemoveQuestImage}
+                    className="absolute right-3 top-3 h-8 w-8 items-center justify-center rounded-full bg-black/45 active:opacity-80"
+                  >
+                    <X size={16} color="white" strokeWidth={2.5} />
+                  </Pressable>
+                </>
+              ) : (
+                <View className="flex-1 items-center justify-center px-6">
+                  <View className="mb-3 h-11 w-11 items-center justify-center rounded-2xl bg-primary/10">
+                    <Camera size={21} color="#7C3AED" strokeWidth={2.5} />
+                  </View>
+                  <Text className="text-center text-[14px] font-extrabold text-primary">
+                    Add quest photo
+                  </Text>
+                  <Text className="mt-1 text-center text-[12px] leading-4 text-muted">
+                    Optional. If you skip it, CultureQuest will use a default trail image.
+                  </Text>
+                </View>
+              )}
+            </Pressable>
+
             <View className="mb-4 flex-row gap-3">
               <View className="flex-1">
                 <Text className="mb-2 text-[13px] font-semibold text-ink">Total XP</Text>
@@ -195,18 +238,6 @@ export function CreateQuestModal({
                   />
                 </View>
               </View>
-            </View>
-
-            <Text className="mb-2 text-[13px] font-semibold text-ink">Image style</Text>
-            <View className="mb-5 flex-row gap-2">
-              {questImageOptions.map((option) => (
-                <ChoiceChip
-                  active={questImage === option.key}
-                  key={option.key}
-                  label={option.label}
-                  onPress={() => onChangeImage(option.key)}
-                />
-              ))}
             </View>
 
             <View className="mb-3 flex-row items-center justify-between">

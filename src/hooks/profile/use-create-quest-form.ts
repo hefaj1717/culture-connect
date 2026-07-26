@@ -1,3 +1,4 @@
+import * as ImagePicker from 'expo-image-picker';
 import { useState } from 'react';
 import { Alert } from 'react-native';
 
@@ -33,6 +34,7 @@ export function useCreateQuestForm({
   const [questCityId, setQuestCityId] = useState<CityId>(savedCityId);
   const [questDescription, setQuestDescription] = useState('');
   const [questImage, setQuestImage] = useState<QuestImageKind>('museum');
+  const [questImageUri, setQuestImageUri] = useState<string | null>(null);
   const [questStatus, setQuestStatus] = useState<QuestStatus>('approved');
   const [questStops, setQuestStops] = useState<QuestDraftStop[]>(initialStops);
   const [questTheme, setQuestTheme] = useState('City route');
@@ -45,6 +47,7 @@ export function useCreateQuestForm({
     setQuestCityId(savedCityId);
     setQuestDescription('');
     setQuestImage('museum');
+    setQuestImageUri(null);
     setQuestStatus('approved');
     setQuestStops(initialStops);
     setQuestTheme('City route');
@@ -80,6 +83,27 @@ export function useCreateQuestForm({
           : stop,
       ),
     );
+  }
+
+  async function pickQuestImage() {
+    setCreateQuestError(null);
+
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) {
+      Alert.alert('Photo access needed', 'Allow photo access to choose a quest photo.');
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      aspect: [16, 9],
+      quality: 0.82,
+    });
+
+    if (!result.canceled) {
+      setQuestImageUri(result.assets[0]?.uri ?? null);
+    }
   }
 
   async function submitQuest() {
@@ -123,6 +147,7 @@ export function useCreateQuestForm({
       createdBy: userId,
       description: normalizedDescription,
       image: questImage,
+      imageUri: questImageUri,
       status: questStatus,
       stops: completeStops,
       theme: normalizedTheme,
@@ -153,9 +178,11 @@ export function useCreateQuestForm({
     createQuestOpen,
     creatingQuest,
     openCreateQuest,
+    pickQuestImage,
     questCityId,
     questDescription,
     questImage,
+    questImageUri,
     questStatus,
     questStops,
     questTheme,
@@ -166,6 +193,7 @@ export function useCreateQuestForm({
     setQuestCityId,
     setQuestDescription,
     setQuestImage,
+    setQuestImageUri,
     setQuestStatus,
     setQuestTheme,
     setQuestTitle,

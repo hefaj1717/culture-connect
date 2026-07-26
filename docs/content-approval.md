@@ -56,6 +56,9 @@ where id = 'REWARD_ID_HERE';
 
 ## Create an approved quest
 
+Admin users can create quests from the app Profile tab after the
+`20260726133000_add_quest_image_uploads.sql` migration has been applied.
+
 ```sql
 with created_quest as (
   insert into public.quests (
