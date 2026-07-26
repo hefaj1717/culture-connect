@@ -22,19 +22,20 @@ import { useCreateEventForm } from '@/hooks/profile/use-create-event-form';
 import { useCreateRewardForm } from '@/hooks/profile/use-create-reward-form';
 import { useEditProfileForm } from '@/hooks/profile/use-edit-profile-form';
 import { useRewardRedemption } from '@/hooks/profile/use-reward-redemption';
+import { fetchOrganizerRewards } from '@/lib/organizer-rewards';
 import { useAuth } from '@/providers/auth-provider';
 
 type ProfileScreenProps = {
   onEventCreated?: () => void;
-  onRewardCreated?: (reward: RewardPartner) => void;
-  organizerRewards?: RewardPartner[];
+  onRewardCreated?: () => void;
+  rewardsRefreshKey?: number;
   userXp?: number;
 };
 
 export default function ProfileScreen({
   onEventCreated,
   onRewardCreated,
-  organizerRewards = [],
+  rewardsRefreshKey = 0,
   userXp = 0,
 }: ProfileScreenProps = {}) {
   const insets = useSafeAreaInsets();
@@ -61,10 +62,8 @@ export default function ProfileScreen({
   const savedCityId: CityId =
     session?.user.user_metadata?.city_id === 'lublin' ? 'lublin' : defaultCityId;
   const cityData = getCultureCityData(savedCityId);
-  const visibleRewards = useMemo(
-    () => [...organizerRewards, ...cityData.rewardPartners],
-    [cityData.rewardPartners, organizerRewards],
-  );
+  const [approvedRewards, setApprovedRewards] = useState<RewardPartner[]>([]);
+  const [rewardsError, setRewardsError] = useState<string | null>(null);
   const savedAvatarUrl = session?.user.user_metadata?.avatar_url || null;
   const levelProgress = getXpLevelProgress(userXp);
   const editProfileForm = useEditProfileForm({
@@ -82,6 +81,7 @@ export default function ProfileScreen({
   const createRewardForm = useCreateRewardForm({
     onRewardCreated,
     savedCityId,
+    userId: session?.user.id,
   });
   const rewardRedemption = useRewardRedemption();
   const {
@@ -143,6 +143,7 @@ export default function ProfileScreen({
   const {
     createRewardError,
     createRewardOpen,
+    creatingReward,
     openCreateReward,
     rewardDescription,
     rewardPlaceQuery,
@@ -275,6 +276,24 @@ export default function ProfileScreen({
   }, [refreshOrganizerApplicationStatus, session?.user.id]);
 
   useEffect(() => {
+    let active = true;
+
+    async function loadApprovedRewards() {
+      const result = await fetchOrganizerRewards(savedCityId);
+      if (!active) return;
+
+      setApprovedRewards(result.rewards);
+      setRewardsError(result.error);
+    }
+
+    loadApprovedRewards();
+
+    return () => {
+      active = false;
+    };
+  }, [rewardsRefreshKey, savedCityId]);
+
+  useEffect(() => {
     if (createEventOpen) {
       createEventTranslateX.value = 0;
     }
@@ -365,8 +384,9 @@ export default function ProfileScreen({
 
         <RewardsSection
           cityName={cityData.name}
+          error={rewardsError}
           onSelectReward={setSelectedReward}
-          rewards={visibleRewards}
+          rewards={approvedRewards}
         />
       </ScrollView>
 
@@ -435,6 +455,7 @@ export default function ProfileScreen({
 
       <CreateRewardModal
         createRewardError={createRewardError}
+        creatingReward={creatingReward}
         onChangeRewardDescription={setRewardDescription}
         onChangeRewardPlaceQuery={setRewardPlaceQuery}
         onChangeRewardTitle={setRewardTitle}

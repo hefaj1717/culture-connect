@@ -54,7 +54,7 @@ export async function fetchOrganizerEvents(cityId: CityId) {
       'id, city_key, venue_key, venue_name, venue_address, venue_latitude, venue_longitude, title, description, category, date_label, time_label, xp_bonus, language, is_free, is_international, attendee_count, image_kind, image_url, check_in_code',
     )
     .eq('city_key', cityId)
-    .eq('status', 'published')
+    .eq('status', 'approved')
     .order('created_at', { ascending: false });
 
   if (error) {
@@ -95,7 +95,7 @@ export async function createOrganizerEvent(userId: string, input: CreateOrganize
     is_international: input.language !== 'pl',
     image_kind: getImageKind(input.category),
     image_url: uploadedImage?.url ?? null,
-    status: 'published',
+    status: 'pending',
   });
 
   return { error: error?.message ?? null };

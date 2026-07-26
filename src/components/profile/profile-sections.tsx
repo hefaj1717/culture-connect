@@ -222,17 +222,37 @@ export function OrganizerToolsSection({
 
 type RewardsSectionProps = {
   cityName: string;
+  error?: string | null;
   onSelectReward: (reward: RewardPartner) => void;
   rewards: RewardPartner[];
 };
 
-export function RewardsSection({ cityName, onSelectReward, rewards }: RewardsSectionProps) {
+export function RewardsSection({ cityName, error, onSelectReward, rewards }: RewardsSectionProps) {
   return (
     <View className="px-5">
       <View className="mb-3 flex-row items-center justify-between">
         <Text className="font-heading text-[22px] font-extrabold text-ink">Rewards</Text>
         <Text className="text-[11px] font-semibold text-primary">{cityName}</Text>
       </View>
+
+      {error && (
+        <View className="mb-3 rounded-2xl border border-secondary/20 bg-secondary/10 p-3">
+          <Text className="text-[12px] leading-4 text-muted">
+            Rewards could not load yet. Apply the latest Supabase migration if you have not done it.
+          </Text>
+        </View>
+      )}
+
+      {!error && rewards.length === 0 && (
+        <View className="rounded-3xl border border-gray-200 bg-white p-5">
+          <Text className="font-heading text-[20px] font-extrabold text-ink">
+            No approved rewards yet
+          </Text>
+          <Text className="mt-2 text-[13px] leading-5 text-muted">
+            Approved partner rewards for {cityName} will appear here after CultureQuest review.
+          </Text>
+        </View>
+      )}
 
       <View className="gap-3">
         {rewards.map((reward, index) => (

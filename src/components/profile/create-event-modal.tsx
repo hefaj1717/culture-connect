@@ -189,7 +189,7 @@ export function CreateEventModal({
                       Create event
                     </Text>
                     <Text className="mt-2 max-w-[290px] text-[13px] leading-5 text-white/80">
-                      Publish a verified city experience students can discover and check into.
+                      Submit a verified city experience for CultureQuest review.
                     </Text>
                   </LinearGradient>
                 </View>
@@ -390,7 +390,7 @@ export function CreateEventModal({
                   {creatingEvent ? (
                     <ActivityIndicator color="white" />
                   ) : (
-                    <Text className="text-[15px] font-semibold text-white">Publish event</Text>
+                    <Text className="text-[15px] font-semibold text-white">Submit for review</Text>
                   )}
                 </Pressable>
               </ScrollView>

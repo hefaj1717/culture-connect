@@ -140,7 +140,7 @@ export function useCreateEventForm({
     setCreateEventOpen(false);
     resetEventForm();
     onEventCreated?.();
-    Alert.alert('Event published', 'Your event is now visible in Discover.');
+    Alert.alert('Event submitted', 'CultureQuest will review it before students can see it.');
   }
 
   async function pickEventImage() {

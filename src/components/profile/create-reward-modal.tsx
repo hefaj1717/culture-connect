@@ -18,6 +18,7 @@ import { hasGooglePlacesApiKey, type PlaceSuggestion } from '@/lib/place-search'
 
 type CreateRewardModalProps = {
   createRewardError: string | null;
+  creatingReward: boolean;
   onChangeRewardDescription: (value: string) => void;
   onChangeRewardPlaceQuery: (value: string) => void;
   onChangeRewardTitle: (value: string) => void;
@@ -40,6 +41,7 @@ type CreateRewardModalProps = {
 
 export function CreateRewardModal({
   createRewardError,
+  creatingReward,
   onChangeRewardDescription,
   onChangeRewardPlaceQuery,
   onChangeRewardTitle,
@@ -204,9 +206,14 @@ export function CreateRewardModal({
 
             <Pressable
               onPress={onSubmit}
+              disabled={creatingReward}
               className="h-[52px] items-center justify-center rounded-xl bg-primary active:opacity-85"
             >
-              <Text className="text-[15px] font-semibold text-white">Publish reward</Text>
+              {creatingReward ? (
+                <ActivityIndicator color="white" />
+              ) : (
+                <Text className="text-[15px] font-semibold text-white">Submit for review</Text>
+              )}
             </Pressable>
           </ScrollView>
         </KeyboardAvoidingView>
