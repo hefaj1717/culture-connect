@@ -6,7 +6,6 @@ import {
   CheckCircle2,
   ChevronRight,
   Clock,
-  Globe,
   MapPin,
   QrCode,
   Search,
@@ -42,8 +41,8 @@ import {
   type Venue,
   eventCategoryLabels,
   getCultureCityData,
-  languageLabels,
 } from '@/data/culture';
+import { getEventEngagement } from '@/lib/event-engagement';
 import { fetchOrganizerEvents } from '@/lib/organizer-events';
 import type { UserEventStatus } from '@/lib/event-history';
 
@@ -273,11 +272,16 @@ export default function ExploreScreen({
                           <Text className="text-[11px] font-bold text-success">Free</Text>
                         </View>
                       )}
-                      {!!featuredEvent.spotsLeft && (
-                        <Text className="text-[11px] font-bold text-secondary">
-                          {featuredEvent.spotsLeft} spots left
-                        </Text>
-                      )}
+                      <EventEngagementPills
+                        attended={
+                          getEventEngagement(featuredEvent, eventStatuses[featuredEvent.id])
+                            .attended
+                        }
+                        interested={
+                          getEventEngagement(featuredEvent, eventStatuses[featuredEvent.id])
+                            .interested
+                        }
+                      />
                     </View>
 
                     <Text className="mb-1 font-ui text-[18px] font-bold text-ink">
@@ -367,14 +371,12 @@ export default function ExploreScreen({
                             <Clock size={12} color="#756F7B" />
                             <Text className="text-[12px] text-muted">{event.time}</Text>
                           </View>
-                          {event.isInternational && (
-                            <View className="flex-row items-center gap-0.5">
-                              <Globe size={12} color="#756F7B" />
-                              <Text className="text-[12px] font-medium text-muted">
-                                {languageLabels[event.language]}
-                              </Text>
-                            </View>
-                          )}
+                          <EventEngagementPills
+                            attended={getEventEngagement(event, eventStatuses[event.id]).attended}
+                            interested={
+                              getEventEngagement(event, eventStatuses[event.id]).interested
+                            }
+                          />
                         </View>
                       </View>
                       <ChevronRight size={18} color="#8B909A" />
@@ -531,6 +533,7 @@ function EventDetailModal({
   if (!event) return null;
 
   const verifiedVenue = venue ?? getEventLocationVenue(event);
+  const detailEngagement = getEventEngagement(event, checkedIn ? 'attended' : status);
 
   async function verifyVenueDistance() {
     if (!verifiedVenue) {
@@ -697,7 +700,11 @@ function EventDetailModal({
                   />
                   <InfoRow
                     icon={<Users size={17} color="#7C3AED" />}
-                    label={`${event.attendeeCount} people taking part`}
+                    label={`${detailEngagement.interested.toLocaleString()} interested`}
+                  />
+                  <InfoRow
+                    icon={<CheckCircle2 size={17} color="#7C3AED" />}
+                    label={`${detailEngagement.attended.toLocaleString()} attended`}
                   />
                   <View className="rounded-2xl bg-primary/5 px-3 py-2.5">
                     <Text className="text-[13px] font-semibold text-primary">
@@ -838,6 +845,21 @@ function StatusButton({
         {label}
       </Text>
     </Pressable>
+  );
+}
+
+function EventEngagementPills({ attended, interested }: { attended: number; interested: number }) {
+  return (
+    <View className="flex-row items-center gap-1.5">
+      <View className="flex-row items-center gap-1 rounded-full bg-primary/5 px-2 py-1">
+        <Users size={12} color="#7C3AED" strokeWidth={2.4} />
+        <Text className="text-[11px] font-bold text-primary">{interested.toLocaleString()}</Text>
+      </View>
+      <View className="flex-row items-center gap-1 rounded-full bg-primary/5 px-2 py-1">
+        <CheckCircle2 size={12} color="#7C3AED" strokeWidth={2.4} />
+        <Text className="text-[11px] font-bold text-primary">{attended.toLocaleString()}</Text>
+      </View>
+    </View>
   );
 }
 
