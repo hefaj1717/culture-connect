@@ -91,7 +91,10 @@ export function AdminReviewModal({
               <Text className="mt-1 font-heading text-[29px] font-extrabold leading-[33px] text-white">
                 Approve what goes live.
               </Text>
-              <Text className="mt-2 max-w-[300px] text-[13px] leading-5 text-white/78">
+              <Text
+                className="mt-2 max-w-[300px] text-[13px] leading-5 text-white/80"
+                style={{ color: 'rgba(255,255,255,0.82)' }}
+              >
                 Review organizer submissions before students see them in CultureQuest.
               </Text>
             </LinearGradient>
