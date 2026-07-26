@@ -11,12 +11,12 @@ import { CreateQuestModal } from '@/components/profile/create-quest-modal';
 import { CreateRewardModal } from '@/components/profile/create-reward-modal';
 import { EditProfileModal } from '@/components/profile/edit-profile-modal';
 import {
+  AccountActionsModal,
   AdminToolsSection,
   DigitalPassportSection,
   OrganizerEventHistoryModal,
   OrganizerToolsSection,
   OrganizerEventHistorySection,
-  ProfileActions,
   ProfileRankCard,
   UserActivityHistoryModal,
   UserActivitySection,
@@ -248,6 +248,7 @@ export default function ProfileScreen({
   } = rewardRedemption;
   const [badgesOpen, setBadgesOpen] = useState(false);
   const [activityHistoryOpen, setActivityHistoryOpen] = useState(false);
+  const [accountActionsOpen, setAccountActionsOpen] = useState(false);
   const [organizerHistoryOpen, setOrganizerHistoryOpen] = useState(false);
   const [selectedBadge, setSelectedBadge] = useState<(typeof achievementBadges)[number] | null>(
     null,
@@ -463,15 +464,22 @@ export default function ProfileScreen({
           cityLabel={cityData.label}
           fullName={fullName}
           levelProgress={levelProgress}
+          onOpenSettings={() => setAccountActionsOpen(true)}
           organizerStatus={organizerApplicationStatus}
           userXp={userXp}
         />
 
-        <ProfileActions onEdit={openEditProfile} onSignOut={signOut} />
-
         <UserActivitySection
           history={userEventHistory}
           onOpenAll={() => setActivityHistoryOpen(true)}
+        />
+
+        <RewardsSection
+          cityName={cityData.name}
+          error={rewardsError}
+          onSelectReward={setSelectedReward}
+          rewards={approvedRewards}
+          userXp={userXp}
         />
 
         <DigitalPassportSection
@@ -505,14 +513,14 @@ export default function ProfileScreen({
             onOpenAll={() => setOrganizerHistoryOpen(true)}
           />
         )}
-
-        <RewardsSection
-          cityName={cityData.name}
-          error={rewardsError}
-          onSelectReward={setSelectedReward}
-          rewards={approvedRewards}
-        />
       </ScrollView>
+
+      <AccountActionsModal
+        onClose={() => setAccountActionsOpen(false)}
+        onEdit={openEditProfile}
+        onSignOut={signOut}
+        visible={accountActionsOpen}
+      />
 
       <EditProfileModal
         avatarInitials={avatarInitials}
