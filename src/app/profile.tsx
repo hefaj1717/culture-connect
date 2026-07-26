@@ -10,15 +10,23 @@ import { CreateRewardModal } from '@/components/profile/create-reward-modal';
 import { EditProfileModal } from '@/components/profile/edit-profile-modal';
 import {
   DigitalPassportSection,
+  OrganizerEventHistoryModal,
   OrganizerToolsSection,
   OrganizerEventHistorySection,
   ProfileActions,
   ProfileRankCard,
+  UserActivityHistoryModal,
   UserActivitySection,
   RewardsSection,
 } from '@/components/profile/profile-sections';
 import { RewardDetailModal } from '@/components/profile/reward-detail-modal';
-import { type CityId, type RewardPartner, defaultCityId, getCultureCityData } from '@/data/culture';
+import {
+  type CityId,
+  type CultureEvent,
+  type RewardPartner,
+  defaultCityId,
+  getCultureCityData,
+} from '@/data/culture';
 import { achievementBadges, getXpLevelProgress } from '@/data/profile';
 import { useCreateEventForm } from '@/hooks/profile/use-create-event-form';
 import { useCreateRewardForm } from '@/hooks/profile/use-create-reward-form';
@@ -32,6 +40,7 @@ import { useAuth } from '@/providers/auth-provider';
 type ProfileScreenProps = {
   eventsRefreshKey?: number;
   onEventCreated?: () => void;
+  onOpenEvent?: (event: CultureEvent) => void;
   onRewardCreated?: () => void;
   rewardsRefreshKey?: number;
   userEventHistory?: UserEventHistoryItem[];
@@ -41,6 +50,7 @@ type ProfileScreenProps = {
 export default function ProfileScreen({
   eventsRefreshKey = 0,
   onEventCreated,
+  onOpenEvent,
   onRewardCreated,
   rewardsRefreshKey = 0,
   userEventHistory = [],
@@ -184,6 +194,8 @@ export default function ProfileScreen({
     setSelectedReward,
   } = rewardRedemption;
   const [badgesOpen, setBadgesOpen] = useState(false);
+  const [activityHistoryOpen, setActivityHistoryOpen] = useState(false);
+  const [organizerHistoryOpen, setOrganizerHistoryOpen] = useState(false);
   const [selectedBadge, setSelectedBadge] = useState<(typeof achievementBadges)[number] | null>(
     null,
   );
@@ -404,7 +416,11 @@ export default function ProfileScreen({
 
         <ProfileActions onEdit={openEditProfile} onSignOut={signOut} />
 
-        <UserActivitySection history={userEventHistory} />
+        <UserActivitySection
+          history={userEventHistory}
+          onOpenAll={() => setActivityHistoryOpen(true)}
+          onOpenEvent={onOpenEvent}
+        />
 
         <DigitalPassportSection
           badges={achievementBadges}
@@ -423,7 +439,12 @@ export default function ProfileScreen({
         />
 
         {organizerApplicationStatus === 'approved' && (
-          <OrganizerEventHistorySection error={myOrganizerEventsError} events={myOrganizerEvents} />
+          <OrganizerEventHistorySection
+            error={myOrganizerEventsError}
+            events={myOrganizerEvents}
+            onOpenAll={() => setOrganizerHistoryOpen(true)}
+            onOpenEvent={onOpenEvent}
+          />
         )}
 
         <RewardsSection
@@ -531,6 +552,28 @@ export default function ProfileScreen({
         swipeStyle={badgesSwipeStyle}
         unlockedBadgeCount={unlockedBadgeCount}
         visible={badgesOpen}
+      />
+
+      <UserActivityHistoryModal
+        history={userEventHistory}
+        onClose={() => setActivityHistoryOpen(false)}
+        onOpenEvent={(event) => {
+          setActivityHistoryOpen(false);
+          onOpenEvent?.(event);
+        }}
+        stableModalTopInset={stableModalTopInset}
+        visible={activityHistoryOpen}
+      />
+
+      <OrganizerEventHistoryModal
+        events={myOrganizerEvents}
+        onClose={() => setOrganizerHistoryOpen(false)}
+        onOpenEvent={(event) => {
+          setOrganizerHistoryOpen(false);
+          onOpenEvent?.(event);
+        }}
+        stableModalTopInset={stableModalTopInset}
+        visible={organizerHistoryOpen}
       />
 
       <RewardDetailModal

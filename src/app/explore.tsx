@@ -60,6 +60,7 @@ type ExploreScreenProps = {
   checkedInEventIds?: string[];
   cityData?: CultureCityData;
   events?: CultureEvent[];
+  eventOpenOverride?: CultureEvent | null;
   eventsRefreshKey?: number;
   eventStatuses?: Record<string, UserEventStatus>;
   onEventCheckIn?: (event: CultureEvent) => boolean;
@@ -72,6 +73,7 @@ export default function ExploreScreen({
   checkedInEventIds = [],
   cityData = getCultureCityData(),
   events: approvedEventsProp,
+  eventOpenOverride,
   eventsRefreshKey = 0,
   eventStatuses = {},
   onEventCheckIn,
@@ -89,6 +91,11 @@ export default function ExploreScreen({
   const [organizerEventsError, setOrganizerEventsError] = useState<string | null>(null);
   const { venues } = cityData;
   const allEvents = approvedEventsProp ?? organizerEvents;
+  const eventDetailSource = useMemo(() => {
+    if (!eventOpenOverride) return allEvents;
+    if (allEvents.some((event) => event.id === eventOpenOverride.id)) return allEvents;
+    return [eventOpenOverride, ...allEvents];
+  }, [allEvents, eventOpenOverride]);
 
   useEffect(() => {
     let active = true;
@@ -156,12 +163,12 @@ export default function ExploreScreen({
   useEffect(() => {
     if (!openEventId) return;
 
-    const eventToOpen = allEvents.find((event) => event.id === openEventId);
+    const eventToOpen = eventDetailSource.find((event) => event.id === openEventId);
     if (!eventToOpen) return;
 
     setTab('events');
     setSelectedEvent(eventToOpen);
-  }, [allEvents, openEventId, openEventNonce]);
+  }, [eventDetailSource, openEventId, openEventNonce]);
 
   const selectedEventStatus = selectedEvent ? eventStatuses[selectedEvent.id] : undefined;
   const selectedDetailStatus =
