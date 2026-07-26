@@ -7,8 +7,23 @@ import {
   MapPin,
   Users,
 } from 'lucide-react-native';
-import { useState, type ReactNode } from 'react';
-import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
+import {
+  Modal,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  useWindowDimensions,
+  View,
+} from 'react-native';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import Animated, {
+  runOnJS,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BrandImage } from '@/components/brand-image';
@@ -326,6 +341,64 @@ export function OrganizerEventHistorySection({
   );
 }
 
+function useHistorySwipeBack({
+  onSwipeBack,
+  visible,
+}: {
+  onSwipeBack: () => void;
+  visible: boolean;
+}) {
+  const { width } = useWindowDimensions();
+  const translateX = useSharedValue(0);
+
+  useEffect(() => {
+    if (visible) {
+      translateX.value = 0;
+    }
+  }, [translateX, visible]);
+
+  const gesture = useMemo(
+    () =>
+      Gesture.Pan()
+        .activeOffsetX([-999, 18])
+        .failOffsetY([-35, 35])
+        .onUpdate((event) => {
+          translateX.value = Math.max(0, event.translationX);
+        })
+        .onEnd((event) => {
+          const shouldClose = translateX.value > width * 0.28 || event.velocityX > 700;
+
+          if (shouldClose) {
+            translateX.value = withTiming(width, { duration: 180 }, (finished) => {
+              if (finished) {
+                translateX.value = 0;
+                runOnJS(onSwipeBack)();
+              }
+            });
+            return;
+          }
+
+          translateX.value = withTiming(0, { duration: 180 });
+        }),
+    [onSwipeBack, translateX, width],
+  );
+
+  const swipeStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: translateX.value }],
+  }));
+
+  const closeWithAnimation = useCallback(() => {
+    translateX.value = withTiming(width, { duration: 180 }, (finished) => {
+      if (finished) {
+        translateX.value = 0;
+        runOnJS(onSwipeBack)();
+      }
+    });
+  }, [onSwipeBack, translateX, width]);
+
+  return { closeWithAnimation, gesture, swipeStyle };
+}
+
 export function UserActivityHistoryModal({
   history,
   onClose,
@@ -344,67 +417,86 @@ export function UserActivityHistoryModal({
     : null;
   const filteredHistory =
     activityFilter === 'all' ? history : history.filter((item) => item.status === activityFilter);
+  const handleSwipeBack = useCallback(() => {
+    if (selectedEvent) {
+      setSelectedEvent(null);
+      return;
+    }
+
+    onClose();
+  }, [onClose, selectedEvent]);
+  const { closeWithAnimation, gesture, swipeStyle } = useHistorySwipeBack({
+    onSwipeBack: handleSwipeBack,
+    visible,
+  });
 
   return (
-    <Modal animationType="slide" onRequestClose={onClose} visible={visible}>
-      <SafeAreaView className="flex-1 bg-white" edges={['bottom']}>
-        {selectedEvent ? (
-          <HistoryEventDetail
-            event={selectedEvent}
-            onBack={() => setSelectedEvent(null)}
-            stableModalTopInset={stableModalTopInset}
-            status={selectedHistoryItem?.status}
-          />
-        ) : (
-          <>
-            <View className="bg-white px-5 pb-2" style={{ paddingTop: stableModalTopInset + 6 }}>
-              <Pressable
-                onPress={onClose}
-                className="h-10 w-10 items-center justify-center rounded-full bg-gray-100 active:opacity-80"
-              >
-                <ArrowLeft size={21} color="#756F7B" strokeWidth={2.6} />
-              </Pressable>
-            </View>
-            <HistoryFilterBar
-              activeKey={activityFilter}
-              filters={activityHistoryFilters}
-              onSelect={setActivityFilter}
-            />
+    <Modal animationType="slide" onRequestClose={closeWithAnimation} visible={visible}>
+      <GestureDetector gesture={gesture}>
+        <Animated.View className="flex-1 bg-white" style={swipeStyle}>
+          <SafeAreaView className="flex-1 bg-white" edges={['bottom']}>
+            {selectedEvent ? (
+              <HistoryEventDetail
+                event={selectedEvent}
+                onBack={() => setSelectedEvent(null)}
+                stableModalTopInset={stableModalTopInset}
+                status={selectedHistoryItem?.status}
+              />
+            ) : (
+              <>
+                <View
+                  className="bg-white px-5 pb-2"
+                  style={{ paddingTop: stableModalTopInset + 6 }}
+                >
+                  <Pressable
+                    onPress={closeWithAnimation}
+                    className="h-10 w-10 items-center justify-center rounded-full bg-gray-100 active:opacity-80"
+                  >
+                    <ArrowLeft size={21} color="#756F7B" strokeWidth={2.6} />
+                  </Pressable>
+                </View>
+                <HistoryFilterBar
+                  activeKey={activityFilter}
+                  filters={activityHistoryFilters}
+                  onSelect={setActivityFilter}
+                />
 
-            <ScrollView
-              className="flex-1"
-              contentContainerStyle={{
-                gap: 12,
-                paddingHorizontal: 20,
-                paddingTop: 12,
-                paddingBottom: 36,
-              }}
-              showsVerticalScrollIndicator={false}
-            >
-              {history.length === 0 ? (
-                <HistoryEmptyState
-                  body="Events you mark as Interested, Going, or Attended will appear here."
-                  title="No saved events yet"
-                />
-              ) : filteredHistory.length === 0 ? (
-                <HistoryEmptyState
-                  body={`No ${getActivityFilterEmptyLabel(activityFilter)} events in your history yet.`}
-                  title="Nothing here yet"
-                />
-              ) : (
-                filteredHistory.map((item) => (
-                  <EventHistoryRow
-                    event={item.event}
-                    key={`${item.event.id}-${item.status}-full`}
-                    onPress={() => setSelectedEvent(item.event)}
-                    status={item.status}
-                  />
-                ))
-              )}
-            </ScrollView>
-          </>
-        )}
-      </SafeAreaView>
+                <ScrollView
+                  className="flex-1"
+                  contentContainerStyle={{
+                    gap: 12,
+                    paddingHorizontal: 20,
+                    paddingTop: 12,
+                    paddingBottom: 36,
+                  }}
+                  showsVerticalScrollIndicator={false}
+                >
+                  {history.length === 0 ? (
+                    <HistoryEmptyState
+                      body="Events you mark as Interested, Going, or Attended will appear here."
+                      title="No saved events yet"
+                    />
+                  ) : filteredHistory.length === 0 ? (
+                    <HistoryEmptyState
+                      body={`No ${getActivityFilterEmptyLabel(activityFilter)} events in your history yet.`}
+                      title="Nothing here yet"
+                    />
+                  ) : (
+                    filteredHistory.map((item) => (
+                      <EventHistoryRow
+                        event={item.event}
+                        key={`${item.event.id}-${item.status}-full`}
+                        onPress={() => setSelectedEvent(item.event)}
+                        status={item.status}
+                      />
+                    ))
+                  )}
+                </ScrollView>
+              </>
+            )}
+          </SafeAreaView>
+        </Animated.View>
+      </GestureDetector>
     </Modal>
   );
 }
@@ -430,66 +522,85 @@ export function OrganizerEventHistoryModal({
             ? event.reviewStatus === 'approved' && isPastEventDateLabel(event.date)
             : event.reviewStatus === organizerFilter,
         );
+  const handleSwipeBack = useCallback(() => {
+    if (selectedEvent) {
+      setSelectedEvent(null);
+      return;
+    }
+
+    onClose();
+  }, [onClose, selectedEvent]);
+  const { closeWithAnimation, gesture, swipeStyle } = useHistorySwipeBack({
+    onSwipeBack: handleSwipeBack,
+    visible,
+  });
 
   return (
-    <Modal animationType="slide" onRequestClose={onClose} visible={visible}>
-      <SafeAreaView className="flex-1 bg-white" edges={['bottom']}>
-        {selectedEvent ? (
-          <HistoryEventDetail
-            event={selectedEvent}
-            onBack={() => setSelectedEvent(null)}
-            organizerStatus={selectedEvent.reviewStatus}
-            stableModalTopInset={stableModalTopInset}
-          />
-        ) : (
-          <>
-            <View className="bg-white px-5 pb-2" style={{ paddingTop: stableModalTopInset + 6 }}>
-              <Pressable
-                onPress={onClose}
-                className="h-10 w-10 items-center justify-center rounded-full bg-gray-100 active:opacity-80"
-              >
-                <ArrowLeft size={21} color="#756F7B" strokeWidth={2.6} />
-              </Pressable>
-            </View>
-            <HistoryFilterBar
-              activeKey={organizerFilter}
-              filters={organizerHistoryFilters}
-              onSelect={setOrganizerFilter}
-            />
+    <Modal animationType="slide" onRequestClose={closeWithAnimation} visible={visible}>
+      <GestureDetector gesture={gesture}>
+        <Animated.View className="flex-1 bg-white" style={swipeStyle}>
+          <SafeAreaView className="flex-1 bg-white" edges={['bottom']}>
+            {selectedEvent ? (
+              <HistoryEventDetail
+                event={selectedEvent}
+                onBack={() => setSelectedEvent(null)}
+                organizerStatus={selectedEvent.reviewStatus}
+                stableModalTopInset={stableModalTopInset}
+              />
+            ) : (
+              <>
+                <View
+                  className="bg-white px-5 pb-2"
+                  style={{ paddingTop: stableModalTopInset + 6 }}
+                >
+                  <Pressable
+                    onPress={closeWithAnimation}
+                    className="h-10 w-10 items-center justify-center rounded-full bg-gray-100 active:opacity-80"
+                  >
+                    <ArrowLeft size={21} color="#756F7B" strokeWidth={2.6} />
+                  </Pressable>
+                </View>
+                <HistoryFilterBar
+                  activeKey={organizerFilter}
+                  filters={organizerHistoryFilters}
+                  onSelect={setOrganizerFilter}
+                />
 
-            <ScrollView
-              className="flex-1"
-              contentContainerStyle={{
-                gap: 12,
-                paddingHorizontal: 20,
-                paddingTop: 12,
-                paddingBottom: 36,
-              }}
-              showsVerticalScrollIndicator={false}
-            >
-              {events.length === 0 ? (
-                <HistoryEmptyState
-                  body="Events you submit for review will appear here with their approval status."
-                  title="No organizer events yet"
-                />
-              ) : filteredEvents.length === 0 ? (
-                <HistoryEmptyState
-                  body={`No ${getOrganizerFilterEmptyLabel(organizerFilter)} events in your organizer history.`}
-                  title="Nothing here yet"
-                />
-              ) : (
-                filteredEvents.map((event) => (
-                  <OrganizerEventRow
-                    event={event}
-                    key={`${event.id}-full`}
-                    onPress={() => setSelectedEvent(event)}
-                  />
-                ))
-              )}
-            </ScrollView>
-          </>
-        )}
-      </SafeAreaView>
+                <ScrollView
+                  className="flex-1"
+                  contentContainerStyle={{
+                    gap: 12,
+                    paddingHorizontal: 20,
+                    paddingTop: 12,
+                    paddingBottom: 36,
+                  }}
+                  showsVerticalScrollIndicator={false}
+                >
+                  {events.length === 0 ? (
+                    <HistoryEmptyState
+                      body="Events you submit for review will appear here with their approval status."
+                      title="No organizer events yet"
+                    />
+                  ) : filteredEvents.length === 0 ? (
+                    <HistoryEmptyState
+                      body={`No ${getOrganizerFilterEmptyLabel(organizerFilter)} events in your organizer history.`}
+                      title="Nothing here yet"
+                    />
+                  ) : (
+                    filteredEvents.map((event) => (
+                      <OrganizerEventRow
+                        event={event}
+                        key={`${event.id}-full`}
+                        onPress={() => setSelectedEvent(event)}
+                      />
+                    ))
+                  )}
+                </ScrollView>
+              </>
+            )}
+          </SafeAreaView>
+        </Animated.View>
+      </GestureDetector>
     </Modal>
   );
 }
