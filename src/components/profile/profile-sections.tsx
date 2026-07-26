@@ -128,49 +128,28 @@ export function ProfileActions({ onEdit, onSignOut }: ProfileActionsProps) {
 type UserActivitySectionProps = {
   history: UserEventHistoryItem[];
   onOpenAll: () => void;
-  onOpenEvent?: (event: CultureEvent) => void;
 };
 
-const PROFILE_HISTORY_PREVIEW_LIMIT = 3;
-
-export function UserActivitySection({ history, onOpenAll, onOpenEvent }: UserActivitySectionProps) {
-  const previewHistory = history.slice(0, PROFILE_HISTORY_PREVIEW_LIMIT);
-
+export function UserActivitySection({ history, onOpenAll }: UserActivitySectionProps) {
   return (
     <View className="mb-6 px-5">
-      <View className="mb-3 flex-row items-center justify-between">
-        <View>
-          <Text className="font-heading text-[22px] font-extrabold text-ink">My activity</Text>
-          <Text className="mt-0.5 text-[11px] font-semibold text-muted">
-            {history.length} saved {history.length === 1 ? 'event' : 'events'}
+      <Pressable
+        onPress={onOpenAll}
+        className="flex-row items-center gap-3 rounded-3xl border border-primary/10 bg-primary/5 p-4 active:opacity-85"
+      >
+        <View className="h-12 w-12 items-center justify-center rounded-2xl bg-white">
+          <CalendarDays size={20} color="#7C3AED" strokeWidth={2.4} />
+        </View>
+        <View className="min-w-0 flex-1">
+          <Text className="font-heading text-[20px] font-extrabold text-ink">My activity</Text>
+          <Text className="mt-0.5 text-[12px] font-medium text-muted">
+            {history.length > 0
+              ? `${history.length} saved ${history.length === 1 ? 'event' : 'events'}`
+              : 'Interested, going, and attended events'}
           </Text>
         </View>
-        {history.length > 0 && (
-          <Pressable onPress={onOpenAll} className="active:opacity-75">
-            <Text className="text-[12px] font-semibold text-primary">View all</Text>
-          </Pressable>
-        )}
-      </View>
-
-      {history.length === 0 ? (
-        <View className="rounded-3xl border border-primary/10 bg-primary/5 p-5">
-          <Text className="font-ui text-[15px] font-extrabold text-ink">No saved events yet</Text>
-          <Text className="mt-1 text-[13px] leading-5 text-muted">
-            Events you mark as Interested, Going, or Attended will appear here.
-          </Text>
-        </View>
-      ) : (
-        <View className="gap-3">
-          {previewHistory.map((item) => (
-            <EventHistoryRow
-              event={item.event}
-              key={`${item.event.id}-${item.status}`}
-              onPress={() => onOpenEvent?.(item.event)}
-              status={item.status}
-            />
-          ))}
-        </View>
-      )}
+        <ChevronRight size={18} color="#7C3AED" strokeWidth={2.5} />
+      </Pressable>
     </View>
   );
 }
@@ -278,33 +257,15 @@ type OrganizerEventHistorySectionProps = {
   error?: string | null;
   events: ManagedOrganizerEvent[];
   onOpenAll: () => void;
-  onOpenEvent?: (event: ManagedOrganizerEvent) => void;
 };
 
 export function OrganizerEventHistorySection({
   error,
   events,
   onOpenAll,
-  onOpenEvent,
 }: OrganizerEventHistorySectionProps) {
-  const previewEvents = events.slice(0, PROFILE_HISTORY_PREVIEW_LIMIT);
-
   return (
     <View className="mb-6 px-5">
-      <View className="mb-3 flex-row items-center justify-between">
-        <View>
-          <Text className="font-heading text-[22px] font-extrabold text-ink">My events</Text>
-          <Text className="mt-0.5 text-[11px] font-semibold text-muted">
-            {events.length} submitted {events.length === 1 ? 'event' : 'events'}
-          </Text>
-        </View>
-        {events.length > 0 && (
-          <Pressable onPress={onOpenAll} className="active:opacity-75">
-            <Text className="text-[12px] font-semibold text-primary">View all</Text>
-          </Pressable>
-        )}
-      </View>
-
       {error && (
         <View className="rounded-2xl border border-secondary/20 bg-secondary/10 p-3">
           <Text className="text-[12px] leading-4 text-muted">
@@ -313,22 +274,25 @@ export function OrganizerEventHistorySection({
         </View>
       )}
 
-      {!error && events.length === 0 && (
-        <View className="rounded-3xl border border-gray-200 bg-white p-5">
-          <Text className="font-ui text-[15px] font-extrabold text-ink">
-            No organizer events yet
-          </Text>
-          <Text className="mt-1 text-[13px] leading-5 text-muted">
-            Events you submit for review will appear here with their approval status.
-          </Text>
-        </View>
+      {!error && (
+        <Pressable
+          onPress={onOpenAll}
+          className="flex-row items-center gap-3 rounded-3xl border border-gray-200 bg-white p-4 active:opacity-85"
+        >
+          <View className="h-12 w-12 items-center justify-center rounded-2xl bg-canvas">
+            <CalendarDays size={20} color="#7C3AED" strokeWidth={2.4} />
+          </View>
+          <View className="min-w-0 flex-1">
+            <Text className="font-heading text-[20px] font-extrabold text-ink">My events</Text>
+            <Text className="mt-0.5 text-[12px] font-medium text-muted">
+              {events.length > 0
+                ? `${events.length} submitted ${events.length === 1 ? 'event' : 'events'}`
+                : 'Submitted, pending, and past events'}
+            </Text>
+          </View>
+          <ChevronRight size={18} color="#7C3AED" strokeWidth={2.5} />
+        </Pressable>
       )}
-
-      <View className="gap-3">
-        {previewEvents.map((event) => (
-          <OrganizerEventRow event={event} key={event.id} onPress={() => onOpenEvent?.(event)} />
-        ))}
-      </View>
     </View>
   );
 }
@@ -372,14 +336,21 @@ export function UserActivityHistoryModal({
           contentContainerStyle={{ gap: 12, padding: 20, paddingBottom: 36 }}
           showsVerticalScrollIndicator={false}
         >
-          {history.map((item) => (
-            <EventHistoryRow
-              event={item.event}
-              key={`${item.event.id}-${item.status}-full`}
-              onPress={() => onOpenEvent(item.event)}
-              status={item.status}
+          {history.length === 0 ? (
+            <HistoryEmptyState
+              body="Events you mark as Interested, Going, or Attended will appear here."
+              title="No saved events yet"
             />
-          ))}
+          ) : (
+            history.map((item) => (
+              <EventHistoryRow
+                event={item.event}
+                key={`${item.event.id}-${item.status}-full`}
+                onPress={() => onOpenEvent(item.event)}
+                status={item.status}
+              />
+            ))
+          )}
         </ScrollView>
       </SafeAreaView>
     </Modal>
@@ -427,16 +398,32 @@ export function OrganizerEventHistoryModal({
           contentContainerStyle={{ gap: 12, padding: 20, paddingBottom: 36 }}
           showsVerticalScrollIndicator={false}
         >
-          {events.map((event) => (
-            <OrganizerEventRow
-              event={event}
-              key={`${event.id}-full`}
-              onPress={() => onOpenEvent(event)}
+          {events.length === 0 ? (
+            <HistoryEmptyState
+              body="Events you submit for review will appear here with their approval status."
+              title="No organizer events yet"
             />
-          ))}
+          ) : (
+            events.map((event) => (
+              <OrganizerEventRow
+                event={event}
+                key={`${event.id}-full`}
+                onPress={() => onOpenEvent(event)}
+              />
+            ))
+          )}
         </ScrollView>
       </SafeAreaView>
     </Modal>
+  );
+}
+
+function HistoryEmptyState({ body, title }: { body: string; title: string }) {
+  return (
+    <View className="rounded-3xl border border-primary/10 bg-primary/5 p-5">
+      <Text className="font-ui text-[15px] font-extrabold text-ink">{title}</Text>
+      <Text className="mt-1 text-[13px] leading-5 text-muted">{body}</Text>
+    </View>
   );
 }
 
