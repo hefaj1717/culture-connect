@@ -4,6 +4,7 @@ import { Gesture } from 'react-native-gesture-handler';
 import { runOnJS, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { AdminReviewModal } from '@/components/profile/admin-review-modal';
 import { BadgesModal } from '@/components/profile/badges-modal';
 import { CreateEventModal } from '@/components/profile/create-event-modal';
 import { CreateQuestModal } from '@/components/profile/create-quest-modal';
@@ -24,6 +25,7 @@ import {
 import { RewardDetailModal } from '@/components/profile/reward-detail-modal';
 import { type CityId, type RewardPartner, defaultCityId, getCultureCityData } from '@/data/culture';
 import { achievementBadges, getXpLevelProgress } from '@/data/profile';
+import { useAdminModeration } from '@/hooks/profile/use-admin-moderation';
 import { useCreateEventForm } from '@/hooks/profile/use-create-event-form';
 import { useCreateQuestForm } from '@/hooks/profile/use-create-quest-form';
 import { useCreateRewardForm } from '@/hooks/profile/use-create-reward-form';
@@ -78,6 +80,7 @@ export default function ProfileScreen({
   const savedCityId: CityId =
     session?.user.user_metadata?.city_id === 'lublin' ? 'lublin' : defaultCityId;
   const cityData = getCultureCityData(savedCityId);
+  const isAdmin = hasRole('admin');
   const [approvedRewards, setApprovedRewards] = useState<RewardPartner[]>([]);
   const [myOrganizerEvents, setMyOrganizerEvents] = useState<ManagedOrganizerEvent[]>([]);
   const [myOrganizerEventsError, setMyOrganizerEventsError] = useState<string | null>(null);
@@ -104,6 +107,14 @@ export default function ProfileScreen({
   const createQuestForm = useCreateQuestForm({
     onQuestCreated,
     savedCityId,
+    userId: session?.user.id,
+  });
+  const adminModeration = useAdminModeration({
+    isAdmin,
+    onContentReviewed: () => {
+      onEventCreated?.();
+      onRewardCreated?.();
+    },
     userId: session?.user.id,
   });
   const rewardRedemption = useRewardRedemption();
@@ -211,6 +222,18 @@ export default function ProfileScreen({
     submitQuest,
     updateQuestStop,
   } = createQuestForm;
+  const {
+    adminReviewError,
+    adminReviewLoading,
+    adminReviewOpen,
+    openAdminReview,
+    pendingEvents,
+    pendingRewards,
+    refreshPendingContent,
+    reviewContent,
+    reviewingContentId,
+    setAdminReviewOpen,
+  } = adminModeration;
   const {
     redeemSelectedReward,
     resetRewardDetailState,
@@ -467,7 +490,13 @@ export default function ProfileScreen({
           status={organizerApplicationStatus}
         />
 
-        {hasRole('admin') && <AdminToolsSection onCreateQuest={openCreateQuest} />}
+        {isAdmin && (
+          <AdminToolsSection
+            onCreateQuest={openCreateQuest}
+            onOpenReview={openAdminReview}
+            pendingCount={pendingEvents.length + pendingRewards.length}
+          />
+        )}
 
         {organizerApplicationStatus === 'approved' && (
           <OrganizerEventHistorySection
@@ -597,6 +626,19 @@ export default function ProfileScreen({
         questXp={questXp}
         stableModalTopInset={stableModalTopInset}
         visible={createQuestOpen}
+      />
+
+      <AdminReviewModal
+        error={adminReviewError}
+        events={pendingEvents}
+        loading={adminReviewLoading}
+        onClose={() => setAdminReviewOpen(false)}
+        onRefresh={refreshPendingContent}
+        onReview={reviewContent}
+        rewards={pendingRewards}
+        reviewingContentId={reviewingContentId}
+        stableModalTopInset={stableModalTopInset}
+        visible={adminReviewOpen}
       />
 
       <BadgesModal

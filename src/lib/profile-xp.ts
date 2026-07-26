@@ -1,0 +1,59 @@
+import { supabase } from '@/lib/supabase';
+
+type AwardXpResponse = {
+  duplicate?: boolean;
+  error?: string;
+  success?: boolean;
+  total_xp?: number;
+  xp_earned?: number;
+};
+
+export async function fetchUserXp(userId: string) {
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('total_xp')
+    .eq('id', userId)
+    .maybeSingle();
+
+  if (error) {
+    return { error: error.message, totalXp: 0 };
+  }
+
+  return { error: null, totalXp: Number(data?.total_xp ?? 0) };
+}
+
+export async function awardUserXp({
+  amount,
+  reason,
+  sourceKey,
+}: {
+  amount: number;
+  reason: string;
+  sourceKey: string;
+}) {
+  const { data, error } = await supabase.rpc('award_user_xp', {
+    _amount: amount,
+    _reason: reason,
+    _source_key: sourceKey,
+  });
+
+  if (error) {
+    return { duplicate: false, error: error.message, totalXp: null };
+  }
+
+  const result = data as AwardXpResponse;
+
+  if (!result.success) {
+    return {
+      duplicate: false,
+      error: result.error ?? 'Could not award XP.',
+      totalXp: typeof result.total_xp === 'number' ? result.total_xp : null,
+    };
+  }
+
+  return {
+    duplicate: !!result.duplicate,
+    error: null,
+    totalXp: typeof result.total_xp === 'number' ? result.total_xp : null,
+  };
+}

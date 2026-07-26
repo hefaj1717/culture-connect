@@ -20,12 +20,14 @@ import { getCultureCityData, type CultureEvent } from '@/data/culture';
 import {
   buildUserEventHistory,
   fetchUserEventResponses,
+  getOrganizerEventDatabaseId,
   removeUserEventResponse,
   setUserEventResponse,
   type UserEventStatus,
 } from '@/lib/event-history';
 import { updateEventEngagementCounts } from '@/lib/event-engagement';
 import { fetchOrganizerEvents } from '@/lib/organizer-events';
+import { awardUserXp, fetchUserXp } from '@/lib/profile-xp';
 import { useAuth } from '@/providers/auth-provider';
 
 const ACTIVE = Colors.light.primary;
@@ -116,22 +118,35 @@ function AuthenticatedTabs() {
 
     if (!userId) {
       setEventStatuses({});
+      setUserXp(0);
       return;
     }
 
     const userIdForLoad = userId;
     let active = true;
 
-    async function loadEventResponses() {
-      const result = await fetchUserEventResponses(userIdForLoad);
+    async function loadUserState() {
+      const [responsesResult, xpResult] = await Promise.all([
+        fetchUserEventResponses(userIdForLoad),
+        fetchUserXp(userIdForLoad),
+      ]);
       if (!active) return;
 
-      if (!result.error) {
-        setEventStatuses(result.responses);
+      if (!responsesResult.error) {
+        setEventStatuses(responsesResult.responses);
+        const attendedEventIds = Object.entries(responsesResult.responses)
+          .filter(([, status]) => status === 'attended')
+          .map(([eventId]) => eventId);
+        checkedInEventIdsRef.current = new Set(attendedEventIds);
+        setCheckedInEventIds(attendedEventIds);
+      }
+
+      if (!xpResult.error) {
+        setUserXp(xpResult.totalXp);
       }
     }
 
-    loadEventResponses();
+    loadUserState();
 
     return () => {
       active = false;
@@ -162,8 +177,17 @@ function AuthenticatedTabs() {
     setEventStatuses((current) => ({ ...current, [event.id]: 'attended' }));
     if (user?.id) {
       void setUserEventResponse(user.id, event.id, 'attended');
+      const databaseEventId = getOrganizerEventDatabaseId(event.id) ?? event.id;
+      void awardUserXp({
+        amount: event.xpBonus,
+        reason: `Event attendance: ${event.title}`,
+        sourceKey: `event:${databaseEventId}`,
+      }).then((result) => {
+        if (result.totalXp !== null) {
+          setUserXp(result.totalXp);
+        }
+      });
     }
-    setUserXp((currentXp) => currentXp + event.xpBonus);
     return true;
   }
 
@@ -202,7 +226,15 @@ function AuthenticatedTabs() {
 
     completedQuestIdsRef.current.add(questId);
     setCompletedQuestIds([...completedQuestIdsRef.current]);
-    setUserXp((currentXp) => currentXp + totalXp);
+    void awardUserXp({
+      amount: totalXp,
+      reason: 'Quest completed',
+      sourceKey: `quest:${questId}`,
+    }).then((result) => {
+      if (result.totalXp !== null) {
+        setUserXp(result.totalXp);
+      }
+    });
     return true;
   }
 
