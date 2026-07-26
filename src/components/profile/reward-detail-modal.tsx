@@ -108,105 +108,78 @@ export function RewardDetailModal({
                 }}
                 showsVerticalScrollIndicator={false}
               >
-                <View className="overflow-hidden rounded-[30px] bg-ink">
-                  <LinearGradient
-                    colors={['rgba(124,58,237,0.96)', 'rgba(36,28,46,0.99)']}
-                    end={{ x: 1, y: 1 }}
-                    start={{ x: 0, y: 0 }}
-                    style={{ paddingBottom: 26, paddingHorizontal: 24, paddingTop: 28 }}
-                  >
-                    <View className="mb-7 flex-row items-start justify-between gap-4">
-                      <View className="min-w-0 flex-1">
-                        <Text
-                          className="font-ui text-[22px] font-extrabold leading-7"
-                          style={{ color: '#FFFFFF' }}
-                          numberOfLines={2}
-                        >
-                          {venueName}
-                        </Text>
-                        <Text
-                          className="mt-1 text-[12px] font-semibold leading-[17px]"
-                          style={{ color: 'rgba(255,255,255,0.68)' }}
-                          numberOfLines={2}
-                        >
-                          {reward.location}
-                        </Text>
-                      </View>
-                      <View className="rounded-full bg-white/10 px-3 py-1.5">
-                        <Text
-                          className="text-[10px] font-extrabold uppercase tracking-wide"
-                          style={{ color: 'rgba(255,255,255,0.9)' }}
-                        >
-                          Partner
-                        </Text>
-                      </View>
-                    </View>
-
-                    <View className="mb-3 h-[1px] bg-white/10" />
-                    <Text
-                      className="font-heading text-[28px] font-extrabold leading-[34px]"
-                      style={{ color: '#FFFFFF' }}
-                    >
-                      {reward.discount}
-                    </Text>
-                    <Text
-                      className="mt-4 text-[14px] leading-[22px]"
-                      style={{ color: 'rgba(255,255,255,0.88)' }}
-                      numberOfLines={detailsExpanded ? undefined : 3}
-                    >
-                      {reward.description ??
-                        'Unlock this reward with CultureQuest XP, then show the pickup screen to staff before ordering or paying.'}
-                    </Text>
-
-                    <View className="mt-6 rounded-2xl bg-white/10 p-4">
-                      <Pressable
-                        onPress={onToggleDetails}
-                        className="flex-row items-center justify-between gap-3 active:opacity-80"
+                <View
+                  className="rounded-[30px] border border-gray-200 bg-canvas p-6"
+                  style={{ boxShadow: '0 12px 24px rgba(36, 28, 46, 0.08)' }}
+                >
+                  <View className="mb-7 flex-row items-start justify-between gap-4">
+                    <View className="min-w-0 flex-1">
+                      <Text
+                        className="font-ui text-[22px] font-extrabold leading-7 text-ink"
+                        numberOfLines={2}
                       >
-                        <View className="min-w-0 flex-1">
-                          <Text
-                            className="text-[14px] font-extrabold leading-5"
-                            style={{ color: '#FFFFFF' }}
-                          >
-                            {rewardCanRedeem || rewardStateExists
-                              ? reward.condition
-                              : `${userXp.toLocaleString()} / ${reward.xpCost.toLocaleString()} XP`}
-                          </Text>
-                        </View>
-                        <Text
-                          className="text-[12px] font-extrabold"
-                          style={{ color: Colors.light.accent }}
-                        >
-                          {detailsExpanded ? 'Hide' : 'Show'}
-                        </Text>
-                      </Pressable>
-
-                      {detailsExpanded && (
-                        <View className="mt-4 gap-2">
-                          {[
-                            `Visit ${venueName}.`,
-                            'Tap Redeem only when you are with staff.',
-                            'Show the pickup card before the reward is applied.',
-                          ].map((step, index) => (
-                            <View className="flex-row items-start gap-3" key={step}>
-                              <Text
-                                className="w-5 text-[12px] font-extrabold"
-                                style={{ color: Colors.light.accent }}
-                              >
-                                {index + 1}.
-                              </Text>
-                              <Text
-                                className="flex-1 text-[13px] leading-5"
-                                style={{ color: 'rgba(255,255,255,0.82)' }}
-                              >
-                                {step}
-                              </Text>
-                            </View>
-                          ))}
-                        </View>
-                      )}
+                        {venueName}
+                      </Text>
+                      <Text
+                        className="mt-1 text-[12px] font-semibold leading-[17px] text-muted"
+                        numberOfLines={2}
+                      >
+                        {reward.location}
+                      </Text>
                     </View>
-                  </LinearGradient>
+                    <View className="rounded-full bg-primary/10 px-3 py-1.5">
+                      <Text className="text-[10px] font-extrabold uppercase tracking-wide text-primary">
+                        Partner
+                      </Text>
+                    </View>
+                  </View>
+
+                  <View className="mb-5 h-[1px] bg-gray-200" />
+                  <Text className="font-heading text-[31px] font-extrabold leading-[36px] text-ink">
+                    {reward.discount}
+                  </Text>
+                  <Text
+                    className="mt-4 text-[14px] leading-[22px] text-muted"
+                    numberOfLines={detailsExpanded ? undefined : 3}
+                  >
+                    {reward.description ??
+                      'Unlock this reward with CultureQuest XP, then show the pickup screen to staff before ordering or paying.'}
+                  </Text>
+
+                  <View className="mt-6 rounded-2xl border border-gray-200 bg-white p-4">
+                    <Pressable
+                      onPress={onToggleDetails}
+                      className="flex-row items-center justify-between gap-3 active:opacity-80"
+                    >
+                      <View className="min-w-0 flex-1">
+                        <Text className="text-[14px] font-extrabold leading-5 text-ink">
+                          {rewardCanRedeem || rewardStateExists
+                            ? reward.condition
+                            : `${userXp.toLocaleString()} / ${reward.xpCost.toLocaleString()} XP`}
+                        </Text>
+                      </View>
+                      <Text className="text-[12px] font-extrabold text-accentDeep">
+                        {detailsExpanded ? 'Hide' : 'Show'}
+                      </Text>
+                    </Pressable>
+
+                    {detailsExpanded && (
+                      <View className="mt-4 gap-2">
+                        {[
+                          `Visit ${venueName}.`,
+                          'Tap Redeem only when you are with staff.',
+                          'Show the pickup card before the reward is applied.',
+                        ].map((step, index) => (
+                          <View className="flex-row items-start gap-3" key={step}>
+                            <Text className="w-5 text-[12px] font-extrabold text-accentDeep">
+                              {index + 1}.
+                            </Text>
+                            <Text className="flex-1 text-[13px] leading-5 text-muted">{step}</Text>
+                          </View>
+                        ))}
+                      </View>
+                    )}
+                  </View>
                 </View>
 
                 <View className="overflow-hidden rounded-[30px] bg-ink">
