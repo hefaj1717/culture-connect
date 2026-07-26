@@ -253,6 +253,13 @@ export default function ProfileScreen({
   const [selectedBadge, setSelectedBadge] = useState<(typeof achievementBadges)[number] | null>(
     null,
   );
+  const sortedAchievementBadges = useMemo(
+    () =>
+      [...achievementBadges].sort(
+        (first, second) => Number(second.unlocked) - Number(first.unlocked),
+      ),
+    [],
+  );
   const unlockedBadgeCount = achievementBadges.filter((badge) => badge.unlocked).length;
   const createEventTranslateX = useSharedValue(0);
   const badgesTranslateX = useSharedValue(0);
@@ -478,7 +485,7 @@ export default function ProfileScreen({
         />
 
         <DigitalPassportSection
-          badges={achievementBadges}
+          badges={sortedAchievementBadges}
           onOpenAll={() => setBadgesOpen(true)}
           onOpenBadge={(badge) => {
             setSelectedBadge(badge);
@@ -650,7 +657,7 @@ export default function ProfileScreen({
       />
 
       <BadgesModal
-        badges={achievementBadges}
+        badges={sortedAchievementBadges}
         gesture={badgesSwipeGesture}
         itemWidth={(width - 64) / 3}
         onClose={closeBadgesWithAnimation}
