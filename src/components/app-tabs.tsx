@@ -27,7 +27,8 @@ import {
 } from '@/lib/event-history';
 import { updateEventEngagementCounts } from '@/lib/event-engagement';
 import { fetchOrganizerEvents } from '@/lib/organizer-events';
-import { awardUserXp, fetchUserXp } from '@/lib/profile-xp';
+import { completeQuest, fetchCompletedQuestIds } from '@/lib/quest-completions';
+import { confirmOrganizerEventAttendance, fetchUserXp } from '@/lib/profile-xp';
 import { useAuth } from '@/providers/auth-provider';
 
 const ACTIVE = Colors.light.primary;
@@ -126,9 +127,10 @@ function AuthenticatedTabs() {
     let active = true;
 
     async function loadUserState() {
-      const [responsesResult, xpResult] = await Promise.all([
+      const [responsesResult, xpResult, questsResult] = await Promise.all([
         fetchUserEventResponses(userIdForLoad),
         fetchUserXp(userIdForLoad),
+        fetchCompletedQuestIds(),
       ]);
       if (!active) return;
 
@@ -143,6 +145,11 @@ function AuthenticatedTabs() {
 
       if (!xpResult.error) {
         setUserXp(xpResult.totalXp);
+      }
+
+      if (!questsResult.error) {
+        completedQuestIdsRef.current = new Set(questsResult.completedQuestIds);
+        setCompletedQuestIds(questsResult.completedQuestIds);
       }
     }
 
@@ -163,8 +170,31 @@ function AuthenticatedTabs() {
     goToTab(1);
   }
 
-  function awardEventCheckInXp(event: CultureEvent) {
+  async function awardEventCheckInXp(
+    event: CultureEvent,
+    location: { latitude: number; longitude: number },
+  ) {
     if (checkedInEventIdsRef.current.has(event.id)) {
+      return false;
+    }
+
+    const databaseEventId = getOrganizerEventDatabaseId(event.id);
+    if (!databaseEventId) {
+      return false;
+    }
+
+    const result = await confirmOrganizerEventAttendance({
+      checkInCode: event.checkInCode,
+      eventId: databaseEventId,
+      userLatitude: location.latitude,
+      userLongitude: location.longitude,
+    });
+
+    if (result.totalXp !== null) {
+      setUserXp(result.totalXp);
+    }
+
+    if (result.error && !result.duplicate) {
       return false;
     }
 
@@ -175,19 +205,6 @@ function AuthenticatedTabs() {
       updateEventEngagementCounts(current, event.id, previousStatus, 'attended'),
     );
     setEventStatuses((current) => ({ ...current, [event.id]: 'attended' }));
-    if (user?.id) {
-      void setUserEventResponse(user.id, event.id, 'attended');
-      const databaseEventId = getOrganizerEventDatabaseId(event.id) ?? event.id;
-      void awardUserXp({
-        amount: event.xpBonus,
-        reason: `Event attendance: ${event.title}`,
-        sourceKey: `event:${databaseEventId}`,
-      }).then((result) => {
-        if (result.totalXp !== null) {
-          setUserXp(result.totalXp);
-        }
-      });
-    }
     return true;
   }
 
@@ -226,11 +243,7 @@ function AuthenticatedTabs() {
 
     completedQuestIdsRef.current.add(questId);
     setCompletedQuestIds([...completedQuestIdsRef.current]);
-    void awardUserXp({
-      amount: totalXp,
-      reason: 'Quest completed',
-      sourceKey: `quest:${questId}`,
-    }).then((result) => {
+    void completeQuest(questId).then((result) => {
       if (result.totalXp !== null) {
         setUserXp(result.totalXp);
       }

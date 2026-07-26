@@ -4,6 +4,7 @@ import {
   CheckCircle2,
   ChevronRight,
   Clock,
+  Gift,
   LogOut,
   MapPin,
   Settings,
@@ -41,10 +42,12 @@ import type { RedeemedRewardState } from '@/data/profile';
 import { getEventEngagement } from '@/lib/event-engagement';
 import type { UserEventHistoryItem, UserEventStatus } from '@/lib/event-history';
 import type { ManagedOrganizerEvent, OrganizerEventStatus } from '@/lib/organizer-events';
+import type { ManagedOrganizerReward, OrganizerRewardStatus } from '@/lib/organizer-rewards';
 
 type OrganizerStatus = 'none' | 'pending' | 'approved' | 'rejected';
 type ActivityHistoryFilter = 'all' | UserEventStatus;
 type OrganizerHistoryFilter = 'all' | 'pending' | 'approved' | 'rejected' | 'past' | 'cancelled';
+type OrganizerRewardHistoryFilter = 'all' | OrganizerRewardStatus;
 
 const activityHistoryFilters: { key: ActivityHistoryFilter; label: string }[] = [
   { key: 'all', label: 'All' },
@@ -60,6 +63,14 @@ const organizerHistoryFilters: { key: OrganizerHistoryFilter; label: string }[] 
   { key: 'rejected', label: 'Rejected' },
   { key: 'past', label: 'Past' },
   { key: 'cancelled', label: 'Cancelled' },
+];
+
+const organizerRewardHistoryFilters: { key: OrganizerRewardHistoryFilter; label: string }[] = [
+  { key: 'all', label: 'All' },
+  { key: 'pending', label: 'Pending' },
+  { key: 'approved', label: 'Approved' },
+  { key: 'rejected', label: 'Rejected' },
+  { key: 'archived', label: 'Archived' },
 ];
 
 type LevelProgress = {
@@ -497,6 +508,50 @@ export function OrganizerEventHistorySection({
   );
 }
 
+type OrganizerRewardHistorySectionProps = {
+  error?: string | null;
+  onOpenAll: () => void;
+  rewards: ManagedOrganizerReward[];
+};
+
+export function OrganizerRewardHistorySection({
+  error,
+  onOpenAll,
+  rewards,
+}: OrganizerRewardHistorySectionProps) {
+  return (
+    <View className="mb-6 px-5">
+      {error && (
+        <View className="rounded-2xl border border-secondary/20 bg-secondary/10 p-3">
+          <Text className="text-[12px] leading-4 text-muted">
+            Your reward history could not load yet. Apply the latest Supabase migration if needed.
+          </Text>
+        </View>
+      )}
+
+      {!error && (
+        <Pressable
+          onPress={onOpenAll}
+          className="flex-row items-center gap-3 rounded-3xl border border-gray-200 bg-white p-4 active:opacity-85"
+        >
+          <View className="h-12 w-12 items-center justify-center rounded-2xl bg-accent/10">
+            <Gift size={20} color={Colors.light.accent} strokeWidth={2.4} />
+          </View>
+          <View className="min-w-0 flex-1">
+            <Text className="font-heading text-[20px] font-extrabold text-ink">My rewards</Text>
+            <Text className="mt-0.5 text-[12px] font-medium text-muted">
+              {rewards.length > 0
+                ? `${rewards.length} submitted ${rewards.length === 1 ? 'reward' : 'rewards'}`
+                : 'Submitted, pending, and approved rewards'}
+            </Text>
+          </View>
+          <ChevronRight size={18} color={Colors.light.primary} strokeWidth={2.5} />
+        </Pressable>
+      )}
+    </View>
+  );
+}
+
 function useHistorySwipeBack({
   onSwipeBack,
   visible,
@@ -761,6 +816,80 @@ export function OrganizerEventHistoryModal({
   );
 }
 
+export function OrganizerRewardHistoryModal({
+  onClose,
+  rewards,
+  stableModalTopInset,
+  visible,
+}: {
+  onClose: () => void;
+  rewards: ManagedOrganizerReward[];
+  stableModalTopInset: number;
+  visible: boolean;
+}) {
+  const [rewardFilter, setRewardFilter] = useState<OrganizerRewardHistoryFilter>('all');
+  const filteredRewards =
+    rewardFilter === 'all'
+      ? rewards
+      : rewards.filter((reward) => reward.reviewStatus === rewardFilter);
+  const { closeWithAnimation, gesture, swipeStyle } = useHistorySwipeBack({
+    onSwipeBack: onClose,
+    visible,
+  });
+
+  return (
+    <Modal animationType="slide" onRequestClose={closeWithAnimation} visible={visible}>
+      <GestureDetector gesture={gesture}>
+        <Animated.View className="flex-1 bg-white" style={swipeStyle}>
+          <SafeAreaView className="flex-1 bg-white" edges={['bottom']}>
+            <View className="bg-white px-5 pb-2" style={{ paddingTop: stableModalTopInset + 6 }}>
+              <Pressable
+                onPress={closeWithAnimation}
+                className="h-10 w-10 items-center justify-center rounded-full bg-gray-100 active:opacity-80"
+              >
+                <ArrowLeft size={21} color="#756F7B" strokeWidth={2.6} />
+              </Pressable>
+            </View>
+
+            <HistoryFilterBar
+              activeKey={rewardFilter}
+              filters={organizerRewardHistoryFilters}
+              onSelect={setRewardFilter}
+            />
+
+            <ScrollView
+              className="flex-1"
+              contentContainerStyle={{
+                gap: 12,
+                paddingHorizontal: 20,
+                paddingTop: 12,
+                paddingBottom: 36,
+              }}
+              showsVerticalScrollIndicator={false}
+            >
+              {rewards.length === 0 ? (
+                <HistoryEmptyState
+                  body="Rewards you submit for review will appear here with their approval status."
+                  title="No organizer rewards yet"
+                />
+              ) : filteredRewards.length === 0 ? (
+                <HistoryEmptyState
+                  body={`No ${getOrganizerRewardFilterEmptyLabel(rewardFilter)} rewards in your history.`}
+                  title="Nothing here yet"
+                />
+              ) : (
+                filteredRewards.map((reward) => (
+                  <OrganizerRewardRow key={`${reward.id}-organizer`} reward={reward} />
+                ))
+              )}
+            </ScrollView>
+          </SafeAreaView>
+        </Animated.View>
+      </GestureDetector>
+    </Modal>
+  );
+}
+
 function HistoryEmptyState({ body, title }: { body: string; title: string }) {
   return (
     <View className="rounded-3xl border border-primary/10 bg-primary/5 p-5">
@@ -826,6 +955,15 @@ function getOrganizerFilterEmptyLabel(filter: OrganizerHistoryFilter) {
   if (filter === 'rejected') return 'rejected';
   if (filter === 'pending') return 'pending';
   if (filter === 'past') return 'past';
+  return 'submitted';
+}
+
+function getOrganizerRewardFilterEmptyLabel(filter: OrganizerRewardHistoryFilter) {
+  if (filter === 'approved') return 'approved';
+  if (filter === 'rejected') return 'rejected';
+  if (filter === 'pending') return 'pending';
+  if (filter === 'archived') return 'archived';
+  if (filter === 'draft') return 'draft';
   return 'submitted';
 }
 
@@ -931,6 +1069,60 @@ function OrganizerEventRow({
         <HistoryEngagementStats event={event} />
       </View>
     </Pressable>
+  );
+}
+
+function OrganizerRewardRow({ reward }: { reward: ManagedOrganizerReward }) {
+  return (
+    <View className="overflow-hidden rounded-3xl border border-gray-200 bg-white">
+      <View className="flex-row gap-3 p-3">
+        <View className="h-[96px] w-[96px] overflow-hidden rounded-[22px] bg-gray-100">
+          <BrandImage
+            contentFit="cover"
+            source={getRewardHistoryImageSource(reward)}
+            style={StyleSheet.absoluteFillObject}
+            withTextGradient={false}
+          />
+        </View>
+
+        <View className="min-w-0 flex-1 justify-between py-1">
+          <View>
+            <View className="mb-1 flex-row items-center justify-between gap-2">
+              <Text className="min-w-0 flex-1 text-[11px] font-semibold uppercase tracking-wide text-muted">
+                {formatSubmittedDate(reward.createdAt)}
+              </Text>
+              <OrganizerRewardStatusPill status={reward.reviewStatus} />
+            </View>
+            <Text
+              className="font-ui text-[16px] font-extrabold leading-5 text-ink"
+              numberOfLines={2}
+            >
+              {reward.discount}
+            </Text>
+            <Text className="mt-1 text-[12px] font-medium leading-4 text-muted" numberOfLines={1}>
+              {reward.name}
+            </Text>
+          </View>
+
+          <View className="mt-2 flex-row items-center justify-between gap-3">
+            <Text className="min-w-0 flex-1 text-[12px] font-semibold text-muted" numberOfLines={1}>
+              Unlock at {reward.xpCost.toLocaleString()} XP
+            </Text>
+            <Text className="text-[12px] font-extrabold text-primary">
+              {reward.reviewStatus === 'approved' ? 'Live' : 'Review'}
+            </Text>
+          </View>
+        </View>
+      </View>
+
+      {reward.reviewStatus === 'rejected' && !!reward.rejectionReason && (
+        <View className="border-t border-gray-100 bg-destructive/5 px-4 py-3">
+          <Text className="text-[12px] leading-4 text-destructive" numberOfLines={2}>
+            {reward.rejectionReason}
+          </Text>
+        </View>
+      )}
+    </View>
   );
 }
 
@@ -1127,6 +1319,54 @@ function getOrganizerEventStatusStyle(status: OrganizerEventStatus) {
   }
 
   return { container: 'bg-secondary/12', label: 'Pending', text: 'text-secondary' };
+}
+
+function OrganizerRewardStatusPill({ status }: { status: OrganizerRewardStatus }) {
+  const statusStyle = getOrganizerRewardStatusStyle(status);
+
+  return (
+    <View className={`rounded-full px-2.5 py-1 ${statusStyle.container}`}>
+      <Text className={`text-[10px] font-extrabold ${statusStyle.text}`}>{statusStyle.label}</Text>
+    </View>
+  );
+}
+
+function getOrganizerRewardStatusStyle(status: OrganizerRewardStatus) {
+  if (status === 'approved') {
+    return { container: 'bg-primary/10', label: 'Approved', text: 'text-primary' };
+  }
+  if (status === 'rejected') {
+    return { container: 'bg-destructive/10', label: 'Rejected', text: 'text-destructive' };
+  }
+  if (status === 'archived') {
+    return { container: 'bg-gray-100', label: 'Archived', text: 'text-muted' };
+  }
+  if (status === 'draft') {
+    return { container: 'bg-gray-100', label: 'Draft', text: 'text-muted' };
+  }
+
+  return { container: 'bg-secondary/12', label: 'Pending', text: 'text-secondary' };
+}
+
+function getRewardHistoryImageSource(reward: ManagedOrganizerReward) {
+  if (reward.category === 'bookstore') {
+    return require('@/assets/images/culture/venue-museum.jpg');
+  }
+  if (reward.category === 'bar' || reward.name.toLowerCase().includes('brew')) {
+    return require('@/assets/images/culture/venue-theater.jpg');
+  }
+
+  return require('@/assets/images/culture/venue-cafe.jpg');
+}
+
+function formatSubmittedDate(value: string) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return 'Submitted';
+
+  return date.toLocaleDateString('en-US', {
+    day: 'numeric',
+    month: 'short',
+  });
 }
 
 type RewardsSectionProps = {

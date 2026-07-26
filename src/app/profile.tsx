@@ -17,6 +17,8 @@ import {
   OrganizerEventHistoryModal,
   OrganizerToolsSection,
   OrganizerEventHistorySection,
+  OrganizerRewardHistoryModal,
+  OrganizerRewardHistorySection,
   ProfileRankCard,
   UserActivityHistoryModal,
   UserActivitySection,
@@ -34,7 +36,11 @@ import { useEditProfileForm } from '@/hooks/profile/use-edit-profile-form';
 import { useRewardRedemption } from '@/hooks/profile/use-reward-redemption';
 import type { UserEventHistoryItem } from '@/lib/event-history';
 import { fetchMyOrganizerEvents, type ManagedOrganizerEvent } from '@/lib/organizer-events';
-import { fetchOrganizerRewards } from '@/lib/organizer-rewards';
+import {
+  fetchMyOrganizerRewards,
+  fetchOrganizerRewards,
+  type ManagedOrganizerReward,
+} from '@/lib/organizer-rewards';
 import { useAuth } from '@/providers/auth-provider';
 
 type ProfileScreenProps = {
@@ -87,6 +93,8 @@ export default function ProfileScreen({
   const [approvedRewards, setApprovedRewards] = useState<RewardPartner[]>([]);
   const [myOrganizerEvents, setMyOrganizerEvents] = useState<ManagedOrganizerEvent[]>([]);
   const [myOrganizerEventsError, setMyOrganizerEventsError] = useState<string | null>(null);
+  const [myOrganizerRewards, setMyOrganizerRewards] = useState<ManagedOrganizerReward[]>([]);
+  const [myOrganizerRewardsError, setMyOrganizerRewardsError] = useState<string | null>(null);
   const [rewardsError, setRewardsError] = useState<string | null>(null);
   const savedAvatarUrl = session?.user.user_metadata?.avatar_url || null;
   const levelProgress = getXpLevelProgress(userXp);
@@ -265,6 +273,7 @@ export default function ProfileScreen({
   const [activityHistoryOpen, setActivityHistoryOpen] = useState(false);
   const [accountActionsOpen, setAccountActionsOpen] = useState(false);
   const [organizerHistoryOpen, setOrganizerHistoryOpen] = useState(false);
+  const [organizerRewardsHistoryOpen, setOrganizerRewardsHistoryOpen] = useState(false);
   const [rewardsListOpen, setRewardsListOpen] = useState(false);
   const [selectedBadge, setSelectedBadge] = useState<(typeof achievementBadges)[number] | null>(
     null,
@@ -398,6 +407,8 @@ export default function ProfileScreen({
     if (!userId || organizerApplicationStatus !== 'approved') {
       setMyOrganizerEvents([]);
       setMyOrganizerEventsError(null);
+      setMyOrganizerRewards([]);
+      setMyOrganizerRewardsError(null);
       return;
     }
 
@@ -405,15 +416,20 @@ export default function ProfileScreen({
     const cityIdForLoad = cityData.id;
     let active = true;
 
-    async function loadMyOrganizerEvents() {
-      const result = await fetchMyOrganizerEvents(userIdForLoad, cityIdForLoad);
+    async function loadMyOrganizerContent() {
+      const [eventsResult, rewardsResult] = await Promise.all([
+        fetchMyOrganizerEvents(userIdForLoad, cityIdForLoad),
+        fetchMyOrganizerRewards(userIdForLoad, cityIdForLoad),
+      ]);
       if (!active) return;
 
-      setMyOrganizerEvents(result.events);
-      setMyOrganizerEventsError(result.error);
+      setMyOrganizerEvents(eventsResult.events);
+      setMyOrganizerEventsError(eventsResult.error);
+      setMyOrganizerRewards(rewardsResult.rewards);
+      setMyOrganizerRewardsError(rewardsResult.error);
     }
 
-    loadMyOrganizerEvents();
+    loadMyOrganizerContent();
 
     return () => {
       active = false;
@@ -527,11 +543,18 @@ export default function ProfileScreen({
         )}
 
         {organizerApplicationStatus === 'approved' && (
-          <OrganizerEventHistorySection
-            error={myOrganizerEventsError}
-            events={myOrganizerEvents}
-            onOpenAll={() => setOrganizerHistoryOpen(true)}
-          />
+          <>
+            <OrganizerEventHistorySection
+              error={myOrganizerEventsError}
+              events={myOrganizerEvents}
+              onOpenAll={() => setOrganizerHistoryOpen(true)}
+            />
+            <OrganizerRewardHistorySection
+              error={myOrganizerRewardsError}
+              onOpenAll={() => setOrganizerRewardsHistoryOpen(true)}
+              rewards={myOrganizerRewards}
+            />
+          </>
         )}
 
         <UserActivitySection
@@ -699,6 +722,13 @@ export default function ProfileScreen({
         onClose={() => setOrganizerHistoryOpen(false)}
         stableModalTopInset={stableModalTopInset}
         visible={organizerHistoryOpen}
+      />
+
+      <OrganizerRewardHistoryModal
+        onClose={() => setOrganizerRewardsHistoryOpen(false)}
+        rewards={myOrganizerRewards}
+        stableModalTopInset={stableModalTopInset}
+        visible={organizerRewardsHistoryOpen}
       />
 
       <RewardsListModal

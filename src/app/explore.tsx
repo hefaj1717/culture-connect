@@ -63,7 +63,10 @@ type ExploreScreenProps = {
   eventsLoading?: boolean;
   eventsRefreshKey?: number;
   eventStatuses?: Record<string, UserEventStatus>;
-  onEventCheckIn?: (event: CultureEvent) => boolean;
+  onEventCheckIn?: (
+    event: CultureEvent,
+    location: { latitude: number; longitude: number },
+  ) => Promise<boolean>;
   onEventStatusChange?: (eventId: string, status: UserEventStatus | null) => void;
   openEventId?: string;
   openEventNonce?: number;
@@ -465,12 +468,17 @@ export default function ExploreScreen({
             ? (venues.find((venue) => venue.id === selectedEvent.venueId) ?? null)
             : null
         }
-        onCheckIn={(event) => {
-          setConfirmedCheckIns((current) => ({
-            ...current,
-            [event.id]: true,
-          }));
-          return onEventCheckIn?.(event) ?? false;
+        onCheckIn={async (event, location) => {
+          const didConfirm = (await onEventCheckIn?.(event, location)) ?? false;
+
+          if (didConfirm) {
+            setConfirmedCheckIns((current) => ({
+              ...current,
+              [event.id]: true,
+            }));
+          }
+
+          return didConfirm;
         }}
         onClose={() => setSelectedEvent(null)}
         onToggleStatus={(eventId, status) => {
@@ -494,7 +502,10 @@ function EventDetailModal({
   checkedIn: boolean;
   event: CultureEvent | null;
   venue?: Venue | null;
-  onCheckIn: (event: CultureEvent) => boolean;
+  onCheckIn: (
+    event: CultureEvent,
+    location: { latitude: number; longitude: number },
+  ) => Promise<boolean>;
   onClose: () => void;
   onToggleStatus: (eventId: string, status: 'interested' | 'going') => void;
   status?: 'interested' | 'going';
@@ -556,12 +567,20 @@ function EventDetailModal({
 
   async function verifyVenueDistance() {
     if (!verifiedVenue) {
-      return { allowed: false, message: 'Venue location is missing for this event.' };
+      return {
+        allowed: false,
+        location: null,
+        message: 'Venue location is missing for this event.',
+      };
     }
 
     const permissionResult = await Location.requestForegroundPermissionsAsync();
     if (permissionResult.status !== 'granted') {
-      return { allowed: false, message: 'Location permission is needed to verify attendance.' };
+      return {
+        allowed: false,
+        location: null,
+        message: 'Location permission is needed to verify attendance.',
+      };
     }
 
     const position = await Location.getCurrentPositionAsync({
@@ -577,12 +596,17 @@ function EventDetailModal({
     if (distance > EVENT_CHECK_IN_RADIUS_METERS) {
       return {
         allowed: false,
+        location: null,
         message: `You need to be within 500m of ${verifiedVenue.name}. You are about ${formatDistance(distance)} away.`,
       };
     }
 
     return {
       allowed: true,
+      location: {
+        latitude: position.coords.latitude,
+        longitude: position.coords.longitude,
+      },
       message: `Location verified: ${formatDistance(distance)} from ${verifiedVenue.name}.`,
     };
   }
@@ -616,13 +640,19 @@ function EventDetailModal({
     }
 
     if (result.data === event.checkInCode) {
-      const didAwardXp = onCheckIn(event);
+      if (!locationResult.location) {
+        setScanMessage('Location could not be verified. Try scanning again.');
+        setTimeout(() => setScanLocked(false), 1400);
+        return;
+      }
+
+      const didAwardXp = await onCheckIn(event, locationResult.location);
       setScannerOpen(false);
       setScanMessage(null);
       setLocationMessage(
         didAwardXp
           ? `Attendance verified. ${event.xpBonus} XP has been added to your profile.`
-          : 'Attendance already confirmed. XP was already added for this event.',
+          : 'Attendance could not be confirmed, or XP was already added for this event.',
       );
       return;
     }

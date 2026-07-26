@@ -8,6 +8,10 @@ type AwardXpResponse = {
   xp_earned?: number;
 };
 
+type ConfirmEventAttendanceResponse = AwardXpResponse & {
+  distance_m?: number;
+};
+
 export async function fetchUserXp(userId: string) {
   const { data, error } = await supabase
     .from('profiles')
@@ -56,4 +60,57 @@ export async function awardUserXp({
     error: null,
     totalXp: typeof result.total_xp === 'number' ? result.total_xp : null,
   };
+}
+
+export async function confirmOrganizerEventAttendance({
+  checkInCode,
+  eventId,
+  userLatitude,
+  userLongitude,
+}: {
+  checkInCode: string;
+  eventId: string;
+  userLatitude: number;
+  userLongitude: number;
+}) {
+  const { data, error } = await supabase.rpc('confirm_organizer_event_attendance', {
+    _check_in_code: checkInCode,
+    _event_id: eventId,
+    _user_lat: userLatitude,
+    _user_lng: userLongitude,
+  });
+
+  if (error) {
+    return { duplicate: false, error: error.message, totalXp: null };
+  }
+
+  const result = data as ConfirmEventAttendanceResponse;
+
+  if (!result.success) {
+    return {
+      duplicate: false,
+      error: getAttendanceErrorMessage(result.error, result.distance_m),
+      totalXp: typeof result.total_xp === 'number' ? result.total_xp : null,
+    };
+  }
+
+  return {
+    duplicate: !!result.duplicate,
+    error: null,
+    totalXp: typeof result.total_xp === 'number' ? result.total_xp : null,
+  };
+}
+
+function getAttendanceErrorMessage(error?: string, distance?: number) {
+  if (error === 'not_authenticated') return 'Log in again to confirm attendance.';
+  if (error === 'event_unavailable') return 'This event is not available for check-in.';
+  if (error === 'wrong_code') return 'This QR code does not match this event.';
+  if (error === 'missing_location') return 'This event is missing venue location data.';
+  if (error === 'too_far') {
+    const distanceLabel =
+      typeof distance === 'number' ? ` You are about ${Math.round(distance)}m away.` : '';
+    return `You need to be within 500m of the venue.${distanceLabel}`;
+  }
+
+  return 'Could not confirm attendance. Try again.';
 }
