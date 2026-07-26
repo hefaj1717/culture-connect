@@ -79,30 +79,54 @@ export default function HomeScreen({
 }: HomeScreenProps) {
   const happeningNow = events.slice(0, 3);
   const activitySpots = useMemo(() => {
-    const venuesWithEvents = cityData.venues
+    const venueSpots = cityData.venues
       .map((venue) => {
-        const venueEvents = events.filter((event) => event.venueId === venue.id);
+        const venueEvents = events.filter(
+          (event) => event.venueId === venue.id || event.venueName === venue.name,
+        );
 
         return {
           id: venue.id,
           name: venue.name,
           address: venue.address,
           eventCount: venueEvents.length,
-          attendeeCount: venueEvents.reduce((total, event) => total + event.attendeeCount, 0),
+          attendeeCount:
+            venueEvents.reduce((total, event) => total + event.attendeeCount, 0) ||
+            Math.max(12, Math.round(venue.checkIns * 0.18)),
           nextEvent: venueEvents[0],
           coordinates: venue.coordinates,
         };
       })
-      .filter((spot) => spot.eventCount > 0);
+      .filter((spot) => !!spot.coordinates);
 
-    if (venuesWithEvents.length === 0) return [];
+    const eventOnlySpots = events
+      .filter(
+        (event) =>
+          event.venueCoordinates &&
+          !cityData.venues.some(
+            (venue) => venue.id === event.venueId || venue.name === event.venueName,
+          ),
+      )
+      .map((event) => ({
+        id: event.venueId,
+        name: event.venueName,
+        address: event.venueAddress ?? cityData.name,
+        eventCount: 1,
+        attendeeCount: event.attendeeCount,
+        nextEvent: event,
+        coordinates: event.venueCoordinates!,
+      }));
+
+    const mapSpots = [...venueSpots, ...eventOnlySpots];
+
+    if (mapSpots.length === 0) return [];
 
     const maxActivity = Math.max(
-      ...venuesWithEvents.map((spot) => spot.attendeeCount + spot.eventCount * 35),
+      ...mapSpots.map((spot) => spot.attendeeCount + spot.eventCount * 35),
       1,
     );
 
-    return venuesWithEvents
+    return mapSpots
       .map((spot) => {
         const activityScore = spot.attendeeCount + spot.eventCount * 35;
         const intensity = activityScore / maxActivity;
@@ -116,7 +140,7 @@ export default function HomeScreen({
         };
       })
       .sort((a, b) => b.activityScore - a.activityScore);
-  }, [cityData.venues, events]);
+  }, [cityData.name, cityData.venues, events]);
   const [selectedActivityId, setSelectedActivityId] = useState<string | null>(null);
   const selectedActivitySpot =
     activitySpots.find((spot) => spot.id === selectedActivityId) ?? activitySpots[0];
@@ -319,7 +343,7 @@ export default function HomeScreen({
           </ScrollView>
         </View>
 
-        {activitySpots.length > 0 && (
+        {activitySpots.length > 0 && selectedActivitySpot && (
           <View className="bg-white px-5 pb-8">
             <View className="mb-3 flex-row items-center justify-between">
               <Text className="text-[11px] font-semibold uppercase tracking-wide text-muted">
