@@ -469,11 +469,6 @@ export default function ProfileScreen({
           userXp={userXp}
         />
 
-        <UserActivitySection
-          history={userEventHistory}
-          onOpenAll={() => setActivityHistoryOpen(true)}
-        />
-
         <RewardsSection
           cityName={cityData.name}
           error={rewardsError}
@@ -513,6 +508,11 @@ export default function ProfileScreen({
             onOpenAll={() => setOrganizerHistoryOpen(true)}
           />
         )}
+
+        <UserActivitySection
+          history={userEventHistory}
+          onOpenAll={() => setActivityHistoryOpen(true)}
+        />
       </ScrollView>
 
       <AccountActionsModal
