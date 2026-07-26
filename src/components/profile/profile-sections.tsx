@@ -516,7 +516,14 @@ function HistoryFilterBar<T extends string>({
     <ScrollView
       horizontal
       showsHorizontalScrollIndicator={false}
-      contentContainerStyle={{ gap: 8, paddingHorizontal: 20, paddingTop: 8, paddingBottom: 8 }}
+      style={{ flexGrow: 0, height: 52, maxHeight: 52 }}
+      contentContainerStyle={{
+        alignItems: 'center',
+        gap: 8,
+        paddingHorizontal: 20,
+        paddingTop: 4,
+        paddingBottom: 8,
+      }}
     >
       {filters.map((filter) => {
         const active = activeKey === filter.key;
@@ -525,7 +532,7 @@ function HistoryFilterBar<T extends string>({
           <Pressable
             key={filter.key}
             onPress={() => onSelect(filter.key)}
-            className={`rounded-full px-4 py-2 ${
+            className={`h-9 justify-center rounded-full px-4 ${
               active ? 'bg-primary' : 'border border-gray-200 bg-gray-100'
             }`}
           >
