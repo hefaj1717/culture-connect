@@ -11,8 +11,9 @@ import {
   Users,
   UserRound,
 } from 'lucide-react-native';
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import {
+  Alert,
   Modal,
   Pressable,
   ScrollView,
@@ -21,6 +22,7 @@ import {
   useWindowDimensions,
   View,
 } from 'react-native';
+import * as Sharing from 'expo-sharing';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
   runOnJS,
@@ -30,6 +32,8 @@ import Animated, {
 } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
+import QRCode from 'react-native-qrcode-svg';
+import { captureRef } from 'react-native-view-shot';
 
 import { BrandImage } from '@/components/brand-image';
 import { PassportBadge, type AchievementBadge } from '@/components/profile/badges';
@@ -1139,80 +1143,227 @@ function HistoryEventDetail({
   stableModalTopInset: number;
   status?: UserEventStatus;
 }) {
+  const [qrPassOpen, setQrPassOpen] = useState(false);
+  const canShowOrganizerQr = organizerStatus === 'approved';
+
   return (
-    <ScrollView
-      className="flex-1"
-      contentContainerStyle={{ paddingBottom: 36 }}
-      showsVerticalScrollIndicator={false}
-    >
-      <View className="h-[260px] bg-gray-200">
-        <BrandImage
-          source={getEventImageSource(event)}
-          contentFit="cover"
-          style={StyleSheet.absoluteFillObject}
-          withTextGradient
+    <>
+      <ScrollView
+        className="flex-1"
+        contentContainerStyle={{ paddingBottom: 36 }}
+        showsVerticalScrollIndicator={false}
+      >
+        <View className="h-[260px] bg-gray-200">
+          <BrandImage
+            source={getEventImageSource(event)}
+            contentFit="cover"
+            style={StyleSheet.absoluteFillObject}
+            withTextGradient
+          >
+            <View className="absolute bottom-5 left-5 right-5">
+              <View className="mb-2 flex-row flex-wrap items-center gap-2">
+                <View className="rounded-full bg-white/90 px-2.5 py-1">
+                  <Text className="text-[11px] font-bold text-primary">
+                    {eventCategoryLabels[event.category]}
+                  </Text>
+                </View>
+                {status && <UserEventStatusPill status={status} />}
+                {organizerStatus && <OrganizerEventStatusPill status={organizerStatus} />}
+              </View>
+              <Text className="font-ui text-[28px] font-extrabold leading-8 text-white">
+                {event.title}
+              </Text>
+            </View>
+          </BrandImage>
+          <Pressable
+            onPress={onBack}
+            className="absolute left-5 h-10 w-10 items-center justify-center rounded-full bg-black/35 active:opacity-80"
+            style={{ top: stableModalTopInset + 6 }}
+          >
+            <ArrowLeft size={21} color="#FFFFFF" strokeWidth={2.6} />
+          </Pressable>
+        </View>
+
+        <View className="px-5 pt-5">
+          <View className="mb-5 gap-3 rounded-2xl border border-gray-200 bg-white p-4">
+            <HistoryInfoRow icon={<MapPin size={17} color="#7C3AED" />} label={event.venueName} />
+            <HistoryInfoRow
+              icon={<Clock size={17} color="#7C3AED" />}
+              label={`${event.date}, ${event.time}`}
+            />
+            <View className="flex-row gap-2">
+              <HistoryStatPill
+                icon={<Users size={15} color="#7C3AED" strokeWidth={2.4} />}
+                label="Interested"
+                value={getEventEngagement(event, status).interested}
+              />
+              <HistoryStatPill
+                icon={<CheckCircle2 size={15} color="#7C3AED" strokeWidth={2.4} />}
+                label="Attended"
+                value={getEventEngagement(event, status).attended}
+              />
+            </View>
+            <View className="rounded-2xl bg-primary/5 px-3 py-2.5">
+              <Text className="text-[13px] font-semibold text-primary">
+                +{event.xpBonus} XP after confirmed attendance
+              </Text>
+            </View>
+          </View>
+
+          <Text className="mb-2 font-ui text-[16px] font-extrabold text-ink">About this event</Text>
+          <Text className="mb-5 text-[14px] leading-5 text-ink/75">{event.description}</Text>
+
+          <View className="rounded-2xl border border-gray-200 bg-gray-50 p-4">
+            <Text className="text-[12px] font-semibold uppercase tracking-wide text-muted">
+              Organiser
+            </Text>
+            <Text className="mt-1 text-[15px] font-bold text-ink">{event.organizerName}</Text>
+            {canShowOrganizerQr && (
+              <Pressable
+                onPress={() => setQrPassOpen(true)}
+                className="mt-4 h-11 flex-row items-center justify-center rounded-xl bg-primary active:opacity-85"
+              >
+                <Text className="text-[14px] font-semibold text-white">Open check-in QR</Text>
+              </Pressable>
+            )}
+          </View>
+        </View>
+      </ScrollView>
+
+      <OrganizerEventQrModal
+        event={event}
+        onClose={() => setQrPassOpen(false)}
+        stableModalTopInset={stableModalTopInset}
+        visible={qrPassOpen}
+      />
+    </>
+  );
+}
+
+function OrganizerEventQrModal({
+  event,
+  onClose,
+  stableModalTopInset,
+  visible,
+}: {
+  event: CultureEvent;
+  onClose: () => void;
+  stableModalTopInset: number;
+  visible: boolean;
+}) {
+  const qrCardRef = useRef<View>(null);
+  const [sharing, setSharing] = useState(false);
+
+  async function shareQrPass() {
+    if (!qrCardRef.current || sharing) return;
+
+    setSharing(true);
+    try {
+      const uri = await captureRef(qrCardRef, {
+        fileName: `culturequest-${slugifyForFile(event.title)}-qr`,
+        format: 'png',
+        quality: 1,
+      });
+
+      const available = await Sharing.isAvailableAsync();
+      if (!available) {
+        Alert.alert('Sharing unavailable', 'This device cannot share files right now.');
+        return;
+      }
+
+      await Sharing.shareAsync(uri, {
+        dialogTitle: `Share check-in QR for ${event.title}`,
+        mimeType: 'image/png',
+        UTI: 'public.png',
+      });
+    } catch {
+      Alert.alert('Could not export QR', 'Try again in a moment.');
+    } finally {
+      setSharing(false);
+    }
+  }
+
+  return (
+    <Modal animationType="slide" onRequestClose={onClose} visible={visible}>
+      <SafeAreaView className="flex-1 bg-white" edges={['bottom']}>
+        <View className="bg-white px-5 pb-3" style={{ paddingTop: stableModalTopInset + 6 }}>
+          <Pressable
+            onPress={onClose}
+            className="h-10 w-10 items-center justify-center rounded-full bg-gray-100 active:opacity-80"
+          >
+            <ArrowLeft size={21} color="#756F7B" strokeWidth={2.6} />
+          </Pressable>
+        </View>
+
+        <ScrollView
+          className="flex-1"
+          contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 36, paddingTop: 12 }}
+          showsVerticalScrollIndicator={false}
         >
-          <View className="absolute bottom-5 left-5 right-5">
-            <View className="mb-2 flex-row flex-wrap items-center gap-2">
-              <View className="rounded-full bg-white/90 px-2.5 py-1">
-                <Text className="text-[11px] font-bold text-primary">
-                  {eventCategoryLabels[event.category]}
+          <View
+            ref={qrCardRef}
+            collapsable={false}
+            className="overflow-hidden rounded-[30px] bg-ink"
+            style={{ boxShadow: '0 14px 28px rgba(36, 28, 46, 0.14)' }}
+          >
+            <LinearGradient
+              colors={['rgba(124,58,237,0.88)', 'rgba(36,28,46,0.99)']}
+              end={{ x: 1, y: 1 }}
+              start={{ x: 0, y: 0 }}
+              style={{ padding: 24 }}
+            >
+              <Text className="text-[11px] font-extrabold uppercase tracking-[2px] text-white/60">
+                CultureQuest check-in
+              </Text>
+              <Text className="mt-2 font-heading text-[30px] font-extrabold leading-[34px] text-white">
+                {event.title}
+              </Text>
+              <Text className="mt-2 text-[14px] font-semibold leading-5 text-white/72">
+                {event.venueName} · {event.date}, {event.time}
+              </Text>
+
+              <View className="mt-7 items-center rounded-[28px] bg-white p-6">
+                <QRCode
+                  backgroundColor="#FFFFFF"
+                  color={Colors.light.ink}
+                  size={220}
+                  value={event.checkInCode}
+                />
+                <Text className="mt-5 text-center text-[11px] font-extrabold uppercase tracking-[1.8px] text-muted">
+                  Backup code
+                </Text>
+                <Text className="mt-1 text-center font-ui text-[22px] font-extrabold tracking-[2px] text-ink">
+                  {event.checkInCode}
                 </Text>
               </View>
-              {status && <UserEventStatusPill status={status} />}
-              {organizerStatus && <OrganizerEventStatusPill status={organizerStatus} />}
-            </View>
-            <Text className="font-ui text-[28px] font-extrabold leading-8 text-white">
-              {event.title}
+
+              <Text className="mt-5 text-center text-[12px] leading-5 text-white/62">
+                Place this card at the venue entrance. Students must scan it in CultureQuest while
+                they are within 500m of the venue.
+              </Text>
+            </LinearGradient>
+          </View>
+
+          <View className="mt-4 rounded-2xl border border-gray-200 bg-white p-4">
+            <Text className="font-ui text-[15px] font-extrabold text-ink">Organizer note</Text>
+            <Text className="mt-1 text-[13px] leading-5 text-muted">
+              Share this PNG with the venue, save it to Files, or print it from the iOS share sheet.
+              The QR code contains only the event check-in code.
             </Text>
           </View>
-        </BrandImage>
-        <Pressable
-          onPress={onBack}
-          className="absolute left-5 h-10 w-10 items-center justify-center rounded-full bg-black/35 active:opacity-80"
-          style={{ top: stableModalTopInset + 6 }}
-        >
-          <ArrowLeft size={21} color="#FFFFFF" strokeWidth={2.6} />
-        </Pressable>
-      </View>
 
-      <View className="px-5 pt-5">
-        <View className="mb-5 gap-3 rounded-2xl border border-gray-200 bg-white p-4">
-          <HistoryInfoRow icon={<MapPin size={17} color="#7C3AED" />} label={event.venueName} />
-          <HistoryInfoRow
-            icon={<Clock size={17} color="#7C3AED" />}
-            label={`${event.date}, ${event.time}`}
-          />
-          <View className="flex-row gap-2">
-            <HistoryStatPill
-              icon={<Users size={15} color="#7C3AED" strokeWidth={2.4} />}
-              label="Interested"
-              value={getEventEngagement(event, status).interested}
-            />
-            <HistoryStatPill
-              icon={<CheckCircle2 size={15} color="#7C3AED" strokeWidth={2.4} />}
-              label="Attended"
-              value={getEventEngagement(event, status).attended}
-            />
-          </View>
-          <View className="rounded-2xl bg-primary/5 px-3 py-2.5">
-            <Text className="text-[13px] font-semibold text-primary">
-              +{event.xpBonus} XP after confirmed attendance
+          <Pressable
+            disabled={sharing}
+            onPress={shareQrPass}
+            className="mt-4 h-[52px] flex-row items-center justify-center rounded-2xl bg-primary active:opacity-85 disabled:opacity-60"
+          >
+            <Text className="text-[15px] font-extrabold text-white">
+              {sharing ? 'Preparing PNG...' : 'Share / save PNG'}
             </Text>
-          </View>
-        </View>
-
-        <Text className="mb-2 font-ui text-[16px] font-extrabold text-ink">About this event</Text>
-        <Text className="mb-5 text-[14px] leading-5 text-ink/75">{event.description}</Text>
-
-        <View className="rounded-2xl border border-gray-200 bg-gray-50 p-4">
-          <Text className="text-[12px] font-semibold uppercase tracking-wide text-muted">
-            Organiser
-          </Text>
-          <Text className="mt-1 text-[15px] font-bold text-ink">{event.organizerName}</Text>
-        </View>
-      </View>
-    </ScrollView>
+          </Pressable>
+        </ScrollView>
+      </SafeAreaView>
+    </Modal>
   );
 }
 
@@ -1222,6 +1373,16 @@ function HistoryInfoRow({ icon, label }: { icon: ReactNode; label: string }) {
       <View className="h-8 w-8 items-center justify-center rounded-full bg-primary/10">{icon}</View>
       <Text className="flex-1 text-[13px] font-medium text-ink/75">{label}</Text>
     </View>
+  );
+}
+
+function slugifyForFile(value: string) {
+  return (
+    value
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .slice(0, 48) || 'event'
   );
 }
 
