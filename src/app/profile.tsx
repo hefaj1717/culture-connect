@@ -20,13 +20,7 @@ import {
   RewardsSection,
 } from '@/components/profile/profile-sections';
 import { RewardDetailModal } from '@/components/profile/reward-detail-modal';
-import {
-  type CityId,
-  type CultureEvent,
-  type RewardPartner,
-  defaultCityId,
-  getCultureCityData,
-} from '@/data/culture';
+import { type CityId, type RewardPartner, defaultCityId, getCultureCityData } from '@/data/culture';
 import { achievementBadges, getXpLevelProgress } from '@/data/profile';
 import { useCreateEventForm } from '@/hooks/profile/use-create-event-form';
 import { useCreateRewardForm } from '@/hooks/profile/use-create-reward-form';
@@ -40,7 +34,6 @@ import { useAuth } from '@/providers/auth-provider';
 type ProfileScreenProps = {
   eventsRefreshKey?: number;
   onEventCreated?: () => void;
-  onOpenEvent?: (event: CultureEvent) => void;
   onRewardCreated?: () => void;
   rewardsRefreshKey?: number;
   userEventHistory?: UserEventHistoryItem[];
@@ -50,7 +43,6 @@ type ProfileScreenProps = {
 export default function ProfileScreen({
   eventsRefreshKey = 0,
   onEventCreated,
-  onOpenEvent,
   onRewardCreated,
   rewardsRefreshKey = 0,
   userEventHistory = [],
@@ -555,10 +547,6 @@ export default function ProfileScreen({
       <UserActivityHistoryModal
         history={userEventHistory}
         onClose={() => setActivityHistoryOpen(false)}
-        onOpenEvent={(event) => {
-          setActivityHistoryOpen(false);
-          onOpenEvent?.(event);
-        }}
         stableModalTopInset={stableModalTopInset}
         visible={activityHistoryOpen}
       />
@@ -566,10 +554,6 @@ export default function ProfileScreen({
       <OrganizerEventHistoryModal
         events={myOrganizerEvents}
         onClose={() => setOrganizerHistoryOpen(false)}
-        onOpenEvent={(event) => {
-          setOrganizerHistoryOpen(false);
-          onOpenEvent?.(event);
-        }}
         stableModalTopInset={stableModalTopInset}
         visible={organizerHistoryOpen}
       />
