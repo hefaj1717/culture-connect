@@ -72,7 +72,6 @@ function AuthenticatedTabs() {
     eventId: string;
     nonce: number;
   } | null>(null);
-  const [eventOpenOverride, setEventOpenOverride] = useState<CultureEvent | null>(null);
   const translateX = useSharedValue(-activeIndex * width);
   const startX = useSharedValue(0);
   const metadataName = [user?.user_metadata?.first_name, user?.user_metadata?.last_name]
@@ -137,8 +136,7 @@ function AuthenticatedTabs() {
     translateX.value = withTiming(-index * width, { duration: 220 });
   }
 
-  function openDiscoverEvent(eventId: string, eventOverride?: CultureEvent) {
-    setEventOpenOverride(eventOverride ?? null);
+  function openDiscoverEvent(eventId: string) {
     setEventOpenRequest({ eventId, nonce: Date.now() });
     goToTab(1);
   }
@@ -254,7 +252,6 @@ function AuthenticatedTabs() {
               checkedInEventIds={checkedInEventIds}
               cityData={cityData}
               events={approvedEvents}
-              eventOpenOverride={eventOpenOverride}
               eventsRefreshKey={organizerEventsVersion}
               eventStatuses={eventStatuses}
               onEventCheckIn={awardEventCheckInXp}
@@ -276,7 +273,6 @@ function AuthenticatedTabs() {
               rewardsRefreshKey={rewardsRefreshKey}
               userEventHistory={userEventHistory}
               userXp={userXp}
-              onOpenEvent={(event) => openDiscoverEvent(event.id, event)}
               onEventCreated={() => {
                 setOrganizerEventsVersion((version) => version + 1);
               }}
