@@ -318,59 +318,51 @@ export function UserActivityHistoryModal({
   return (
     <Modal animationType="slide" onRequestClose={onClose} visible={visible}>
       <SafeAreaView className="flex-1 bg-white" edges={['bottom']}>
-        <View
-          className="border-b border-gray-200 bg-white px-5 pb-4"
-          style={{ paddingTop: stableModalTopInset + 10 }}
-        >
-          <View className="flex-row items-center justify-between">
-            <Pressable
-              onPress={() => {
-                if (selectedEvent) {
-                  setSelectedEvent(null);
-                  return;
-                }
-
-                onClose();
-              }}
-              className="h-10 w-10 items-center justify-center rounded-full bg-gray-100 active:opacity-80"
-            >
-              <ArrowLeft size={21} color="#756F7B" strokeWidth={2.6} />
-            </Pressable>
-            <View className="items-end">
-              <Text className="font-heading text-[24px] font-extrabold text-ink">
-                {selectedEvent ? 'Event' : 'My activity'}
-              </Text>
-              <Text className="text-[11px] font-semibold text-muted">
-                {selectedEvent ? selectedEvent.venueName : `${history.length} events`}
-              </Text>
-            </View>
-          </View>
-        </View>
-
         {selectedEvent ? (
-          <HistoryEventDetail event={selectedEvent} status={selectedHistoryItem?.status} />
+          <HistoryEventDetail
+            event={selectedEvent}
+            onBack={() => setSelectedEvent(null)}
+            stableModalTopInset={stableModalTopInset}
+            status={selectedHistoryItem?.status}
+          />
         ) : (
-          <ScrollView
-            className="flex-1"
-            contentContainerStyle={{ gap: 12, padding: 20, paddingBottom: 36 }}
-            showsVerticalScrollIndicator={false}
-          >
-            {history.length === 0 ? (
-              <HistoryEmptyState
-                body="Events you mark as Interested, Going, or Attended will appear here."
-                title="No saved events yet"
-              />
-            ) : (
-              history.map((item) => (
-                <EventHistoryRow
-                  event={item.event}
-                  key={`${item.event.id}-${item.status}-full`}
-                  onPress={() => setSelectedEvent(item.event)}
-                  status={item.status}
+          <>
+            <View className="bg-white px-5 pb-2" style={{ paddingTop: stableModalTopInset + 6 }}>
+              <Pressable
+                onPress={onClose}
+                className="h-10 w-10 items-center justify-center rounded-full bg-gray-100 active:opacity-80"
+              >
+                <ArrowLeft size={21} color="#756F7B" strokeWidth={2.6} />
+              </Pressable>
+            </View>
+
+            <ScrollView
+              className="flex-1"
+              contentContainerStyle={{
+                gap: 12,
+                paddingHorizontal: 20,
+                paddingTop: 12,
+                paddingBottom: 36,
+              }}
+              showsVerticalScrollIndicator={false}
+            >
+              {history.length === 0 ? (
+                <HistoryEmptyState
+                  body="Events you mark as Interested, Going, or Attended will appear here."
+                  title="No saved events yet"
                 />
-              ))
-            )}
-          </ScrollView>
+              ) : (
+                history.map((item) => (
+                  <EventHistoryRow
+                    event={item.event}
+                    key={`${item.event.id}-${item.status}-full`}
+                    onPress={() => setSelectedEvent(item.event)}
+                    status={item.status}
+                  />
+                ))
+              )}
+            </ScrollView>
+          </>
         )}
       </SafeAreaView>
     </Modal>
@@ -393,58 +385,50 @@ export function OrganizerEventHistoryModal({
   return (
     <Modal animationType="slide" onRequestClose={onClose} visible={visible}>
       <SafeAreaView className="flex-1 bg-white" edges={['bottom']}>
-        <View
-          className="border-b border-gray-200 bg-white px-5 pb-4"
-          style={{ paddingTop: stableModalTopInset + 10 }}
-        >
-          <View className="flex-row items-center justify-between">
-            <Pressable
-              onPress={() => {
-                if (selectedEvent) {
-                  setSelectedEvent(null);
-                  return;
-                }
-
-                onClose();
-              }}
-              className="h-10 w-10 items-center justify-center rounded-full bg-gray-100 active:opacity-80"
-            >
-              <ArrowLeft size={21} color="#756F7B" strokeWidth={2.6} />
-            </Pressable>
-            <View className="items-end">
-              <Text className="font-heading text-[24px] font-extrabold text-ink">
-                {selectedEvent ? 'Event' : 'My events'}
-              </Text>
-              <Text className="text-[11px] font-semibold text-muted">
-                {selectedEvent ? selectedEvent.venueName : `${events.length} submitted`}
-              </Text>
-            </View>
-          </View>
-        </View>
-
         {selectedEvent ? (
-          <HistoryEventDetail event={selectedEvent} organizerStatus={selectedEvent.reviewStatus} />
+          <HistoryEventDetail
+            event={selectedEvent}
+            onBack={() => setSelectedEvent(null)}
+            organizerStatus={selectedEvent.reviewStatus}
+            stableModalTopInset={stableModalTopInset}
+          />
         ) : (
-          <ScrollView
-            className="flex-1"
-            contentContainerStyle={{ gap: 12, padding: 20, paddingBottom: 36 }}
-            showsVerticalScrollIndicator={false}
-          >
-            {events.length === 0 ? (
-              <HistoryEmptyState
-                body="Events you submit for review will appear here with their approval status."
-                title="No organizer events yet"
-              />
-            ) : (
-              events.map((event) => (
-                <OrganizerEventRow
-                  event={event}
-                  key={`${event.id}-full`}
-                  onPress={() => setSelectedEvent(event)}
+          <>
+            <View className="bg-white px-5 pb-2" style={{ paddingTop: stableModalTopInset + 6 }}>
+              <Pressable
+                onPress={onClose}
+                className="h-10 w-10 items-center justify-center rounded-full bg-gray-100 active:opacity-80"
+              >
+                <ArrowLeft size={21} color="#756F7B" strokeWidth={2.6} />
+              </Pressable>
+            </View>
+
+            <ScrollView
+              className="flex-1"
+              contentContainerStyle={{
+                gap: 12,
+                paddingHorizontal: 20,
+                paddingTop: 12,
+                paddingBottom: 36,
+              }}
+              showsVerticalScrollIndicator={false}
+            >
+              {events.length === 0 ? (
+                <HistoryEmptyState
+                  body="Events you submit for review will appear here with their approval status."
+                  title="No organizer events yet"
                 />
-              ))
-            )}
-          </ScrollView>
+              ) : (
+                events.map((event) => (
+                  <OrganizerEventRow
+                    event={event}
+                    key={`${event.id}-full`}
+                    onPress={() => setSelectedEvent(event)}
+                  />
+                ))
+              )}
+            </ScrollView>
+          </>
         )}
       </SafeAreaView>
     </Modal>
@@ -538,11 +522,15 @@ function OrganizerEventRow({
 
 function HistoryEventDetail({
   event,
+  onBack,
   organizerStatus,
+  stableModalTopInset,
   status,
 }: {
   event: CultureEvent;
+  onBack: () => void;
   organizerStatus?: OrganizerEventStatus;
+  stableModalTopInset: number;
   status?: UserEventStatus;
 }) {
   return (
@@ -573,6 +561,13 @@ function HistoryEventDetail({
             </Text>
           </View>
         </BrandImage>
+        <Pressable
+          onPress={onBack}
+          className="absolute left-5 h-10 w-10 items-center justify-center rounded-full bg-black/35 active:opacity-80"
+          style={{ top: stableModalTopInset + 6 }}
+        >
+          <ArrowLeft size={21} color="#FFFFFF" strokeWidth={2.6} />
+        </Pressable>
       </View>
 
       <View className="px-5 pt-5">
