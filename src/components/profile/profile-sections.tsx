@@ -4,8 +4,11 @@ import {
   CheckCircle2,
   ChevronRight,
   Clock,
+  LogOut,
   MapPin,
+  Settings,
   Users,
+  UserRound,
 } from 'lucide-react-native';
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 import {
@@ -69,6 +72,7 @@ type ProfileRankCardProps = {
   cityLabel: string;
   fullName: string;
   levelProgress: LevelProgress;
+  onOpenSettings: () => void;
   organizerStatus: OrganizerStatus;
   userXp: number;
 };
@@ -79,6 +83,7 @@ export function ProfileRankCard({
   cityLabel,
   fullName,
   levelProgress,
+  onOpenSettings,
   organizerStatus,
   userXp,
 }: ProfileRankCardProps) {
@@ -92,10 +97,17 @@ export function ProfileRankCard({
         />
 
         <View className="min-w-0 flex-1">
-          <View className="mb-1">
+          <View className="mb-1 flex-row items-start justify-between gap-2">
             <Text className="font-heading text-[31px] font-extrabold leading-[35px] text-ink">
               {fullName}
             </Text>
+            <Pressable
+              accessibilityLabel="Open profile settings"
+              onPress={onOpenSettings}
+              className="h-10 w-10 items-center justify-center rounded-full bg-canvas active:opacity-80"
+            >
+              <Settings size={19} color="#756F7B" strokeWidth={2.4} />
+            </Pressable>
           </View>
           {organizerStatus === 'approved' && (
             <View className="mb-2">
@@ -139,6 +151,69 @@ export function ProfileRankCard({
         </View>
       </View>
     </View>
+  );
+}
+
+type AccountActionsModalProps = {
+  onClose: () => void;
+  onEdit: () => void;
+  onSignOut: () => void;
+  visible: boolean;
+};
+
+export function AccountActionsModal({
+  onClose,
+  onEdit,
+  onSignOut,
+  visible,
+}: AccountActionsModalProps) {
+  return (
+    <Modal animationType="fade" transparent visible={visible} onRequestClose={onClose}>
+      <Pressable className="flex-1 justify-end bg-ink/25 px-5 pb-8" onPress={onClose}>
+        <Pressable
+          className="rounded-[28px] border border-gray-200 bg-white p-3"
+          onPress={(event) => event.stopPropagation()}
+        >
+          <View className="mb-2 h-1.5 w-10 self-center rounded-full bg-gray-200" />
+          <Pressable
+            onPress={() => {
+              onClose();
+              onEdit();
+            }}
+            className="flex-row items-center gap-3 rounded-2xl px-3 py-4 active:bg-primary/5"
+          >
+            <View className="h-10 w-10 items-center justify-center rounded-full bg-primary/10">
+              <UserRound size={18} color="#7C3AED" strokeWidth={2.4} />
+            </View>
+            <View className="flex-1">
+              <Text className="font-ui text-[15px] font-extrabold text-ink">Edit profile</Text>
+              <Text className="mt-0.5 text-[12px] text-muted">Name, city, and profile photo</Text>
+            </View>
+            <ChevronRight size={17} color="#756F7B" strokeWidth={2.4} />
+          </Pressable>
+
+          <View className="mx-3 h-px bg-gray-100" />
+
+          <Pressable
+            onPress={() => {
+              onClose();
+              onSignOut();
+            }}
+            className="flex-row items-center gap-3 rounded-2xl px-3 py-4 active:bg-destructive/5"
+          >
+            <View className="h-10 w-10 items-center justify-center rounded-full bg-gray-100">
+              <LogOut size={18} color="#756F7B" strokeWidth={2.4} />
+            </View>
+            <View className="flex-1">
+              <Text className="font-ui text-[15px] font-extrabold text-ink">Log out</Text>
+              <Text className="mt-0.5 text-[12px] text-muted">
+                Leave this account on this device
+              </Text>
+            </View>
+          </Pressable>
+        </Pressable>
+      </Pressable>
+    </Modal>
   );
 }
 
@@ -1025,11 +1100,18 @@ type RewardsSectionProps = {
   error?: string | null;
   onSelectReward: (reward: RewardPartner) => void;
   rewards: RewardPartner[];
+  userXp: number;
 };
 
-export function RewardsSection({ cityName, error, onSelectReward, rewards }: RewardsSectionProps) {
+export function RewardsSection({
+  cityName,
+  error,
+  onSelectReward,
+  rewards,
+  userXp,
+}: RewardsSectionProps) {
   return (
-    <View className="px-5">
+    <View className="mb-6 px-5">
       <View className="mb-3 flex-row items-center justify-between">
         <Text className="font-heading text-[22px] font-extrabold text-ink">Rewards</Text>
         <Text className="text-[11px] font-semibold text-primary">{cityName}</Text>
@@ -1060,6 +1142,7 @@ export function RewardsSection({ cityName, error, onSelectReward, rewards }: Rew
             key={reward.id}
             reward={reward}
             onPress={() => onSelectReward(reward)}
+            userXp={userXp}
             variantIndex={index}
           />
         ))}
