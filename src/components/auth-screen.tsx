@@ -272,7 +272,7 @@ export function AuthScreen() {
         className="flex-1"
         contentContainerStyle={{ flexGrow: 1 }}
         keyboardDismissMode="on-drag"
-        keyboardShouldPersistTaps="always"
+        keyboardShouldPersistTaps="handled"
       >
         <View className="flex-1 bg-white">
           <BrandImage
@@ -367,14 +367,23 @@ export function AuthScreen() {
                 <FormFieldError message={fieldErrors.lastName} />
                 <Text className="mb-2 text-[13px] font-semibold text-ink">City</Text>
                 <View className="mb-4">
-                  <CitySelector value={cityId} onChange={setCityId} />
+                  <CitySelector
+                    value={cityId}
+                    onChange={(nextCityId) => {
+                      Keyboard.dismiss();
+                      setCityId(nextCityId);
+                    }}
+                  />
                 </View>
 
                 <Pressable
                   accessibilityRole="checkbox"
                   accessibilityState={{ checked: applyAsOrganizer }}
                   accessibilityLabel="Apply as an organizer"
-                  onPress={() => setApplyAsOrganizer((current) => !current)}
+                  onPress={() => {
+                    Keyboard.dismiss();
+                    setApplyAsOrganizer((current) => !current);
+                  }}
                   className={`mb-4 flex-row items-center gap-3 rounded-xl border p-4 active:opacity-85 ${
                     applyAsOrganizer ? 'border-primary bg-primary/10' : 'border-gray-300 bg-white'
                   }`}
@@ -432,7 +441,10 @@ export function AuthScreen() {
                             accessibilityRole="radio"
                             accessibilityState={{ checked: active }}
                             accessibilityLabel={`Organizer type: ${type.label}`}
-                            onPress={() => setInstitutionType(type.key)}
+                            onPress={() => {
+                              Keyboard.dismiss();
+                              setInstitutionType(type.key);
+                            }}
                             className={`rounded-xl border px-3 py-2 active:opacity-85 ${
                               active ? 'border-primary bg-white' : 'border-gray-200 bg-white/70'
                             }`}
