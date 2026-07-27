@@ -48,6 +48,7 @@ import { getEventEngagement } from '@/lib/event-engagement';
 import { fetchOrganizerEvents } from '@/lib/organizer-events';
 import {
   fetchOrganizerProfiles,
+  organizerProfileFromEvent,
   type OrganizerProfile,
 } from '@/lib/organizer-profiles';
 import { useStableTopInset } from '@/hooks/use-stable-safe-area';
@@ -106,8 +107,9 @@ export default function ExploreScreen({
   const [organizerProfiles, setOrganizerProfiles] = useState<OrganizerProfile[]>([]);
   const [organizerProfilesError, setOrganizerProfilesError] = useState<string | null>(null);
   const [organizerProfilesLoading, setOrganizerProfilesLoading] = useState(false);
-  const [selectedOrganizerProfile, setSelectedOrganizerProfile] =
-    useState<OrganizerProfile | null>(null);
+  const [selectedOrganizerProfile, setSelectedOrganizerProfile] = useState<OrganizerProfile | null>(
+    null,
+  );
   const { venues } = cityData;
   const hasApprovedEventsProp = approvedEventsProp !== undefined;
   const allEvents = approvedEventsProp ?? organizerEvents;
@@ -283,6 +285,16 @@ export default function ExploreScreen({
     selectedEventStatus === 'interested' || selectedEventStatus === 'going'
       ? selectedEventStatus
       : undefined;
+  const selectedEventOrganizerProfile = useMemo(() => {
+    if (!selectedEvent) {
+      return null;
+    }
+
+    return (
+      displayedOrganizerProfiles.find((profile) => profile.id === selectedEvent.organizerId) ??
+      organizerProfileFromEvent(selectedEvent)
+    );
+  }, [displayedOrganizerProfiles, selectedEvent]);
 
   return (
     <View className="flex-1 bg-white">
@@ -544,9 +556,7 @@ export default function ExploreScreen({
               </View>
             ) : filteredOrganizerProfiles.length === 0 ? (
               <View className="rounded-3xl border border-primary/10 bg-canvas p-5">
-                <Text className="font-display text-[26px] text-ink">
-                  No organizers yet
-                </Text>
+                <Text className="font-display text-[26px] text-ink">No organizers yet</Text>
                 <Text className="mt-1 text-[13px] leading-5 text-muted">
                   Approved organiser profiles for {cityData.name} will appear here.
                 </Text>
@@ -615,6 +625,11 @@ export default function ExploreScreen({
           return didConfirm;
         }}
         onClose={() => setSelectedEvent(null)}
+        onOpenOrganizer={(profile) => {
+          setSelectedEvent(null);
+          setSelectedOrganizerProfile(profile);
+        }}
+        organizerProfile={selectedEventOrganizerProfile}
         onToggleStatus={(eventId, status) => {
           onEventStatusChange?.(eventId, eventStatuses[eventId] === status ? null : status);
         }}
@@ -622,6 +637,11 @@ export default function ExploreScreen({
       />
       <OrganizerProfileModal
         cityName={cityData.name}
+        events={allEvents}
+        onOpenEvent={(event) => {
+          setSelectedOrganizerProfile(null);
+          setSelectedEvent(event);
+        }}
         onClose={() => setSelectedOrganizerProfile(null)}
         profile={selectedOrganizerProfile}
       />
@@ -631,10 +651,14 @@ export default function ExploreScreen({
 
 function OrganizerProfileModal({
   cityName,
+  events,
+  onOpenEvent,
   onClose,
   profile,
 }: {
   cityName: string;
+  events: CultureEvent[];
+  onOpenEvent: (event: CultureEvent) => void;
   onClose: () => void;
   profile: OrganizerProfile | null;
 }) {
@@ -673,11 +697,42 @@ function OrganizerProfileModal({
   const swipeStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: translateX.value }],
   }));
+  const organizerEvents = useMemo(() => {
+    if (!profile) {
+      return [];
+    }
+
+    return events.filter((event) => event.organizerId === profile.id);
+  }, [events, profile]);
+  const upcomingEvents = useMemo(() => {
+    const now = Date.now();
+
+    return organizerEvents.filter((event) => {
+      const endTime = event.endsAt ? Date.parse(event.endsAt) : null;
+      return !endTime || Number.isNaN(endTime) || endTime >= now;
+    });
+  }, [organizerEvents]);
+  const previousEvents = useMemo(() => {
+    const now = Date.now();
+
+    return organizerEvents.filter((event) => {
+      const endTime = event.endsAt ? Date.parse(event.endsAt) : null;
+      return !!endTime && !Number.isNaN(endTime) && endTime < now;
+    });
+  }, [organizerEvents]);
 
   function closeWithAnimation() {
     translateX.value = withTiming(width, { duration: 180 }, (finished) => {
       if (finished) {
         runOnJS(onClose)();
+      }
+    });
+  }
+
+  function openOrganizerEvent(event: CultureEvent) {
+    translateX.value = withTiming(width, { duration: 180 }, (finished) => {
+      if (finished) {
+        runOnJS(onOpenEvent)(event);
       }
     });
   }
@@ -752,11 +807,100 @@ function OrganizerProfileModal({
                   </View>
                 </View>
               </View>
+
+              <View className="mt-7">
+                <View className="mb-3 flex-row items-end justify-between">
+                  <Text className="font-display text-[30px] leading-9 text-ink">Events</Text>
+                  <Text className="pb-1 text-[12px] font-semibold uppercase tracking-wide text-muted">
+                    {organizerEvents.length} total
+                  </Text>
+                </View>
+
+                <OrganizerEventGroup
+                  emptyLabel="No upcoming events yet."
+                  events={upcomingEvents}
+                  onPress={openOrganizerEvent}
+                  title="Upcoming"
+                />
+                <OrganizerEventGroup
+                  emptyLabel="No previous events yet."
+                  events={previousEvents}
+                  onPress={openOrganizerEvent}
+                  title="Previous"
+                />
+              </View>
             </View>
           </ScrollView>
         </Animated.View>
       </GestureDetector>
     </Modal>
+  );
+}
+
+function OrganizerEventGroup({
+  emptyLabel,
+  events,
+  onPress,
+  title,
+}: {
+  emptyLabel: string;
+  events: CultureEvent[];
+  onPress: (event: CultureEvent) => void;
+  title: string;
+}) {
+  return (
+    <View className="mb-5">
+      <Text className="mb-2 text-[11px] font-bold uppercase tracking-[2px] text-muted">
+        {title}
+      </Text>
+      {events.length === 0 ? (
+        <View className="rounded-3xl border border-gray-200 bg-gray-50 p-4">
+          <Text className="text-[13px] font-medium text-muted">{emptyLabel}</Text>
+        </View>
+      ) : (
+        <View className="gap-3">
+          {events.map((event) => (
+            <OrganizerProfileEventRow key={event.id} event={event} onPress={() => onPress(event)} />
+          ))}
+        </View>
+      )}
+    </View>
+  );
+}
+
+function OrganizerProfileEventRow({
+  event,
+  onPress,
+}: {
+  event: CultureEvent;
+  onPress: () => void;
+}) {
+  return (
+    <Pressable
+      onPress={onPress}
+      className="flex-row items-center gap-3 rounded-3xl border border-primary/10 bg-white p-3 active:opacity-85"
+      style={CardStyles.compact}
+    >
+      <View className="h-[72px] w-[72px] overflow-hidden rounded-2xl bg-gray-200">
+        <BrandImage
+          source={getEventImageSource(event)}
+          contentFit="cover"
+          style={StyleSheet.absoluteFillObject}
+        />
+      </View>
+      <View className="min-w-0 flex-1">
+        <Text className="mb-1 text-[11px] font-bold uppercase tracking-wide text-muted">
+          {event.date} · {formatEventTimeRange(event)}
+        </Text>
+        <Text className="font-ui text-[15px] font-extrabold text-ink" numberOfLines={1}>
+          {event.title}
+        </Text>
+        <Text className="mt-1 text-[12px] text-muted" numberOfLines={1}>
+          {event.venueName}
+        </Text>
+      </View>
+      <ChevronRight size={18} color="#756F7B" />
+    </Pressable>
   );
 }
 
@@ -808,6 +952,8 @@ function EventDetailModal({
   venue,
   onCheckIn,
   onClose,
+  onOpenOrganizer,
+  organizerProfile,
   onToggleStatus,
   status,
 }: {
@@ -819,6 +965,8 @@ function EventDetailModal({
     location: { latitude: number; longitude: number },
   ) => Promise<boolean>;
   onClose: () => void;
+  onOpenOrganizer: (profile: OrganizerProfile) => void;
+  organizerProfile?: OrganizerProfile | null;
   onToggleStatus: (eventId: string, status: 'interested' | 'going') => void;
   status?: 'interested' | 'going';
 }) {
@@ -868,6 +1016,18 @@ function EventDetailModal({
     translateX.value = withTiming(width, { duration: 180 }, (finished) => {
       if (finished) {
         runOnJS(onClose)();
+      }
+    });
+  }
+
+  function openOrganizerProfile() {
+    if (!organizerProfile) {
+      return;
+    }
+
+    translateX.value = withTiming(width, { duration: 180 }, (finished) => {
+      if (finished) {
+        runOnJS(onOpenOrganizer)(organizerProfile);
       }
     });
   }
@@ -1097,15 +1257,39 @@ function EventDetailModal({
                 </Text>
                 <Text className="mb-5 text-[14px] leading-5 text-ink/75">{event.description}</Text>
 
-                <View className="mb-5 rounded-2xl border border-gray-200 bg-gray-50 p-4">
-                  <Text className="text-[12px] font-semibold uppercase tracking-wide text-muted">
-                    Organiser
-                  </Text>
-                  <Text className="mt-1 text-[15px] font-bold text-ink">{event.organizerName}</Text>
-                  <Text className="mt-1 text-[12px] leading-4 text-muted">
-                    This organiser can post updates to everyone marked Interested or Going.
-                  </Text>
-                </View>
+                {organizerProfile ? (
+                  <Pressable
+                    onPress={openOrganizerProfile}
+                    className="mb-5 flex-row items-center gap-3 rounded-2xl border border-primary/10 bg-primary/5 p-4 active:opacity-85"
+                  >
+                    <OrganizerAvatar profile={organizerProfile} size={46} />
+                    <View className="min-w-0 flex-1">
+                      <Text className="text-[12px] font-semibold uppercase tracking-wide text-muted">
+                        Organizer
+                      </Text>
+                      <Text className="mt-1 text-[15px] font-bold text-ink" numberOfLines={1}>
+                        {organizerProfile.name}
+                      </Text>
+                      <Text className="mt-1 text-[12px] leading-4 text-muted" numberOfLines={2}>
+                        {organizerProfile.locationName ??
+                          'Tap to view this organizer profile and events.'}
+                      </Text>
+                    </View>
+                    <ChevronRight size={18} color="#7C3AED" />
+                  </Pressable>
+                ) : (
+                  <View className="mb-5 rounded-2xl border border-gray-200 bg-gray-50 p-4">
+                    <Text className="text-[12px] font-semibold uppercase tracking-wide text-muted">
+                      Organizer
+                    </Text>
+                    <Text className="mt-1 text-[15px] font-bold text-ink">
+                      {event.organizerName}
+                    </Text>
+                    <Text className="mt-1 text-[12px] leading-4 text-muted">
+                      This organizer can post updates to everyone marked Interested or Going.
+                    </Text>
+                  </View>
+                )}
 
                 {checkedIn ? (
                   <View className="rounded-2xl bg-success/10 p-4">

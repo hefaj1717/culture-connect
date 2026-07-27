@@ -1,4 +1,4 @@
-import type { CityId } from '@/data/culture';
+import type { CityId, CultureEvent } from '@/data/culture';
 import { supabase } from '@/lib/supabase';
 
 export type OrganizerProfile = {
@@ -41,6 +41,45 @@ export async function fetchOrganizerProfiles(cityId: CityId) {
   return {
     error: null,
     profiles: ((data ?? []) as OrganizerProfileRow[]).map(mapOrganizerProfileRow),
+  };
+}
+
+export async function fetchOrganizerProfilesByIds(ids: string[]) {
+  const uniqueIds = [...new Set(ids.filter(Boolean))];
+
+  if (uniqueIds.length === 0) {
+    return { error: null, profiles: [] as OrganizerProfile[] };
+  }
+
+  const { data, error } = await supabase
+    .from('organizer_directory_profiles')
+    .select(ORGANIZER_DIRECTORY_SELECT)
+    .in('id', uniqueIds);
+
+  if (error) {
+    return { error: error.message, profiles: [] as OrganizerProfile[] };
+  }
+
+  return {
+    error: null,
+    profiles: ((data ?? []) as OrganizerProfileRow[]).map(mapOrganizerProfileRow),
+  };
+}
+
+export function organizerProfileFromEvent(event: CultureEvent): OrganizerProfile | null {
+  if (!event.organizerId) {
+    return null;
+  }
+
+  return {
+    avatarUrl: event.organizerAvatarUrl ?? null,
+    bio: event.organizerBio?.trim() || 'Verified CultureQuest organiser.',
+    cityId: event.organizerCityId ?? 'leuven',
+    id: event.organizerId,
+    locationAddress: event.organizerLocationAddress ?? null,
+    locationCoordinates: event.organizerLocationCoordinates ?? null,
+    locationName: event.organizerLocationName ?? null,
+    name: event.organizerName,
   };
 }
 

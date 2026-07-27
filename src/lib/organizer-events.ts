@@ -7,6 +7,7 @@ import {
   defaultEventXp,
 } from '@/data/culture';
 import type { PlaceSuggestion } from '@/lib/place-search';
+import { fetchOrganizerProfilesByIds, type OrganizerProfile } from '@/lib/organizer-profiles';
 import { supabase } from '@/lib/supabase';
 
 export type CreateOrganizerEventInput = {
@@ -27,6 +28,7 @@ export type CreateOrganizerEventInput = {
 
 type OrganizerEventRow = {
   id: string;
+  organizer_user_id: string;
   city_key: CityId;
   venue_key: string;
   venue_name: string;
@@ -55,9 +57,9 @@ type OrganizerEventRow = {
 
 const EVENT_IMAGES_BUCKET = 'event-images';
 const ORGANIZER_EVENT_SELECT =
-  'id, city_key, venue_key, venue_name, venue_address, venue_latitude, venue_longitude, title, description, category, date_label, time_label, end_time_label, starts_at, ends_at, xp_bonus, language, is_free, is_international, interested_count, attendee_count, image_kind, image_url, check_in_code';
+  'id, organizer_user_id, city_key, venue_key, venue_name, venue_address, venue_latitude, venue_longitude, title, description, category, date_label, time_label, end_time_label, starts_at, ends_at, xp_bonus, language, is_free, is_international, interested_count, attendee_count, image_kind, image_url, check_in_code';
 const LEGACY_ORGANIZER_EVENT_SELECT =
-  'id, city_key, venue_key, venue_name, venue_address, venue_latitude, venue_longitude, title, description, category, date_label, time_label, xp_bonus, language, is_free, is_international, attendee_count, image_kind, image_url, check_in_code';
+  'id, organizer_user_id, city_key, venue_key, venue_name, venue_address, venue_latitude, venue_longitude, title, description, category, date_label, time_label, xp_bonus, language, is_free, is_international, attendee_count, image_kind, image_url, check_in_code';
 const ORGANIZER_EVENT_WITH_STATUS_SELECT = `${ORGANIZER_EVENT_SELECT}, status`;
 const LEGACY_ORGANIZER_EVENT_WITH_STATUS_SELECT = `${LEGACY_ORGANIZER_EVENT_SELECT}, status`;
 
@@ -87,8 +89,11 @@ export async function fetchOrganizerEvents(cityId: CityId) {
     return { events: [] as CultureEvent[], error: error.message };
   }
 
+  const rows = (data ?? []) as unknown as OrganizerEventRow[];
+  const profileLookup = await fetchOrganizerProfileLookup(rows);
+
   return {
-    events: ((data ?? []) as unknown as OrganizerEventRow[]).map(mapOrganizerEventRow),
+    events: rows.map((row) => mapOrganizerEventRow(row, profileLookup[row.organizer_user_id])),
     error: null,
   };
 }
@@ -120,10 +125,13 @@ export async function fetchMyOrganizerEvents(userId: string, cityId?: CityId) {
     return { error: error.message, events: [] as ManagedOrganizerEvent[] };
   }
 
+  const rows = (data ?? []) as unknown as OrganizerEventRow[];
+  const profileLookup = await fetchOrganizerProfileLookup(rows);
+
   return {
     error: null,
-    events: ((data ?? []) as unknown as OrganizerEventRow[]).map((row) => ({
-      ...mapOrganizerEventRow(row),
+    events: rows.map((row) => ({
+      ...mapOrganizerEventRow(row, profileLookup[row.organizer_user_id]),
       reviewStatus: row.status ?? 'pending',
     })),
   };
@@ -166,7 +174,19 @@ export async function createOrganizerEvent(userId: string, input: CreateOrganize
   return { error: error?.message ?? null };
 }
 
-function mapOrganizerEventRow(row: OrganizerEventRow): CultureEvent {
+async function fetchOrganizerProfileLookup(rows: OrganizerEventRow[]) {
+  const result = await fetchOrganizerProfilesByIds(rows.map((row) => row.organizer_user_id));
+
+  return result.profiles.reduce<Record<string, OrganizerProfile>>((lookup, profile) => {
+    lookup[profile.id] = profile;
+    return lookup;
+  }, {});
+}
+
+function mapOrganizerEventRow(
+  row: OrganizerEventRow,
+  organizerProfile?: OrganizerProfile,
+): CultureEvent {
   return {
     id: `organizer-${row.id}`,
     title: row.title,
@@ -187,8 +207,15 @@ function mapOrganizerEventRow(row: OrganizerEventRow): CultureEvent {
     isFree: row.is_free,
     interestedCount: row.interested_count ?? 0,
     attendeeCount: row.attendee_count,
-    organizerName: 'Verified CultureQuest organizer',
+    organizerCityId: row.city_key,
+    organizerId: row.organizer_user_id,
+    organizerName: organizerProfile?.name ?? 'Verified CultureQuest organizer',
     organizerImage: row.image_kind,
+    organizerAvatarUrl: organizerProfile?.avatarUrl ?? null,
+    organizerBio: organizerProfile?.bio,
+    organizerLocationAddress: organizerProfile?.locationAddress ?? null,
+    organizerLocationCoordinates: organizerProfile?.locationCoordinates ?? null,
+    organizerLocationName: organizerProfile?.locationName ?? null,
     imageUrl: row.image_url ?? undefined,
     checkInCode: row.check_in_code,
     venueAddress: row.venue_address ?? undefined,
