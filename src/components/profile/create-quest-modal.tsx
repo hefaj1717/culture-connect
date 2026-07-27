@@ -109,12 +109,12 @@ export function CreateQuestModal({
                 className="flex-1"
                 contentContainerStyle={{
                   paddingHorizontal: 20,
-                  paddingBottom: 160,
+                  paddingBottom: 104,
                   paddingTop: stableModalTopInset + 14,
                 }}
                 keyboardDismissMode="interactive"
                 keyboardShouldPersistTaps="handled"
-                scrollIndicatorInsets={{ bottom: 160 }}
+                scrollIndicatorInsets={{ bottom: 104 }}
                 showsVerticalScrollIndicator={false}
               >
                 <Pressable
@@ -255,7 +255,7 @@ export function CreateQuestModal({
                     <TextInput
                       value={questXp}
                       onChangeText={onChangeXp}
-                      onFocus={() => focusFormArea(710)}
+                      onFocus={() => focusFormArea(650)}
                       keyboardType="number-pad"
                       placeholder="150"
                       placeholderTextColor="#8B909A"
@@ -318,7 +318,7 @@ export function CreateQuestModal({
                       <TextInput
                         value={stop.title}
                         onChangeText={(value) => onChangeStop(index, 'title', value)}
-                        onFocus={() => focusFormArea(840 + index * 260)}
+                        onFocus={() => focusFormArea(760 + index * 240)}
                         placeholder="Stop title"
                         placeholderTextColor="#8B909A"
                         className="mb-3 rounded-xl border border-gray-300 px-4 py-3 text-[15px] text-ink"
@@ -326,7 +326,7 @@ export function CreateQuestModal({
                       <TextInput
                         value={stop.description}
                         onChangeText={(value) => onChangeStop(index, 'description', value)}
-                        onFocus={() => focusFormArea(900 + index * 260)}
+                        onFocus={() => focusFormArea(820 + index * 240)}
                         placeholder="What should students do here?"
                         placeholderTextColor="#8B909A"
                         multiline
@@ -336,7 +336,7 @@ export function CreateQuestModal({
                       <TextInput
                         value={stop.eta}
                         onChangeText={(value) => onChangeStop(index, 'eta', value)}
-                        onFocus={() => focusFormArea(1010 + index * 260)}
+                        onFocus={() => focusFormArea(920 + index * 240)}
                         placeholder="ETA, e.g. 7 min"
                         placeholderTextColor="#8B909A"
                         className="rounded-xl border border-gray-300 px-4 py-3 text-[15px] text-ink"
