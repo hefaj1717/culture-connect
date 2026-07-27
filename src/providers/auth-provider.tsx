@@ -336,7 +336,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const normalizedOrganizerLocationAddress = organizerLocationAddress?.trim() || null;
     const fullName = `${normalizedFirstName} ${normalizedLastName}`.trim();
 
-    const { error } = await supabase.auth.updateUser({
+    const { data, error } = await supabase.auth.updateUser({
       data: {
         first_name: normalizedFirstName,
         last_name: normalizedLastName,
@@ -352,6 +352,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
     if (error) {
       return { error: error.message };
+    }
+
+    if (data.user && session) {
+      setSession({
+        ...session,
+        user: data.user,
+      });
     }
 
     const { error: profileError } = await supabase.from('profiles').upsert(
