@@ -733,35 +733,24 @@ function OrganizerProfileModal({
                   >
                     {profile.bio}
                   </Text>
-                </View>
-              </View>
 
-              <View
-                className="mt-5 rounded-3xl border border-gray-200 bg-white p-5"
-                style={CardStyles.compact}
-              >
-                <Text className="font-display text-[28px] text-ink">Location</Text>
-                {profile.locationName || profile.locationAddress ? (
-                  <View className="mt-4 flex-row items-start gap-3">
-                    <View className="h-11 w-11 items-center justify-center rounded-2xl bg-primary/10">
-                      <MapPin size={20} color="#7C3AED" strokeWidth={2.4} />
-                    </View>
+                  <View className="mt-4 flex-row items-start gap-2.5 border-t border-white/10 pt-4">
+                    <MapPin size={17} color="rgba(255,255,255,0.72)" strokeWidth={2.4} />
                     <View className="min-w-0 flex-1">
-                      <Text className="text-[15px] font-bold text-ink">
+                      <Text className="text-[13px] font-semibold text-white" numberOfLines={1}>
                         {profile.locationName ?? cityName}
                       </Text>
-                      {profile.locationAddress && (
-                        <Text className="mt-1 text-[13px] leading-5 text-muted">
-                          {profile.locationAddress}
-                        </Text>
-                      )}
+                      <Text
+                        className="mt-0.5 text-[12px] leading-4"
+                        numberOfLines={2}
+                        style={{ color: 'rgba(255,255,255,0.68)' }}
+                      >
+                        {profile.locationAddress ??
+                          'No fixed venue listed. This organiser may host events across the city.'}
+                      </Text>
                     </View>
                   </View>
-                ) : (
-                  <Text className="mt-2 text-[14px] leading-5 text-muted">
-                    This organiser does not have one fixed venue yet.
-                  </Text>
-                )}
+                </View>
               </View>
             </View>
           </ScrollView>
