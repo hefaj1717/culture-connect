@@ -44,6 +44,7 @@ import {
 } from '@/data/culture';
 import { getEventEngagement } from '@/lib/event-engagement';
 import { fetchOrganizerEvents } from '@/lib/organizer-events';
+import { useStableTopInset } from '@/hooks/use-stable-safe-area';
 import type { UserEventStatus } from '@/lib/event-history';
 
 const audienceFilters = [
@@ -85,7 +86,7 @@ export default function ExploreScreen({
   openEventId,
   openEventNonce,
 }: ExploreScreenProps) {
-  const insets = useSafeAreaInsets();
+  const stableTopInset = useStableTopInset();
   const [search, setSearch] = useState('');
   const [tab, setTab] = useState<'events' | 'venues'>('events');
   const [audienceFilter, setAudienceFilter] = useState('all');
@@ -189,7 +190,7 @@ export default function ExploreScreen({
         contentContainerStyle={{ paddingBottom: 112 }}
         keyboardShouldPersistTaps="handled"
       >
-        <View className="mb-5 px-5" style={{ paddingTop: insets.top + 16 }}>
+        <View className="mb-5 px-5" style={{ paddingTop: stableTopInset + 16 }}>
           <View className="h-14 flex-row items-center gap-3.5 rounded-2xl border border-primary/10 bg-gray-100 px-4">
             <Search size={20} color="#7C3AED" strokeWidth={2.4} />
             <TextInput
@@ -514,7 +515,7 @@ function EventDetailModal({
 }) {
   const { width } = useWindowDimensions();
   const insets = useSafeAreaInsets();
-  const stableTopInset = Math.max(insets.top, 44);
+  const stableTopInset = useStableTopInset();
   const [scannerOpen, setScannerOpen] = useState(false);
   const [scanLocked, setScanLocked] = useState(false);
   const [scanMessage, setScanMessage] = useState<string | null>(null);

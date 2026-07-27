@@ -17,10 +17,10 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { BrandImage } from '@/components/brand-image';
 import { type CultureCityData, getCultureCityData } from '@/data/culture';
+import { useStableTopInset } from '@/hooks/use-stable-safe-area';
 import { fetchApprovedQuests, type Quest, type QuestStop } from '@/lib/quests';
 
 type QuestsScreenProps = {
@@ -36,7 +36,7 @@ export default function QuestsScreen({
   questsRefreshKey = 0,
   onQuestCompleted,
 }: QuestsScreenProps) {
-  const insets = useSafeAreaInsets();
+  const stableTopInset = useStableTopInset();
   const [approvedQuests, setApprovedQuests] = useState<Quest[]>([]);
   const [questsError, setQuestsError] = useState<string | null>(null);
   const [selectedQuest, setSelectedQuest] = useState<Quest | null>(null);
@@ -73,7 +73,7 @@ export default function QuestsScreen({
         contentContainerStyle={{ paddingBottom: 112 }}
         showsVerticalScrollIndicator={false}
       >
-        <View className="px-5" style={{ paddingTop: insets.top + 24 }}>
+        <View className="px-5" style={{ paddingTop: stableTopInset + 24 }}>
           <View className="mb-5 overflow-hidden rounded-3xl bg-ink">
             <LinearGradient
               colors={['rgba(124,58,237,0.72)', 'rgba(36,28,46,0.98)']}
@@ -196,8 +196,7 @@ function QuestDetailModal({
   quest: Quest | null;
 }) {
   const { width } = useWindowDimensions();
-  const insets = useSafeAreaInsets();
-  const stableTopInset = Math.max(insets.top, 44);
+  const stableTopInset = useStableTopInset();
   const translateX = useSharedValue(0);
 
   useEffect(() => {
@@ -249,7 +248,7 @@ function QuestDetailModal({
         <Animated.View className="flex-1 bg-white" style={swipeStyle}>
           <ScrollView
             className="flex-1 bg-white"
-            contentContainerStyle={{ paddingBottom: insets.bottom + 32 }}
+            contentContainerStyle={{ paddingBottom: 32 }}
             showsVerticalScrollIndicator={false}
           >
             <View className="relative h-[270px] bg-gray-200">

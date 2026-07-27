@@ -15,6 +15,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { CitySelector } from '@/components/city-selector';
 import { Avatar } from '@/components/profile/profile-avatar';
 import type { CityId } from '@/data/culture';
+import { useStableTopInset } from '@/hooks/use-stable-safe-area';
 
 type EditProfileModalProps = {
   avatarInitials: string | null;
@@ -49,16 +50,22 @@ export function EditProfileModal({
   savingProfile,
   visible,
 }: EditProfileModalProps) {
+  const stableTopInset = useStableTopInset();
+
   return (
     <Modal animationType="slide" onRequestClose={onClose} visible={visible}>
-      <SafeAreaView className="flex-1 bg-white" edges={['top', 'bottom']}>
+      <SafeAreaView className="flex-1 bg-white" edges={['bottom']}>
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
           className="flex-1"
         >
           <ScrollView
             className="flex-1"
-            contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 36, paddingTop: 34 }}
+            contentContainerStyle={{
+              paddingHorizontal: 20,
+              paddingBottom: 36,
+              paddingTop: stableTopInset + 8,
+            }}
             keyboardDismissMode="interactive"
             keyboardShouldPersistTaps="handled"
           >

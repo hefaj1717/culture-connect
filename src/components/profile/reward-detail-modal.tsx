@@ -16,6 +16,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors } from '@/constants/theme';
 import type { RewardPartner } from '@/data/culture';
 import { formatRewardTime } from '@/data/profile';
+import { useStableTopInset } from '@/hooks/use-stable-safe-area';
 
 type RewardDetailModalProps = {
   detailsExpanded: boolean;
@@ -56,6 +57,7 @@ export function RewardDetailModal({
   swipeStyle,
   userXp,
 }: RewardDetailModalProps) {
+  const stableTopInset = useStableTopInset();
   const statusLabel = rewardIsUsed
     ? 'Used'
     : rewardIsActive
@@ -87,8 +89,8 @@ export function RewardDetailModal({
       {reward && (
         <GestureDetector gesture={gesture}>
           <Animated.View className="flex-1 bg-white" style={swipeStyle}>
-            <SafeAreaView className="flex-1 bg-white" edges={['top', 'bottom']}>
-              <View className="bg-white px-5 pb-3 pt-2">
+            <SafeAreaView className="flex-1 bg-white" edges={['bottom']}>
+              <View className="bg-white px-5 pb-3" style={{ paddingTop: stableTopInset + 8 }}>
                 <Pressable
                   onPress={onClose}
                   className="h-10 w-10 items-center justify-center rounded-full bg-gray-100 active:opacity-80"
