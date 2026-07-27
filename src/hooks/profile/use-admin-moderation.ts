@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Alert } from 'react-native';
 
 import {
+  deleteOrganizerEvent,
   fetchPendingAdminContent,
   reviewOrganizerEvent,
   reviewOrganizerReward,
@@ -92,6 +93,43 @@ export function useAdminModeration({
     );
   }
 
+  async function deleteEvent(id: string) {
+    if (!userId) {
+      setAdminReviewError('Log in again before deleting events.');
+      return;
+    }
+
+    Alert.alert(
+      'Delete event?',
+      'This permanently removes the organizer event and any related history.',
+      [
+        { style: 'cancel', text: 'Cancel' },
+        {
+          style: 'destructive',
+          text: 'Delete',
+          onPress: () => {
+            void deleteEventAfterConfirmation(id);
+          },
+        },
+      ],
+    );
+  }
+
+  async function deleteEventAfterConfirmation(id: string) {
+    setReviewingContentId(`event-delete-${id}`);
+    const result = await deleteOrganizerEvent({ eventId: id });
+    setReviewingContentId(null);
+
+    if (result.error) {
+      setAdminReviewError(result.error);
+      return;
+    }
+
+    setPendingEvents((current) => current.filter((event) => event.id !== id));
+    onContentReviewed?.();
+    Alert.alert('Event deleted', 'The event has been removed from CultureQuest.');
+  }
+
   return {
     adminReviewError,
     adminReviewLoading,
@@ -99,6 +137,7 @@ export function useAdminModeration({
     openAdminReview,
     pendingEvents,
     pendingRewards,
+    deleteEvent,
     refreshPendingContent: loadPendingContent,
     reviewContent,
     reviewingContentId,

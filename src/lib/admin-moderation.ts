@@ -132,6 +132,12 @@ export async function reviewOrganizerEvent({
   return { error: error?.message ?? null };
 }
 
+export async function deleteOrganizerEvent({ eventId }: { eventId: string }) {
+  const { error } = await supabase.from('organizer_events').delete().eq('id', eventId);
+
+  return { error: error?.message ?? null };
+}
+
 export async function reviewOrganizerReward({
   adminUserId,
   rejectionReason,
