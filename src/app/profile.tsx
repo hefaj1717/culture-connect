@@ -87,8 +87,21 @@ export default function ProfileScreen({
   const savedLastName = session?.user.user_metadata?.last_name || '';
   const savedCityId: CityId =
     session?.user.user_metadata?.city_id === 'lublin' ? 'lublin' : defaultCityId;
+  const savedOrganizerBio = session?.user.user_metadata?.organizer_bio || '';
+  const savedOrganizerLocationAddress =
+    session?.user.user_metadata?.organizer_location_address || null;
+  const savedOrganizerLocationLatitude =
+    typeof session?.user.user_metadata?.organizer_location_latitude === 'number'
+      ? session.user.user_metadata.organizer_location_latitude
+      : null;
+  const savedOrganizerLocationLongitude =
+    typeof session?.user.user_metadata?.organizer_location_longitude === 'number'
+      ? session.user.user_metadata.organizer_location_longitude
+      : null;
+  const savedOrganizerLocationName = session?.user.user_metadata?.organizer_location_name || null;
   const cityData = getCultureCityData(savedCityId);
   const isAdmin = hasRole('admin');
+  const isOrganizer = organizerApplicationStatus === 'approved' || hasRole('organizer');
   const [approvedRewards, setApprovedRewards] = useState<RewardPartner[]>([]);
   const [myOrganizerEvents, setMyOrganizerEvents] = useState<ManagedOrganizerEvent[]>([]);
   const [myOrganizerEventsError, setMyOrganizerEventsError] = useState<string | null>(null);
@@ -102,6 +115,11 @@ export default function ProfileScreen({
     savedCityId,
     savedFirstName,
     savedLastName,
+    savedOrganizerBio,
+    savedOrganizerLocationAddress,
+    savedOrganizerLocationLatitude,
+    savedOrganizerLocationLongitude,
+    savedOrganizerLocationName,
     updateProfile,
   });
   const createEventForm = useCreateEventForm({
@@ -139,15 +157,23 @@ export default function ProfileScreen({
     editOpen,
     firstName,
     lastName,
+    changeOrganizerLocationQuery,
     openEditProfile,
+    organizerBio,
+    organizerLocationQuery,
+    organizerLocationSuggestions,
     pickAvatar,
     profileError,
     saveProfile,
+    searchingOrganizerLocation,
+    selectedOrganizerLocation,
+    selectOrganizerLocation,
     savingProfile,
     setCityId,
     setEditOpen,
     setFirstName,
     setLastName,
+    setOrganizerBio,
   } = editProfileForm;
   const {
     calendarMonth,
@@ -672,14 +698,23 @@ export default function ProfileScreen({
         avatarUrl={avatarUrl}
         cityId={cityId}
         firstName={firstName}
+        isOrganizer={isOrganizer}
         lastName={lastName}
         onChangeAvatar={pickAvatar}
         onChangeCity={setCityId}
         onChangeFirstName={setFirstName}
         onChangeLastName={setLastName}
+        onChangeOrganizerBio={setOrganizerBio}
+        onChangeOrganizerLocationQuery={changeOrganizerLocationQuery}
         onClose={() => setEditOpen(false)}
         onSave={saveProfile}
+        onSelectOrganizerLocation={selectOrganizerLocation}
+        organizerBio={organizerBio}
+        organizerLocationQuery={organizerLocationQuery}
+        organizerLocationSuggestions={organizerLocationSuggestions}
         profileError={profileError}
+        searchingOrganizerLocation={searchingOrganizerLocation}
+        selectedOrganizerLocation={selectedOrganizerLocation}
         savingProfile={savingProfile}
         visible={editOpen}
       />

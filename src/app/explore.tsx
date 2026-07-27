@@ -9,10 +9,10 @@ import {
   MapPin,
   QrCode,
   Search,
-  Star,
   Users,
   X,
 } from 'lucide-react-native';
+import { Image } from 'expo-image';
 import { useEffect, useMemo, useState } from 'react';
 import {
   Modal,
@@ -36,7 +36,6 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { BrandImage } from '@/components/brand-image';
 import { CardStyles } from '@/constants/theme';
 import {
-  categoryLabels,
   type CultureEvent,
   type CultureCityData,
   type Venue,
@@ -45,6 +44,10 @@ import {
 } from '@/data/culture';
 import { getEventEngagement } from '@/lib/event-engagement';
 import { fetchOrganizerEvents } from '@/lib/organizer-events';
+import {
+  fetchOrganizerProfiles,
+  type OrganizerProfile,
+} from '@/lib/organizer-profiles';
 import { useStableTopInset } from '@/hooks/use-stable-safe-area';
 import type { UserEventStatus } from '@/lib/event-history';
 
@@ -96,6 +99,11 @@ export default function ExploreScreen({
   const [organizerEvents, setOrganizerEvents] = useState<CultureEvent[]>([]);
   const [organizerEventsError, setOrganizerEventsError] = useState<string | null>(null);
   const [organizerEventsLoading, setOrganizerEventsLoading] = useState(false);
+  const [organizerProfiles, setOrganizerProfiles] = useState<OrganizerProfile[]>([]);
+  const [organizerProfilesError, setOrganizerProfilesError] = useState<string | null>(null);
+  const [organizerProfilesLoading, setOrganizerProfilesLoading] = useState(false);
+  const [selectedOrganizerProfile, setSelectedOrganizerProfile] =
+    useState<OrganizerProfile | null>(null);
   const { venues } = cityData;
   const hasApprovedEventsProp = approvedEventsProp !== undefined;
   const allEvents = approvedEventsProp ?? organizerEvents;
@@ -129,16 +137,38 @@ export default function ExploreScreen({
     };
   }, [cityData.id, eventsRefreshKey, hasApprovedEventsProp]);
 
+  useEffect(() => {
+    let active = true;
+
+    async function loadOrganizerProfiles() {
+      setOrganizerProfilesLoading(true);
+      const result = await fetchOrganizerProfiles(cityData.id);
+      if (!active) return;
+
+      setOrganizerProfiles(result.profiles);
+      setOrganizerProfilesError(result.error);
+      setOrganizerProfilesLoading(false);
+    }
+
+    loadOrganizerProfiles();
+
+    return () => {
+      active = false;
+    };
+  }, [cityData.id, eventsRefreshKey]);
+
   const normalizedSearch = search.trim().toLowerCase();
 
-  const filteredVenues = useMemo(
+  const filteredOrganizerProfiles = useMemo(
     () =>
-      venues.filter(
-        (venue) =>
-          venue.name.toLowerCase().includes(normalizedSearch) ||
-          venue.tags.some((tag) => tag.toLowerCase().includes(normalizedSearch)),
+      organizerProfiles.filter(
+        (profile) =>
+          profile.name.toLowerCase().includes(normalizedSearch) ||
+          profile.bio.toLowerCase().includes(normalizedSearch) ||
+          (profile.locationName?.toLowerCase().includes(normalizedSearch) ?? false) ||
+          (profile.locationAddress?.toLowerCase().includes(normalizedSearch) ?? false),
       ),
-    [normalizedSearch, venues],
+    [normalizedSearch, organizerProfiles],
   );
 
   const filteredEvents = useMemo(
@@ -197,7 +227,7 @@ export default function ExploreScreen({
             <TextInput
               value={search}
               onChangeText={setSearch}
-              placeholder="Search events, venues..."
+              placeholder="Search events, organizers..."
               placeholderTextColor="#756F7B"
               autoCapitalize="none"
               className="flex-1 text-[15px] font-medium text-ink"
@@ -208,6 +238,7 @@ export default function ExploreScreen({
         <View className="mb-4 flex-row gap-2 px-5">
           {(['events', 'venues'] as const).map((nextTab) => {
             const active = tab === nextTab;
+            const tabLabel = nextTab === 'events' ? 'Events' : 'Organizers';
             return (
               <Pressable
                 key={nextTab}
@@ -217,7 +248,7 @@ export default function ExploreScreen({
                 <Text
                   className={`text-[13px] font-semibold capitalize ${active ? 'text-white' : 'text-muted'}`}
                 >
-                  {nextTab}
+                  {tabLabel}
                 </Text>
               </Pressable>
             );
@@ -416,48 +447,59 @@ export default function ExploreScreen({
           </View>
         ) : (
           <View className="gap-3 px-5">
-            {filteredVenues.map((venue) => (
-              <Pressable
-                key={venue.id}
-                className="flex-row items-center gap-3 rounded-3xl border border-primary/10 bg-white p-4 active:opacity-80"
-                style={CardStyles.compact}
-              >
-                <View
-                  className="h-14 w-14 shrink-0 items-center justify-center rounded-xl"
-                  style={{ backgroundColor: `${venue.color}20` }}
+            {organizerProfilesError && (
+              <View className="rounded-xl bg-secondary/10 p-3">
+                <Text className="text-[12px] leading-4 text-muted">
+                  Organizer profiles could not load from Supabase. Apply the latest migration or
+                  check your connection.
+                </Text>
+              </View>
+            )}
+
+            {organizerProfilesLoading ? (
+              <View className="items-center py-12">
+                <Text className="text-[14px] text-muted">Loading organizers...</Text>
+              </View>
+            ) : filteredOrganizerProfiles.length === 0 ? (
+              <View className="rounded-3xl border border-primary/10 bg-canvas p-5">
+                <Text className="font-display text-[26px] text-ink">
+                  No organizers yet
+                </Text>
+                <Text className="mt-1 text-[13px] leading-5 text-muted">
+                  Approved organiser profiles for {cityData.name} will appear here.
+                </Text>
+              </View>
+            ) : (
+              filteredOrganizerProfiles.map((profile) => (
+                <Pressable
+                  key={profile.id}
+                  onPress={() => setSelectedOrganizerProfile(profile)}
+                  className="flex-row items-center gap-3 rounded-3xl border border-primary/10 bg-white p-4 active:opacity-80"
+                  style={CardStyles.compact}
                 >
-                  <MapPin size={22} color={venue.color} />
-                </View>
-                <View className="min-w-0 flex-1">
-                  <View className="mb-0.5 flex-row items-center gap-2">
-                    <Text className="shrink text-[15px] font-semibold text-ink" numberOfLines={1}>
-                      {venue.name}
-                    </Text>
-                    {venue.isLive && (
-                      <View className="rounded-full bg-success/10 px-1.5 py-0.5">
-                        <Text className="text-[10px] font-bold text-success">LIVE</Text>
+                  <OrganizerAvatar profile={profile} size={58} />
+                  <View className="min-w-0 flex-1">
+                    <View className="mb-1 flex-row items-center gap-2">
+                      <Text className="shrink text-[15px] font-semibold text-ink" numberOfLines={1}>
+                        {profile.name}
+                      </Text>
+                      <View className="rounded-full bg-primary/10 px-2 py-0.5">
+                        <Text className="text-[10px] font-bold uppercase text-primary">
+                          Organizer
+                        </Text>
                       </View>
-                    )}
-                    {venue.isPartner && (
-                      <View className="rounded-full bg-primary/10 px-1.5 py-0.5">
-                        <Text className="text-[10px] font-bold text-primary">Partner</Text>
-                      </View>
-                    )}
-                  </View>
-                  <Text className="mb-1 text-[13px] text-muted">
-                    {categoryLabels[venue.category]}
-                  </Text>
-                  <View className="flex-row items-center gap-3">
-                    <View className="flex-row items-center gap-1">
-                      <Star size={12} color="#F4A261" fill="#F4A261" />
-                      <Text className="text-[12px] text-muted">{venue.rating}</Text>
                     </View>
-                    <Text className="text-[12px] font-bold text-primary">+{venue.xpReward} XP</Text>
+                    <Text className="mb-1 text-[13px] text-muted" numberOfLines={1}>
+                      {profile.locationName ?? cityData.name}
+                    </Text>
+                    <Text className="text-[12px] leading-4 text-ink/65" numberOfLines={2}>
+                      {profile.bio}
+                    </Text>
                   </View>
-                </View>
-                <ChevronRight size={18} color="#756F7B" />
-              </Pressable>
-            ))}
+                  <ChevronRight size={18} color="#756F7B" />
+                </Pressable>
+              ))
+            )}
           </View>
         )}
       </ScrollView>
@@ -493,8 +535,186 @@ export default function ExploreScreen({
         }}
         status={selectedDetailStatus}
       />
+      <OrganizerProfileModal
+        cityName={cityData.name}
+        onClose={() => setSelectedOrganizerProfile(null)}
+        profile={selectedOrganizerProfile}
+      />
     </View>
   );
+}
+
+function OrganizerProfileModal({
+  cityName,
+  onClose,
+  profile,
+}: {
+  cityName: string;
+  onClose: () => void;
+  profile: OrganizerProfile | null;
+}) {
+  const { width } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
+  const stableTopInset = useStableTopInset();
+  const translateX = useSharedValue(0);
+
+  useEffect(() => {
+    if (profile) {
+      translateX.value = 0;
+    }
+  }, [profile, translateX]);
+
+  const swipeGesture = Gesture.Pan()
+    .activeOffsetX([-999, 18])
+    .failOffsetY([-35, 35])
+    .onUpdate((gestureEvent) => {
+      translateX.value = Math.max(0, gestureEvent.translationX);
+    })
+    .onEnd((gestureEvent) => {
+      const shouldClose = translateX.value > width * 0.28 || gestureEvent.velocityX > 700;
+
+      if (shouldClose) {
+        translateX.value = withTiming(width, { duration: 180 }, (finished) => {
+          if (finished) {
+            runOnJS(onClose)();
+          }
+        });
+        return;
+      }
+
+      translateX.value = withTiming(0, { duration: 180 });
+    });
+
+  const swipeStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: translateX.value }],
+  }));
+
+  function closeWithAnimation() {
+    translateX.value = withTiming(width, { duration: 180 }, (finished) => {
+      if (finished) {
+        runOnJS(onClose)();
+      }
+    });
+  }
+
+  if (!profile) return null;
+
+  return (
+    <Modal animationType="slide" onRequestClose={closeWithAnimation} visible>
+      <GestureDetector gesture={swipeGesture}>
+        <Animated.View className="flex-1 bg-white" style={swipeStyle}>
+          <ScrollView
+            className="flex-1"
+            contentContainerStyle={{ paddingBottom: insets.bottom + 34, paddingTop: stableTopInset + 8 }}
+            showsVerticalScrollIndicator={false}
+          >
+            <View className="px-5">
+              <Pressable
+                onPress={closeWithAnimation}
+                className="mb-6 h-12 w-12 items-center justify-center rounded-full bg-gray-100 active:opacity-80"
+              >
+                <ArrowLeft size={22} color="#756F7B" strokeWidth={2.6} />
+              </Pressable>
+
+              <View
+                className="overflow-hidden rounded-[32px] border border-primary/10 bg-ink p-5"
+                style={CardStyles.elevated}
+              >
+                <View className="mb-8 flex-row items-start justify-between gap-4">
+                  <View className="min-w-0 flex-1">
+                    <Text className="text-[11px] font-bold uppercase tracking-[3px] text-white/55">
+                      CultureQuest organizer
+                    </Text>
+                    <Text className="mt-3 font-display text-[38px] leading-[42px] text-white">
+                      {profile.name}
+                    </Text>
+                  </View>
+                  <OrganizerAvatar profile={profile} size={82} dark />
+                </View>
+
+                <View className="rounded-3xl bg-white/10 p-4">
+                  <Text className="text-[12px] font-bold uppercase tracking-[2px] text-white/50">
+                    About
+                  </Text>
+                  <Text className="mt-2 text-[15px] leading-6 text-white/88">{profile.bio}</Text>
+                </View>
+              </View>
+
+              <View
+                className="mt-5 rounded-3xl border border-gray-200 bg-white p-5"
+                style={CardStyles.compact}
+              >
+                <Text className="font-display text-[28px] text-ink">Location</Text>
+                {profile.locationName || profile.locationAddress ? (
+                  <View className="mt-4 flex-row items-start gap-3">
+                    <View className="h-11 w-11 items-center justify-center rounded-2xl bg-primary/10">
+                      <MapPin size={20} color="#7C3AED" strokeWidth={2.4} />
+                    </View>
+                    <View className="min-w-0 flex-1">
+                      <Text className="text-[15px] font-bold text-ink">
+                        {profile.locationName ?? cityName}
+                      </Text>
+                      {profile.locationAddress && (
+                        <Text className="mt-1 text-[13px] leading-5 text-muted">
+                          {profile.locationAddress}
+                        </Text>
+                      )}
+                    </View>
+                  </View>
+                ) : (
+                  <Text className="mt-2 text-[14px] leading-5 text-muted">
+                    This organiser does not have one fixed venue yet.
+                  </Text>
+                )}
+              </View>
+            </View>
+          </ScrollView>
+        </Animated.View>
+      </GestureDetector>
+    </Modal>
+  );
+}
+
+function OrganizerAvatar({
+  dark = false,
+  profile,
+  size,
+}: {
+  dark?: boolean;
+  profile: OrganizerProfile;
+  size: number;
+}) {
+  const initials = getOrganizerInitials(profile.name);
+
+  return (
+    <View
+      className={`shrink-0 overflow-hidden rounded-2xl ${dark ? 'bg-white/10' : 'bg-primary/10'}`}
+      style={{ height: size, width: size }}
+    >
+      {profile.avatarUrl ? (
+        <Image source={{ uri: profile.avatarUrl }} style={StyleSheet.absoluteFillObject} />
+      ) : (
+        <View className="flex-1 items-center justify-center">
+          <Text
+            className={`font-ui font-extrabold ${dark ? 'text-white' : 'text-primary'}`}
+            style={{ fontSize: Math.max(16, size * 0.32) }}
+          >
+            {initials}
+          </Text>
+        </View>
+      )}
+    </View>
+  );
+}
+
+function getOrganizerInitials(name: string) {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 0) return 'CQ';
+
+  return parts
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase())
+    .join('');
 }
 
 function EventDetailModal({

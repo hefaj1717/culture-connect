@@ -1,4 +1,4 @@
-import { Camera, X } from 'lucide-react-native';
+import { Camera, MapPin, Search, X } from 'lucide-react-native';
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -16,20 +16,30 @@ import { CitySelector } from '@/components/city-selector';
 import { Avatar } from '@/components/profile/profile-avatar';
 import type { CityId } from '@/data/culture';
 import { useStableTopInset } from '@/hooks/use-stable-safe-area';
+import type { PlaceSuggestion } from '@/lib/place-search';
 
 type EditProfileModalProps = {
   avatarInitials: string | null;
   avatarUrl: string | null;
   cityId: CityId;
   firstName: string;
+  isOrganizer?: boolean;
   lastName: string;
   onChangeAvatar: () => void;
   onChangeCity: (cityId: CityId) => void;
   onChangeFirstName: (firstName: string) => void;
   onChangeLastName: (lastName: string) => void;
+  onChangeOrganizerBio?: (bio: string) => void;
+  onChangeOrganizerLocationQuery?: (query: string) => void;
   onClose: () => void;
   onSave: () => void;
+  onSelectOrganizerLocation?: (place: PlaceSuggestion) => void;
+  organizerBio?: string;
+  organizerLocationQuery?: string;
+  organizerLocationSuggestions?: PlaceSuggestion[];
   profileError: string | null;
+  searchingOrganizerLocation?: boolean;
+  selectedOrganizerLocation?: PlaceSuggestion | null;
   savingProfile: boolean;
   visible: boolean;
 };
@@ -39,14 +49,23 @@ export function EditProfileModal({
   avatarUrl,
   cityId,
   firstName,
+  isOrganizer = false,
   lastName,
   onChangeAvatar,
   onChangeCity,
   onChangeFirstName,
   onChangeLastName,
+  onChangeOrganizerBio,
+  onChangeOrganizerLocationQuery,
   onClose,
   onSave,
+  onSelectOrganizerLocation,
+  organizerBio = '',
+  organizerLocationQuery = '',
+  organizerLocationSuggestions = [],
   profileError,
+  searchingOrganizerLocation = false,
+  selectedOrganizerLocation = null,
   savingProfile,
   visible,
 }: EditProfileModalProps) {
@@ -126,6 +145,88 @@ export function EditProfileModal({
               Profile details are saved to your account. Profile photos are kept as a device image
               until cloud avatar storage is enabled.
             </Text>
+
+            {isOrganizer && (
+              <View className="mb-6 rounded-3xl border border-primary/10 bg-primary/5 p-4">
+                <Text className="mb-1 font-display text-[24px] text-ink">
+                  Organizer profile
+                </Text>
+                <Text className="mb-4 text-[12px] leading-4 text-muted">
+                  These details appear in Discover for students browsing organisers and partner
+                  places.
+                </Text>
+
+                <Text className="mb-2 text-[13px] font-semibold text-ink">
+                  Description optional
+                </Text>
+                <TextInput
+                  value={organizerBio}
+                  onChangeText={onChangeOrganizerBio}
+                  placeholder="Shortly describe your venue, collective, or event organisation."
+                  placeholderTextColor="#8B909A"
+                  multiline
+                  textAlignVertical="top"
+                  className="mb-4 min-h-[96px] rounded-xl border border-primary/15 bg-white px-4 py-3 text-[15px] leading-5 text-ink"
+                />
+
+                <Text className="mb-2 text-[13px] font-semibold text-ink">
+                  Main location optional
+                </Text>
+                <View className="rounded-xl border border-primary/15 bg-white px-4 py-3">
+                  <View className="flex-row items-center gap-2">
+                    <Search size={17} color="#7C3AED" strokeWidth={2.4} />
+                    <TextInput
+                      value={organizerLocationQuery}
+                      onChangeText={onChangeOrganizerLocationQuery}
+                      placeholder="Search your venue or main location"
+                      placeholderTextColor="#8B909A"
+                      autoCapitalize="words"
+                      className="min-h-[24px] flex-1 text-[15px] text-ink"
+                    />
+                    {searchingOrganizerLocation && <ActivityIndicator size="small" />}
+                  </View>
+
+                  {selectedOrganizerLocation && (
+                    <View className="mt-3 rounded-xl bg-primary/5 px-3 py-2">
+                      <Text className="text-[13px] font-semibold text-primary">
+                        {selectedOrganizerLocation.name}
+                      </Text>
+                      <Text className="mt-0.5 text-[12px] leading-4 text-muted">
+                        {selectedOrganizerLocation.address}
+                      </Text>
+                    </View>
+                  )}
+
+                  {organizerLocationSuggestions.length > 0 && (
+                    <View className="mt-3 overflow-hidden rounded-xl border border-gray-200">
+                      {organizerLocationSuggestions.map((suggestion, index) => (
+                        <Pressable
+                          key={suggestion.id}
+                          onPress={() => onSelectOrganizerLocation?.(suggestion)}
+                          className={`flex-row items-start gap-2 bg-white px-3 py-3 active:bg-primary/5 ${
+                            index > 0 ? 'border-t border-gray-100' : ''
+                          }`}
+                        >
+                          <MapPin size={16} color="#7C3AED" strokeWidth={2.4} />
+                          <View className="min-w-0 flex-1">
+                            <Text className="text-[13px] font-semibold text-ink" numberOfLines={1}>
+                              {suggestion.name}
+                            </Text>
+                            <Text className="mt-0.5 text-[12px] leading-4 text-muted">
+                              {suggestion.address}
+                            </Text>
+                          </View>
+                        </Pressable>
+                      ))}
+                    </View>
+                  )}
+                </View>
+
+                <Text className="mt-3 text-[12px] leading-4 text-muted">
+                  Leave this blank if you create events across different locations.
+                </Text>
+              </View>
+            )}
 
             {profileError && (
               <Text className="mb-4 text-[13px] font-medium text-destructive">{profileError}</Text>
