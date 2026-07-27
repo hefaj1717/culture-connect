@@ -84,12 +84,12 @@ export function CreateRewardModal({
             className="flex-1"
             contentContainerStyle={{
               paddingHorizontal: 20,
-              paddingBottom: 140,
+              paddingBottom: 90,
               paddingTop: stableModalTopInset + 14,
             }}
             keyboardDismissMode="interactive"
             keyboardShouldPersistTaps="handled"
-            scrollIndicatorInsets={{ bottom: 140 }}
+            scrollIndicatorInsets={{ bottom: 90 }}
           >
             <Pressable
               onPress={() => {
@@ -200,7 +200,7 @@ export function CreateRewardModal({
             <TextInput
               value={rewardXp}
               onChangeText={onChangeRewardXp}
-              onFocus={() => focusFormArea(470)}
+              onFocus={() => focusFormArea(420)}
               keyboardType="number-pad"
               placeholder="100"
               placeholderTextColor="#8B909A"
@@ -211,7 +211,7 @@ export function CreateRewardModal({
             <TextInput
               value={rewardDescription}
               onChangeText={onChangeRewardDescription}
-              onFocus={() => focusFormArea(560)}
+              onFocus={() => focusFormArea(490)}
               placeholder="What does the student receive and how should staff verify it?"
               placeholderTextColor="#8B909A"
               multiline

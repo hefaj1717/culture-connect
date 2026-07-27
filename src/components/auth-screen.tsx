@@ -278,10 +278,10 @@ export function AuthScreen() {
       <ScrollView
         ref={scrollViewRef}
         className="flex-1"
-        contentContainerStyle={{ flexGrow: 1, paddingBottom: 128 }}
+        contentContainerStyle={{ flexGrow: 1, paddingBottom: 76 }}
         keyboardDismissMode="interactive"
         keyboardShouldPersistTaps="handled"
-        scrollIndicatorInsets={{ bottom: 128 }}
+        scrollIndicatorInsets={{ bottom: 76 }}
       >
         <View className="flex-1 bg-white">
           <BrandImage
@@ -483,7 +483,7 @@ export function AuthScreen() {
                       keyboardType="url"
                       returnKeyType="next"
                       blurOnSubmit={false}
-                      onFocus={() => focusAuthArea(980)}
+                      onFocus={() => focusAuthArea(900)}
                       onSubmitEditing={() => contactRoleRef.current?.focus()}
                       className="mb-3 rounded-xl border border-gray-300 bg-white px-4 py-3 text-[15px] text-ink"
                     />
@@ -496,7 +496,7 @@ export function AuthScreen() {
                       autoCapitalize="sentences"
                       returnKeyType="next"
                       blurOnSubmit={false}
-                      onFocus={() => focusAuthArea(1040)}
+                      onFocus={() => focusAuthArea(960)}
                       onSubmitEditing={() => organizerNoteRef.current?.focus()}
                       className="mb-3 rounded-xl border border-gray-300 bg-white px-4 py-3 text-[15px] text-ink"
                     />
@@ -508,7 +508,7 @@ export function AuthScreen() {
                       placeholderTextColor="#8B909A"
                       multiline
                       textAlignVertical="top"
-                      onFocus={() => focusAuthArea(1120)}
+                      onFocus={() => focusAuthArea(1010)}
                       className="min-h-[86px] rounded-xl border border-gray-300 bg-white px-4 py-3 text-[15px] text-ink"
                     />
                   </View>
@@ -532,7 +532,7 @@ export function AuthScreen() {
                 autoComplete="email"
                 returnKeyType="next"
                 blurOnSubmit={false}
-                onFocus={() => focusAuthArea(mode === 'signUp' && applyAsOrganizer ? 1220 : 430)}
+                onFocus={() => focusAuthArea(mode === 'signUp' && applyAsOrganizer ? 1080 : 430)}
                 onBlur={() => handleFieldBlur('email')}
                 onSubmitEditing={() => passwordRef.current?.focus()}
                 className="mb-3 rounded-xl border border-gray-300 px-4 py-3 text-[15px] text-ink"
@@ -554,7 +554,7 @@ export function AuthScreen() {
                 textContentType={mode === 'signIn' ? 'password' : 'newPassword'}
                 autoComplete={mode === 'signIn' ? 'current-password' : 'new-password'}
                 returnKeyType="done"
-                onFocus={() => focusAuthArea(mode === 'signUp' && applyAsOrganizer ? 1280 : 500)}
+                onFocus={() => focusAuthArea(mode === 'signUp' && applyAsOrganizer ? 1140 : 500)}
                 onBlur={() => handleFieldBlur('password')}
                 onSubmitEditing={handleSubmit}
                 className="mb-4 rounded-xl border border-gray-300 px-4 py-3 text-[15px] text-ink"

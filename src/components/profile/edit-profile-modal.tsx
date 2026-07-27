@@ -92,12 +92,12 @@ export function EditProfileModal({
             className="flex-1"
             contentContainerStyle={{
               paddingHorizontal: 20,
-              paddingBottom: 140,
+              paddingBottom: 90,
               paddingTop: stableTopInset + 8,
             }}
             keyboardDismissMode="interactive"
             keyboardShouldPersistTaps="handled"
-            scrollIndicatorInsets={{ bottom: 140 }}
+            scrollIndicatorInsets={{ bottom: 90 }}
           >
             <View className="mb-5 flex-row justify-end">
               <Pressable
@@ -190,7 +190,7 @@ export function EditProfileModal({
                 <TextInput
                   value={organizerBio}
                   onChangeText={onChangeOrganizerBio}
-                  onFocus={() => focusFormArea(500)}
+                  onFocus={() => focusFormArea(430)}
                   placeholder="Shortly describe your venue, collective, or event organisation."
                   placeholderTextColor="#8B909A"
                   multiline
@@ -207,7 +207,7 @@ export function EditProfileModal({
                     <TextInput
                       value={organizerLocationQuery}
                       onChangeText={onChangeOrganizerLocationQuery}
-                      onFocus={() => focusFormArea(620)}
+                      onFocus={() => focusFormArea(535)}
                       placeholder="Search your venue or main location"
                       placeholderTextColor="#8B909A"
                       autoCapitalize="words"
