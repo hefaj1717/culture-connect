@@ -1,6 +1,7 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { Image } from 'expo-image';
 import { ArrowLeft, Camera, Minus, Plus, Route, X } from 'lucide-react-native';
+import { useRef } from 'react';
 import {
   ActivityIndicator,
   Keyboard,
@@ -86,6 +87,14 @@ export function CreateQuestModal({
   swipeStyle,
   visible,
 }: CreateQuestModalProps) {
+  const scrollViewRef = useRef<ScrollView>(null);
+
+  function focusFormArea(y: number) {
+    setTimeout(() => {
+      scrollViewRef.current?.scrollTo({ animated: true, y });
+    }, 90);
+  }
+
   return (
     <Modal animationType="slide" onRequestClose={onClose} visible={visible}>
       <GestureDetector gesture={gesture}>
@@ -96,14 +105,16 @@ export function CreateQuestModal({
               className="flex-1"
             >
               <ScrollView
+                ref={scrollViewRef}
                 className="flex-1"
                 contentContainerStyle={{
                   paddingHorizontal: 20,
-                  paddingBottom: 36,
+                  paddingBottom: 160,
                   paddingTop: stableModalTopInset + 14,
                 }}
                 keyboardDismissMode="interactive"
                 keyboardShouldPersistTaps="handled"
+                scrollIndicatorInsets={{ bottom: 160 }}
                 showsVerticalScrollIndicator={false}
               >
                 <Pressable
@@ -153,6 +164,7 @@ export function CreateQuestModal({
                 <TextInput
                   value={questTitle}
                   onChangeText={onChangeTitle}
+                  onFocus={() => focusFormArea(260)}
                   placeholder="e.g. Old Town Culture Trail"
                   placeholderTextColor="#8B909A"
                   className="mb-4 rounded-xl border border-gray-300 px-4 py-3 text-[15px] text-ink"
@@ -162,6 +174,7 @@ export function CreateQuestModal({
                 <TextInput
                   value={questTheme}
                   onChangeText={onChangeTheme}
+                  onFocus={() => focusFormArea(330)}
                   placeholder="City route"
                   placeholderTextColor="#8B909A"
                   className="mb-4 rounded-xl border border-gray-300 px-4 py-3 text-[15px] text-ink"
@@ -171,6 +184,7 @@ export function CreateQuestModal({
                 <TextInput
                   value={questDescription}
                   onChangeText={onChangeDescription}
+                  onFocus={() => focusFormArea(420)}
                   placeholder="What story does this trail tell?"
                   placeholderTextColor="#8B909A"
                   multiline
@@ -241,6 +255,7 @@ export function CreateQuestModal({
                     <TextInput
                       value={questXp}
                       onChangeText={onChangeXp}
+                      onFocus={() => focusFormArea(710)}
                       keyboardType="number-pad"
                       placeholder="150"
                       placeholderTextColor="#8B909A"
@@ -303,6 +318,7 @@ export function CreateQuestModal({
                       <TextInput
                         value={stop.title}
                         onChangeText={(value) => onChangeStop(index, 'title', value)}
+                        onFocus={() => focusFormArea(840 + index * 260)}
                         placeholder="Stop title"
                         placeholderTextColor="#8B909A"
                         className="mb-3 rounded-xl border border-gray-300 px-4 py-3 text-[15px] text-ink"
@@ -310,6 +326,7 @@ export function CreateQuestModal({
                       <TextInput
                         value={stop.description}
                         onChangeText={(value) => onChangeStop(index, 'description', value)}
+                        onFocus={() => focusFormArea(900 + index * 260)}
                         placeholder="What should students do here?"
                         placeholderTextColor="#8B909A"
                         multiline
@@ -319,6 +336,7 @@ export function CreateQuestModal({
                       <TextInput
                         value={stop.eta}
                         onChangeText={(value) => onChangeStop(index, 'eta', value)}
+                        onFocus={() => focusFormArea(1010 + index * 260)}
                         placeholder="ETA, e.g. 7 min"
                         placeholderTextColor="#8B909A"
                         className="rounded-xl border border-gray-300 px-4 py-3 text-[15px] text-ink"
