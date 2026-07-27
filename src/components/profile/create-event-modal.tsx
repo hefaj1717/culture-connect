@@ -45,6 +45,7 @@ import {
   eventCategoryLabels,
   getCultureCityData,
 } from '@/data/culture';
+import { textLimits } from '@/constants/text-limits';
 import { hasGooglePlacesApiKey, type PlaceSuggestion } from '@/lib/place-search';
 
 type CreateEventModalProps = {
@@ -243,6 +244,7 @@ export function CreateEventModal({
                   onFocus={() => focusFormArea(150)}
                   placeholder="e.g. Student Jazz Night"
                   placeholderTextColor="#8B909A"
+                  maxLength={textLimits.eventTitle}
                   className="mb-4 rounded-xl border border-gray-300 px-4 py-3 text-[15px] text-ink"
                 />
 
@@ -304,6 +306,7 @@ export function CreateEventModal({
                       onFocus={() => focusFormArea(390)}
                       placeholder={`Search places in ${cityData.name}`}
                       placeholderTextColor="#8B909A"
+                      maxLength={textLimits.placeSearch}
                       className="flex-1 text-[15px] text-ink"
                     />
                     {searchingPlaces && <ActivityIndicator color="#7C3AED" size="small" />}
@@ -457,8 +460,12 @@ export function CreateEventModal({
                   placeholderTextColor="#8B909A"
                   multiline
                   textAlignVertical="top"
+                  maxLength={textLimits.eventDescription}
                   className="mb-4 min-h-[112px] rounded-xl border border-gray-300 px-4 py-3 text-[15px] leading-5 text-ink"
                 />
+                <Text className="-mt-3 mb-4 text-right text-[11px] text-muted">
+                  {eventDescription.length}/{textLimits.eventDescription}
+                </Text>
 
                 {createEventError && (
                   <Text className="mb-4 text-[13px] font-medium text-destructive">

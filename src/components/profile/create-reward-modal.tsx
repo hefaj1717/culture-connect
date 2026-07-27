@@ -15,6 +15,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { textLimits } from '@/constants/text-limits';
 import { type CityId, getCultureCityData } from '@/data/culture';
 import { hasGooglePlacesApiKey, type PlaceSuggestion } from '@/lib/place-search';
 
@@ -126,6 +127,7 @@ export function CreateRewardModal({
               onFocus={() => focusFormArea(150)}
               placeholder="e.g. Free espresso after check-in"
               placeholderTextColor="#8B909A"
+              maxLength={textLimits.rewardTitle}
               className="mb-4 rounded-xl border border-gray-300 px-4 py-3 text-[15px] text-ink"
             />
 
@@ -142,6 +144,7 @@ export function CreateRewardModal({
                   onFocus={() => focusFormArea(260)}
                   placeholder={`Search places in ${cityData.name}`}
                   placeholderTextColor="#8B909A"
+                  maxLength={textLimits.placeSearch}
                   className="flex-1 text-[15px] text-ink"
                 />
                 {searchingRewardPlaces && <ActivityIndicator color="#7C3AED" size="small" />}
@@ -204,6 +207,7 @@ export function CreateRewardModal({
               keyboardType="number-pad"
               placeholder="100"
               placeholderTextColor="#8B909A"
+              maxLength={textLimits.rewardXp}
               className="mb-4 rounded-xl border border-gray-300 px-4 py-3 text-[15px] text-ink"
             />
 
@@ -216,8 +220,12 @@ export function CreateRewardModal({
               placeholderTextColor="#8B909A"
               multiline
               textAlignVertical="top"
+              maxLength={textLimits.rewardDescription}
               className="mb-4 min-h-[112px] rounded-xl border border-gray-300 px-4 py-3 text-[15px] leading-5 text-ink"
             />
+            <Text className="-mt-3 mb-4 text-right text-[11px] text-muted">
+              {rewardDescription.length}/{textLimits.rewardDescription}
+            </Text>
 
             {createRewardError && (
               <Text className="mb-4 text-[13px] font-medium text-destructive">

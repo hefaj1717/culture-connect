@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { Alert } from 'react-native';
 
 import { startOfMonth } from '@/components/profile/date-time-pickers';
+import { limitText, textLimits } from '@/constants/text-limits';
 import { type CityId, type EventCategory, type EventLanguage } from '@/data/culture';
 import { createOrganizerEvent } from '@/lib/organizer-events';
 import { type PlaceSuggestion, searchPlaces } from '@/lib/place-search';
@@ -109,12 +110,24 @@ export function useCreateEventForm({
     setPlaceSuggestions([]);
   }
 
+  function changeEventTitle(value: string) {
+    setEventTitle(limitText(value, textLimits.eventTitle));
+  }
+
+  function changeEventDescription(value: string) {
+    setEventDescription(limitText(value, textLimits.eventDescription));
+  }
+
+  function changePlaceQuery(value: string) {
+    setPlaceQuery(limitText(value, textLimits.placeSearch));
+  }
+
   async function submitEvent() {
-    const normalizedTitle = eventTitle.trim();
+    const normalizedTitle = limitText(eventTitle.trim(), textLimits.eventTitle);
     const normalizedDate = eventDate.trim();
     const normalizedEndTime = eventEndTime.trim();
     const normalizedTime = eventTime.trim();
-    const normalizedDescription = eventDescription.trim();
+    const normalizedDescription = limitText(eventDescription.trim(), textLimits.eventDescription);
     const startsAt = eventDateValue ? buildLocalEventDate(eventDateValue, normalizedTime) : null;
     const endsAt = eventDateValue ? buildLocalEventDate(eventDateValue, normalizedEndTime) : null;
 
@@ -227,13 +240,13 @@ export function useCreateEventForm({
     setEventCategory,
     setEventDate,
     setEventDateValue,
-    setEventDescription,
+    setEventDescription: changeEventDescription,
     setEventEndTime,
     setEventImageUri,
     setEventIsFree,
     setEventTime,
-    setEventTitle,
-    setPlaceQuery,
+    setEventTitle: changeEventTitle,
+    setPlaceQuery: changePlaceQuery,
     setSelectedHour,
     setSelectedMinute,
     setSelectedEndHour,

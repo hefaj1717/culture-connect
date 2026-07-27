@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Alert } from 'react-native';
 
+import { limitText, textLimits } from '@/constants/text-limits';
 import { type CityId } from '@/data/culture';
 import { createOrganizerReward } from '@/lib/organizer-rewards';
 import { type PlaceSuggestion, searchPlaces } from '@/lib/place-search';
@@ -80,9 +81,25 @@ export function useCreateRewardForm({
     setRewardPlaceSuggestions([]);
   }
 
+  function changeRewardTitle(value: string) {
+    setRewardTitle(limitText(value, textLimits.rewardTitle));
+  }
+
+  function changeRewardDescription(value: string) {
+    setRewardDescription(limitText(value, textLimits.rewardDescription));
+  }
+
+  function changeRewardPlaceQuery(value: string) {
+    setRewardPlaceQuery(limitText(value, textLimits.placeSearch));
+  }
+
+  function changeRewardXp(value: string) {
+    setRewardXp(limitText(value.replace(/\D/g, ''), textLimits.rewardXp));
+  }
+
   async function submitReward() {
-    const normalizedTitle = rewardTitle.trim();
-    const normalizedDescription = rewardDescription.trim();
+    const normalizedTitle = limitText(rewardTitle.trim(), textLimits.rewardTitle);
+    const normalizedDescription = limitText(rewardDescription.trim(), textLimits.rewardDescription);
     const normalizedXp = Number.parseInt(rewardXp.trim(), 10);
 
     if (!userId) {
@@ -139,10 +156,10 @@ export function useCreateRewardForm({
     selectedRewardPlace,
     selectRewardPlace,
     setCreateRewardOpen,
-    setRewardDescription,
-    setRewardPlaceQuery,
-    setRewardTitle,
-    setRewardXp,
+    setRewardDescription: changeRewardDescription,
+    setRewardPlaceQuery: changeRewardPlaceQuery,
+    setRewardTitle: changeRewardTitle,
+    setRewardXp: changeRewardXp,
     setSelectedRewardPlace,
     submitReward,
   };

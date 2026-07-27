@@ -16,6 +16,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { CitySelector } from '@/components/city-selector';
 import { Avatar } from '@/components/profile/profile-avatar';
+import { textLimits } from '@/constants/text-limits';
 import type { CityId } from '@/data/culture';
 import { useStableTopInset } from '@/hooks/use-stable-safe-area';
 import type { PlaceSuggestion } from '@/lib/place-search';
@@ -142,6 +143,7 @@ export function EditProfileModal({
               autoCapitalize="words"
               textContentType="givenName"
               autoComplete="given-name"
+              maxLength={textLimits.firstName}
               className="mb-4 rounded-xl border border-gray-300 px-4 py-3 text-[15px] text-ink"
             />
 
@@ -155,6 +157,7 @@ export function EditProfileModal({
               autoCapitalize="words"
               textContentType="familyName"
               autoComplete="family-name"
+              maxLength={textLimits.lastName}
               className="mb-4 rounded-xl border border-gray-300 px-4 py-3 text-[15px] text-ink"
             />
 
@@ -176,9 +179,7 @@ export function EditProfileModal({
 
             {isOrganizer && (
               <View className="mb-6 rounded-3xl border border-primary/10 bg-primary/5 p-4">
-                <Text className="mb-1 font-display text-[24px] text-ink">
-                  Organizer profile
-                </Text>
+                <Text className="mb-1 font-display text-[24px] text-ink">Organizer profile</Text>
                 <Text className="mb-4 text-[12px] leading-4 text-muted">
                   These details appear in Discover for students browsing organisers and partner
                   places.
@@ -195,8 +196,12 @@ export function EditProfileModal({
                   placeholderTextColor="#8B909A"
                   multiline
                   textAlignVertical="top"
+                  maxLength={textLimits.organizerBio}
                   className="mb-4 min-h-[96px] rounded-xl border border-primary/15 bg-white px-4 py-3 text-[15px] leading-5 text-ink"
                 />
+                <Text className="-mt-3 mb-4 text-right text-[11px] text-muted">
+                  {organizerBio.length}/{textLimits.organizerBio}
+                </Text>
 
                 <Text className="mb-2 text-[13px] font-semibold text-ink">
                   Main location optional
@@ -211,6 +216,7 @@ export function EditProfileModal({
                       placeholder="Search your venue or main location"
                       placeholderTextColor="#8B909A"
                       autoCapitalize="words"
+                      maxLength={textLimits.organizerLocationSearch}
                       className="min-h-[24px] flex-1 text-[15px] text-ink"
                     />
                     {searchingOrganizerLocation && <ActivityIndicator size="small" />}

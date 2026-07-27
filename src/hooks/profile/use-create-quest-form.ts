@@ -2,6 +2,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { useState } from 'react';
 import { Alert } from 'react-native';
 
+import { limitText, textLimits } from '@/constants/text-limits';
 import { type CityId } from '@/data/culture';
 import { createQuest, type QuestImageKind } from '@/lib/quests';
 
@@ -73,16 +74,38 @@ export function useCreateQuestForm({
   }
 
   function updateQuestStop(index: number, key: keyof QuestDraftStop, value: string) {
+    const limitByKey = {
+      description: textLimits.questStopDescription,
+      eta: textLimits.questStopEta,
+      title: textLimits.questStopTitle,
+    } satisfies Record<keyof QuestDraftStop, number>;
+
     setQuestStops((current) =>
       current.map((stop, stopIndex) =>
         stopIndex === index
           ? {
               ...stop,
-              [key]: value,
+              [key]: limitText(value, limitByKey[key]),
             }
           : stop,
       ),
     );
+  }
+
+  function changeQuestTitle(value: string) {
+    setQuestTitle(limitText(value, textLimits.questTitle));
+  }
+
+  function changeQuestTheme(value: string) {
+    setQuestTheme(limitText(value, textLimits.questTheme));
+  }
+
+  function changeQuestDescription(value: string) {
+    setQuestDescription(limitText(value, textLimits.questDescription));
+  }
+
+  function changeQuestXp(value: string) {
+    setQuestXp(limitText(value.replace(/\D/g, ''), textLimits.rewardXp));
   }
 
   async function pickQuestImage() {
@@ -107,15 +130,15 @@ export function useCreateQuestForm({
   }
 
   async function submitQuest() {
-    const normalizedTitle = questTitle.trim();
-    const normalizedTheme = questTheme.trim();
-    const normalizedDescription = questDescription.trim();
+    const normalizedTitle = limitText(questTitle.trim(), textLimits.questTitle);
+    const normalizedTheme = limitText(questTheme.trim(), textLimits.questTheme);
+    const normalizedDescription = limitText(questDescription.trim(), textLimits.questDescription);
     const normalizedXp = Number.parseInt(questXp.trim(), 10);
     const completeStops = questStops
       .map((stop) => ({
-        description: stop.description.trim(),
-        eta: stop.eta.trim(),
-        title: stop.title.trim(),
+        description: limitText(stop.description.trim(), textLimits.questStopDescription),
+        eta: limitText(stop.eta.trim(), textLimits.questStopEta),
+        title: limitText(stop.title.trim(), textLimits.questStopTitle),
       }))
       .filter((stop) => stop.title || stop.description || stop.eta);
 
@@ -191,13 +214,13 @@ export function useCreateQuestForm({
     removeQuestStop,
     setCreateQuestOpen,
     setQuestCityId,
-    setQuestDescription,
+    setQuestDescription: changeQuestDescription,
     setQuestImage,
     setQuestImageUri,
     setQuestStatus,
-    setQuestTheme,
-    setQuestTitle,
-    setQuestXp,
+    setQuestTheme: changeQuestTheme,
+    setQuestTitle: changeQuestTitle,
+    setQuestXp: changeQuestXp,
     submitQuest,
     updateQuestStop,
   };

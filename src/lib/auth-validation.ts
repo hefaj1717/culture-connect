@@ -1,3 +1,5 @@
+import { textLimits } from '@/constants/text-limits';
+
 export type AuthMode = 'signIn' | 'signUp' | 'confirmSignUp';
 
 export type AuthFieldErrors = Partial<
@@ -48,8 +50,24 @@ export function validateAuthField(
     return 'First name is required.';
   }
 
+  if (
+    input.mode === 'signUp' &&
+    field === 'firstName' &&
+    input.firstName.length > textLimits.firstName
+  ) {
+    return `First name must be ${textLimits.firstName} characters or fewer.`;
+  }
+
   if (input.mode === 'signUp' && field === 'lastName' && !input.lastName.trim()) {
     return 'Last name is required.';
+  }
+
+  if (
+    input.mode === 'signUp' &&
+    field === 'lastName' &&
+    input.lastName.length > textLimits.lastName
+  ) {
+    return `Last name must be ${textLimits.lastName} characters or fewer.`;
   }
 
   if (
@@ -59,6 +77,15 @@ export function validateAuthField(
     !input.institutionName.trim()
   ) {
     return 'Institution or business name is required.';
+  }
+
+  if (
+    input.mode === 'signUp' &&
+    input.applyAsOrganizer &&
+    field === 'institutionName' &&
+    input.institutionName.length > textLimits.organizerInstitutionName
+  ) {
+    return `Institution name must be ${textLimits.organizerInstitutionName} characters or fewer.`;
   }
 
   if (input.mode === 'confirmSignUp' && field === 'confirmationCode') {
