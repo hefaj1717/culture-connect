@@ -2,13 +2,18 @@ import { useCallback, useEffect, useState } from 'react';
 import { Alert } from 'react-native';
 
 import {
+  type AdminManagedEvent,
   deleteOrganizerEvent,
+  fetchAdminManagedEvents,
   fetchPendingAdminContent,
   reviewOrganizerEvent,
   reviewOrganizerReward,
+  updateAdminManagedEvent,
   type PendingAdminEvent,
   type PendingAdminReward,
 } from '@/lib/admin-moderation';
+import type { EventCategory } from '@/data/culture';
+import type { OrganizerEventStatus } from '@/lib/organizer-events';
 
 type ReviewKind = 'event' | 'reward';
 type ReviewStatus = 'approved' | 'rejected';
@@ -27,9 +32,14 @@ export function useAdminModeration({
   const [adminReviewOpen, setAdminReviewOpen] = useState(false);
   const [adminReviewError, setAdminReviewError] = useState<string | null>(null);
   const [adminReviewLoading, setAdminReviewLoading] = useState(false);
+  const [adminManageEvents, setAdminManageEvents] = useState<AdminManagedEvent[]>([]);
+  const [adminManageEventsError, setAdminManageEventsError] = useState<string | null>(null);
+  const [adminManageEventsLoading, setAdminManageEventsLoading] = useState(false);
+  const [adminManageEventsOpen, setAdminManageEventsOpen] = useState(false);
   const [pendingEvents, setPendingEvents] = useState<PendingAdminEvent[]>([]);
   const [pendingRewards, setPendingRewards] = useState<PendingAdminReward[]>([]);
   const [reviewingContentId, setReviewingContentId] = useState<string | null>(null);
+  const [savingManagedEventId, setSavingManagedEventId] = useState<string | null>(null);
 
   const loadPendingContent = useCallback(async () => {
     if (!isAdmin) return;
@@ -55,9 +65,31 @@ export function useAdminModeration({
     }
   }, [isAdmin, loadPendingContent]);
 
+  const loadManagedEvents = useCallback(async () => {
+    if (!isAdmin) return;
+
+    setAdminManageEventsLoading(true);
+    const result = await fetchAdminManagedEvents();
+    setAdminManageEventsLoading(false);
+
+    setAdminManageEvents(result.events);
+    setAdminManageEventsError(result.error);
+  }, [isAdmin]);
+
+  useEffect(() => {
+    if (adminManageEventsOpen) {
+      void loadManagedEvents();
+    }
+  }, [adminManageEventsOpen, loadManagedEvents]);
+
   function openAdminReview() {
     setAdminReviewError(null);
     setAdminReviewOpen(true);
+  }
+
+  function openAdminManageEvents() {
+    setAdminManageEventsError(null);
+    setAdminManageEventsOpen(true);
   }
 
   async function reviewContent(kind: ReviewKind, id: string, status: ReviewStatus) {
@@ -80,6 +112,7 @@ export function useAdminModeration({
 
     if (kind === 'event') {
       setPendingEvents((current) => current.filter((event) => event.id !== id));
+      void loadManagedEvents();
     } else {
       setPendingRewards((current) => current.filter((reward) => reward.id !== id));
     }
@@ -96,6 +129,7 @@ export function useAdminModeration({
   async function deleteEvent(id: string) {
     if (!userId) {
       setAdminReviewError('Log in again before deleting events.');
+      setAdminManageEventsError('Log in again before deleting events.');
       return;
     }
 
@@ -122,25 +156,72 @@ export function useAdminModeration({
 
     if (result.error) {
       setAdminReviewError(result.error);
+      setAdminManageEventsError(result.error);
       return;
     }
 
     setPendingEvents((current) => current.filter((event) => event.id !== id));
+    setAdminManageEvents((current) => current.filter((event) => event.databaseId !== id));
     onContentReviewed?.();
     Alert.alert('Event deleted', 'The event has been removed from CultureQuest.');
   }
 
+  async function saveManagedEvent(
+    eventId: string,
+    input: {
+      category: EventCategory;
+      date: string;
+      description: string;
+      endTime?: string | null;
+      status: OrganizerEventStatus;
+      time: string;
+      title: string;
+      venueAddress?: string | null;
+      venueName: string;
+      xpBonus: number;
+    },
+  ) {
+    if (!userId) {
+      setAdminManageEventsError('Log in again before editing events.');
+      return { success: false };
+    }
+
+    setSavingManagedEventId(eventId);
+    const result = await updateAdminManagedEvent({ adminUserId: userId, eventId, input });
+    setSavingManagedEventId(null);
+
+    if (result.error) {
+      setAdminManageEventsError(result.error);
+      return { success: false };
+    }
+
+    await loadManagedEvents();
+    await loadPendingContent();
+    onContentReviewed?.();
+    Alert.alert('Event updated', 'The event changes have been saved.');
+    return { success: true };
+  }
+
   return {
+    adminManageEvents,
+    adminManageEventsError,
+    adminManageEventsLoading,
+    adminManageEventsOpen,
     adminReviewError,
     adminReviewLoading,
     adminReviewOpen,
     openAdminReview,
+    openAdminManageEvents,
     pendingEvents,
     pendingRewards,
     deleteEvent,
+    refreshManagedEvents: loadManagedEvents,
     refreshPendingContent: loadPendingContent,
     reviewContent,
     reviewingContentId,
+    saveManagedEvent,
+    savingManagedEventId,
+    setAdminManageEventsOpen,
     setAdminReviewOpen,
   };
 }

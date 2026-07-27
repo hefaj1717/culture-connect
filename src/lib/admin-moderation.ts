@@ -1,4 +1,11 @@
-import { type CityId, type EventCategory, type RewardPartner } from '@/data/culture';
+import {
+  type CityId,
+  type CultureEvent,
+  type EventCategory,
+  type EventLanguage,
+  type RewardPartner,
+} from '@/data/culture';
+import type { OrganizerEventStatus } from '@/lib/organizer-events';
 import { supabase } from '@/lib/supabase';
 
 export type PendingAdminEvent = {
@@ -34,6 +41,14 @@ export type PendingAdminReward = {
   xpCost: number;
 };
 
+export type AdminManagedEvent = CultureEvent & {
+  cityId: CityId;
+  createdAt: string;
+  databaseId: string;
+  organizerUserId: string;
+  reviewStatus: OrganizerEventStatus;
+};
+
 type PendingEventRow = {
   category: EventCategory;
   city_key: CityId;
@@ -48,6 +63,23 @@ type PendingEventRow = {
   title: string;
   venue_address: string | null;
   venue_name: string;
+};
+
+type AdminManagedEventRow = PendingEventRow & {
+  attendee_count: number | null;
+  check_in_code: string | null;
+  ends_at?: string | null;
+  image_kind: CultureEvent['organizerImage'];
+  interested_count?: number | null;
+  is_free: boolean | null;
+  is_international: boolean | null;
+  language: EventLanguage | null;
+  starts_at?: string | null;
+  status: OrganizerEventStatus;
+  venue_key: string;
+  venue_latitude: number | null;
+  venue_longitude: number | null;
+  xp_bonus: number | null;
 };
 
 type PendingRewardRow = {
@@ -68,6 +100,9 @@ type ProfileSummaryRow = {
   id: string;
   username: string | null;
 };
+
+const ADMIN_EVENT_SELECT =
+  'id, organizer_user_id, city_key, venue_key, venue_name, venue_address, venue_latitude, venue_longitude, title, description, category, date_label, time_label, end_time_label, starts_at, ends_at, xp_bonus, language, is_free, is_international, interested_count, attendee_count, image_kind, image_url, check_in_code, status, created_at';
 
 export async function fetchPendingAdminContent() {
   const [eventsResult, rewardsResult] = await Promise.all([
@@ -107,6 +142,25 @@ export async function fetchPendingAdminContent() {
   };
 }
 
+export async function fetchAdminManagedEvents() {
+  const { data, error } = await supabase
+    .from('organizer_events')
+    .select(ADMIN_EVENT_SELECT)
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    return { error: error.message, events: [] as AdminManagedEvent[] };
+  }
+
+  const rows = (data ?? []) as unknown as AdminManagedEventRow[];
+  const organizerProfiles = await fetchOrganizerProfileSummaries(rows);
+
+  return {
+    error: null,
+    events: rows.map((row) => mapAdminManagedEvent(row, organizerProfiles)),
+  };
+}
+
 export async function reviewOrganizerEvent({
   adminUserId,
   eventId,
@@ -126,6 +180,48 @@ export async function reviewOrganizerEvent({
       reviewed_at: new Date().toISOString(),
       reviewed_by: adminUserId,
       status,
+    })
+    .eq('id', eventId);
+
+  return { error: error?.message ?? null };
+}
+
+export async function updateAdminManagedEvent({
+  adminUserId,
+  eventId,
+  input,
+}: {
+  adminUserId: string;
+  eventId: string;
+  input: {
+    category: EventCategory;
+    date: string;
+    description: string;
+    endTime?: string | null;
+    status: OrganizerEventStatus;
+    time: string;
+    title: string;
+    venueAddress?: string | null;
+    venueName: string;
+    xpBonus: number;
+  };
+}) {
+  const { error } = await supabase
+    .from('organizer_events')
+    .update({
+      category: input.category,
+      date_label: input.date,
+      description: input.description,
+      end_time_label: input.endTime,
+      rejection_reason: input.status === 'rejected' ? 'Rejected by CultureQuest admin.' : null,
+      reviewed_at: new Date().toISOString(),
+      reviewed_by: adminUserId,
+      status: input.status,
+      time_label: input.time,
+      title: input.title,
+      venue_address: input.venueAddress,
+      venue_name: input.venueName,
+      xp_bonus: input.xpBonus,
     })
     .eq('id', eventId);
 
@@ -204,7 +300,7 @@ function mapPendingEvent(
     createdAt: row.created_at,
     date: row.date_label,
     description: row.description,
-    endTime: row.end_time_label,
+    endTime: row.end_time_label ?? undefined,
     id: row.id,
     imageUrl: row.image_url,
     organizerAvatarUrl: profile?.avatar_url ?? null,
@@ -236,5 +332,51 @@ function mapPendingReward(
     placeName: row.place_name,
     title: row.title,
     xpCost: row.xp_cost,
+  };
+}
+
+function mapAdminManagedEvent(
+  row: AdminManagedEventRow,
+  profiles: Record<string, ProfileSummaryRow>,
+): AdminManagedEvent {
+  const profile = profiles[row.organizer_user_id];
+
+  return {
+    attendeeCount: row.attendee_count ?? 0,
+    category: row.category,
+    checkInCode: row.check_in_code ?? `culturequest:event:${row.id}`,
+    cityId: row.city_key,
+    createdAt: row.created_at,
+    databaseId: row.id,
+    date: row.date_label,
+    description: row.description,
+    endTime: row.end_time_label ?? undefined,
+    endsAt: row.ends_at ?? undefined,
+    id: `organizer-${row.id}`,
+    imageUrl: row.image_url ?? undefined,
+    interestedCount: row.interested_count ?? 0,
+    isFeatured: false,
+    isFlashQuest: false,
+    isFree: row.is_free ?? true,
+    isInternational: row.is_international ?? false,
+    language: row.language ?? 'en',
+    organizerAvatarUrl: profile?.avatar_url ?? null,
+    organizerCityId: row.city_key,
+    organizerId: row.organizer_user_id,
+    organizerImage: row.image_kind ?? 'theater',
+    organizerName: profile?.username?.trim() || `Organizer ${row.organizer_user_id.slice(0, 8)}`,
+    organizerUserId: row.organizer_user_id,
+    reviewStatus: row.status,
+    startsAt: row.starts_at ?? undefined,
+    time: row.time_label,
+    title: row.title,
+    venueAddress: row.venue_address ?? undefined,
+    venueCoordinates:
+      typeof row.venue_latitude === 'number' && typeof row.venue_longitude === 'number'
+        ? { latitude: row.venue_latitude, longitude: row.venue_longitude }
+        : undefined,
+    venueId: row.venue_key,
+    venueName: row.venue_name,
+    xpBonus: row.xp_bonus ?? 50,
   };
 }
