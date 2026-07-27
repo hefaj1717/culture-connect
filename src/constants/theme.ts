@@ -90,6 +90,18 @@ export const GamificationColors = {
   },
 } as const;
 
+export const CardStyles = {
+  elevated: {
+    boxShadow: '0 12px 28px rgba(36, 28, 46, 0.09)',
+  },
+  compact: {
+    boxShadow: '0 8px 18px rgba(36, 28, 46, 0.07)',
+  },
+  soft: {
+    boxShadow: '0 6px 16px rgba(36, 28, 46, 0.05)',
+  },
+} as const;
+
 export const Spacing = {
   half: 2,
   one: 4,

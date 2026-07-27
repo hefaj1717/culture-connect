@@ -31,7 +31,7 @@ import Animated, {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BrandImage } from '@/components/brand-image';
-import { Colors } from '@/constants/theme';
+import { CardStyles, Colors } from '@/constants/theme';
 import { cultureMapStyle } from '@/constants/map-style';
 import {
   type CultureCityData,
@@ -329,7 +329,10 @@ export default function HomeScreen({
                 title="Events could not load"
               />
             ) : happeningNow.length === 0 ? (
-              <View className="w-[260px] rounded-2xl border border-gray-200 bg-white p-4">
+              <View
+                className="w-[260px] rounded-2xl border border-primary/10 bg-white p-4"
+                style={CardStyles.compact}
+              >
                 <Text className="font-ui text-[15px] font-extrabold text-ink">
                   No approved events yet
                 </Text>
@@ -341,7 +344,8 @@ export default function HomeScreen({
               happeningNow.map((event) => (
                 <Pressable
                   onPress={() => onOpenEvent?.(event.id)}
-                  className="w-[220px] overflow-hidden rounded-2xl border border-gray-200 bg-white active:opacity-85"
+                  className="w-[220px] overflow-hidden rounded-2xl border border-primary/10 bg-white active:opacity-85"
+                  style={CardStyles.compact}
                   key={event.id}
                 >
                   <View className="h-[112px] bg-gray-200">
@@ -399,7 +403,10 @@ export default function HomeScreen({
             <Text className="text-[11px] font-semibold text-primary">Approved events only</Text>
           </View>
 
-          <View className="overflow-hidden rounded-3xl border border-gray-200 bg-[#EAF0F7]">
+          <View
+            className="overflow-hidden rounded-3xl border border-primary/10 bg-[#EAF0F7]"
+            style={CardStyles.elevated}
+          >
             <View className="h-[210px]">
               <MapView
                 initialRegion={activityMapRegion}
@@ -471,7 +478,7 @@ export default function HomeScreen({
               </View>
             </View>
 
-            <View className="border-t border-gray-200 bg-white px-4 py-3">
+            <View className="border-t border-primary/10 bg-white px-4 py-3">
               {eventsError ? (
                 <View className="mb-3">
                   <Text className="font-ui text-[15px] font-bold text-ink">
@@ -915,7 +922,10 @@ function MiniEngagementStat({ icon, value }: { icon: ReactNode; value: number })
 
 function HomeEventStateCard({ body, title }: { body: string; title: string }) {
   return (
-    <View className="w-[260px] rounded-2xl border border-gray-200 bg-white p-4">
+    <View
+      className="w-[260px] rounded-2xl border border-primary/10 bg-white p-4"
+      style={CardStyles.compact}
+    >
       <Text className="font-ui text-[15px] font-extrabold text-ink">{title}</Text>
       <Text className="mt-1 text-[12px] leading-4 text-muted">{body}</Text>
     </View>
