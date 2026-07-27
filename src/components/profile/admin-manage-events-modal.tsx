@@ -169,10 +169,7 @@ export function AdminManageEventsModal({
               <AdminEventEditor
                 event={visibleSelectedEvent}
                 onBack={() => setSelectedEvent(null)}
-                onDelete={() => {
-                  setSelectedEvent(null);
-                  onDeleteEvent(visibleSelectedEvent.databaseId);
-                }}
+                onDelete={() => onDeleteEvent(visibleSelectedEvent.databaseId)}
                 onSave={onSaveEvent}
                 saving={savingEventId === visibleSelectedEvent.databaseId}
                 stableModalTopInset={stableModalTopInset}
@@ -454,14 +451,7 @@ function AdminEventEditor({
         >
           <ArrowLeft size={21} color="#756F7B" strokeWidth={2.6} />
         </Pressable>
-        <Pressable
-          onPress={onDelete}
-          className="h-10 w-10 items-center justify-center rounded-full bg-destructive/10 active:opacity-80"
-          accessibilityLabel="Delete event"
-          accessibilityRole="button"
-        >
-          <Trash2 size={18} color="#EF4444" strokeWidth={2.5} />
-        </Pressable>
+        <View className="h-10 w-10" />
       </View>
 
       <ScrollView
@@ -579,6 +569,15 @@ function AdminEventEditor({
           <Text className="text-[15px] font-extrabold text-white">
             {saving ? 'Saving event...' : 'Save event'}
           </Text>
+        </Pressable>
+
+        <Pressable
+          disabled={saving}
+          onPress={onDelete}
+          className="mt-3 h-[52px] flex-row items-center justify-center gap-2 rounded-2xl bg-destructive active:opacity-85 disabled:opacity-60"
+        >
+          <Trash2 size={17} color="white" strokeWidth={2.5} />
+          <Text className="text-[15px] font-extrabold text-white">Delete event</Text>
         </Pressable>
       </ScrollView>
     </View>
