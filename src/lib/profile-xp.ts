@@ -42,7 +42,7 @@ export async function awardUserXp({
   });
 
   if (error) {
-    return { duplicate: false, error: error.message, totalXp: null };
+    return { duplicate: false, error: error.message, totalXp: null, xpEarned: 0 };
   }
 
   const result = data as AwardXpResponse;
@@ -90,6 +90,7 @@ export async function confirmOrganizerEventAttendance({
     return {
       duplicate: false,
       error: getAttendanceErrorMessage(result.error, result.distance_m),
+      xpEarned: 0,
       totalXp: typeof result.total_xp === 'number' ? result.total_xp : null,
     };
   }
@@ -97,6 +98,7 @@ export async function confirmOrganizerEventAttendance({
   return {
     duplicate: !!result.duplicate,
     error: null,
+    xpEarned: typeof result.xp_earned === 'number' ? result.xp_earned : 0,
     totalXp: typeof result.total_xp === 'number' ? result.total_xp : null,
   };
 }
