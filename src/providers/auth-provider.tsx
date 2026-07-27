@@ -37,10 +37,15 @@ type AuthContextValue = {
   verifySignUpCode: (email: string, token: string) => Promise<{ error: string | null }>;
   resendSignUpCode: (email: string) => Promise<{ error: string | null }>;
   updateProfile: (profile: {
-    firstName: string;
-    lastName: string;
     cityId: CityId;
     avatarUrl?: string | null;
+    firstName: string;
+    lastName: string;
+    organizerBio?: string;
+    organizerLocationAddress?: string | null;
+    organizerLocationLatitude?: number | null;
+    organizerLocationLongitude?: number | null;
+    organizerLocationName?: string | null;
   }) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
 };
@@ -79,7 +84,9 @@ function isProfileSchemaCacheError(message: string) {
     normalizedMessage.includes('permission denied') ||
     normalizedMessage.includes('city_key') ||
     normalizedMessage.includes('first_name') ||
-    normalizedMessage.includes('last_name')
+    normalizedMessage.includes('last_name') ||
+    normalizedMessage.includes('organizer_bio') ||
+    normalizedMessage.includes('organizer_location')
   );
 }
 
@@ -296,15 +303,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   async function updateProfile({
-    firstName,
-    lastName,
     cityId,
     avatarUrl,
+    firstName,
+    lastName,
+    organizerBio = '',
+    organizerLocationAddress = null,
+    organizerLocationLatitude = null,
+    organizerLocationLongitude = null,
+    organizerLocationName = null,
   }: {
-    firstName: string;
-    lastName: string;
     cityId: CityId;
     avatarUrl?: string | null;
+    firstName: string;
+    lastName: string;
+    organizerBio?: string;
+    organizerLocationAddress?: string | null;
+    organizerLocationLatitude?: number | null;
+    organizerLocationLongitude?: number | null;
+    organizerLocationName?: string | null;
   }) {
     if (!session?.user.id) {
       return { error: 'You must be logged in to update your profile.' };
@@ -314,6 +331,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const normalizedLastName = lastName.trim();
     const normalizedCityId = cityId || defaultCityId;
     const normalizedAvatarUrl = avatarUrl ?? null;
+    const normalizedOrganizerBio = organizerBio.trim();
+    const normalizedOrganizerLocationName = organizerLocationName?.trim() || null;
+    const normalizedOrganizerLocationAddress = organizerLocationAddress?.trim() || null;
     const fullName = `${normalizedFirstName} ${normalizedLastName}`.trim();
 
     const { error } = await supabase.auth.updateUser({
@@ -323,6 +343,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         full_name: fullName,
         city_id: normalizedCityId,
         avatar_url: normalizedAvatarUrl,
+        organizer_bio: normalizedOrganizerBio,
+        organizer_location_address: normalizedOrganizerLocationAddress,
+        organizer_location_latitude: organizerLocationLatitude,
+        organizer_location_longitude: organizerLocationLongitude,
+        organizer_location_name: normalizedOrganizerLocationName,
       },
     });
     if (error) {
@@ -337,6 +362,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         last_name: normalizedLastName,
         city_key: normalizedCityId,
         avatar_url: normalizedAvatarUrl,
+        organizer_bio: normalizedOrganizerBio,
+        organizer_location_address: normalizedOrganizerLocationAddress,
+        organizer_location_latitude: organizerLocationLatitude,
+        organizer_location_longitude: organizerLocationLongitude,
+        organizer_location_name: normalizedOrganizerLocationName,
       },
       { onConflict: 'id' },
     );
