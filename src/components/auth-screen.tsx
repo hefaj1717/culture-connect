@@ -18,6 +18,7 @@ import {
 import { BrandImage } from '@/components/brand-image';
 import { CitySelector } from '@/components/city-selector';
 import { FormFieldError } from '@/components/form-field-error';
+import { limitText, textLimits } from '@/constants/text-limits';
 import { type CityId, defaultCityId } from '@/data/culture';
 import {
   type AuthFieldErrors,
@@ -156,8 +157,8 @@ export function AuthScreen() {
     setNotice(null);
 
     const normalizedEmail = email.trim().toLowerCase();
-    const normalizedFirstName = firstName.trim();
-    const normalizedLastName = lastName.trim();
+    const normalizedFirstName = limitText(firstName.trim(), textLimits.firstName);
+    const normalizedLastName = limitText(lastName.trim(), textLimits.lastName);
 
     const validation = validateAuthForm(validationInput);
     setFieldErrors(validation.fieldErrors);
@@ -188,11 +189,11 @@ export function AuthScreen() {
       cityId,
       applyAsOrganizer
         ? {
-            institutionName: institutionName.trim(),
+            institutionName: limitText(institutionName.trim(), textLimits.organizerInstitutionName),
             institutionType,
-            websiteUrl: websiteUrl.trim(),
-            contactRole: contactRole.trim(),
-            note: organizerNote.trim(),
+            websiteUrl: limitText(websiteUrl.trim(), textLimits.websiteUrl),
+            contactRole: limitText(contactRole.trim(), textLimits.organizerRole),
+            note: limitText(organizerNote.trim(), textLimits.organizerNote),
           }
         : null,
     );
@@ -357,9 +358,10 @@ export function AuthScreen() {
                   inputRef={firstNameRef}
                   value={firstName}
                   onChangeText={(value) => {
-                    setFirstName(value);
+                    setFirstName(limitText(value, textLimits.firstName));
                     clearFieldError('firstName');
                   }}
+                  maxLength={textLimits.firstName}
                   placeholder="First name"
                   placeholderTextColor="#8B909A"
                   autoCapitalize="words"
@@ -377,9 +379,10 @@ export function AuthScreen() {
                   inputRef={lastNameRef}
                   value={lastName}
                   onChangeText={(value) => {
-                    setLastName(value);
+                    setLastName(limitText(value, textLimits.lastName));
                     clearFieldError('lastName');
                   }}
+                  maxLength={textLimits.lastName}
                   placeholder="Last name"
                   placeholderTextColor="#8B909A"
                   autoCapitalize="words"
@@ -445,9 +448,10 @@ export function AuthScreen() {
                       inputRef={institutionNameRef}
                       value={institutionName}
                       onChangeText={(value) => {
-                        setInstitutionName(value);
+                        setInstitutionName(limitText(value, textLimits.organizerInstitutionName));
                         clearFieldError('institutionName');
                       }}
+                      maxLength={textLimits.organizerInstitutionName}
                       placeholder="Institution or business name"
                       placeholderTextColor="#8B909A"
                       autoCapitalize="words"
@@ -492,7 +496,10 @@ export function AuthScreen() {
                     <AuthInput
                       inputRef={websiteUrlRef}
                       value={websiteUrl}
-                      onChangeText={setWebsiteUrl}
+                      onChangeText={(value) =>
+                        setWebsiteUrl(limitText(value, textLimits.websiteUrl))
+                      }
+                      maxLength={textLimits.websiteUrl}
                       placeholder="Website or social link"
                       placeholderTextColor="#8B909A"
                       autoCapitalize="none"
@@ -506,7 +513,10 @@ export function AuthScreen() {
                     <AuthInput
                       inputRef={contactRoleRef}
                       value={contactRole}
-                      onChangeText={setContactRole}
+                      onChangeText={(value) =>
+                        setContactRole(limitText(value, textLimits.organizerRole))
+                      }
+                      maxLength={textLimits.organizerRole}
                       placeholder="Your role, e.g. event manager"
                       placeholderTextColor="#8B909A"
                       autoCapitalize="sentences"
@@ -519,7 +529,10 @@ export function AuthScreen() {
                     <AuthInput
                       inputRef={organizerNoteRef}
                       value={organizerNote}
-                      onChangeText={setOrganizerNote}
+                      onChangeText={(value) =>
+                        setOrganizerNote(limitText(value, textLimits.organizerNote))
+                      }
+                      maxLength={textLimits.organizerNote}
                       placeholder="Short note for CultureQuest admin"
                       placeholderTextColor="#8B909A"
                       multiline
@@ -527,6 +540,9 @@ export function AuthScreen() {
                       onFocus={() => keepInputAboveKeyboard(organizerNoteRef)}
                       className="min-h-[86px] rounded-xl border border-gray-300 bg-white px-4 py-3 text-[15px] text-ink"
                     />
+                    <Text className="mt-1 text-right text-[11px] text-muted">
+                      {organizerNote.length}/{textLimits.organizerNote}
+                    </Text>
                   </View>
                 )}
               </>
@@ -537,9 +553,10 @@ export function AuthScreen() {
                 inputRef={emailRef}
                 value={email}
                 onChangeText={(value) => {
-                  setEmail(value);
+                  setEmail(limitText(value, textLimits.email));
                   clearFieldError('email');
                 }}
+                maxLength={textLimits.email}
                 placeholder="Email"
                 placeholderTextColor="#8B909A"
                 autoCapitalize="none"
@@ -561,9 +578,10 @@ export function AuthScreen() {
                 inputRef={passwordRef}
                 value={password}
                 onChangeText={(value) => {
-                  setPassword(value);
+                  setPassword(limitText(value, textLimits.password));
                   clearFieldError('password');
                 }}
+                maxLength={textLimits.password}
                 placeholder="Password"
                 placeholderTextColor="#8B909A"
                 secureTextEntry

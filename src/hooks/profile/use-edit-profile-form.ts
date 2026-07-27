@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import * as ImagePicker from 'expo-image-picker';
 import { Alert } from 'react-native';
 
+import { limitText, textLimits } from '@/constants/text-limits';
 import { type CityId, defaultCityId } from '@/data/culture';
 import { type PlaceSuggestion, searchPlaces } from '@/lib/place-search';
 
@@ -151,10 +152,23 @@ export function useEditProfileForm({
   }
 
   function changeOrganizerLocationQuery(query: string) {
-    setOrganizerLocationQuery(query);
-    if (selectedOrganizerLocation && selectedOrganizerLocation.name !== query.trim()) {
+    const nextQuery = limitText(query, textLimits.organizerLocationSearch);
+    setOrganizerLocationQuery(nextQuery);
+    if (selectedOrganizerLocation && selectedOrganizerLocation.name !== nextQuery.trim()) {
       setSelectedOrganizerLocation(null);
     }
+  }
+
+  function changeFirstName(value: string) {
+    setFirstName(limitText(value, textLimits.firstName));
+  }
+
+  function changeLastName(value: string) {
+    setLastName(limitText(value, textLimits.lastName));
+  }
+
+  function changeOrganizerBio(value: string) {
+    setOrganizerBio(limitText(value, textLimits.organizerBio));
   }
 
   function selectOrganizerLocation(place: PlaceSuggestion) {
@@ -185,8 +199,8 @@ export function useEditProfileForm({
   }
 
   async function saveProfile() {
-    const normalizedFirstName = firstName.trim();
-    const normalizedLastName = lastName.trim();
+    const normalizedFirstName = limitText(firstName.trim(), textLimits.firstName);
+    const normalizedLastName = limitText(lastName.trim(), textLimits.lastName);
 
     if (!normalizedFirstName || !normalizedLastName) {
       setProfileError('Please enter your first and last name.');
@@ -202,7 +216,7 @@ export function useEditProfileForm({
       avatarUrl,
       firstName: normalizedFirstName,
       lastName: normalizedLastName,
-      organizerBio,
+      organizerBio: limitText(organizerBio.trim(), textLimits.organizerBio),
       organizerLocationAddress: selectedOrganizerLocation?.address ?? null,
       organizerLocationLatitude: selectedOrganizerLocation?.latitude ?? null,
       organizerLocationLongitude: selectedOrganizerLocation?.longitude ?? null,
@@ -238,9 +252,9 @@ export function useEditProfileForm({
     setAvatarUrl,
     setCityId,
     setEditOpen,
-    setFirstName,
-    setLastName,
-    setOrganizerBio,
+    setFirstName: changeFirstName,
+    setLastName: changeLastName,
+    setOrganizerBio: changeOrganizerBio,
     setOrganizerLocationSuggestions,
     setProfileError,
     openEditProfile,

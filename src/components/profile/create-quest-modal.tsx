@@ -20,6 +20,7 @@ import { GestureDetector, type GestureType } from 'react-native-gesture-handler'
 import Animated from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { textLimits } from '@/constants/text-limits';
 import { cultureCities, type CityId } from '@/data/culture';
 
 type QuestDraftStop = {
@@ -167,6 +168,7 @@ export function CreateQuestModal({
                   onFocus={() => focusFormArea(260)}
                   placeholder="e.g. Old Town Culture Trail"
                   placeholderTextColor="#8B909A"
+                  maxLength={textLimits.questTitle}
                   className="mb-4 rounded-xl border border-gray-300 px-4 py-3 text-[15px] text-ink"
                 />
 
@@ -177,6 +179,7 @@ export function CreateQuestModal({
                   onFocus={() => focusFormArea(330)}
                   placeholder="City route"
                   placeholderTextColor="#8B909A"
+                  maxLength={textLimits.questTheme}
                   className="mb-4 rounded-xl border border-gray-300 px-4 py-3 text-[15px] text-ink"
                 />
 
@@ -189,8 +192,12 @@ export function CreateQuestModal({
                   placeholderTextColor="#8B909A"
                   multiline
                   textAlignVertical="top"
+                  maxLength={textLimits.questDescription}
                   className="mb-4 min-h-[104px] rounded-xl border border-gray-300 px-4 py-3 text-[15px] leading-5 text-ink"
                 />
+                <Text className="-mt-3 mb-4 text-right text-[11px] text-muted">
+                  {questDescription.length}/{textLimits.questDescription}
+                </Text>
 
                 <Text className="mb-2 text-[13px] font-semibold text-ink">Quest photo</Text>
                 <Pressable
@@ -259,6 +266,7 @@ export function CreateQuestModal({
                       keyboardType="number-pad"
                       placeholder="150"
                       placeholderTextColor="#8B909A"
+                      maxLength={textLimits.rewardXp}
                       className="rounded-xl border border-gray-300 px-4 py-3 text-[15px] text-ink"
                     />
                   </View>
@@ -321,6 +329,7 @@ export function CreateQuestModal({
                         onFocus={() => focusFormArea(760 + index * 240)}
                         placeholder="Stop title"
                         placeholderTextColor="#8B909A"
+                        maxLength={textLimits.questStopTitle}
                         className="mb-3 rounded-xl border border-gray-300 px-4 py-3 text-[15px] text-ink"
                       />
                       <TextInput
@@ -331,6 +340,7 @@ export function CreateQuestModal({
                         placeholderTextColor="#8B909A"
                         multiline
                         textAlignVertical="top"
+                        maxLength={textLimits.questStopDescription}
                         className="mb-3 min-h-[82px] rounded-xl border border-gray-300 px-4 py-3 text-[15px] leading-5 text-ink"
                       />
                       <TextInput
@@ -339,6 +349,7 @@ export function CreateQuestModal({
                         onFocus={() => focusFormArea(920 + index * 240)}
                         placeholder="ETA, e.g. 7 min"
                         placeholderTextColor="#8B909A"
+                        maxLength={textLimits.questStopEta}
                         className="rounded-xl border border-gray-300 px-4 py-3 text-[15px] text-ink"
                       />
                     </View>

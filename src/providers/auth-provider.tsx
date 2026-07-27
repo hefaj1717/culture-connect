@@ -3,6 +3,7 @@ import Constants from 'expo-constants';
 import * as Linking from 'expo-linking';
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
 
+import { limitText, textLimits } from '@/constants/text-limits';
 import { type CityId, defaultCityId } from '@/data/culture';
 import { supabase } from '@/lib/supabase';
 
@@ -237,14 +238,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     organizerApplication?: OrganizerApplicationInput | null,
   ) {
     const normalizedEmail = email.trim().toLowerCase();
-    const fullName = `${firstName} ${lastName}`.trim();
+    const normalizedFirstName = limitText(firstName.trim(), textLimits.firstName);
+    const normalizedLastName = limitText(lastName.trim(), textLimits.lastName);
+    const fullName = `${normalizedFirstName} ${normalizedLastName}`.trim();
     const normalizedOrganizerApplication = organizerApplication
       ? {
-          institution_name: organizerApplication.institutionName,
+          institution_name: limitText(
+            organizerApplication.institutionName.trim(),
+            textLimits.organizerInstitutionName,
+          ),
           institution_type: organizerApplication.institutionType,
-          website_url: organizerApplication.websiteUrl ?? '',
-          contact_role: organizerApplication.contactRole ?? '',
-          note: organizerApplication.note ?? '',
+          website_url: limitText(
+            organizerApplication.websiteUrl?.trim() ?? '',
+            textLimits.websiteUrl,
+          ),
+          contact_role: limitText(
+            organizerApplication.contactRole?.trim() ?? '',
+            textLimits.organizerRole,
+          ),
+          note: limitText(organizerApplication.note?.trim() ?? '', textLimits.organizerNote),
         }
       : null;
 
@@ -254,8 +266,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       options: {
         emailRedirectTo: getAuthRedirectUrl(),
         data: {
-          first_name: firstName,
-          last_name: lastName,
+          first_name: normalizedFirstName,
+          last_name: normalizedLastName,
           full_name: fullName,
           city_id: cityId,
           requested_role: normalizedOrganizerApplication ? 'organizer_pending' : 'user',
@@ -327,12 +339,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return { error: 'You must be logged in to update your profile.' };
     }
 
-    const normalizedFirstName = firstName.trim();
-    const normalizedLastName = lastName.trim();
+    const normalizedFirstName = limitText(firstName.trim(), textLimits.firstName);
+    const normalizedLastName = limitText(lastName.trim(), textLimits.lastName);
     const normalizedCityId = cityId || defaultCityId;
     const normalizedAvatarUrl = avatarUrl ?? null;
-    const normalizedOrganizerBio = organizerBio.trim();
-    const normalizedOrganizerLocationName = organizerLocationName?.trim() || null;
+    const normalizedOrganizerBio = limitText(organizerBio.trim(), textLimits.organizerBio);
+    const normalizedOrganizerLocationName =
+      limitText(organizerLocationName?.trim() ?? '', textLimits.organizerLocationSearch) || null;
     const normalizedOrganizerLocationAddress = organizerLocationAddress?.trim() || null;
     const fullName = `${normalizedFirstName} ${normalizedLastName}`.trim();
 
