@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Building2, Check } from 'lucide-react-native';
 import {
   ActivityIndicator,
+  findNodeHandle,
   Keyboard,
   KeyboardAvoidingView,
   Platform,
@@ -111,10 +112,25 @@ export function AuthScreen() {
     password,
   };
 
-  function focusAuthArea(y: number) {
+  function keepInputAboveKeyboard(inputRef: React.RefObject<TextInput | null>) {
     setTimeout(() => {
-      scrollViewRef.current?.scrollTo({ animated: true, y });
-    }, 90);
+      const nodeHandle = findNodeHandle(inputRef.current);
+      const scrollResponder = scrollViewRef.current as
+        | (ScrollView & {
+            scrollResponderScrollNativeHandleToKeyboard?: (
+              nodeHandle: number,
+              extraHeight: number,
+              preventNegativeScrollOffset: boolean,
+            ) => void;
+          })
+        | null;
+
+      if (!nodeHandle || !scrollResponder?.scrollResponderScrollNativeHandleToKeyboard) {
+        return;
+      }
+
+      scrollResponder.scrollResponderScrollNativeHandleToKeyboard(nodeHandle, 14, true);
+    }, 80);
   }
 
   useEffect(() => {
@@ -278,10 +294,10 @@ export function AuthScreen() {
       <ScrollView
         ref={scrollViewRef}
         className="flex-1"
-        contentContainerStyle={{ flexGrow: 1, paddingBottom: 76 }}
+        contentContainerStyle={{ flexGrow: 1, paddingBottom: 44 }}
         keyboardDismissMode="interactive"
         keyboardShouldPersistTaps="handled"
-        scrollIndicatorInsets={{ bottom: 76 }}
+        scrollIndicatorInsets={{ bottom: 44 }}
       >
         <View className="flex-1 bg-white">
           <BrandImage
@@ -328,7 +344,7 @@ export function AuthScreen() {
                   autoComplete="one-time-code"
                   maxLength={8}
                   returnKeyType="done"
-                  onFocus={() => focusAuthArea(260)}
+                  onFocus={() => keepInputAboveKeyboard(confirmationCodeRef)}
                   onBlur={() => handleFieldBlur('confirmationCode')}
                   onSubmitEditing={handleConfirmCode}
                   className="mb-4 rounded-xl border border-gray-300 px-4 py-3 text-[15px] text-ink"
@@ -351,7 +367,7 @@ export function AuthScreen() {
                   autoComplete="given-name"
                   returnKeyType="next"
                   blurOnSubmit={false}
-                  onFocus={() => focusAuthArea(250)}
+                  onFocus={() => keepInputAboveKeyboard(firstNameRef)}
                   onBlur={() => handleFieldBlur('firstName')}
                   onSubmitEditing={() => lastNameRef.current?.focus()}
                   className="mb-3 rounded-xl border border-gray-300 px-4 py-3 text-[15px] text-ink"
@@ -371,7 +387,7 @@ export function AuthScreen() {
                   autoComplete="family-name"
                   returnKeyType="next"
                   blurOnSubmit={false}
-                  onFocus={() => focusAuthArea(310)}
+                  onFocus={() => keepInputAboveKeyboard(lastNameRef)}
                   onBlur={() => handleFieldBlur('lastName')}
                   onSubmitEditing={() => emailRef.current?.focus()}
                   className="mb-3 rounded-xl border border-gray-300 px-4 py-3 text-[15px] text-ink"
@@ -437,7 +453,7 @@ export function AuthScreen() {
                       autoCapitalize="words"
                       returnKeyType="next"
                       blurOnSubmit={false}
-                      onFocus={() => focusAuthArea(640)}
+                      onFocus={() => keepInputAboveKeyboard(institutionNameRef)}
                       onBlur={() => handleFieldBlur('institutionName')}
                       onSubmitEditing={() => websiteUrlRef.current?.focus()}
                       className="mb-3 rounded-xl border border-gray-300 bg-white px-4 py-3 text-[15px] text-ink"
@@ -483,7 +499,7 @@ export function AuthScreen() {
                       keyboardType="url"
                       returnKeyType="next"
                       blurOnSubmit={false}
-                      onFocus={() => focusAuthArea(900)}
+                      onFocus={() => keepInputAboveKeyboard(websiteUrlRef)}
                       onSubmitEditing={() => contactRoleRef.current?.focus()}
                       className="mb-3 rounded-xl border border-gray-300 bg-white px-4 py-3 text-[15px] text-ink"
                     />
@@ -496,7 +512,7 @@ export function AuthScreen() {
                       autoCapitalize="sentences"
                       returnKeyType="next"
                       blurOnSubmit={false}
-                      onFocus={() => focusAuthArea(960)}
+                      onFocus={() => keepInputAboveKeyboard(contactRoleRef)}
                       onSubmitEditing={() => organizerNoteRef.current?.focus()}
                       className="mb-3 rounded-xl border border-gray-300 bg-white px-4 py-3 text-[15px] text-ink"
                     />
@@ -508,7 +524,7 @@ export function AuthScreen() {
                       placeholderTextColor="#8B909A"
                       multiline
                       textAlignVertical="top"
-                      onFocus={() => focusAuthArea(1010)}
+                      onFocus={() => keepInputAboveKeyboard(organizerNoteRef)}
                       className="min-h-[86px] rounded-xl border border-gray-300 bg-white px-4 py-3 text-[15px] text-ink"
                     />
                   </View>
@@ -532,7 +548,7 @@ export function AuthScreen() {
                 autoComplete="email"
                 returnKeyType="next"
                 blurOnSubmit={false}
-                onFocus={() => focusAuthArea(mode === 'signUp' && applyAsOrganizer ? 1080 : 430)}
+                onFocus={() => keepInputAboveKeyboard(emailRef)}
                 onBlur={() => handleFieldBlur('email')}
                 onSubmitEditing={() => passwordRef.current?.focus()}
                 className="mb-3 rounded-xl border border-gray-300 px-4 py-3 text-[15px] text-ink"
@@ -554,7 +570,7 @@ export function AuthScreen() {
                 textContentType={mode === 'signIn' ? 'password' : 'newPassword'}
                 autoComplete={mode === 'signIn' ? 'current-password' : 'new-password'}
                 returnKeyType="done"
-                onFocus={() => focusAuthArea(mode === 'signUp' && applyAsOrganizer ? 1140 : 500)}
+                onFocus={() => keepInputAboveKeyboard(passwordRef)}
                 onBlur={() => handleFieldBlur('password')}
                 onSubmitEditing={handleSubmit}
                 className="mb-4 rounded-xl border border-gray-300 px-4 py-3 text-[15px] text-ink"
