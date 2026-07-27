@@ -314,7 +314,7 @@ export function CreateEventModal({
                   <Text className="mt-2 text-[11px] leading-4 text-muted">
                     {hasGooglePlacesApiKey
                       ? 'Powered by Google Places suggestions.'
-                      : 'Google Places key is missing, so only saved city venues are shown.'}
+                      : 'Google Places key is missing, so place suggestions are unavailable.'}
                   </Text>
 
                   {selectedPlace && (

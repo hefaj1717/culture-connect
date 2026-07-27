@@ -1,4 +1,4 @@
-import { type CityId, type Venue, getCultureCityData } from '@/data/culture';
+import { type CityId } from '@/data/culture';
 
 export type PlaceSuggestion = {
   id: string;
@@ -163,24 +163,7 @@ async function fetchGooglePlaceDetails(placeId: string): Promise<PlaceSuggestion
 }
 
 function searchLocalPlaces(query: string, cityId: CityId): PlaceSuggestion[] {
-  const normalizedQuery = query.toLowerCase();
-  return getCultureCityData(cityId)
-    .venues.filter(
-      (venue) =>
-        venue.name.toLowerCase().includes(normalizedQuery) ||
-        venue.address.toLowerCase().includes(normalizedQuery),
-    )
-    .slice(0, 5)
-    .map(mapVenueToSuggestion);
-}
-
-function mapVenueToSuggestion(venue: Venue): PlaceSuggestion {
-  return {
-    id: venue.id,
-    name: venue.name,
-    address: venue.address,
-    latitude: venue.coordinates.latitude,
-    longitude: venue.coordinates.longitude,
-    source: 'local',
-  };
+  void query;
+  void cityId;
+  return [];
 }
