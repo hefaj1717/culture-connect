@@ -297,12 +297,6 @@ export default function HomeScreen({
               </View>
             </View>
 
-            <View className="mt-10 items-center">
-              <View className="flex-row items-center gap-2 rounded-full border border-white/25 bg-white/20 px-4 py-2">
-                <View className="h-2 w-2 rounded-full bg-primary" />
-                <Text className="text-[12px] font-semibold text-white">{cityData.statusText}</Text>
-              </View>
-            </View>
           </View>
 
           <View className="absolute bottom-0 left-0 right-0 px-6 pb-7">
