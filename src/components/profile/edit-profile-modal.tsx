@@ -1,6 +1,7 @@
 import { Camera, MapPin, Search, X } from 'lucide-react-native';
 import {
   ActivityIndicator,
+  Keyboard,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -90,7 +91,10 @@ export function EditProfileModal({
           >
             <View className="mb-5 flex-row justify-end">
               <Pressable
-                onPress={onClose}
+                onPress={() => {
+                  Keyboard.dismiss();
+                  onClose();
+                }}
                 hitSlop={16}
                 className="h-12 w-12 items-center justify-center rounded-full bg-gray-100 active:opacity-80"
               >
@@ -99,7 +103,13 @@ export function EditProfileModal({
             </View>
 
             <View className="mb-7 items-center">
-              <Pressable onPress={onChangeAvatar} className="items-center active:opacity-85">
+              <Pressable
+                onPress={() => {
+                  Keyboard.dismiss();
+                  onChangeAvatar();
+                }}
+                className="items-center active:opacity-85"
+              >
                 <View className="relative">
                   <Avatar initials={avatarInitials} uri={avatarUrl} size={104} iconSize={42} />
                   <View className="absolute bottom-0 right-0 h-9 w-9 items-center justify-center rounded-full border-2 border-white bg-primary">
@@ -138,7 +148,13 @@ export function EditProfileModal({
 
             <Text className="mb-2 text-[13px] font-semibold text-ink">City</Text>
             <View className="mb-5">
-              <CitySelector value={cityId} onChange={onChangeCity} />
+              <CitySelector
+                value={cityId}
+                onChange={(nextCityId) => {
+                  Keyboard.dismiss();
+                  onChangeCity(nextCityId);
+                }}
+              />
             </View>
 
             <Text className="mb-6 text-[12px] leading-4 text-muted">
@@ -202,7 +218,10 @@ export function EditProfileModal({
                       {organizerLocationSuggestions.map((suggestion, index) => (
                         <Pressable
                           key={suggestion.id}
-                          onPress={() => onSelectOrganizerLocation?.(suggestion)}
+                          onPress={() => {
+                            Keyboard.dismiss();
+                            onSelectOrganizerLocation?.(suggestion);
+                          }}
                           className={`flex-row items-start gap-2 bg-white px-3 py-3 active:bg-primary/5 ${
                             index > 0 ? 'border-t border-gray-100' : ''
                           }`}
@@ -233,7 +252,10 @@ export function EditProfileModal({
             )}
 
             <Pressable
-              onPress={onSave}
+              onPress={() => {
+                Keyboard.dismiss();
+                onSave();
+              }}
               disabled={savingProfile}
               className="h-[52px] items-center justify-center rounded-xl bg-primary active:opacity-85"
             >

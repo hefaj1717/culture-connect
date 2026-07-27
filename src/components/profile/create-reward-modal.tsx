@@ -2,6 +2,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { ArrowLeft, MapPin, Search } from 'lucide-react-native';
 import {
   ActivityIndicator,
+  Keyboard,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -81,7 +82,10 @@ export function CreateRewardModal({
             keyboardShouldPersistTaps="handled"
           >
             <Pressable
-              onPress={onClose}
+              onPress={() => {
+                Keyboard.dismiss();
+                onClose();
+              }}
               className="mb-5 h-10 w-10 items-center justify-center rounded-full bg-gray-100 active:opacity-80"
               accessibilityRole="button"
               accessibilityLabel="Close create reward"
@@ -157,7 +161,10 @@ export function CreateRewardModal({
                   {rewardPlaceSuggestions.map((place) => (
                     <Pressable
                       key={`${place.source}-${place.id}`}
-                      onPress={() => onSelectRewardPlace(place)}
+                      onPress={() => {
+                        Keyboard.dismiss();
+                        onSelectRewardPlace(place);
+                      }}
                       className="flex-row items-start gap-3 border-b border-gray-100 p-3 active:bg-gray-50"
                     >
                       <View className="h-9 w-9 items-center justify-center rounded-full bg-primary/10">
@@ -205,7 +212,10 @@ export function CreateRewardModal({
             )}
 
             <Pressable
-              onPress={onSubmit}
+              onPress={() => {
+                Keyboard.dismiss();
+                onSubmit();
+              }}
               disabled={creatingReward}
               className="h-[52px] items-center justify-center rounded-xl bg-primary active:opacity-85"
             >

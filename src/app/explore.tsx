@@ -16,6 +16,7 @@ import { Image } from 'expo-image';
 import { useEffect, useMemo, useState } from 'react';
 import {
   Modal,
+  Keyboard,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -242,7 +243,10 @@ export default function ExploreScreen({
             return (
               <Pressable
                 key={nextTab}
-                onPress={() => setTab(nextTab)}
+                onPress={() => {
+                  Keyboard.dismiss();
+                  setTab(nextTab);
+                }}
                 className={`rounded-full px-5 py-2.5 ${active ? 'bg-primary' : 'border border-gray-200 bg-gray-100'}`}
               >
                 <Text
@@ -268,7 +272,10 @@ export default function ExploreScreen({
                 return (
                   <Pressable
                     key={filter.key}
-                    onPress={() => setAudienceFilter(filter.key)}
+                    onPress={() => {
+                      Keyboard.dismiss();
+                      setAudienceFilter(filter.key);
+                    }}
                     className={`rounded-full px-4 py-2 ${active ? 'bg-primary' : 'border border-primary/10 bg-canvas'}`}
                   >
                     <Text
@@ -291,7 +298,10 @@ export default function ExploreScreen({
                 </View>
 
                 <Pressable
-                  onPress={() => setSelectedEvent(featuredEvent)}
+                  onPress={() => {
+                    Keyboard.dismiss();
+                    setSelectedEvent(featuredEvent);
+                  }}
                   className="overflow-hidden rounded-3xl border border-primary/10 bg-white active:opacity-90"
                   style={CardStyles.elevated}
                 >
@@ -394,7 +404,10 @@ export default function ExploreScreen({
                   {filteredEvents.map((event) => (
                     <Pressable
                       key={event.id}
-                      onPress={() => setSelectedEvent(event)}
+                      onPress={() => {
+                        Keyboard.dismiss();
+                        setSelectedEvent(event);
+                      }}
                       className="flex-row items-start gap-3 rounded-3xl border border-primary/10 bg-white p-3 active:opacity-90"
                       style={CardStyles.compact}
                     >
@@ -473,7 +486,10 @@ export default function ExploreScreen({
               filteredOrganizerProfiles.map((profile) => (
                 <Pressable
                   key={profile.id}
-                  onPress={() => setSelectedOrganizerProfile(profile)}
+                  onPress={() => {
+                    Keyboard.dismiss();
+                    setSelectedOrganizerProfile(profile);
+                  }}
                   className="flex-row items-center gap-3 rounded-3xl border border-primary/10 bg-white p-4 active:opacity-80"
                   style={CardStyles.compact}
                 >
