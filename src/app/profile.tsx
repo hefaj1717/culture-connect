@@ -4,6 +4,7 @@ import { Gesture } from 'react-native-gesture-handler';
 import { runOnJS, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 
 import { AdminReviewModal } from '@/components/profile/admin-review-modal';
+import { AdminManageEventsModal } from '@/components/profile/admin-manage-events-modal';
 import { BadgesModal } from '@/components/profile/badges-modal';
 import { CreateEventModal } from '@/components/profile/create-event-modal';
 import { CreateQuestModal } from '@/components/profile/create-quest-modal';
@@ -274,16 +275,25 @@ export default function ProfileScreen({
     updateQuestStop,
   } = createQuestForm;
   const {
+    adminManageEvents,
+    adminManageEventsError,
+    adminManageEventsLoading,
+    adminManageEventsOpen,
     adminReviewError,
     adminReviewLoading,
     adminReviewOpen,
     deleteEvent,
+    openAdminManageEvents,
     openAdminReview,
     pendingEvents,
     pendingRewards,
+    refreshManagedEvents,
     refreshPendingContent,
     reviewContent,
     reviewingContentId,
+    saveManagedEvent,
+    savingManagedEventId,
+    setAdminManageEventsOpen,
     setAdminReviewOpen,
   } = adminModeration;
   const {
@@ -661,6 +671,7 @@ export default function ProfileScreen({
         {isAdmin && (
           <AdminToolsSection
             onCreateQuest={openCreateQuest}
+            onManageEvents={openAdminManageEvents}
             onOpenReview={openAdminReview}
             pendingCount={pendingEvents.length + pendingRewards.length}
           />
@@ -849,6 +860,19 @@ export default function ProfileScreen({
         stableModalTopInset={stableModalTopInset}
         swipeStyle={adminReviewSwipeStyle}
         visible={adminReviewOpen}
+      />
+
+      <AdminManageEventsModal
+        error={adminManageEventsError}
+        events={adminManageEvents}
+        loading={adminManageEventsLoading}
+        onClose={() => setAdminManageEventsOpen(false)}
+        onDeleteEvent={deleteEvent}
+        onRefresh={refreshManagedEvents}
+        onSaveEvent={saveManagedEvent}
+        savingEventId={savingManagedEventId}
+        stableModalTopInset={stableModalTopInset}
+        visible={adminManageEventsOpen}
       />
 
       <BadgesModal

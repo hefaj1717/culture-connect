@@ -427,12 +427,14 @@ export function OrganizerToolsSection({
 
 type AdminToolsSectionProps = {
   onCreateQuest: () => void;
+  onManageEvents: () => void;
   onOpenReview: () => void;
   pendingCount: number;
 };
 
 export function AdminToolsSection({
   onCreateQuest,
+  onManageEvents,
   onOpenReview,
   pendingCount,
 }: AdminToolsSectionProps) {
@@ -465,6 +467,12 @@ export function AdminToolsSection({
             className="h-11 flex-row items-center justify-center rounded-xl border border-white/15 bg-white/10 active:opacity-85"
           >
             <Text className="text-[14px] font-semibold text-white">Create quest</Text>
+          </Pressable>
+          <Pressable
+            onPress={onManageEvents}
+            className="h-11 flex-row items-center justify-center rounded-xl border border-white/15 bg-white/10 active:opacity-85"
+          >
+            <Text className="text-[14px] font-semibold text-white">Manage events</Text>
           </Pressable>
         </View>
       </View>

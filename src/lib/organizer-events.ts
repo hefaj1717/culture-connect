@@ -199,7 +199,7 @@ function mapOrganizerEventRow(
     time: row.time_label,
     startsAt: row.starts_at ?? undefined,
     description: row.description,
-    xpBonus: defaultEventXp,
+    xpBonus: row.xp_bonus ?? defaultEventXp,
     isFeatured: false,
     isFlashQuest: false,
     language: row.language,
