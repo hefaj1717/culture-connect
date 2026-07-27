@@ -3,6 +3,7 @@ import { Image } from 'expo-image';
 import { ArrowLeft, Camera, Minus, Plus, Route, X } from 'lucide-react-native';
 import {
   ActivityIndicator,
+  Keyboard,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -106,7 +107,10 @@ export function CreateQuestModal({
                 showsVerticalScrollIndicator={false}
               >
                 <Pressable
-                  onPress={onClose}
+                  onPress={() => {
+                    Keyboard.dismiss();
+                    onClose();
+                  }}
                   className="mb-5 h-10 w-10 items-center justify-center rounded-full bg-gray-100 active:opacity-80"
                   accessibilityRole="button"
                   accessibilityLabel="Close create quest"
@@ -176,7 +180,10 @@ export function CreateQuestModal({
 
                 <Text className="mb-2 text-[13px] font-semibold text-ink">Quest photo</Text>
                 <Pressable
-                  onPress={onPickQuestImage}
+                  onPress={() => {
+                    Keyboard.dismiss();
+                    onPickQuestImage();
+                  }}
                   className={`mb-4 h-[154px] overflow-hidden rounded-2xl border ${
                     questImageUri
                       ? 'border-gray-200 bg-gray-100'
@@ -204,7 +211,10 @@ export function CreateQuestModal({
                         <Text className="text-[12px] font-extrabold text-white">Change photo</Text>
                       </View>
                       <Pressable
-                        onPress={onRemoveQuestImage}
+                        onPress={() => {
+                          Keyboard.dismiss();
+                          onRemoveQuestImage();
+                        }}
                         className="absolute right-3 top-3 h-8 w-8 items-center justify-center rounded-full bg-black/45 active:opacity-80"
                       >
                         <X size={16} color="white" strokeWidth={2.5} />
@@ -257,7 +267,10 @@ export function CreateQuestModal({
                 <View className="mb-3 flex-row items-center justify-between">
                   <Text className="font-heading text-[22px] font-extrabold text-ink">Stops</Text>
                   <Pressable
-                    onPress={onAddStop}
+                    onPress={() => {
+                      Keyboard.dismiss();
+                      onAddStop();
+                    }}
                     className="h-9 flex-row items-center gap-1 rounded-full bg-primary px-3 active:opacity-85"
                   >
                     <Plus size={16} color="white" strokeWidth={2.6} />
@@ -277,7 +290,10 @@ export function CreateQuestModal({
                         </Text>
                         {questStops.length > 1 && (
                           <Pressable
-                            onPress={() => onRemoveStop(index)}
+                            onPress={() => {
+                              Keyboard.dismiss();
+                              onRemoveStop(index);
+                            }}
                             className="h-8 w-8 items-center justify-center rounded-full bg-gray-100 active:opacity-80"
                           >
                             <Minus size={16} color="#756F7B" strokeWidth={2.5} />
@@ -318,7 +334,10 @@ export function CreateQuestModal({
                 )}
 
                 <Pressable
-                  onPress={onSubmit}
+                  onPress={() => {
+                    Keyboard.dismiss();
+                    onSubmit();
+                  }}
                   disabled={creatingQuest}
                   className="mt-5 h-[52px] items-center justify-center rounded-xl bg-primary active:opacity-85"
                 >
@@ -348,7 +367,10 @@ function ChoiceChip({
 }) {
   return (
     <Pressable
-      onPress={onPress}
+      onPress={() => {
+        Keyboard.dismiss();
+        onPress();
+      }}
       className={`h-10 flex-1 items-center justify-center rounded-xl border px-3 active:opacity-85 ${
         active ? 'border-primary bg-primary' : 'border-gray-200 bg-gray-100'
       }`}

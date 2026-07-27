@@ -205,7 +205,10 @@ export function CreateEventModal({
                 keyboardShouldPersistTaps="handled"
               >
                 <Pressable
-                  onPress={onClose}
+                  onPress={() => {
+                    Keyboard.dismiss();
+                    onClose();
+                  }}
                   className="mb-5 h-10 w-10 items-center justify-center rounded-full bg-gray-100 active:opacity-80"
                   accessibilityRole="button"
                   accessibilityLabel="Close create event"
@@ -244,7 +247,10 @@ export function CreateEventModal({
 
                 <Text className="mb-2 text-[13px] font-semibold text-ink">Event photo</Text>
                 <Pressable
-                  onPress={onPickEventImage}
+                  onPress={() => {
+                    Keyboard.dismiss();
+                    onPickEventImage();
+                  }}
                   className={`mb-4 overflow-hidden rounded-2xl border active:opacity-85 ${
                     eventImageUri ? 'border-gray-200 bg-gray-100' : 'border-primary/40 bg-primary/5'
                   }`}
@@ -274,7 +280,10 @@ export function CreateEventModal({
 
                 {eventImageUri && (
                   <Pressable
-                    onPress={onRemoveEventImage}
+                    onPress={() => {
+                      Keyboard.dismiss();
+                      onRemoveEventImage();
+                    }}
                     className="mb-4 h-10 items-center justify-center rounded-xl border border-gray-200 active:opacity-80"
                   >
                     <Text className="text-[13px] font-semibold text-muted">Remove photo</Text>
@@ -359,7 +368,10 @@ export function CreateEventModal({
                       icon={getEventCategoryIcon(category)}
                       key={category}
                       label={eventCategoryLabels[category]}
-                      onPress={() => onChangeEventCategory(category)}
+                      onPress={() => {
+                        Keyboard.dismiss();
+                        onChangeEventCategory(category);
+                      }}
                     />
                   ))}
                 </View>
@@ -415,12 +427,18 @@ export function CreateEventModal({
                   <ChoicePill
                     active={eventIsFree}
                     label="Free"
-                    onPress={() => onChangeEventIsFree(true)}
+                    onPress={() => {
+                      Keyboard.dismiss();
+                      onChangeEventIsFree(true);
+                    }}
                   />
                   <ChoicePill
                     active={!eventIsFree}
                     label="Paid"
-                    onPress={() => onChangeEventIsFree(false)}
+                    onPress={() => {
+                      Keyboard.dismiss();
+                      onChangeEventIsFree(false);
+                    }}
                   />
                 </View>
                 <View className="mb-4 rounded-2xl bg-primary/5 px-3 py-2.5">
@@ -448,7 +466,10 @@ export function CreateEventModal({
                 )}
 
                 <Pressable
-                  onPress={onSubmit}
+                  onPress={() => {
+                    Keyboard.dismiss();
+                    onSubmit();
+                  }}
                   disabled={creatingEvent}
                   className="h-[52px] items-center justify-center rounded-xl bg-primary active:opacity-85 disabled:opacity-60"
                 >
