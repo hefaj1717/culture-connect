@@ -198,11 +198,12 @@ export function CreateEventModal({
                 className="flex-1"
                 contentContainerStyle={{
                   paddingHorizontal: 20,
-                  paddingBottom: 120,
+                  paddingBottom: 170,
                   paddingTop: stableModalTopInset + 14,
                 }}
                 keyboardDismissMode="interactive"
                 keyboardShouldPersistTaps="handled"
+                scrollIndicatorInsets={{ bottom: 170 }}
               >
                 <Pressable
                   onPress={() => {

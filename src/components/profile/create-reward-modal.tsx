@@ -1,5 +1,6 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { ArrowLeft, MapPin, Search } from 'lucide-react-native';
+import { useRef } from 'react';
 import {
   ActivityIndicator,
   Keyboard,
@@ -63,6 +64,13 @@ export function CreateRewardModal({
   visible,
 }: CreateRewardModalProps) {
   const cityData = getCultureCityData(savedCityId);
+  const scrollViewRef = useRef<ScrollView>(null);
+
+  function focusFormArea(y: number) {
+    setTimeout(() => {
+      scrollViewRef.current?.scrollTo({ animated: true, y });
+    }, 90);
+  }
 
   return (
     <Modal animationType="slide" onRequestClose={onClose} visible={visible}>
@@ -72,14 +80,16 @@ export function CreateRewardModal({
           className="flex-1"
         >
           <ScrollView
+            ref={scrollViewRef}
             className="flex-1"
             contentContainerStyle={{
               paddingHorizontal: 20,
-              paddingBottom: 36,
+              paddingBottom: 140,
               paddingTop: stableModalTopInset + 14,
             }}
             keyboardDismissMode="interactive"
             keyboardShouldPersistTaps="handled"
+            scrollIndicatorInsets={{ bottom: 140 }}
           >
             <Pressable
               onPress={() => {
@@ -113,6 +123,7 @@ export function CreateRewardModal({
             <TextInput
               value={rewardTitle}
               onChangeText={onChangeRewardTitle}
+              onFocus={() => focusFormArea(150)}
               placeholder="e.g. Free espresso after check-in"
               placeholderTextColor="#8B909A"
               className="mb-4 rounded-xl border border-gray-300 px-4 py-3 text-[15px] text-ink"
@@ -128,6 +139,7 @@ export function CreateRewardModal({
                     onChangeRewardPlaceQuery(value);
                     setSelectedRewardPlace(null);
                   }}
+                  onFocus={() => focusFormArea(260)}
                   placeholder={`Search places in ${cityData.name}`}
                   placeholderTextColor="#8B909A"
                   className="flex-1 text-[15px] text-ink"
@@ -188,6 +200,7 @@ export function CreateRewardModal({
             <TextInput
               value={rewardXp}
               onChangeText={onChangeRewardXp}
+              onFocus={() => focusFormArea(470)}
               keyboardType="number-pad"
               placeholder="100"
               placeholderTextColor="#8B909A"
@@ -198,6 +211,7 @@ export function CreateRewardModal({
             <TextInput
               value={rewardDescription}
               onChangeText={onChangeRewardDescription}
+              onFocus={() => focusFormArea(560)}
               placeholder="What does the student receive and how should staff verify it?"
               placeholderTextColor="#8B909A"
               multiline

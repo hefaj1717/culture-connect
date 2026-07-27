@@ -1,4 +1,5 @@
 import { Camera, MapPin, Search, X } from 'lucide-react-native';
+import { useRef } from 'react';
 import {
   ActivityIndicator,
   Keyboard,
@@ -71,6 +72,13 @@ export function EditProfileModal({
   visible,
 }: EditProfileModalProps) {
   const stableTopInset = useStableTopInset();
+  const scrollViewRef = useRef<ScrollView>(null);
+
+  function focusFormArea(y: number) {
+    setTimeout(() => {
+      scrollViewRef.current?.scrollTo({ animated: true, y });
+    }, 90);
+  }
 
   return (
     <Modal animationType="slide" onRequestClose={onClose} visible={visible}>
@@ -80,14 +88,16 @@ export function EditProfileModal({
           className="flex-1"
         >
           <ScrollView
+            ref={scrollViewRef}
             className="flex-1"
             contentContainerStyle={{
               paddingHorizontal: 20,
-              paddingBottom: 36,
+              paddingBottom: 140,
               paddingTop: stableTopInset + 8,
             }}
             keyboardDismissMode="interactive"
             keyboardShouldPersistTaps="handled"
+            scrollIndicatorInsets={{ bottom: 140 }}
           >
             <View className="mb-5 flex-row justify-end">
               <Pressable
@@ -126,6 +136,7 @@ export function EditProfileModal({
             <TextInput
               value={firstName}
               onChangeText={onChangeFirstName}
+              onFocus={() => focusFormArea(180)}
               placeholder="First name"
               placeholderTextColor="#8B909A"
               autoCapitalize="words"
@@ -138,6 +149,7 @@ export function EditProfileModal({
             <TextInput
               value={lastName}
               onChangeText={onChangeLastName}
+              onFocus={() => focusFormArea(250)}
               placeholder="Last name"
               placeholderTextColor="#8B909A"
               autoCapitalize="words"
@@ -178,6 +190,7 @@ export function EditProfileModal({
                 <TextInput
                   value={organizerBio}
                   onChangeText={onChangeOrganizerBio}
+                  onFocus={() => focusFormArea(500)}
                   placeholder="Shortly describe your venue, collective, or event organisation."
                   placeholderTextColor="#8B909A"
                   multiline
@@ -194,6 +207,7 @@ export function EditProfileModal({
                     <TextInput
                       value={organizerLocationQuery}
                       onChangeText={onChangeOrganizerLocationQuery}
+                      onFocus={() => focusFormArea(620)}
                       placeholder="Search your venue or main location"
                       placeholderTextColor="#8B909A"
                       autoCapitalize="words"
