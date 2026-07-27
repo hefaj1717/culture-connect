@@ -1,5 +1,6 @@
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
+import * as Location from 'expo-location';
 import {
   ArrowLeft,
   ArrowRight,
@@ -96,6 +97,7 @@ export default function HomeScreen({
   onOpenProfile,
 }: HomeScreenProps) {
   const stableTopInset = useStableTopInset();
+  const [canShowUserLocation, setCanShowUserLocation] = useState(false);
   const happeningNow = events.slice(0, 3);
   const activitySpots = useMemo(() => {
     const mapSpots = events.reduce<
@@ -198,6 +200,28 @@ export default function HomeScreen({
 
     return organizerNotification ? [organizerNotification, ...notifications] : notifications;
   }, [organizerApplicationStatus]);
+
+  useEffect(() => {
+    let mounted = true;
+
+    async function enableUserLocationOnMap() {
+      const currentPermission = await Location.getForegroundPermissionsAsync();
+      const permission =
+        currentPermission.status === 'granted'
+          ? currentPermission
+          : await Location.requestForegroundPermissionsAsync();
+
+      if (mounted) {
+        setCanShowUserLocation(permission.status === 'granted');
+      }
+    }
+
+    enableUserLocationOnMap();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [leaderboardOpen, setLeaderboardOpen] = useState(false);
   const [hasUnreadNotifications, setHasUnreadNotifications] = useState(
@@ -417,9 +441,10 @@ export default function HomeScreen({
                 rotateEnabled={false}
                 showsBuildings
                 showsCompass={false}
+                showsMyLocationButton={canShowUserLocation}
                 showsPointsOfInterest
                 showsScale={false}
-                showsUserLocation={false}
+                showsUserLocation={canShowUserLocation}
                 style={StyleSheet.absoluteFillObject}
                 toolbarEnabled={false}
               >
