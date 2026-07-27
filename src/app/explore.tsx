@@ -39,6 +39,7 @@ import { CardStyles } from '@/constants/theme';
 import {
   type CultureEvent,
   type CultureCityData,
+  type CityId,
   type Venue,
   eventCategoryLabels,
   getCultureCityData,
@@ -51,6 +52,7 @@ import {
 } from '@/lib/organizer-profiles';
 import { useStableTopInset } from '@/hooks/use-stable-safe-area';
 import type { UserEventStatus } from '@/lib/event-history';
+import { useAuth } from '@/providers/auth-provider';
 
 const audienceFilters = [
   { key: 'all', label: 'All Events' },
@@ -91,6 +93,7 @@ export default function ExploreScreen({
   openEventId,
   openEventNonce,
 }: ExploreScreenProps) {
+  const { hasRole, organizerApplicationStatus, session } = useAuth();
   const stableTopInset = useStableTopInset();
   const [search, setSearch] = useState('');
   const [tab, setTab] = useState<'events' | 'venues'>('events');
@@ -159,17 +162,83 @@ export default function ExploreScreen({
   }, [cityData.id, eventsRefreshKey]);
 
   const normalizedSearch = search.trim().toLowerCase();
+  const currentUserOrganizerProfile = useMemo(() => {
+    if (!session?.user.id || (organizerApplicationStatus !== 'approved' && !hasRole('organizer'))) {
+      return null;
+    }
+
+    const metadata = session.user.user_metadata;
+    const profileCityId: CityId = metadata?.city_id === 'lublin' ? 'lublin' : 'leuven';
+    if (profileCityId !== cityData.id) {
+      return null;
+    }
+
+    const firstName = typeof metadata?.first_name === 'string' ? metadata.first_name : '';
+    const lastName = typeof metadata?.last_name === 'string' ? metadata.last_name : '';
+    const metadataName = [firstName, lastName].filter(Boolean).join(' ');
+    const name =
+      (typeof metadata?.full_name === 'string' && metadata.full_name.trim()) ||
+      metadataName ||
+      session.user.email?.split('@')[0] ||
+      'CultureQuest organiser';
+    const latitude = metadata?.organizer_location_latitude;
+    const longitude = metadata?.organizer_location_longitude;
+
+    return {
+      avatarUrl: typeof metadata?.avatar_url === 'string' ? metadata.avatar_url : null,
+      bio:
+        typeof metadata?.organizer_bio === 'string' && metadata.organizer_bio.trim()
+          ? metadata.organizer_bio.trim()
+          : 'Verified CultureQuest organiser.',
+      cityId: profileCityId,
+      id: session.user.id,
+      locationAddress:
+        typeof metadata?.organizer_location_address === 'string' &&
+        metadata.organizer_location_address.trim()
+          ? metadata.organizer_location_address
+          : null,
+      locationCoordinates:
+        typeof latitude === 'number' && typeof longitude === 'number'
+          ? { latitude, longitude }
+          : null,
+      locationName:
+        typeof metadata?.organizer_location_name === 'string' &&
+        metadata.organizer_location_name.trim()
+          ? metadata.organizer_location_name
+          : null,
+      name,
+    } satisfies OrganizerProfile;
+  }, [
+    cityData.id,
+    hasRole,
+    organizerApplicationStatus,
+    session?.user.email,
+    session?.user.id,
+    session?.user.user_metadata,
+  ]);
+
+  const displayedOrganizerProfiles = useMemo(() => {
+    if (!currentUserOrganizerProfile) {
+      return organizerProfiles;
+    }
+
+    const withoutCurrentUser = organizerProfiles.filter(
+      (profile) => profile.id !== currentUserOrganizerProfile.id,
+    );
+
+    return [currentUserOrganizerProfile, ...withoutCurrentUser];
+  }, [currentUserOrganizerProfile, organizerProfiles]);
 
   const filteredOrganizerProfiles = useMemo(
     () =>
-      organizerProfiles.filter(
+      displayedOrganizerProfiles.filter(
         (profile) =>
           profile.name.toLowerCase().includes(normalizedSearch) ||
           profile.bio.toLowerCase().includes(normalizedSearch) ||
           (profile.locationName?.toLowerCase().includes(normalizedSearch) ?? false) ||
           (profile.locationAddress?.toLowerCase().includes(normalizedSearch) ?? false),
       ),
-    [normalizedSearch, organizerProfiles],
+    [displayedOrganizerProfiles, normalizedSearch],
   );
 
   const filteredEvents = useMemo(
@@ -621,7 +690,10 @@ function OrganizerProfileModal({
         <Animated.View className="flex-1 bg-white" style={swipeStyle}>
           <ScrollView
             className="flex-1"
-            contentContainerStyle={{ paddingBottom: insets.bottom + 34, paddingTop: stableTopInset + 8 }}
+            contentContainerStyle={{
+              paddingBottom: insets.bottom + 34,
+              paddingTop: stableTopInset + 8,
+            }}
             showsVerticalScrollIndicator={false}
           >
             <View className="px-5">
@@ -649,10 +721,18 @@ function OrganizerProfileModal({
                 </View>
 
                 <View className="rounded-3xl bg-white/10 p-4">
-                  <Text className="text-[12px] font-bold uppercase tracking-[2px] text-white/50">
+                  <Text
+                    className="text-[12px] font-bold uppercase tracking-[2px]"
+                    style={{ color: 'rgba(255,255,255,0.58)' }}
+                  >
                     About
                   </Text>
-                  <Text className="mt-2 text-[15px] leading-6 text-white/88">{profile.bio}</Text>
+                  <Text
+                    className="mt-2 text-[15px] leading-6"
+                    style={{ color: 'rgba(255,255,255,0.9)' }}
+                  >
+                    {profile.bio}
+                  </Text>
                 </View>
               </View>
 
