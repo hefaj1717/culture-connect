@@ -71,6 +71,18 @@ function getAuthRedirectUrl() {
   return Linking.createURL('/auth/callback');
 }
 
+function isProfileSchemaCacheError(message: string) {
+  const normalizedMessage = message.toLowerCase();
+
+  return (
+    normalizedMessage.includes('schema cache') ||
+    normalizedMessage.includes('permission denied') ||
+    normalizedMessage.includes('city_key') ||
+    normalizedMessage.includes('first_name') ||
+    normalizedMessage.includes('last_name')
+  );
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
@@ -304,6 +316,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const normalizedAvatarUrl = avatarUrl ?? null;
     const fullName = `${normalizedFirstName} ${normalizedLastName}`.trim();
 
+    const { error } = await supabase.auth.updateUser({
+      data: {
+        first_name: normalizedFirstName,
+        last_name: normalizedLastName,
+        full_name: fullName,
+        city_id: normalizedCityId,
+        avatar_url: normalizedAvatarUrl,
+      },
+    });
+    if (error) {
+      return { error: error.message };
+    }
+
     const { error: profileError } = await supabase.from('profiles').upsert(
       {
         id: session.user.id,
@@ -317,20 +342,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     );
 
     if (profileError) {
-      return { error: profileError.message };
-    }
+      if (!isProfileSchemaCacheError(profileError.message)) {
+        console.warn('Profile metadata saved, but profiles sync failed:', profileError.message);
+        return { error: null };
+      }
 
-    const { error } = await supabase.auth.updateUser({
-      data: {
-        first_name: normalizedFirstName,
-        last_name: normalizedLastName,
-        full_name: fullName,
-        city_id: normalizedCityId,
-        avatar_url: normalizedAvatarUrl,
-      },
-    });
-    if (error) {
-      return { error: error.message };
+      const { error: fallbackProfileError } = await supabase.from('profiles').upsert(
+        {
+          id: session.user.id,
+          username: fullName,
+          avatar_url: normalizedAvatarUrl,
+        },
+        { onConflict: 'id' },
+      );
+
+      if (fallbackProfileError) {
+        console.warn(
+          'Profile metadata saved, but legacy profiles sync failed:',
+          fallbackProfileError.message,
+        );
+      }
     }
 
     return { error: null };
