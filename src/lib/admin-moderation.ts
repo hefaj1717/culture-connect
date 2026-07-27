@@ -103,6 +103,10 @@ type ProfileSummaryRow = {
 
 const ADMIN_EVENT_SELECT =
   'id, organizer_user_id, city_key, venue_key, venue_name, venue_address, venue_latitude, venue_longitude, title, description, category, date_label, time_label, end_time_label, starts_at, ends_at, xp_bonus, language, is_free, is_international, interested_count, attendee_count, image_kind, image_url, check_in_code, status, created_at';
+const ADMIN_EVENT_LEGACY_COUNTER_SELECT =
+  'id, organizer_user_id, city_key, venue_key, venue_name, venue_address, venue_latitude, venue_longitude, title, description, category, date_label, time_label, end_time_label, starts_at, ends_at, xp_bonus, language, is_free, is_international, attendee_count, image_kind, image_url, check_in_code, status, created_at';
+const ADMIN_EVENT_LEGACY_TIME_SELECT =
+  'id, organizer_user_id, city_key, venue_key, venue_name, venue_address, venue_latitude, venue_longitude, title, description, category, date_label, time_label, xp_bonus, language, is_free, is_international, attendee_count, image_kind, image_url, check_in_code, status, created_at';
 
 export async function fetchPendingAdminContent() {
   const [eventsResult, rewardsResult] = await Promise.all([
@@ -143,10 +147,24 @@ export async function fetchPendingAdminContent() {
 }
 
 export async function fetchAdminManagedEvents() {
-  const { data, error } = await supabase
-    .from('organizer_events')
-    .select(ADMIN_EVENT_SELECT)
-    .order('created_at', { ascending: false });
+  const queryManagedEvents = (selectColumns: string) =>
+    supabase.from('organizer_events').select(selectColumns).order('created_at', {
+      ascending: false,
+    });
+
+  let { data, error } = await queryManagedEvents(ADMIN_EVENT_SELECT);
+
+  if (isLegacyAdminEventsShapeError(error?.message)) {
+    const legacyCounterResult = await queryManagedEvents(ADMIN_EVENT_LEGACY_COUNTER_SELECT);
+    data = legacyCounterResult.data;
+    error = legacyCounterResult.error;
+  }
+
+  if (isLegacyAdminEventsShapeError(error?.message)) {
+    const legacyTimeResult = await queryManagedEvents(ADMIN_EVENT_LEGACY_TIME_SELECT);
+    data = legacyTimeResult.data;
+    error = legacyTimeResult.error;
+  }
 
   if (error) {
     return { error: error.message, events: [] as AdminManagedEvent[] };
@@ -379,4 +397,14 @@ function mapAdminManagedEvent(
     venueName: row.venue_name,
     xpBonus: row.xp_bonus ?? 50,
   };
+}
+
+function isLegacyAdminEventsShapeError(message?: string | null) {
+  return (
+    !!message &&
+    (message.includes('interested_count') ||
+      message.includes('end_time_label') ||
+      message.includes('starts_at') ||
+      message.includes('ends_at'))
+  );
 }
