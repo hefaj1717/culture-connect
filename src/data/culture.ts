@@ -65,8 +65,18 @@ export type CultureEvent = {
   isFree: boolean;
   interestedCount?: number;
   attendeeCount: number;
+  organizerCityId?: CityId;
+  organizerId?: string;
   organizerName: string;
   organizerImage: 'museum' | 'cafe' | 'theater';
+  organizerAvatarUrl?: string | null;
+  organizerBio?: string;
+  organizerLocationAddress?: string | null;
+  organizerLocationCoordinates?: {
+    latitude: number;
+    longitude: number;
+  } | null;
+  organizerLocationName?: string | null;
   imageUrl?: string;
   checkInCode: string;
   venueAddress?: string;
