@@ -19,6 +19,7 @@ import Animated, {
 } from 'react-native-reanimated';
 
 import { BrandImage } from '@/components/brand-image';
+import { CardStyles } from '@/constants/theme';
 import { type CultureCityData, getCultureCityData } from '@/data/culture';
 import { useStableTopInset } from '@/hooks/use-stable-safe-area';
 import { fetchApprovedQuests, type Quest, type QuestStop } from '@/lib/quests';
@@ -144,6 +145,7 @@ function QuestCard({ onPress, quest }: { onPress: () => void; quest: Quest }) {
     <Pressable
       onPress={onPress}
       className="overflow-hidden rounded-3xl border border-primary/10 bg-white active:opacity-90"
+      style={CardStyles.elevated}
     >
       <View className="h-[142px] bg-gray-200">
         <BrandImage

@@ -34,6 +34,7 @@ import Animated, {
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { BrandImage } from '@/components/brand-image';
+import { CardStyles } from '@/constants/theme';
 import {
   categoryLabels,
   type CultureEvent,
@@ -237,7 +238,7 @@ export default function ExploreScreen({
                   <Pressable
                     key={filter.key}
                     onPress={() => setAudienceFilter(filter.key)}
-                    className={`rounded-full px-4 py-2 ${active ? 'bg-primary' : 'border border-gray-200 bg-gray-100'}`}
+                    className={`rounded-full px-4 py-2 ${active ? 'bg-primary' : 'border border-primary/10 bg-canvas'}`}
                   >
                     <Text
                       className={`text-[13px] font-medium ${active ? 'text-white' : 'text-muted'}`}
@@ -260,7 +261,8 @@ export default function ExploreScreen({
 
                 <Pressable
                   onPress={() => setSelectedEvent(featuredEvent)}
-                  className="overflow-hidden rounded-2xl border border-gray-200 bg-white active:opacity-90"
+                  className="overflow-hidden rounded-3xl border border-primary/10 bg-white active:opacity-90"
+                  style={CardStyles.elevated}
                 >
                   <View className="h-[170px] bg-gray-200">
                     <BrandImage
@@ -277,7 +279,7 @@ export default function ExploreScreen({
 
                   <View className="p-4">
                     <View className="mb-2 flex-row flex-wrap items-center gap-2">
-                      <View className="rounded-full bg-gray-100 px-2 py-0.5">
+                      <View className="rounded-full bg-primary/5 px-2 py-0.5">
                         <Text className="text-[11px] font-semibold text-muted">
                           {eventCategoryLabels[featuredEvent.category]}
                         </Text>
@@ -362,7 +364,8 @@ export default function ExploreScreen({
                     <Pressable
                       key={event.id}
                       onPress={() => setSelectedEvent(event)}
-                      className="flex-row items-start gap-3 rounded-2xl border border-gray-200 bg-white p-3"
+                      className="flex-row items-start gap-3 rounded-3xl border border-primary/10 bg-white p-3 active:opacity-90"
+                      style={CardStyles.compact}
                     >
                       <View className="h-[86px] w-[86px] shrink-0 overflow-hidden rounded-xl bg-gray-200">
                         <BrandImage
@@ -416,7 +419,8 @@ export default function ExploreScreen({
             {filteredVenues.map((venue) => (
               <Pressable
                 key={venue.id}
-                className="flex-row items-center gap-3 rounded-2xl border border-gray-200 bg-white p-4 active:opacity-80"
+                className="flex-row items-center gap-3 rounded-3xl border border-primary/10 bg-white p-4 active:opacity-80"
+                style={CardStyles.compact}
               >
                 <View
                   className="h-14 w-14 shrink-0 items-center justify-center rounded-xl"

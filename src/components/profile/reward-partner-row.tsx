@@ -2,6 +2,7 @@ import { CheckCircle2, LockKeyhole } from 'lucide-react-native';
 import { Pressable, Text, View } from 'react-native';
 
 import { BrandImage } from '@/components/brand-image';
+import { CardStyles } from '@/constants/theme';
 import type { RewardPartner } from '@/data/culture';
 import type { RedeemedRewardState } from '@/data/profile';
 
@@ -36,7 +37,7 @@ export function RewardPartnerRow({
             ? 'border-primary/25 bg-primary/10'
             : 'border-gray-200 bg-white'
       }`}
-      style={{ boxShadow: '0 8px 18px rgba(36, 28, 46, 0.06)' }}
+      style={CardStyles.compact}
     >
       <View className="flex-row gap-3">
         <View className="h-[94px] w-[94px] overflow-hidden rounded-[22px] bg-gray-100">

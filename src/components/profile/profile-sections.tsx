@@ -40,7 +40,7 @@ import { PassportBadge, type AchievementBadge } from '@/components/profile/badge
 import { OrganizerStatusCard, OrganizerVerifiedBadge } from '@/components/profile/organizer-status';
 import { RankAvatar } from '@/components/profile/profile-avatar';
 import { RewardPartnerRow } from '@/components/profile/reward-partner-row';
-import { Colors, GamificationColors } from '@/constants/theme';
+import { CardStyles, Colors, GamificationColors } from '@/constants/theme';
 import { eventCategoryLabels, type CultureEvent, type RewardPartner } from '@/data/culture';
 import type { RedeemedRewardState } from '@/data/profile';
 import { getEventEngagement } from '@/lib/event-engagement';
@@ -1014,7 +1014,8 @@ function EventHistoryRow({
   return (
     <Pressable
       onPress={onPress}
-      className="overflow-hidden rounded-3xl border border-gray-200 bg-white active:opacity-85"
+      className="overflow-hidden rounded-3xl border border-primary/10 bg-white active:opacity-85"
+      style={CardStyles.compact}
     >
       <View className="h-[126px] bg-gray-200">
         <BrandImage
@@ -1052,7 +1053,8 @@ function OrganizerEventRow({
   return (
     <Pressable
       onPress={onPress}
-      className="overflow-hidden rounded-3xl border border-gray-200 bg-white active:opacity-85"
+      className="overflow-hidden rounded-3xl border border-primary/10 bg-white active:opacity-85"
+      style={CardStyles.compact}
     >
       <View className="h-[126px] bg-gray-200">
         <BrandImage
@@ -1082,7 +1084,10 @@ function OrganizerEventRow({
 
 function OrganizerRewardRow({ reward }: { reward: ManagedOrganizerReward }) {
   return (
-    <View className="overflow-hidden rounded-3xl border border-gray-200 bg-white">
+    <View
+      className="overflow-hidden rounded-3xl border border-primary/10 bg-white"
+      style={CardStyles.compact}
+    >
       <View className="flex-row gap-3 p-3">
         <View className="h-[96px] w-[96px] overflow-hidden rounded-[22px] bg-gray-100">
           <BrandImage
