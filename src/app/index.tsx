@@ -1,35 +1,10 @@
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Location from 'expo-location';
-import {
-  ArrowLeft,
-  ArrowRight,
-  Bell,
-  CheckCircle2,
-  Globe,
-  User,
-  Users,
-  X,
-} from 'lucide-react-native';
-import {
-  Modal,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  useWindowDimensions,
-  View,
-} from 'react-native';
+import { ArrowRight, Bell, CheckCircle2, Globe, User, Users, X } from 'lucide-react-native';
+import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
-import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import MapView, { Circle as MapCircle, Marker } from 'react-native-maps';
-import Animated, {
-  runOnJS,
-  useAnimatedStyle,
-  useSharedValue,
-  withTiming,
-} from 'react-native-reanimated';
-import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BrandImage } from '@/components/brand-image';
 import { CardStyles, Colors } from '@/constants/theme';
@@ -44,30 +19,6 @@ import { getEventEngagement } from '@/lib/event-engagement';
 import type { UserEventStatus } from '@/lib/event-history';
 import { useStableTopInset } from '@/hooks/use-stable-safe-area';
 import type { OrganizerApplicationStatus } from '@/providers/auth-provider';
-
-const notifications = [
-  {
-    id: 'pilot-live',
-    title: 'Leuven Pilot is live',
-    message: 'Start exploring today and earn your first XP reward.',
-    time: 'Now',
-    unread: true,
-  },
-  {
-    id: 'dance-night',
-    title: 'Event tonight',
-    message: 'Student Dance Night starts at STUK Arts Centre.',
-    time: 'Today',
-    unread: true,
-  },
-  {
-    id: 'coffee-reward',
-    title: 'Reward nearby',
-    message: 'A cafe reward unlocks after two more check-ins.',
-    time: 'This week',
-    unread: false,
-  },
-];
 
 type HomeScreenProps = {
   avatarInitials?: string | null;
@@ -112,10 +63,7 @@ export default function HomeScreen({
         coordinates: { latitude: number; longitude: number };
       }[]
     >((spots, event) => {
-      const knownVenue = cityData.venues.find(
-        (venue) => venue.id === event.venueId || venue.name === event.venueName,
-      );
-      const coordinates = event.venueCoordinates ?? knownVenue?.coordinates;
+      const coordinates = event.venueCoordinates;
 
       if (!coordinates) return spots;
 
@@ -133,7 +81,7 @@ export default function HomeScreen({
         {
           id: event.venueId,
           name: event.venueName,
-          address: event.venueAddress ?? knownVenue?.address ?? cityData.name,
+          address: event.venueAddress ?? cityData.name,
           attendedCount: engagement.attended,
           eventCount: 1,
           interestedCount: engagement.interested,
@@ -167,17 +115,11 @@ export default function HomeScreen({
         };
       })
       .sort((a, b) => b.activityScore - a.activityScore);
-  }, [cityData.name, cityData.venues, eventStatuses, events]);
+  }, [cityData.name, eventStatuses, events]);
   const [selectedActivityId, setSelectedActivityId] = useState<string | null>(null);
   const selectedActivitySpot =
     activitySpots.find((spot) => spot.id === selectedActivityId) ?? activitySpots[0];
   const activityMapRegion = useMemo(() => getCityMapRegion(cityData), [cityData]);
-  const leaderboardRows = useMemo(() => getLeaderboardRows(cityData.id), [cityData.id]);
-  const cityLeaderboardXp = useMemo(
-    () => leaderboardRows.reduce((total, row) => total + row.xp, 0),
-    [leaderboardRows],
-  );
-  const userLeaderboardRow = leaderboardRows.find((row) => row.isUserGroup) ?? leaderboardRows[0];
   const visibleNotifications = useMemo(() => {
     const organizerNotification =
       organizerApplicationStatus === 'approved'
@@ -198,7 +140,7 @@ export default function HomeScreen({
             }
           : null;
 
-    return organizerNotification ? [organizerNotification, ...notifications] : notifications;
+    return organizerNotification ? [organizerNotification] : [];
   }, [organizerApplicationStatus]);
 
   useEffect(() => {
@@ -223,7 +165,6 @@ export default function HomeScreen({
     };
   }, []);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
-  const [leaderboardOpen, setLeaderboardOpen] = useState(false);
   const [hasUnreadNotifications, setHasUnreadNotifications] = useState(
     visibleNotifications.some((notification) => notification.unread),
   );
@@ -233,10 +174,8 @@ export default function HomeScreen({
   }, [cityData.id]);
 
   useEffect(() => {
-    if (organizerApplicationStatus === 'approved' || organizerApplicationStatus === 'rejected') {
-      setHasUnreadNotifications(true);
-    }
-  }, [organizerApplicationStatus]);
+    setHasUnreadNotifications(visibleNotifications.some((notification) => notification.unread));
+  }, [visibleNotifications]);
 
   function openNotifications() {
     setNotificationsOpen(true);
@@ -296,7 +235,6 @@ export default function HomeScreen({
                 </Pressable>
               </View>
             </View>
-
           </View>
 
           <View className="absolute bottom-0 left-0 right-0 px-6 pb-7">
@@ -550,37 +488,6 @@ export default function HomeScreen({
             </View>
           </View>
         </View>
-
-        <View className="px-5 pb-8">
-          <Pressable
-            onPress={() => setLeaderboardOpen(true)}
-            className="overflow-hidden rounded-3xl bg-ink active:opacity-90"
-          >
-            <LinearGradient
-              colors={['rgba(124,58,237,0.72)', 'rgba(36,28,46,0.98)']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={{ padding: 18 }}
-            >
-              <View className="flex-row items-center justify-between gap-4">
-                <View className="min-w-0 flex-1">
-                  <Text className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-white/65">
-                    Weekly leaderboard
-                  </Text>
-                  <Text className="font-heading text-[22px] font-extrabold leading-[27px] text-white">
-                    Your university is #{userLeaderboardRow.rank} this week
-                  </Text>
-                  <Text className="mt-2 text-[13px] leading-5 text-white/70">
-                    {cityLeaderboardXp.toLocaleString()} XP across {cityData.name}
-                  </Text>
-                </View>
-                <View className="h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/10">
-                  <ArrowRight size={19} color="white" strokeWidth={2.6} />
-                </View>
-              </View>
-            </LinearGradient>
-          </Pressable>
-        </View>
       </ScrollView>
 
       <Modal
@@ -637,47 +544,50 @@ export default function HomeScreen({
               </LinearGradient>
 
               <View className="gap-2 bg-white p-3">
-                {visibleNotifications.map((notification) => (
-                  <Pressable
-                    key={notification.id}
-                    className="flex-row gap-3 rounded-2xl border border-primary/10 bg-primary/5 px-3 py-3.5 active:opacity-80"
-                    onPress={() => setNotificationsOpen(false)}
-                  >
-                    <View className="pt-1.5">
-                      <View
-                        className={`h-2.5 w-2.5 rounded-full ${
-                          notification.unread ? 'bg-destructive' : 'bg-primary/35'
-                        }`}
-                      />
-                    </View>
-                    <View className="min-w-0 flex-1">
-                      <View className="mb-1 flex-row items-center justify-between gap-3">
-                        <Text className="min-w-0 flex-1 text-[15px] font-extrabold text-ink">
-                          {notification.title}
-                        </Text>
-                        <View className="rounded-full bg-white px-2 py-0.5">
-                          <Text className="text-[10px] font-bold text-muted">
-                            {notification.time}
-                          </Text>
-                        </View>
+                {visibleNotifications.length === 0 ? (
+                  <View className="rounded-2xl border border-primary/10 bg-primary/5 px-4 py-5">
+                    <Text className="text-[15px] font-extrabold text-ink">No updates yet</Text>
+                    <Text className="mt-1 text-[13px] leading-5 text-muted">
+                      Account, organizer, and event updates will appear here when they are created.
+                    </Text>
+                  </View>
+                ) : (
+                  visibleNotifications.map((notification) => (
+                    <Pressable
+                      key={notification.id}
+                      className="flex-row gap-3 rounded-2xl border border-primary/10 bg-primary/5 px-3 py-3.5 active:opacity-80"
+                      onPress={() => setNotificationsOpen(false)}
+                    >
+                      <View className="pt-1.5">
+                        <View
+                          className={`h-2.5 w-2.5 rounded-full ${
+                            notification.unread ? 'bg-destructive' : 'bg-primary/35'
+                          }`}
+                        />
                       </View>
-                      <Text className="text-[13px] leading-5 text-muted">
-                        {notification.message}
-                      </Text>
-                    </View>
-                  </Pressable>
-                ))}
+                      <View className="min-w-0 flex-1">
+                        <View className="mb-1 flex-row items-center justify-between gap-3">
+                          <Text className="min-w-0 flex-1 text-[15px] font-extrabold text-ink">
+                            {notification.title}
+                          </Text>
+                          <View className="rounded-full bg-white px-2 py-0.5">
+                            <Text className="text-[10px] font-bold text-muted">
+                              {notification.time}
+                            </Text>
+                          </View>
+                        </View>
+                        <Text className="text-[13px] leading-5 text-muted">
+                          {notification.message}
+                        </Text>
+                      </View>
+                    </Pressable>
+                  ))
+                )}
               </View>
             </Pressable>
           </View>
         </Pressable>
       </Modal>
-
-      <LeaderboardModal
-        onClose={() => setLeaderboardOpen(false)}
-        rows={leaderboardRows}
-        visible={leaderboardOpen}
-      />
     </View>
   );
 }
@@ -688,226 +598,6 @@ function getHeroImageSource(heroImage: CultureCityData['heroImage']) {
   }
 
   return require('@/assets/images/culture/hero-culture.jpg');
-}
-
-type LeaderboardRow = {
-  id: string;
-  name: string;
-  shortName: string;
-  xp: number;
-  rank: number;
-  isUserGroup?: boolean;
-};
-
-function LeaderboardModal({
-  onClose,
-  rows,
-  visible,
-}: {
-  onClose: () => void;
-  rows: LeaderboardRow[];
-  visible: boolean;
-}) {
-  const { width } = useWindowDimensions();
-  const stableTopInset = useStableTopInset();
-  const translateX = useSharedValue(0);
-
-  useEffect(() => {
-    if (visible) {
-      translateX.value = 0;
-    }
-  }, [translateX, visible]);
-
-  const swipeGesture = Gesture.Pan()
-    .activeOffsetX([-999, 18])
-    .failOffsetY([-35, 35])
-    .onUpdate((event) => {
-      translateX.value = Math.max(0, event.translationX);
-    })
-    .onEnd((event) => {
-      const shouldClose = translateX.value > width * 0.28 || event.velocityX > 700;
-
-      if (shouldClose) {
-        translateX.value = withTiming(width, { duration: 180 }, (finished) => {
-          if (finished) {
-            runOnJS(onClose)();
-          }
-        });
-        return;
-      }
-
-      translateX.value = withTiming(0, { duration: 180 });
-    });
-
-  const swipeStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: translateX.value }],
-  }));
-
-  function closeWithAnimation() {
-    translateX.value = withTiming(width, { duration: 180 }, (finished) => {
-      if (finished) {
-        runOnJS(onClose)();
-      }
-    });
-  }
-
-  return (
-    <Modal animationType="slide" onRequestClose={closeWithAnimation} visible={visible}>
-      <GestureDetector gesture={swipeGesture}>
-        <Animated.View className="flex-1 bg-white" style={swipeStyle}>
-          <SafeAreaView className="flex-1 bg-white" edges={['bottom']}>
-            <View className="px-5 pb-4" style={{ paddingTop: stableTopInset + 12 }}>
-              <Pressable
-                onPress={closeWithAnimation}
-                className="h-10 w-10 items-center justify-center rounded-full bg-gray-100 active:opacity-80"
-              >
-                <ArrowLeft size={20} color="#241C2E" strokeWidth={2.5} />
-              </Pressable>
-            </View>
-
-            <ScrollView
-              className="flex-1"
-              contentContainerStyle={{ paddingBottom: 36 }}
-              showsVerticalScrollIndicator={false}
-            >
-              <View className="px-5">
-                <View className="mb-4 overflow-hidden rounded-3xl bg-ink">
-                  <LinearGradient
-                    colors={['rgba(124,58,237,0.78)', 'rgba(36,28,46,0.98)']}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 1 }}
-                    style={{ padding: 18 }}
-                  >
-                    <Text className="text-[12px] font-semibold uppercase tracking-wide text-white/70">
-                      Campus race
-                    </Text>
-                    <Text className="mt-1 font-heading text-[28px] font-extrabold leading-[32px] text-white">
-                      {rows[0]?.name} leads with {rows[0]?.xp.toLocaleString()} XP
-                    </Text>
-                  </LinearGradient>
-                </View>
-
-                <View className="gap-3">
-                  {rows.map((row) => (
-                    <View
-                      key={row.id}
-                      className={`flex-row items-center gap-3 rounded-2xl border p-3 ${
-                        row.isUserGroup
-                          ? 'border-accent/40 bg-accent/10'
-                          : 'border-gray-200 bg-white'
-                      }`}
-                    >
-                      <View
-                        className={`h-11 w-11 items-center justify-center rounded-2xl ${
-                          row.rank <= 3 ? 'bg-primary' : 'bg-gray-100'
-                        }`}
-                      >
-                        <Text
-                          className={`font-ui text-[15px] font-extrabold ${
-                            row.rank <= 3 ? 'text-white' : 'text-muted'
-                          }`}
-                        >
-                          #{row.rank}
-                        </Text>
-                      </View>
-                      <View className="min-w-0 flex-1">
-                        <View className="flex-row items-center gap-2">
-                          <Text className="min-w-0 flex-1 text-[15px] font-extrabold text-ink">
-                            {row.name}
-                          </Text>
-                          {row.isUserGroup && (
-                            <View className="rounded-full bg-accent px-2 py-0.5">
-                              <Text className="text-[10px] font-extrabold text-white">YOU</Text>
-                            </View>
-                          )}
-                        </View>
-                        <Text className="mt-0.5 text-[12px] font-medium text-muted">
-                          {row.shortName}
-                        </Text>
-                      </View>
-                      <View className="items-end">
-                        <Text className="font-ui text-[15px] font-extrabold text-primary">
-                          {row.xp.toLocaleString()}
-                        </Text>
-                      </View>
-                    </View>
-                  ))}
-                </View>
-              </View>
-            </ScrollView>
-          </SafeAreaView>
-        </Animated.View>
-      </GestureDetector>
-    </Modal>
-  );
-}
-
-function getLeaderboardRows(cityId: CultureCityData['id']): LeaderboardRow[] {
-  if (cityId === 'lublin') {
-    return [
-      {
-        id: 'pollub',
-        name: 'Lublin University of Technology',
-        shortName: 'Politechnika Lubelska',
-        xp: 14820,
-        rank: 1,
-      },
-      {
-        id: 'umcs',
-        name: 'Maria Curie-Sklodowska University',
-        shortName: 'UMCS',
-        xp: 13760,
-        rank: 2,
-        isUserGroup: true,
-      },
-      {
-        id: 'kul',
-        name: 'John Paul II Catholic University',
-        shortName: 'KUL',
-        xp: 12910,
-        rank: 3,
-      },
-      {
-        id: 'umlub',
-        name: 'Medical University of Lublin',
-        shortName: 'UMLub',
-        xp: 11140,
-        rank: 4,
-      },
-    ];
-  }
-
-  return [
-    {
-      id: 'ucll',
-      name: 'UCLL Applied Sciences',
-      shortName: 'UCLL',
-      xp: 15480,
-      rank: 1,
-    },
-    {
-      id: 'ku-leuven',
-      name: 'KU Leuven',
-      shortName: 'KU Leuven',
-      xp: 14630,
-      rank: 2,
-      isUserGroup: true,
-    },
-    {
-      id: 'luca',
-      name: 'LUCA School of Arts',
-      shortName: 'LUCA',
-      xp: 11870,
-      rank: 3,
-    },
-    {
-      id: 'imec',
-      name: 'International Student Houses',
-      shortName: 'ISH',
-      xp: 10240,
-      rank: 4,
-    },
-  ];
 }
 
 function getEventImageSource(event: CultureEvent) {
@@ -970,11 +660,9 @@ function getCityMapRegion(cityData: CultureCityData) {
     };
   }
 
-  const fallbackCenter = cityData.venues[0]?.coordinates;
-
   return {
-    latitude: fallbackCenter?.latitude ?? 50.8798,
-    longitude: fallbackCenter?.longitude ?? 4.7005,
+    latitude: 50.8798,
+    longitude: 4.7005,
     latitudeDelta: 0.045,
     longitudeDelta: 0.045,
   };

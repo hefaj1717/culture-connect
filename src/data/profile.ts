@@ -8,7 +8,6 @@ import {
   Globe,
   Sparkles,
   TicketCheck,
-  Trophy,
 } from 'lucide-react-native';
 
 import type { AchievementBadge } from '@/components/profile/badges';
@@ -114,16 +113,6 @@ export const achievementBadges: AchievementBadge[] = [
     icon: Coffee,
     category: 'reward',
     color: GamificationColors.badges.reward,
-  },
-  {
-    id: 'top-week',
-    title: 'Top 10 Week',
-    description: 'Reach the weekly city leaderboard top 10.',
-    progress: 'Not ranked',
-    unlocked: false,
-    icon: Trophy,
-    category: 'status',
-    color: GamificationColors.badges.status,
   },
   {
     id: 'founding-student',

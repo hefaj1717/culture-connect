@@ -110,7 +110,6 @@ export default function ExploreScreen({
   const [selectedOrganizerProfile, setSelectedOrganizerProfile] = useState<OrganizerProfile | null>(
     null,
   );
-  const { venues } = cityData;
   const hasApprovedEventsProp = approvedEventsProp !== undefined;
   const allEvents = approvedEventsProp ?? organizerEvents;
   const eventsError = hasApprovedEventsProp ? approvedEventsError : organizerEventsError;
@@ -607,11 +606,7 @@ export default function ExploreScreen({
           )
         }
         event={selectedEvent}
-        venue={
-          selectedEvent
-            ? (venues.find((venue) => venue.id === selectedEvent.venueId) ?? null)
-            : null
-        }
+        venue={null}
         onCheckIn={async (event, location) => {
           const didConfirm = (await onEventCheckIn?.(event, location)) ?? false;
 
@@ -1372,7 +1367,7 @@ function EventDetailModal({
                         Ask the organiser for the event QR code.
                       </Text>
                       <Text className="mt-1 text-center text-[12px] text-white/70">
-                        Demo payload: {event.checkInCode}
+                        Scan only the official event check-in card at the venue.
                       </Text>
                       {scanMessage && (
                         <Text className="mt-3 text-center text-[13px] font-semibold text-destructive">
