@@ -6,6 +6,7 @@ import {
   MapPin,
   RefreshCw,
   Save,
+  Search,
   Trash2,
 } from 'lucide-react-native';
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
@@ -93,21 +94,29 @@ export function AdminManageEventsModal({
   const { width } = useWindowDimensions();
   const translateX = useSharedValue(0);
   const [activeFilter, setActiveFilter] = useState<AdminEventFilter>('all');
+  const [searchQuery, setSearchQuery] = useState('');
   const [selectedEvent, setSelectedEvent] = useState<AdminManagedEvent | null>(null);
   const visibleSelectedEvent = selectedEvent
     ? (events.find((event) => event.databaseId === selectedEvent.databaseId) ?? selectedEvent)
     : null;
-  const filteredEvents = useMemo(
-    () =>
-      activeFilter === 'all'
-        ? events
-        : events.filter((event) =>
-            activeFilter === 'past'
-              ? event.reviewStatus === 'approved' && isPastEventDateLabel(event.date)
-              : event.reviewStatus === activeFilter,
-          ),
-    [activeFilter, events],
-  );
+  const filteredEvents = useMemo(() => {
+    const normalizedSearch = searchQuery.trim().toLowerCase();
+    return events.filter((event) => {
+      const matchesFilter =
+        activeFilter === 'all'
+          ? true
+          : activeFilter === 'past'
+            ? event.reviewStatus === 'approved' && isPastEventDateLabel(event.date)
+            : event.reviewStatus === activeFilter;
+      const matchesSearch =
+        normalizedSearch.length === 0 ||
+        event.title.toLowerCase().includes(normalizedSearch) ||
+        event.venueName.toLowerCase().includes(normalizedSearch) ||
+        event.organizerName.toLowerCase().includes(normalizedSearch);
+
+      return matchesFilter && matchesSearch;
+    });
+  }, [activeFilter, events, searchQuery]);
 
   useEffect(() => {
     if (visible) {
@@ -224,6 +233,21 @@ export function AdminManageEventsModal({
                   events={events}
                   onSelect={setActiveFilter}
                 />
+
+                <View className="px-5 pb-2">
+                  <View className="h-12 flex-row items-center gap-2 rounded-2xl border border-gray-200 bg-white px-4">
+                    <Search size={17} color="#756F7B" strokeWidth={2.4} />
+                    <TextInput
+                      autoCorrect={false}
+                      className="min-w-0 flex-1 text-[14px] font-semibold text-ink"
+                      onChangeText={setSearchQuery}
+                      placeholder="Search title, venue, or organizer"
+                      placeholderTextColor="#8B909A"
+                      returnKeyType="search"
+                      value={searchQuery}
+                    />
+                  </View>
+                </View>
 
                 <ScrollView
                   className="flex-1"
@@ -356,6 +380,9 @@ function AdminManagedEventCard({
         </Text>
         <Text className="mt-1 text-[13px] font-medium text-muted" numberOfLines={1}>
           {event.venueName} · {formatEventTimeRange(event)}
+        </Text>
+        <Text className="mt-1 text-[12px] font-semibold text-primary" numberOfLines={1}>
+          Created by {event.organizerName}
         </Text>
         <View className="mt-3 flex-row gap-2">
           <MiniStat label="Interested" value={event.interestedCount ?? 0} />
@@ -556,6 +583,19 @@ function AdminEventEditor({
           </View>
         </View>
 
+        <View className="mb-4 rounded-3xl border border-gray-200 bg-white p-4">
+          <Text className="mb-3 font-ui text-[15px] font-extrabold text-ink">Event audit</Text>
+          <AuditRow label="Database ID" value={event.databaseId} />
+          <AuditRow label="Organizer" value={event.organizerName} />
+          <AuditRow label="Status" value={getStatusLabel(status)} />
+          <AuditRow label="Check-in code" value={event.checkInCode} />
+          <AuditRow label="Created" value={formatAuditDate(event.createdAt)} />
+          <View className="mt-3 flex-row gap-2">
+            <MiniStat label="City" valueText={event.cityId} />
+            <MiniStat label="XP" value={Number.parseInt(xpBonus, 10) || 0} />
+          </View>
+        </View>
+
         <Pressable
           disabled={saving}
           onPress={save}
@@ -658,10 +698,31 @@ function InfoRow({ icon, text }: { icon: ReactNode; text: string }) {
   );
 }
 
-function MiniStat({ label, value }: { label: string; value: number }) {
+function AuditRow({ label, value }: { label: string; value: string }) {
+  return (
+    <View className="border-b border-gray-100 py-2 last:border-b-0">
+      <Text className="text-[10px] font-extrabold uppercase tracking-wide text-muted">{label}</Text>
+      <Text className="mt-1 text-[12px] font-semibold text-ink" numberOfLines={2}>
+        {value}
+      </Text>
+    </View>
+  );
+}
+
+function MiniStat({
+  label,
+  value,
+  valueText,
+}: {
+  label: string;
+  value?: number;
+  valueText?: string;
+}) {
   return (
     <View className="min-w-0 flex-1 rounded-2xl bg-primary/5 px-3 py-2">
-      <Text className="text-[13px] font-extrabold text-primary">{value.toLocaleString()}</Text>
+      <Text className="text-[13px] font-extrabold capitalize text-primary">
+        {valueText ?? (value ?? 0).toLocaleString()}
+      </Text>
       <Text className="mt-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted">
         {label}
       </Text>
@@ -768,4 +829,17 @@ function isPastEventDateLabel(dateLabel: string) {
   const eventDate = new Date(today.getFullYear(), monthIndex, Number(match[2]), 23, 59, 59);
 
   return eventDate.getTime() < today.getTime();
+}
+
+function formatAuditDate(value: string) {
+  const parsed = Date.parse(value);
+  if (Number.isNaN(parsed)) return value;
+
+  return new Intl.DateTimeFormat('en', {
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    month: 'short',
+    year: 'numeric',
+  }).format(new Date(parsed));
 }
