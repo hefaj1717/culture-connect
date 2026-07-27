@@ -119,15 +119,21 @@ export function ProfileRankCard({
 
         <View className="min-w-0 flex-1">
           <View className="mb-1 flex-row items-start justify-between gap-2">
-            <Text className="font-heading text-[31px] font-extrabold leading-[35px] text-ink">
+            <Text
+              className="min-w-0 flex-1 font-heading text-[31px] font-extrabold leading-[35px] text-ink"
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              minimumFontScale={0.72}
+            >
               {fullName}
             </Text>
             <Pressable
               accessibilityLabel="Open profile settings"
               onPress={onOpenSettings}
-              className="h-10 w-10 items-center justify-center rounded-full bg-canvas active:opacity-80"
+              hitSlop={10}
+              className="h-11 w-11 shrink-0 items-center justify-center rounded-full bg-canvas active:opacity-80"
             >
-              <Settings size={19} color={Colors.light.primary} strokeWidth={2.4} />
+              <Settings size={20} color={Colors.light.primary} strokeWidth={2.4} />
             </Pressable>
           </View>
           {organizerStatus === 'approved' && (

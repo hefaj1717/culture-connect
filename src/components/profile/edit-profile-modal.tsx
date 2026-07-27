@@ -58,16 +58,17 @@ export function EditProfileModal({
         >
           <ScrollView
             className="flex-1"
-            contentContainerStyle={{ padding: 20, paddingBottom: 36 }}
+            contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 36, paddingTop: 34 }}
             keyboardDismissMode="interactive"
             keyboardShouldPersistTaps="handled"
           >
-            <View className="mb-6 flex-row justify-end">
+            <View className="mb-5 flex-row justify-end">
               <Pressable
                 onPress={onClose}
-                className="h-10 w-10 items-center justify-center rounded-full bg-gray-100 active:opacity-80"
+                hitSlop={16}
+                className="h-12 w-12 items-center justify-center rounded-full bg-gray-100 active:opacity-80"
               >
-                <X size={19} color="#756F7B" strokeWidth={2.4} />
+                <X size={21} color="#756F7B" strokeWidth={2.4} />
               </Pressable>
             </View>
 
