@@ -277,6 +277,7 @@ export default function ProfileScreen({
     adminReviewError,
     adminReviewLoading,
     adminReviewOpen,
+    deleteEvent,
     openAdminReview,
     pendingEvents,
     pendingRewards,
@@ -840,6 +841,7 @@ export default function ProfileScreen({
         gesture={adminReviewSwipeGesture}
         loading={adminReviewLoading}
         onClose={closeAdminReviewWithAnimation}
+        onDeleteEvent={deleteEvent}
         onRefresh={refreshPendingContent}
         onReview={reviewContent}
         rewards={pendingRewards}

@@ -6,6 +6,7 @@ import {
   Gift,
   MapPin,
   RefreshCw,
+  Trash2,
   UserRound,
   X,
 } from 'lucide-react-native';
@@ -38,6 +39,7 @@ type AdminReviewModalProps = {
   gesture: GestureType;
   loading: boolean;
   onClose: () => void;
+  onDeleteEvent: (id: string) => void;
   onRefresh: () => void;
   onReview: (kind: ReviewContentKind, id: string, status: 'approved' | 'rejected') => void;
   rewards: PendingAdminReward[];
@@ -53,6 +55,7 @@ export function AdminReviewModal({
   gesture,
   loading,
   onClose,
+  onDeleteEvent,
   onRefresh,
   onReview,
   rewards,
@@ -163,6 +166,7 @@ export function AdminReviewModal({
                         <PendingEventCard
                           event={event}
                           key={event.id}
+                          onDelete={onDeleteEvent}
                           onReview={onReview}
                           reviewingContentId={reviewingContentId}
                         />
@@ -215,14 +219,17 @@ function ReviewTabButton({
 
 function PendingEventCard({
   event,
+  onDelete,
   onReview,
   reviewingContentId,
 }: {
   event: PendingAdminEvent;
+  onDelete: (id: string) => void;
   onReview: (kind: ReviewContentKind, id: string, status: 'approved' | 'rejected') => void;
   reviewingContentId: string | null;
 }) {
   const busy = reviewingContentId === `event-${event.id}`;
+  const deleteBusy = reviewingContentId === `event-delete-${event.id}`;
   const city = getCultureCityData(event.cityId);
 
   return (
@@ -264,7 +271,9 @@ function PendingEventCard({
         <ReviewActions
           busy={busy}
           onApprove={() => onReview('event', event.id, 'approved')}
+          onDelete={() => onDelete(event.id)}
           onReject={() => onReview('event', event.id, 'rejected')}
+          deleteBusy={deleteBusy}
         />
       </View>
     </View>
@@ -335,35 +344,57 @@ function InfoLine({ icon, text }: { icon: React.ReactNode; text: string }) {
 
 function ReviewActions({
   busy,
+  deleteBusy,
   onApprove,
+  onDelete,
   onReject,
 }: {
   busy: boolean;
+  deleteBusy?: boolean;
   onApprove: () => void;
+  onDelete?: () => void;
   onReject: () => void;
 }) {
+  const anyBusy = busy || !!deleteBusy;
+
   return (
-    <View className="mt-4 flex-row gap-2">
-      <Pressable
-        disabled={busy}
-        onPress={onReject}
-        className="h-11 flex-1 flex-row items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white active:opacity-80"
-      >
-        <X size={16} color="#756F7B" strokeWidth={2.5} />
-        <Text className="text-[13px] font-extrabold text-muted">Reject</Text>
-      </Pressable>
-      <Pressable
-        disabled={busy}
-        onPress={onApprove}
-        className="h-11 flex-1 flex-row items-center justify-center gap-2 rounded-xl bg-primary active:opacity-85"
-      >
-        {busy ? (
-          <ActivityIndicator color="white" size="small" />
-        ) : (
-          <Check size={16} color="white" strokeWidth={2.5} />
-        )}
-        <Text className="text-[13px] font-extrabold text-white">Approve</Text>
-      </Pressable>
+    <View className="mt-4 gap-2">
+      <View className="flex-row gap-2">
+        <Pressable
+          disabled={anyBusy}
+          onPress={onReject}
+          className="h-11 flex-1 flex-row items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white active:opacity-80"
+        >
+          <X size={16} color="#756F7B" strokeWidth={2.5} />
+          <Text className="text-[13px] font-extrabold text-muted">Reject</Text>
+        </Pressable>
+        <Pressable
+          disabled={anyBusy}
+          onPress={onApprove}
+          className="h-11 flex-1 flex-row items-center justify-center gap-2 rounded-xl bg-primary active:opacity-85"
+        >
+          {busy ? (
+            <ActivityIndicator color="white" size="small" />
+          ) : (
+            <Check size={16} color="white" strokeWidth={2.5} />
+          )}
+          <Text className="text-[13px] font-extrabold text-white">Approve</Text>
+        </Pressable>
+      </View>
+      {onDelete && (
+        <Pressable
+          disabled={anyBusy}
+          onPress={onDelete}
+          className="h-10 flex-row items-center justify-center gap-2 rounded-xl bg-destructive/10 active:opacity-80"
+        >
+          {deleteBusy ? (
+            <ActivityIndicator color="#EF4444" size="small" />
+          ) : (
+            <Trash2 size={15} color="#EF4444" strokeWidth={2.5} />
+          )}
+          <Text className="text-[13px] font-extrabold text-destructive">Delete event</Text>
+        </Pressable>
+      )}
     </View>
   );
 }
