@@ -94,6 +94,8 @@ export function useCreateEventForm({
     setSelectedEndHour(21);
     setSelectedEndMinute(0);
     setTimePickerTarget('start');
+    setDatePickerOpen(false);
+    setTimePickerOpen(false);
   }
 
   function openCreateEvent() {

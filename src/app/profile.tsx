@@ -750,8 +750,12 @@ export default function ProfileScreen({
         onClose={closeCreateEventWithAnimation}
         onCloseDatePicker={() => setDatePickerOpen(false)}
         onCloseTimePicker={() => setTimePickerOpen(false)}
-        onOpenDatePicker={() => setDatePickerOpen(true)}
+        onOpenDatePicker={() => {
+          setTimePickerOpen(false);
+          setDatePickerOpen(true);
+        }}
         onOpenTimePicker={(target) => {
+          setDatePickerOpen(false);
           setTimePickerTarget(target);
           setTimePickerOpen(true);
         }}

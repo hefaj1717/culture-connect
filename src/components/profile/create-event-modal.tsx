@@ -377,8 +377,8 @@ export function CreateEventModal({
                   ))}
                 </View>
 
-                <View className="mb-4">
-                  <View className="flex-1">
+                <View className="mb-4 gap-3">
+                  <View>
                     <Text className="mb-2 text-[13px] font-semibold text-ink">Date</Text>
                     <Pressable
                       onPress={openDatePicker}
@@ -389,7 +389,7 @@ export function CreateEventModal({
                       </Text>
                     </Pressable>
                   </View>
-                  <View className="mt-3 flex-row gap-3">
+                  <View className="flex-row gap-3">
                     <View className="flex-1">
                       <Text className="mb-2 text-[13px] font-semibold text-ink">Starts</Text>
                       <Pressable
