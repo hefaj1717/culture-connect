@@ -120,10 +120,8 @@ export function ProfileRankCard({
         <View className="min-w-0 flex-1">
           <View className="mb-1 flex-row items-start justify-between gap-2">
             <Text
-              className="min-w-0 flex-1 font-heading text-[31px] font-extrabold leading-[35px] text-ink"
-              numberOfLines={1}
-              adjustsFontSizeToFit
-              minimumFontScale={0.72}
+              className="min-w-0 flex-1 font-heading text-[34px] font-extrabold leading-[37px] text-ink"
+              numberOfLines={2}
             >
               {fullName}
             </Text>
