@@ -2,7 +2,6 @@ import { useEffect, useMemo, useState } from 'react';
 import { ScrollView, Text, useWindowDimensions, View } from 'react-native';
 import { Gesture } from 'react-native-gesture-handler';
 import { runOnJS, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AdminReviewModal } from '@/components/profile/admin-review-modal';
 import { BadgesModal } from '@/components/profile/badges-modal';
@@ -34,6 +33,7 @@ import { useCreateQuestForm } from '@/hooks/profile/use-create-quest-form';
 import { useCreateRewardForm } from '@/hooks/profile/use-create-reward-form';
 import { useEditProfileForm } from '@/hooks/profile/use-edit-profile-form';
 import { useRewardRedemption } from '@/hooks/profile/use-reward-redemption';
+import { useStableTopInset } from '@/hooks/use-stable-safe-area';
 import type { UserEventHistoryItem } from '@/lib/event-history';
 import { fetchMyOrganizerEvents, type ManagedOrganizerEvent } from '@/lib/organizer-events';
 import {
@@ -64,8 +64,7 @@ export default function ProfileScreen({
   userEventHistory = [],
   userXp = 0,
 }: ProfileScreenProps = {}) {
-  const insets = useSafeAreaInsets();
-  const stableModalTopInset = Math.max(insets.top, 44);
+  const stableModalTopInset = useStableTopInset();
   const {
     organizerApplicationStatus,
     refreshOrganizerApplicationStatus,
@@ -589,10 +588,10 @@ export default function ProfileScreen({
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-white" edges={['top']}>
+    <View className="flex-1 bg-white">
       <ScrollView
         className="flex-1"
-        contentContainerStyle={{ paddingBottom: 112, paddingTop: 24 }}
+        contentContainerStyle={{ paddingBottom: 112, paddingTop: stableModalTopInset + 24 }}
         contentInsetAdjustmentBehavior="automatic"
       >
         <ProfileRankCard
@@ -875,7 +874,7 @@ export default function ProfileScreen({
         swipeStyle={rewardSwipeStyle}
         userXp={userXp}
       />
-    </SafeAreaView>
+    </View>
   );
 }
 

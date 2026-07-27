@@ -28,7 +28,7 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BrandImage } from '@/components/brand-image';
 import { Colors } from '@/constants/theme';
@@ -41,6 +41,7 @@ import {
 } from '@/data/culture';
 import { getEventEngagement } from '@/lib/event-engagement';
 import type { UserEventStatus } from '@/lib/event-history';
+import { useStableTopInset } from '@/hooks/use-stable-safe-area';
 import type { OrganizerApplicationStatus } from '@/providers/auth-provider';
 
 const notifications = [
@@ -94,6 +95,7 @@ export default function HomeScreen({
   onOpenEvent,
   onOpenProfile,
 }: HomeScreenProps) {
+  const stableTopInset = useStableTopInset();
   const happeningNow = events.slice(0, 3);
   const activitySpots = useMemo(() => {
     const mapSpots = events.reduce<
@@ -232,7 +234,10 @@ export default function HomeScreen({
             withTextGradient
           />
 
-          <SafeAreaView edges={['top']} className="absolute left-0 right-0 top-0 z-20 px-5">
+          <View
+            className="absolute left-0 right-0 top-0 z-20 px-5"
+            style={{ paddingTop: stableTopInset }}
+          >
             <View className="flex-row items-center justify-between pt-3">
               <Text className="font-heading text-[23px] font-extrabold text-white">
                 CultureQuest
@@ -274,7 +279,7 @@ export default function HomeScreen({
                 <Text className="text-[12px] font-semibold text-white">{cityData.statusText}</Text>
               </View>
             </View>
-          </SafeAreaView>
+          </View>
 
           <View className="absolute bottom-0 left-0 right-0 px-6 pb-7">
             <Text className="mb-2 font-display text-[42px] font-extrabold leading-[45px] text-white">
@@ -559,7 +564,7 @@ export default function HomeScreen({
         visible={notificationsOpen}
       >
         <Pressable className="flex-1 bg-black/35" onPress={() => setNotificationsOpen(false)}>
-          <SafeAreaView className="flex-1 justify-start px-4 pt-2" edges={['top']}>
+          <View className="flex-1 justify-start px-4" style={{ paddingTop: stableTopInset + 8 }}>
             <Pressable
               className="overflow-hidden rounded-[30px] bg-white"
               onPress={(event) => event.stopPropagation()}
@@ -638,7 +643,7 @@ export default function HomeScreen({
                 ))}
               </View>
             </Pressable>
-          </SafeAreaView>
+          </View>
         </Pressable>
       </Modal>
 
@@ -678,8 +683,7 @@ function LeaderboardModal({
   visible: boolean;
 }) {
   const { width } = useWindowDimensions();
-  const insets = useSafeAreaInsets();
-  const stableTopInset = Math.max(insets.top, 44);
+  const stableTopInset = useStableTopInset();
   const translateX = useSharedValue(0);
 
   useEffect(() => {
