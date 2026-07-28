@@ -215,14 +215,15 @@ export async function updateOrganizerEvent(userId: string, input: UpdateOrganize
     })
     .eq('id', getOrganizerEventDatabaseId(input.eventId))
     .eq('organizer_user_id', userId)
-    .select('id,status')
-    .single();
+    .select('id,status');
 
   if (error) {
     return { error: getOrganizerEventUpdateErrorMessage(error.message) };
   }
 
-  if (!data || data.status !== 'pending') {
+  const updatedEvent = data?.[0];
+
+  if (!updatedEvent || updatedEvent.status !== 'pending') {
     return {
       error:
         'Event changes were not submitted for review. Apply the latest Supabase migration and try again.',
