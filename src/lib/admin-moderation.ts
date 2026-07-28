@@ -10,6 +10,7 @@ import { supabase } from '@/lib/supabase';
 
 export type PendingAdminEvent = {
   category: EventCategory;
+  changes: PendingAdminEventChange[];
   cityId: CityId;
   createdAt: string;
   date: string;
@@ -25,6 +26,12 @@ export type PendingAdminEvent = {
   updatedAt?: string | null;
   venueAddress?: string | null;
   venueName: string;
+};
+
+export type PendingAdminEventChange = {
+  field: string;
+  from: string;
+  to: string;
 };
 
 export type PendingAdminReward = {
@@ -60,11 +67,25 @@ type PendingEventRow = {
   id: string;
   image_url: string | null;
   organizer_user_id: string;
+  review_previous_snapshot?: PendingEventPreviousSnapshot | null;
+  review_requested_at?: string | null;
   time_label: string;
   title: string;
   updated_at?: string | null;
   venue_address: string | null;
   venue_name: string;
+};
+
+type PendingEventPreviousSnapshot = {
+  category?: string | null;
+  date_label?: string | null;
+  description?: string | null;
+  end_time_label?: string | null;
+  image_url?: string | null;
+  time_label?: string | null;
+  title?: string | null;
+  venue_address?: string | null;
+  venue_name?: string | null;
 };
 
 type AdminManagedEventRow = PendingEventRow & {
@@ -115,16 +136,14 @@ const ADMIN_EVENT_LEGACY_COUNTER_SELECT =
   'id, organizer_user_id, city_key, venue_key, venue_name, venue_address, venue_latitude, venue_longitude, title, description, category, date_label, time_label, end_time_label, starts_at, ends_at, xp_bonus, language, is_free, is_international, attendee_count, image_kind, image_url, check_in_code, status, created_at';
 const ADMIN_EVENT_LEGACY_TIME_SELECT =
   'id, organizer_user_id, city_key, venue_key, venue_name, venue_address, venue_latitude, venue_longitude, title, description, category, date_label, time_label, xp_bonus, language, is_free, is_international, attendee_count, image_kind, image_url, check_in_code, status, created_at';
+const PENDING_EVENT_SELECT =
+  'id, organizer_user_id, city_key, venue_name, venue_address, title, description, category, date_label, time_label, end_time_label, image_url, created_at, updated_at, review_requested_at, review_previous_snapshot';
+const PENDING_EVENT_LEGACY_SELECT =
+  'id, organizer_user_id, city_key, venue_name, venue_address, title, description, category, date_label, time_label, end_time_label, image_url, created_at, updated_at';
 
 export async function fetchPendingAdminContent() {
   const [eventsResult, rewardsResult] = await Promise.all([
-    supabase
-      .from('organizer_events')
-      .select(
-        'id, organizer_user_id, city_key, venue_name, venue_address, title, description, category, date_label, time_label, end_time_label, image_url, created_at, updated_at',
-      )
-      .eq('status', 'pending')
-      .order('updated_at', { ascending: false }),
+    queryPendingAdminEvents(),
     supabase
       .from('organizer_rewards')
       .select(
@@ -152,6 +171,26 @@ export async function fetchPendingAdminContent() {
     events: eventRows.map((row) => mapPendingEvent(row, organizerProfiles)),
     rewards: rewardRows.map((row) => mapPendingReward(row, organizerProfiles)),
   };
+}
+
+async function queryPendingAdminEvents() {
+  const queryEvents = (selectColumns: string, includeReviewRequestedSort: boolean) => {
+    let query = supabase.from('organizer_events').select(selectColumns).eq('status', 'pending');
+
+    if (includeReviewRequestedSort) {
+      query = query.order('review_requested_at', { ascending: false, nullsFirst: false });
+    }
+
+    return query.order('updated_at', { ascending: false });
+  };
+
+  const result = await queryEvents(PENDING_EVENT_SELECT, true);
+
+  if (isMissingEventReviewChangeColumns(result.error?.message)) {
+    return queryEvents(PENDING_EVENT_LEGACY_SELECT, false);
+  }
+
+  return result;
 }
 
 export async function fetchAdminManagedEvents() {
@@ -203,6 +242,8 @@ export async function reviewOrganizerEvent({
     .update({
       rejection_reason:
         status === 'rejected' ? (rejectionReason ?? 'Rejected by CultureQuest review.') : null,
+      review_previous_snapshot: null,
+      review_requested_at: null,
       reviewed_at: new Date().toISOString(),
       reviewed_by: adminUserId,
       status,
@@ -343,6 +384,7 @@ function mapPendingEvent(
     category: row.category,
     cityId: row.city_key,
     createdAt: row.created_at,
+    changes: buildPendingEventChanges(row),
     date: row.date_label,
     description: row.description,
     endTime: row.end_time_label ?? undefined,
@@ -353,10 +395,58 @@ function mapPendingEvent(
     organizerUserId: row.organizer_user_id,
     time: row.time_label,
     title: row.title,
-    updatedAt: row.updated_at ?? null,
+    updatedAt: row.review_requested_at ?? row.updated_at ?? null,
     venueAddress: row.venue_address,
     venueName: row.venue_name,
   };
+}
+
+function buildPendingEventChanges(row: PendingEventRow): PendingAdminEventChange[] {
+  const snapshot = row.review_previous_snapshot;
+  if (!snapshot) return [];
+
+  const changes: PendingAdminEventChange[] = [];
+
+  addEventChange(changes, 'Title', snapshot.title, row.title);
+  addEventChange(changes, 'Venue', snapshot.venue_name, row.venue_name);
+  addEventChange(changes, 'Address', snapshot.venue_address, row.venue_address);
+  addEventChange(changes, 'Category', snapshot.category, row.category);
+  addEventChange(changes, 'Date', snapshot.date_label, row.date_label);
+  addEventChange(changes, 'Start time', snapshot.time_label, row.time_label);
+  addEventChange(changes, 'End time', snapshot.end_time_label, row.end_time_label);
+  addEventChange(changes, 'Description', snapshot.description, row.description);
+  if (normalizeChangeValue(snapshot.image_url) !== normalizeChangeValue(row.image_url)) {
+    changes.push({
+      field: 'Photo',
+      from: snapshot.image_url ? 'Previous photo' : 'No photo',
+      to: row.image_url ? 'Updated photo' : 'No photo',
+    });
+  }
+
+  return changes;
+}
+
+function addEventChange(
+  changes: PendingAdminEventChange[],
+  field: string,
+  from: string | null | undefined,
+  to: string | null | undefined,
+) {
+  const previousValue = normalizeChangeValue(from);
+  const nextValue = normalizeChangeValue(to);
+
+  if (previousValue === nextValue) return;
+
+  changes.push({
+    field,
+    from: previousValue,
+    to: nextValue,
+  });
+}
+
+function normalizeChangeValue(value: string | null | undefined) {
+  const normalized = typeof value === 'string' ? value.trim() : '';
+  return normalized || 'Empty';
 }
 
 function mapPendingReward(
@@ -445,5 +535,12 @@ function isLegacyAdminEventsShapeError(message?: string | null) {
       message.includes('end_time_label') ||
       message.includes('starts_at') ||
       message.includes('ends_at'))
+  );
+}
+
+function isMissingEventReviewChangeColumns(message?: string | null) {
+  return (
+    !!message &&
+    (message.includes('review_previous_snapshot') || message.includes('review_requested_at'))
   );
 }

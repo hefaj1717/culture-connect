@@ -13,6 +13,7 @@ import {
 import { useState } from 'react';
 import {
   ActivityIndicator,
+  Alert,
   Modal,
   Pressable,
   ScrollView,
@@ -231,6 +232,7 @@ function PendingEventCard({
   const busy = reviewingContentId === `event-${event.id}`;
   const deleteBusy = reviewingContentId === `event-delete-${event.id}`;
   const city = getCultureCityData(event.cityId);
+  const isEditedEvent = event.changes.length > 0;
 
   return (
     <View className="overflow-hidden rounded-3xl border border-gray-200 bg-white">
@@ -246,7 +248,9 @@ function PendingEventCard({
           withTextGradient
         >
           <View className="absolute left-4 top-4 rounded-full bg-white/90 px-3 py-1">
-            <Text className="text-[11px] font-bold text-primary">{city.name}</Text>
+            <Text className="text-[11px] font-bold text-primary">
+              {isEditedEvent ? 'Edited event' : 'New event'} · {city.name}
+            </Text>
           </View>
           <View className="absolute bottom-4 left-4 right-4">
             <Text className="font-heading text-[25px] font-extrabold leading-[28px] text-white">
@@ -268,6 +272,7 @@ function PendingEventCard({
         <Text className="mt-3 text-[13px] leading-5 text-muted" numberOfLines={3}>
           {event.description}
         </Text>
+        {isEditedEvent && <PendingEventChanges changes={event.changes} />}
         <ReviewActions
           busy={busy}
           onApprove={() => onReview('event', event.id, 'approved')}
@@ -275,6 +280,36 @@ function PendingEventCard({
           onReject={() => onReview('event', event.id, 'rejected')}
           deleteBusy={deleteBusy}
         />
+      </View>
+    </View>
+  );
+}
+
+function PendingEventChanges({ changes }: { changes: PendingAdminEvent['changes'] }) {
+  return (
+    <View className="mt-4 rounded-2xl border border-accent/20 bg-accent/10 p-3">
+      <Text className="mb-2 text-[11px] font-extrabold uppercase tracking-wide text-accentDeep">
+        Changes requested
+      </Text>
+      <View className="gap-2">
+        {changes.slice(0, 5).map((change) => (
+          <View key={`${change.field}-${change.from}-${change.to}`} className="gap-1">
+            <Text className="text-[12px] font-extrabold text-ink">{change.field}</Text>
+            <View className="flex-row gap-2">
+              <Text className="min-w-0 flex-1 rounded-xl bg-white/70 px-2 py-1 text-[11px] font-semibold text-muted">
+                {change.from}
+              </Text>
+              <Text className="min-w-0 flex-1 rounded-xl bg-white px-2 py-1 text-[11px] font-extrabold text-accentDeep">
+                {change.to}
+              </Text>
+            </View>
+          </View>
+        ))}
+        {changes.length > 5 && (
+          <Text className="text-[11px] font-semibold text-accentDeep">
+            +{changes.length - 5} more changes
+          </Text>
+        )}
       </View>
     </View>
   );
@@ -356,13 +391,29 @@ function ReviewActions({
   onReject: () => void;
 }) {
   const anyBusy = busy || !!deleteBusy;
+  function confirmAction(action: 'approved' | 'rejected') {
+    Alert.alert(
+      action === 'approved' ? 'Approve this submission?' : 'Reject this submission?',
+      action === 'approved'
+        ? 'This will make the event or reward visible to students.'
+        : 'This will send the submission back as rejected.',
+      [
+        { style: 'cancel', text: 'Cancel' },
+        {
+          onPress: action === 'approved' ? onApprove : onReject,
+          style: action === 'approved' ? 'default' : 'destructive',
+          text: action === 'approved' ? 'Approve' : 'Reject',
+        },
+      ],
+    );
+  }
 
   return (
     <View className="mt-4 gap-2">
       <View className="flex-row gap-2">
         <Pressable
           disabled={anyBusy}
-          onPress={onReject}
+          onPress={() => confirmAction('rejected')}
           className="h-11 flex-1 flex-row items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white active:opacity-80"
         >
           <X size={16} color="#756F7B" strokeWidth={2.5} />
@@ -370,7 +421,7 @@ function ReviewActions({
         </Pressable>
         <Pressable
           disabled={anyBusy}
-          onPress={onApprove}
+          onPress={() => confirmAction('approved')}
           className="h-11 flex-1 flex-row items-center justify-center gap-2 rounded-xl bg-primary active:opacity-85"
         >
           {busy ? (
