@@ -64,6 +64,7 @@ type CreateEventModalProps = {
   eventTime: string;
   eventTitle: string;
   gesture: GestureType;
+  isEditingEvent?: boolean;
   onChangeCalendarMonth: (date: Date) => void;
   onChangeEventCategory: (category: EventCategory) => void;
   onChangeEventDescription: (value: string) => void;
@@ -128,6 +129,7 @@ export function CreateEventModal({
   eventTime,
   eventTitle,
   gesture,
+  isEditingEvent = false,
   onChangeCalendarMonth,
   onChangeEventCategory,
   onChangeEventDescription,
@@ -229,10 +231,12 @@ export function CreateEventModal({
                       <CalendarPlus size={24} color="white" strokeWidth={2.4} />
                     </View>
                     <Text className="font-heading text-[29px] font-extrabold leading-[33px] text-white">
-                      Create event
+                      {isEditingEvent ? 'Edit event' : 'Create event'}
                     </Text>
                     <Text className="mt-2 max-w-[290px] text-[13px] leading-5 text-white/80">
-                      Submit a verified city experience for CultureQuest review.
+                      {isEditingEvent
+                        ? 'Changes go back to CultureQuest review before they appear live.'
+                        : 'Submit a verified city experience for CultureQuest review.'}
                     </Text>
                   </LinearGradient>
                 </View>
@@ -484,7 +488,9 @@ export function CreateEventModal({
                   {creatingEvent ? (
                     <ActivityIndicator color="white" />
                   ) : (
-                    <Text className="text-[15px] font-semibold text-white">Submit for review</Text>
+                    <Text className="text-[15px] font-semibold text-white">
+                      {isEditingEvent ? 'Submit changes' : 'Submit for review'}
+                    </Text>
                   )}
                 </Pressable>
               </ScrollView>

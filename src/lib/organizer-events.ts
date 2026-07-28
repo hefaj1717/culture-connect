@@ -26,6 +26,11 @@ export type CreateOrganizerEventInput = {
   imageUri?: string | null;
 };
 
+export type UpdateOrganizerEventInput = CreateOrganizerEventInput & {
+  currentImageUrl?: string | null;
+  eventId: string;
+};
+
 type OrganizerEventRow = {
   id: string;
   organizer_user_id: string;
@@ -174,6 +179,46 @@ export async function createOrganizerEvent(userId: string, input: CreateOrganize
   return { error: error?.message ?? null };
 }
 
+export async function updateOrganizerEvent(userId: string, input: UpdateOrganizerEventInput) {
+  const nextImageUrl = await resolveOrganizerEventImageUrl(userId, input);
+
+  if (nextImageUrl.error) {
+    return { error: nextImageUrl.error };
+  }
+
+  const { error } = await supabase
+    .from('organizer_events')
+    .update({
+      city_key: input.cityId,
+      venue_key: input.place.id,
+      venue_name: input.place.name,
+      venue_address: input.place.address,
+      venue_latitude: input.place.latitude,
+      venue_longitude: input.place.longitude,
+      title: input.title,
+      description: input.description,
+      category: input.category,
+      date_label: input.date,
+      end_time_label: input.endTime,
+      ends_at: input.endsAt,
+      time_label: input.time,
+      starts_at: input.startsAt,
+      language: input.language,
+      is_free: input.isFree,
+      is_international: input.language !== 'pl',
+      image_kind: getImageKind(input.category),
+      image_url: nextImageUrl.url,
+      rejection_reason: null,
+      reviewed_at: null,
+      reviewed_by: null,
+      status: 'pending',
+    })
+    .eq('id', getOrganizerEventDatabaseId(input.eventId))
+    .eq('organizer_user_id', userId);
+
+  return { error: error?.message ?? null };
+}
+
 async function fetchOrganizerProfileLookup(rows: OrganizerEventRow[]) {
   const result = await fetchOrganizerProfilesByIds(rows.map((row) => row.organizer_user_id));
 
@@ -261,6 +306,31 @@ async function uploadOrganizerEventImage(userId: string, imageUri: string) {
   } catch {
     return { url: null, error: 'Could not upload the event photo.' };
   }
+}
+
+async function resolveOrganizerEventImageUrl(
+  userId: string,
+  input: Pick<UpdateOrganizerEventInput, 'currentImageUrl' | 'imageUri'>,
+) {
+  if (!input.imageUri) {
+    return { error: null, url: null };
+  }
+
+  if (input.currentImageUrl && input.imageUri === input.currentImageUrl) {
+    return { error: null, url: input.currentImageUrl };
+  }
+
+  const uploadedImage = await uploadOrganizerEventImage(userId, input.imageUri);
+
+  if (uploadedImage.error) {
+    return { error: uploadedImage.error, url: null };
+  }
+
+  return { error: null, url: uploadedImage.url };
+}
+
+function getOrganizerEventDatabaseId(eventId: string) {
+  return eventId.startsWith('organizer-') ? eventId.replace('organizer-', '') : eventId;
 }
 
 function getImageExtension(uri: string) {

@@ -108,6 +108,7 @@ export default function ProfileScreen({
   const [myOrganizerEventsError, setMyOrganizerEventsError] = useState<string | null>(null);
   const [myOrganizerRewards, setMyOrganizerRewards] = useState<ManagedOrganizerReward[]>([]);
   const [myOrganizerRewardsError, setMyOrganizerRewardsError] = useState<string | null>(null);
+  const [organizerContentRefreshNonce, setOrganizerContentRefreshNonce] = useState(0);
   const [rewardsError, setRewardsError] = useState<string | null>(null);
   const savedAvatarUrl = session?.user.user_metadata?.avatar_url || null;
   const levelProgress = getXpLevelProgress(userXp);
@@ -124,7 +125,10 @@ export default function ProfileScreen({
     updateProfile,
   });
   const createEventForm = useCreateEventForm({
-    onEventCreated,
+    onEventCreated: () => {
+      setOrganizerContentRefreshNonce((current) => current + 1);
+      onEventCreated?.();
+    },
     savedCityId,
     userId: session?.user.id,
   });
@@ -192,6 +196,7 @@ export default function ProfileScreen({
     eventTime,
     eventTitle,
     openCreateEvent,
+    openEditEvent,
     pickEventImage,
     placeQuery,
     placeSuggestions,
@@ -225,6 +230,7 @@ export default function ProfileScreen({
     submitEvent,
     timePickerOpen,
     timePickerTarget,
+    isEditingEvent,
   } = createEventForm;
   const {
     createRewardError,
@@ -540,7 +546,13 @@ export default function ProfileScreen({
     return () => {
       active = false;
     };
-  }, [cityData.id, eventsRefreshKey, organizerApplicationStatus, session?.user.id]);
+  }, [
+    cityData.id,
+    eventsRefreshKey,
+    organizerApplicationStatus,
+    organizerContentRefreshNonce,
+    session?.user.id,
+  ]);
 
   useEffect(() => {
     if (createEventOpen) {
@@ -747,6 +759,7 @@ export default function ProfileScreen({
         eventTime={eventTime}
         eventTitle={eventTitle}
         gesture={createEventSwipeGesture}
+        isEditingEvent={isEditingEvent}
         onChangeCalendarMonth={setCalendarMonth}
         onChangeEventCategory={setEventCategory}
         onChangeEventDescription={setEventDescription}
@@ -898,6 +911,10 @@ export default function ProfileScreen({
       <OrganizerEventHistoryModal
         events={myOrganizerEvents}
         onClose={() => setOrganizerHistoryOpen(false)}
+        onEditEvent={(event) => {
+          setOrganizerHistoryOpen(false);
+          openEditEvent(event);
+        }}
         stableModalTopInset={stableModalTopInset}
         visible={organizerHistoryOpen}
       />
