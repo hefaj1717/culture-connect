@@ -97,7 +97,13 @@ type PendingRewardRow = {
 
 type ProfileSummaryRow = {
   avatar_url: string | null;
+  city_key?: CityId | null;
   id: string;
+  organizer_bio?: string | null;
+  organizer_location_address?: string | null;
+  organizer_location_latitude?: number | null;
+  organizer_location_longitude?: number | null;
+  organizer_location_name?: string | null;
   username: string | null;
 };
 
@@ -289,12 +295,31 @@ async function fetchOrganizerProfileSummaries(
   }
 
   const { data, error } = await supabase
-    .from('profiles')
-    .select('id, username, avatar_url')
+    .from('organizer_directory_profiles')
+    .select(
+      'id, username, avatar_url, city_key, organizer_bio, organizer_location_name, organizer_location_address, organizer_location_latitude, organizer_location_longitude',
+    )
     .in('id', organizerIds);
 
   if (error) {
-    return {};
+    const fallbackResult = await supabase
+      .from('profiles')
+      .select('id, username, avatar_url')
+      .in('id', organizerIds);
+
+    if (fallbackResult.error) {
+      return {};
+    }
+
+    return ((fallbackResult.data ?? []) as ProfileSummaryRow[]).reduce<
+      Record<string, ProfileSummaryRow>
+    >(
+      (profiles, profile) => ({
+        ...profiles,
+        [profile.id]: profile,
+      }),
+      {},
+    );
   }
 
   return ((data ?? []) as ProfileSummaryRow[]).reduce<Record<string, ProfileSummaryRow>>(
@@ -379,8 +404,19 @@ function mapAdminManagedEvent(
     isInternational: row.is_international ?? false,
     language: row.language ?? 'en',
     organizerAvatarUrl: profile?.avatar_url ?? null,
+    organizerBio: profile?.organizer_bio ?? undefined,
     organizerCityId: row.city_key,
     organizerId: row.organizer_user_id,
+    organizerLocationAddress: profile?.organizer_location_address ?? null,
+    organizerLocationCoordinates:
+      typeof profile?.organizer_location_latitude === 'number' &&
+      typeof profile?.organizer_location_longitude === 'number'
+        ? {
+            latitude: profile.organizer_location_latitude,
+            longitude: profile.organizer_location_longitude,
+          }
+        : null,
+    organizerLocationName: profile?.organizer_location_name ?? null,
     organizerImage: row.image_kind ?? 'theater',
     organizerName: profile?.username?.trim() || `Organizer ${row.organizer_user_id.slice(0, 8)}`,
     organizerUserId: row.organizer_user_id,

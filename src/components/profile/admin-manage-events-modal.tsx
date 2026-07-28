@@ -32,10 +32,12 @@ import Animated, {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BrandImage } from '@/components/brand-image';
+import { OrganizerProfileModal } from '@/components/organizer-profile-modal';
 import { CardStyles, Colors } from '@/constants/theme';
-import { eventCategoryLabels, type EventCategory } from '@/data/culture';
+import { eventCategoryLabels, getCultureCityData, type EventCategory } from '@/data/culture';
 import type { AdminManagedEvent } from '@/lib/admin-moderation';
 import type { OrganizerEventStatus } from '@/lib/organizer-events';
+import { organizerProfileFromEvent, type OrganizerProfile } from '@/lib/organizer-profiles';
 
 type AdminEventFilter = 'all' | OrganizerEventStatus | 'past';
 
@@ -96,6 +98,9 @@ export function AdminManageEventsModal({
   const [activeFilter, setActiveFilter] = useState<AdminEventFilter>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedEvent, setSelectedEvent] = useState<AdminManagedEvent | null>(null);
+  const [selectedOrganizerProfile, setSelectedOrganizerProfile] = useState<OrganizerProfile | null>(
+    null,
+  );
   const visibleSelectedEvent = selectedEvent
     ? (events.find((event) => event.databaseId === selectedEvent.databaseId) ?? selectedEvent)
     : null;
@@ -122,6 +127,7 @@ export function AdminManageEventsModal({
     if (visible) {
       translateX.value = 0;
       setSelectedEvent(null);
+      setSelectedOrganizerProfile(null);
     }
   }, [translateX, visible]);
 
@@ -169,6 +175,13 @@ export function AdminManageEventsModal({
     });
   }
 
+  function openOrganizerProfile(event: AdminManagedEvent) {
+    const profile = organizerProfileFromEvent(event);
+    if (profile) {
+      setSelectedOrganizerProfile(profile);
+    }
+  }
+
   return (
     <Modal animationType="slide" onRequestClose={closeWithAnimation} visible={visible}>
       <GestureDetector gesture={gesture}>
@@ -179,6 +192,7 @@ export function AdminManageEventsModal({
                 event={visibleSelectedEvent}
                 onBack={() => setSelectedEvent(null)}
                 onDelete={() => onDeleteEvent(visibleSelectedEvent.databaseId)}
+                onOpenOrganizer={() => openOrganizerProfile(visibleSelectedEvent)}
                 onSave={onSaveEvent}
                 saving={savingEventId === visibleSelectedEvent.databaseId}
                 stableModalTopInset={stableModalTopInset}
@@ -287,6 +301,7 @@ export function AdminManageEventsModal({
                       <AdminManagedEventCard
                         event={event}
                         key={event.databaseId}
+                        onOpenOrganizer={() => openOrganizerProfile(event)}
                         onPress={() => setSelectedEvent(event)}
                       />
                     ))
@@ -295,6 +310,25 @@ export function AdminManageEventsModal({
               </>
             )}
           </SafeAreaView>
+          <OrganizerProfileModal
+            cityName={
+              selectedOrganizerProfile
+                ? getCultureCityData(selectedOrganizerProfile.cityId).name
+                : 'CultureQuest'
+            }
+            events={events}
+            onClose={() => setSelectedOrganizerProfile(null)}
+            onOpenEvent={(event) => {
+              setSelectedOrganizerProfile(null);
+              const adminEvent =
+                events.find((candidate) => candidate.id === event.id) ??
+                events.find((candidate) => candidate.databaseId === event.id);
+              if (adminEvent) {
+                setSelectedEvent(adminEvent);
+              }
+            }}
+            profile={selectedOrganizerProfile}
+          />
         </Animated.View>
       </GestureDetector>
     </Modal>
@@ -350,9 +384,11 @@ function AdminEventFilterBar({
 
 function AdminManagedEventCard({
   event,
+  onOpenOrganizer,
   onPress,
 }: {
   event: AdminManagedEvent;
+  onOpenOrganizer: () => void;
   onPress: () => void;
 }) {
   return (
@@ -381,9 +417,19 @@ function AdminManagedEventCard({
         <Text className="mt-1 text-[13px] font-medium text-muted" numberOfLines={1}>
           {event.venueName} · {formatEventTimeRange(event)}
         </Text>
-        <Text className="mt-1 text-[12px] font-semibold text-primary" numberOfLines={1}>
-          Created by {event.organizerName}
-        </Text>
+        <Pressable
+          accessibilityLabel={`Open organizer profile for ${event.organizerName}`}
+          accessibilityRole="button"
+          className="mt-1 self-start active:opacity-75"
+          onPress={(pressEvent) => {
+            pressEvent.stopPropagation();
+            onOpenOrganizer();
+          }}
+        >
+          <Text className="text-[12px] font-semibold text-primary" numberOfLines={1}>
+            Created by {event.organizerName}
+          </Text>
+        </Pressable>
         <View className="mt-3 flex-row gap-2">
           <MiniStat label="Interested" value={event.interestedCount ?? 0} />
           <MiniStat label="Attended" value={event.attendeeCount} />
@@ -398,6 +444,7 @@ function AdminEventEditor({
   event,
   onBack,
   onDelete,
+  onOpenOrganizer,
   onSave,
   saving,
   stableModalTopInset,
@@ -405,6 +452,7 @@ function AdminEventEditor({
   event: AdminManagedEvent;
   onBack: () => void;
   onDelete: () => void;
+  onOpenOrganizer: () => void;
   onSave: AdminManageEventsModalProps['onSaveEvent'];
   saving: boolean;
   stableModalTopInset: number;
@@ -504,9 +552,14 @@ function AdminEventEditor({
             <Text className="font-heading text-[30px] font-extrabold leading-[34px] text-white">
               {event.title}
             </Text>
-            <Text className="mt-1 text-[13px] font-semibold text-white/75">
-              {event.organizerName}
-            </Text>
+            <Pressable
+              accessibilityLabel={`Open organizer profile for ${event.organizerName}`}
+              accessibilityRole="button"
+              className="mt-1 self-start active:opacity-75"
+              onPress={onOpenOrganizer}
+            >
+              <Text className="text-[13px] font-semibold text-white/80">{event.organizerName}</Text>
+            </Pressable>
           </View>
         </View>
 
@@ -586,7 +639,7 @@ function AdminEventEditor({
         <View className="mb-4 rounded-3xl border border-gray-200 bg-white p-4">
           <Text className="mb-3 font-ui text-[15px] font-extrabold text-ink">Event audit</Text>
           <AuditRow label="Database ID" value={event.databaseId} />
-          <AuditRow label="Organizer" value={event.organizerName} />
+          <AuditRow label="Organizer" onPress={onOpenOrganizer} value={event.organizerName} />
           <AuditRow label="Status" value={getStatusLabel(status)} />
           <AuditRow label="Check-in code" value={event.checkInCode} />
           <AuditRow label="Created" value={formatAuditDate(event.createdAt)} />
@@ -698,15 +751,41 @@ function InfoRow({ icon, text }: { icon: ReactNode; text: string }) {
   );
 }
 
-function AuditRow({ label, value }: { label: string; value: string }) {
-  return (
-    <View className="border-b border-gray-100 py-2 last:border-b-0">
+function AuditRow({
+  label,
+  onPress,
+  value,
+}: {
+  label: string;
+  onPress?: () => void;
+  value: string;
+}) {
+  const content = (
+    <>
       <Text className="text-[10px] font-extrabold uppercase tracking-wide text-muted">{label}</Text>
-      <Text className="mt-1 text-[12px] font-semibold text-ink" numberOfLines={2}>
+      <Text
+        className={`mt-1 text-[12px] font-semibold ${onPress ? 'text-primary' : 'text-ink'}`}
+        numberOfLines={2}
+      >
         {value}
       </Text>
-    </View>
+    </>
   );
+
+  if (onPress) {
+    return (
+      <Pressable
+        accessibilityLabel={`Open organizer profile for ${value}`}
+        accessibilityRole="button"
+        className="border-b border-gray-100 py-2 active:opacity-75"
+        onPress={onPress}
+      >
+        {content}
+      </Pressable>
+    );
+  }
+
+  return <View className="border-b border-gray-100 py-2 last:border-b-0">{content}</View>;
 }
 
 function MiniStat({
