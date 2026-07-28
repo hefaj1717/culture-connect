@@ -4,7 +4,6 @@ import {
   CheckCircle2,
   ChevronRight,
   Clock,
-  Edit3,
   Gift,
   LogOut,
   MapPin,
@@ -1205,6 +1204,15 @@ function HistoryEventDetail({
           >
             <ArrowLeft size={21} color="#FFFFFF" strokeWidth={2.6} />
           </Pressable>
+          {onEditEvent && (
+            <Pressable
+              onPress={onEditEvent}
+              className="absolute right-5 h-10 justify-center rounded-full bg-black/35 px-4 active:opacity-80"
+              style={{ top: stableModalTopInset + 6 }}
+            >
+              <Text className="text-[13px] font-extrabold text-white">Edit</Text>
+            </Pressable>
+          )}
         </View>
 
         <View className="px-5 pt-5">
@@ -1247,15 +1255,6 @@ function HistoryEventDetail({
                 className="mt-4 h-11 flex-row items-center justify-center rounded-xl bg-primary active:opacity-85"
               >
                 <Text className="text-[14px] font-semibold text-white">Open check-in QR</Text>
-              </Pressable>
-            )}
-            {onEditEvent && (
-              <Pressable
-                onPress={onEditEvent}
-                className="mt-3 h-11 flex-row items-center justify-center gap-2 rounded-xl border border-primary/25 bg-primary/5 active:opacity-85"
-              >
-                <Edit3 size={16} color={Colors.light.primary} strokeWidth={2.5} />
-                <Text className="text-[14px] font-semibold text-primary">Edit event</Text>
               </Pressable>
             )}
           </View>
