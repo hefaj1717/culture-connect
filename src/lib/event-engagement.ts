@@ -5,10 +5,12 @@ type NullableEventStatus = UserEventStatus | null | undefined;
 
 export function getEventEngagement(event: CultureEvent, userStatus?: NullableEventStatus) {
   const interestedBase = event.interestedCount ?? 0;
+  const goingBase = event.goingCount ?? 0;
   const attendedBase = event.attendeeCount ?? 0;
 
   return {
-    interested: Math.max(interestedBase, isInterestedStatus(userStatus) ? 1 : 0),
+    interested: Math.max(interestedBase, userStatus === 'interested' ? 1 : 0),
+    going: Math.max(goingBase, userStatus === 'going' ? 1 : 0),
     attended: Math.max(attendedBase, userStatus === 'attended' ? 1 : 0),
   };
 }
@@ -24,8 +26,10 @@ export function updateEventEngagementCounts(
   return events.map((event) => {
     if (event.id !== eventId) return event;
 
-    const previousInterested = isInterestedStatus(previousStatus) ? 1 : 0;
-    const nextInterested = isInterestedStatus(nextStatus) ? 1 : 0;
+    const previousInterested = previousStatus === 'interested' ? 1 : 0;
+    const nextInterested = nextStatus === 'interested' ? 1 : 0;
+    const previousGoing = previousStatus === 'going' ? 1 : 0;
+    const nextGoing = nextStatus === 'going' ? 1 : 0;
     const previousAttended = previousStatus === 'attended' ? 1 : 0;
     const nextAttended = nextStatus === 'attended' ? 1 : 0;
 
@@ -35,11 +39,8 @@ export function updateEventEngagementCounts(
         0,
         (event.interestedCount ?? 0) - previousInterested + nextInterested,
       ),
+      goingCount: Math.max(0, (event.goingCount ?? 0) - previousGoing + nextGoing),
       attendeeCount: Math.max(0, event.attendeeCount - previousAttended + nextAttended),
     };
   });
-}
-
-function isInterestedStatus(status: NullableEventStatus) {
-  return status === 'interested' || status === 'going';
 }

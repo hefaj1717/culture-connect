@@ -415,6 +415,9 @@ export default function ExploreScreen({
                           getEventEngagement(featuredEvent, eventStatuses[featuredEvent.id])
                             .attended
                         }
+                        going={
+                          getEventEngagement(featuredEvent, eventStatuses[featuredEvent.id]).going
+                        }
                         interested={
                           getEventEngagement(featuredEvent, eventStatuses[featuredEvent.id])
                             .interested
@@ -525,6 +528,7 @@ export default function ExploreScreen({
                           </View>
                           <EventEngagementPills
                             attended={getEventEngagement(event, eventStatuses[event.id]).attended}
+                            going={getEventEngagement(event, eventStatuses[event.id]).going}
                             interested={
                               getEventEngagement(event, eventStatuses[event.id]).interested
                             }
@@ -941,6 +945,10 @@ function EventDetailModal({
                   />
                   <InfoRow
                     icon={<CheckCircle2 size={17} color="#7C3AED" />}
+                    label={`${detailEngagement.going.toLocaleString()} going`}
+                  />
+                  <InfoRow
+                    icon={<CheckCircle2 size={17} color="#7C3AED" />}
                     label={`${detailEngagement.attended.toLocaleString()} attended`}
                   />
                   <View className="rounded-2xl bg-primary/5 px-3 py-2.5">
@@ -1115,12 +1123,24 @@ function StatusButton({
   );
 }
 
-function EventEngagementPills({ attended, interested }: { attended: number; interested: number }) {
+function EventEngagementPills({
+  attended,
+  going,
+  interested,
+}: {
+  attended: number;
+  going: number;
+  interested: number;
+}) {
   return (
     <View className="flex-row items-center gap-1.5">
       <View className="flex-row items-center gap-1 rounded-full bg-primary/5 px-2 py-1">
         <Users size={12} color="#7C3AED" strokeWidth={2.4} />
         <Text className="text-[11px] font-bold text-primary">{interested.toLocaleString()}</Text>
+      </View>
+      <View className="flex-row items-center gap-1 rounded-full bg-primary/5 px-2 py-1">
+        <CheckCircle2 size={12} color="#7C3AED" strokeWidth={2.4} />
+        <Text className="text-[11px] font-bold text-primary">{going.toLocaleString()}</Text>
       </View>
       <View className="flex-row items-center gap-1 rounded-full bg-primary/5 px-2 py-1">
         <CheckCircle2 size={12} color="#7C3AED" strokeWidth={2.4} />

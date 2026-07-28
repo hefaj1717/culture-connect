@@ -53,6 +53,7 @@ type OrganizerEventRow = {
   is_free: boolean;
   is_international: boolean;
   interested_count?: number | null;
+  going_count?: number | null;
   attendee_count: number;
   image_kind: CultureEvent['organizerImage'];
   image_url: string | null;
@@ -62,10 +63,13 @@ type OrganizerEventRow = {
 
 const EVENT_IMAGES_BUCKET = 'event-images';
 const ORGANIZER_EVENT_SELECT =
+  'id, organizer_user_id, city_key, venue_key, venue_name, venue_address, venue_latitude, venue_longitude, title, description, category, date_label, time_label, end_time_label, starts_at, ends_at, xp_bonus, language, is_free, is_international, interested_count, going_count, attendee_count, image_kind, image_url, check_in_code';
+const LEGACY_ORGANIZER_EVENT_SELECT_WITH_INTERESTED =
   'id, organizer_user_id, city_key, venue_key, venue_name, venue_address, venue_latitude, venue_longitude, title, description, category, date_label, time_label, end_time_label, starts_at, ends_at, xp_bonus, language, is_free, is_international, interested_count, attendee_count, image_kind, image_url, check_in_code';
 const LEGACY_ORGANIZER_EVENT_SELECT =
   'id, organizer_user_id, city_key, venue_key, venue_name, venue_address, venue_latitude, venue_longitude, title, description, category, date_label, time_label, xp_bonus, language, is_free, is_international, attendee_count, image_kind, image_url, check_in_code';
 const ORGANIZER_EVENT_WITH_STATUS_SELECT = `${ORGANIZER_EVENT_SELECT}, status`;
+const LEGACY_ORGANIZER_EVENT_WITH_STATUS_SELECT_WITH_INTERESTED = `${LEGACY_ORGANIZER_EVENT_SELECT_WITH_INTERESTED}, status`;
 const LEGACY_ORGANIZER_EVENT_WITH_STATUS_SELECT = `${LEGACY_ORGANIZER_EVENT_SELECT}, status`;
 
 export type OrganizerEventStatus = 'draft' | 'pending' | 'approved' | 'rejected' | 'cancelled';
@@ -83,6 +87,14 @@ export async function fetchOrganizerEvents(cityId: CityId) {
       .order('created_at', { ascending: false });
 
   let { data, error } = await queryApprovedEvents(ORGANIZER_EVENT_SELECT);
+
+  if (isLegacyOrganizerEventsShapeError(error?.message)) {
+    const legacyInterestedResult = await queryApprovedEvents(
+      LEGACY_ORGANIZER_EVENT_SELECT_WITH_INTERESTED,
+    );
+    data = legacyInterestedResult.data;
+    error = legacyInterestedResult.error;
+  }
 
   if (isLegacyOrganizerEventsShapeError(error?.message)) {
     const legacyResult = await queryApprovedEvents(LEGACY_ORGANIZER_EVENT_SELECT);
@@ -119,6 +131,14 @@ export async function fetchMyOrganizerEvents(userId: string, cityId?: CityId) {
   };
 
   let { data, error } = await queryMyEvents(ORGANIZER_EVENT_WITH_STATUS_SELECT);
+
+  if (isLegacyOrganizerEventsShapeError(error?.message)) {
+    const legacyInterestedResult = await queryMyEvents(
+      LEGACY_ORGANIZER_EVENT_WITH_STATUS_SELECT_WITH_INTERESTED,
+    );
+    data = legacyInterestedResult.data;
+    error = legacyInterestedResult.error;
+  }
 
   if (isLegacyOrganizerEventsShapeError(error?.message)) {
     const legacyResult = await queryMyEvents(LEGACY_ORGANIZER_EVENT_WITH_STATUS_SELECT);
@@ -265,6 +285,7 @@ function mapOrganizerEventRow(
     isInternational: row.is_international,
     isFree: row.is_free,
     interestedCount: row.interested_count ?? 0,
+    goingCount: row.going_count ?? 0,
     attendeeCount: row.attendee_count,
     organizerCityId: row.city_key,
     organizerId: row.organizer_user_id,
@@ -292,6 +313,7 @@ function isLegacyOrganizerEventsShapeError(message?: string | null) {
   return (
     !!message &&
     (message.includes('interested_count') ||
+      message.includes('going_count') ||
       message.includes('end_time_label') ||
       message.includes('starts_at') ||
       message.includes('ends_at'))

@@ -64,6 +64,7 @@ export type CultureEvent = {
   isInternational: boolean;
   isFree: boolean;
   interestedCount?: number;
+  goingCount?: number;
   attendeeCount: number;
   organizerCityId?: CityId;
   organizerId?: string;
