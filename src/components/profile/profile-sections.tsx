@@ -1343,12 +1343,7 @@ function OrganizerEventQrModal({
                 className="overflow-hidden rounded-[30px] bg-ink"
                 style={{ boxShadow: '0 14px 28px rgba(36, 28, 46, 0.14)' }}
               >
-                <LinearGradient
-                  colors={['rgba(124,58,237,0.88)', 'rgba(36,28,46,0.99)']}
-                  end={{ x: 1, y: 1 }}
-                  start={{ x: 0, y: 0 }}
-                  style={{ padding: 24 }}
-                >
+                <View className="bg-ink p-6">
                   <Text className="text-[11px] font-extrabold uppercase tracking-[2px] text-white/60">
                     CultureQuest check-in
                   </Text>
@@ -1384,7 +1379,7 @@ function OrganizerEventQrModal({
                     Place this card at the venue entrance. Students must scan it in CultureQuest
                     while they are within 500m of the venue.
                   </Text>
-                </LinearGradient>
+                </View>
               </View>
 
               <View className="mt-4 rounded-2xl border border-gray-200 bg-white p-4">
