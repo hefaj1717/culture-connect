@@ -58,6 +58,7 @@ export default function HomeScreen({
         address: string;
         eventCount: number;
         attendedCount: number;
+        goingCount: number;
         nextEvent: CultureEvent;
         interestedCount: number;
         coordinates: { latitude: number; longitude: number };
@@ -72,6 +73,7 @@ export default function HomeScreen({
       if (existingSpot) {
         existingSpot.eventCount += 1;
         existingSpot.attendedCount += engagement.attended;
+        existingSpot.goingCount += engagement.going;
         existingSpot.interestedCount += engagement.interested;
         return spots;
       }
@@ -84,6 +86,7 @@ export default function HomeScreen({
           address: event.venueAddress ?? cityData.name,
           attendedCount: engagement.attended,
           eventCount: 1,
+          goingCount: engagement.going,
           interestedCount: engagement.interested,
           nextEvent: event,
           coordinates,
@@ -95,7 +98,11 @@ export default function HomeScreen({
 
     const maxActivity = Math.max(
       ...mapSpots.map(
-        (spot) => spot.interestedCount * 12 + spot.attendedCount * 24 + spot.eventCount * 35,
+        (spot) =>
+          spot.interestedCount * 8 +
+          spot.goingCount * 16 +
+          spot.attendedCount * 24 +
+          spot.eventCount * 35,
       ),
       1,
     );
@@ -103,7 +110,10 @@ export default function HomeScreen({
     return mapSpots
       .map((spot) => {
         const activityScore =
-          spot.interestedCount * 12 + spot.attendedCount * 24 + spot.eventCount * 35;
+          spot.interestedCount * 8 +
+          spot.goingCount * 16 +
+          spot.attendedCount * 24 +
+          spot.eventCount * 35;
         const intensity = activityScore / maxActivity;
 
         return {
@@ -461,6 +471,7 @@ export default function HomeScreen({
                   <View className="max-w-[150px] rounded-full bg-secondary/12 px-3 py-1.5">
                     <Text className="text-[12px] font-bold text-secondary" numberOfLines={1}>
                       {selectedActivitySpot.interestedCount.toLocaleString()} interested ·{' '}
+                      {selectedActivitySpot.goingCount.toLocaleString()} going ·{' '}
                       {selectedActivitySpot.attendedCount.toLocaleString()} attended
                     </Text>
                   </View>

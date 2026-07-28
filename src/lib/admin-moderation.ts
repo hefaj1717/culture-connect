@@ -92,6 +92,7 @@ type AdminManagedEventRow = PendingEventRow & {
   attendee_count: number | null;
   check_in_code: string | null;
   ends_at?: string | null;
+  going_count?: number | null;
   image_kind: CultureEvent['organizerImage'];
   interested_count?: number | null;
   is_free: boolean | null;
@@ -131,6 +132,8 @@ type ProfileSummaryRow = {
 };
 
 const ADMIN_EVENT_SELECT =
+  'id, organizer_user_id, city_key, venue_key, venue_name, venue_address, venue_latitude, venue_longitude, title, description, category, date_label, time_label, end_time_label, starts_at, ends_at, xp_bonus, language, is_free, is_international, interested_count, going_count, attendee_count, image_kind, image_url, check_in_code, status, created_at';
+const ADMIN_EVENT_LEGACY_GOING_SELECT =
   'id, organizer_user_id, city_key, venue_key, venue_name, venue_address, venue_latitude, venue_longitude, title, description, category, date_label, time_label, end_time_label, starts_at, ends_at, xp_bonus, language, is_free, is_international, interested_count, attendee_count, image_kind, image_url, check_in_code, status, created_at';
 const ADMIN_EVENT_LEGACY_COUNTER_SELECT =
   'id, organizer_user_id, city_key, venue_key, venue_name, venue_address, venue_latitude, venue_longitude, title, description, category, date_label, time_label, end_time_label, starts_at, ends_at, xp_bonus, language, is_free, is_international, attendee_count, image_kind, image_url, check_in_code, status, created_at';
@@ -200,6 +203,12 @@ export async function fetchAdminManagedEvents() {
     });
 
   let { data, error } = await queryManagedEvents(ADMIN_EVENT_SELECT);
+
+  if (isLegacyAdminEventsShapeError(error?.message)) {
+    const legacyGoingResult = await queryManagedEvents(ADMIN_EVENT_LEGACY_GOING_SELECT);
+    data = legacyGoingResult.data;
+    error = legacyGoingResult.error;
+  }
 
   if (isLegacyAdminEventsShapeError(error?.message)) {
     const legacyCounterResult = await queryManagedEvents(ADMIN_EVENT_LEGACY_COUNTER_SELECT);
@@ -504,6 +513,7 @@ function mapAdminManagedEvent(
     id: `organizer-${row.id}`,
     imageUrl: row.image_url ?? undefined,
     interestedCount: row.interested_count ?? 0,
+    goingCount: row.going_count ?? 0,
     isFeatured: false,
     isFlashQuest: false,
     isFree: row.is_free ?? true,
@@ -545,6 +555,7 @@ function isLegacyAdminEventsShapeError(message?: string | null) {
   return (
     !!message &&
     (message.includes('interested_count') ||
+      message.includes('going_count') ||
       message.includes('end_time_label') ||
       message.includes('starts_at') ||
       message.includes('ends_at'))

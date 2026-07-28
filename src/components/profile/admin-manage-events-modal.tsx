@@ -432,6 +432,7 @@ function AdminManagedEventCard({
         </Pressable>
         <View className="mt-3 flex-row gap-2">
           <MiniStat label="Interested" value={event.interestedCount ?? 0} />
+          <MiniStat label="Going" value={event.goingCount ?? 0} />
           <MiniStat label="Attended" value={event.attendeeCount} />
           <MiniStat label="XP" value={event.xpBonus} />
         </View>
@@ -632,6 +633,7 @@ function AdminEventEditor({
           <InfoRow icon={<MapPin size={16} color={Colors.light.primary} />} text={venueName} />
           <View className="mt-3 flex-row gap-2">
             <MiniStat label="Interested" value={event.interestedCount ?? 0} />
+            <MiniStat label="Going" value={event.goingCount ?? 0} />
             <MiniStat label="Attended" value={event.attendeeCount} />
           </View>
         </View>
