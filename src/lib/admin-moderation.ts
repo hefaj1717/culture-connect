@@ -237,20 +237,33 @@ export async function reviewOrganizerEvent({
   rejectionReason?: string | null;
   status: 'approved' | 'rejected';
 }) {
-  const { error } = await supabase
+  const reviewUpdate = {
+    rejection_reason:
+      status === 'rejected' ? (rejectionReason ?? 'Rejected by CultureQuest review.') : null,
+    reviewed_at: new Date().toISOString(),
+    reviewed_by: adminUserId,
+    status,
+  };
+
+  const result = await supabase
     .from('organizer_events')
     .update({
-      rejection_reason:
-        status === 'rejected' ? (rejectionReason ?? 'Rejected by CultureQuest review.') : null,
+      ...reviewUpdate,
       review_previous_snapshot: null,
       review_requested_at: null,
-      reviewed_at: new Date().toISOString(),
-      reviewed_by: adminUserId,
-      status,
     })
     .eq('id', eventId);
 
-  return { error: error?.message ?? null };
+  if (isMissingEventReviewChangeColumns(result.error?.message)) {
+    const fallbackResult = await supabase
+      .from('organizer_events')
+      .update(reviewUpdate)
+      .eq('id', eventId);
+
+    return { error: fallbackResult.error?.message ?? null };
+  }
+
+  return { error: result.error?.message ?? null };
 }
 
 export async function updateAdminManagedEvent({
@@ -541,6 +554,8 @@ function isLegacyAdminEventsShapeError(message?: string | null) {
 function isMissingEventReviewChangeColumns(message?: string | null) {
   return (
     !!message &&
-    (message.includes('review_previous_snapshot') || message.includes('review_requested_at'))
+    (message.includes('review_previous_snapshot') ||
+      message.includes('review_requested_at') ||
+      message.includes('schema cache'))
   );
 }
