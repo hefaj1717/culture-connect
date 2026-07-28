@@ -85,7 +85,7 @@ export function RewardDetailModal({
   const redeemDisabled = rewardStateExists || rewardRedeeming || !rewardCanRedeem;
 
   return (
-    <Modal animationType="slide" onRequestClose={onClose} visible={!!reward}>
+    <Modal animationType="slide" transparent onRequestClose={onClose} visible={!!reward}>
       {reward && (
         <GestureDetector gesture={gesture}>
           <Animated.View className="flex-1 bg-white" style={swipeStyle}>

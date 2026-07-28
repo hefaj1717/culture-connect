@@ -74,7 +74,7 @@ export function CreateRewardModal({
   }
 
   return (
-    <Modal animationType="slide" onRequestClose={onClose} visible={visible}>
+    <Modal animationType="slide" transparent onRequestClose={onClose} visible={visible}>
       <SafeAreaView className="flex-1 bg-white" edges={['bottom']}>
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}

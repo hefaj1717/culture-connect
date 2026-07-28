@@ -659,7 +659,7 @@ export function UserActivityHistoryModal({
   });
 
   return (
-    <Modal animationType="slide" onRequestClose={closeWithAnimation} visible={visible}>
+    <Modal animationType="slide" transparent onRequestClose={closeWithAnimation} visible={visible}>
       <GestureDetector gesture={gesture}>
         <Animated.View className="flex-1 bg-white" style={swipeStyle}>
           <SafeAreaView className="flex-1 bg-white" edges={['bottom']}>
@@ -766,7 +766,7 @@ export function OrganizerEventHistoryModal({
   });
 
   return (
-    <Modal animationType="slide" onRequestClose={closeWithAnimation} visible={visible}>
+    <Modal animationType="slide" transparent onRequestClose={closeWithAnimation} visible={visible}>
       <GestureDetector gesture={gesture}>
         <Animated.View className="flex-1 bg-white" style={swipeStyle}>
           <SafeAreaView className="flex-1 bg-white" edges={['bottom']}>
@@ -858,7 +858,7 @@ export function OrganizerRewardHistoryModal({
   });
 
   return (
-    <Modal animationType="slide" onRequestClose={closeWithAnimation} visible={visible}>
+    <Modal animationType="slide" transparent onRequestClose={closeWithAnimation} visible={visible}>
       <GestureDetector gesture={gesture}>
         <Animated.View className="flex-1 bg-white" style={swipeStyle}>
           <SafeAreaView className="flex-1 bg-white" edges={['bottom']}>
@@ -1320,7 +1320,7 @@ function OrganizerEventQrModal({
   }
 
   return (
-    <Modal animationType="slide" onRequestClose={closeWithAnimation} visible={visible}>
+    <Modal animationType="slide" transparent onRequestClose={closeWithAnimation} visible={visible}>
       <GestureDetector gesture={gesture}>
         <Animated.View className="flex-1 bg-white" style={swipeStyle}>
           <SafeAreaView className="flex-1 bg-white" edges={['bottom']}>
@@ -1669,7 +1669,7 @@ export function RewardsListModal({
   visible: boolean;
 }) {
   return (
-    <Modal animationType="slide" onRequestClose={onClose} visible={visible}>
+    <Modal animationType="slide" transparent onRequestClose={onClose} visible={visible}>
       <SafeAreaView className="flex-1 bg-white" edges={['bottom']}>
         <View className="bg-white px-5 pb-3" style={{ paddingTop: stableModalTopInset + 6 }}>
           <View className="flex-row items-center justify-between">

@@ -68,7 +68,7 @@ export function AdminReviewModal({
   const activeItemsCount = activeTab === 'events' ? events.length : rewards.length;
 
   return (
-    <Modal animationType="slide" onRequestClose={onClose} visible={visible}>
+    <Modal animationType="slide" transparent onRequestClose={onClose} visible={visible}>
       <GestureDetector gesture={gesture}>
         <Animated.View className="flex-1 bg-white" style={swipeStyle}>
           <SafeAreaView className="flex-1 bg-white" edges={['bottom']}>

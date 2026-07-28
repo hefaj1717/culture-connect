@@ -850,7 +850,7 @@ function EventDetailModal({
   }
 
   return (
-    <Modal animationType="slide" onRequestClose={closeWithAnimation} visible>
+    <Modal animationType="slide" transparent onRequestClose={closeWithAnimation} visible>
       <GestureDetector gesture={swipeGesture}>
         <Animated.View className="flex-1 bg-white" style={swipeStyle}>
           <View className="flex-1 bg-white">

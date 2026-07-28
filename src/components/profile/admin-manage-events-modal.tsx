@@ -183,7 +183,7 @@ export function AdminManageEventsModal({
   }
 
   return (
-    <Modal animationType="slide" onRequestClose={closeWithAnimation} visible={visible}>
+    <Modal animationType="slide" transparent onRequestClose={closeWithAnimation} visible={visible}>
       <GestureDetector gesture={gesture}>
         <Animated.View className="flex-1 bg-white" style={swipeStyle}>
           <SafeAreaView className="flex-1 bg-white" edges={['bottom']}>
