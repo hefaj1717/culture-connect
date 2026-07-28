@@ -5,7 +5,11 @@ import { Alert } from 'react-native';
 import { startOfMonth } from '@/components/profile/date-time-pickers';
 import { limitText, textLimits } from '@/constants/text-limits';
 import { type CityId, type EventCategory, type EventLanguage } from '@/data/culture';
-import { createOrganizerEvent } from '@/lib/organizer-events';
+import {
+  createOrganizerEvent,
+  updateOrganizerEvent,
+  type ManagedOrganizerEvent,
+} from '@/lib/organizer-events';
 import { type PlaceSuggestion, searchPlaces } from '@/lib/place-search';
 
 type UseCreateEventFormInput = {
@@ -20,6 +24,7 @@ export function useCreateEventForm({
   userId,
 }: UseCreateEventFormInput) {
   const [createEventOpen, setCreateEventOpen] = useState(false);
+  const [editingEvent, setEditingEvent] = useState<ManagedOrganizerEvent | null>(null);
   const [eventTitle, setEventTitle] = useState('');
   const [placeQuery, setPlaceQuery] = useState('');
   const [placeSuggestions, setPlaceSuggestions] = useState<PlaceSuggestion[]>([]);
@@ -76,6 +81,7 @@ export function useCreateEventForm({
   }, [placeQuery, savedCityId, selectedPlace]);
 
   function resetEventForm() {
+    setEditingEvent(null);
     setEventTitle('');
     setPlaceQuery('');
     setPlaceSuggestions([]);
@@ -101,6 +107,41 @@ export function useCreateEventForm({
 
   function openCreateEvent() {
     resetEventForm();
+    setCreateEventOpen(true);
+  }
+
+  function openEditEvent(event: ManagedOrganizerEvent) {
+    const eventPlace: PlaceSuggestion = {
+      address: event.venueAddress ?? event.venueName,
+      id: event.venueId,
+      latitude: event.venueCoordinates?.latitude ?? 0,
+      longitude: event.venueCoordinates?.longitude ?? 0,
+      name: event.venueName,
+      source: 'local',
+    };
+
+    setEditingEvent(event);
+    setEventTitle(event.title);
+    setPlaceQuery(event.venueName);
+    setPlaceSuggestions([]);
+    setSelectedPlace(eventPlace);
+    setEventCategory(event.category);
+    setEventDate(event.date);
+    setEventDateValue(event.startsAt ? new Date(event.startsAt) : null);
+    setEventEndTime(event.endTime ?? '');
+    setEventTime(event.time);
+    setEventDescription(event.description);
+    setEventImageUri(event.imageUrl ?? null);
+    setEventIsFree(event.isFree);
+    setCreateEventError(null);
+    setTimePickerTarget('start');
+    setDatePickerOpen(false);
+    setTimePickerOpen(false);
+    hydrateSelectedTime(event.time, setSelectedHour, setSelectedMinute);
+    hydrateSelectedTime(event.endTime ?? '', setSelectedEndHour, setSelectedEndMinute);
+    if (event.startsAt) {
+      setCalendarMonth(startOfMonth(new Date(event.startsAt)));
+    }
     setCreateEventOpen(true);
   }
 
@@ -158,7 +199,7 @@ export function useCreateEventForm({
 
     setCreateEventError(null);
     setCreatingEvent(true);
-    const result = await createOrganizerEvent(userId, {
+    const input = {
       cityId: savedCityId,
       place: selectedPlace,
       title: normalizedTitle,
@@ -172,7 +213,14 @@ export function useCreateEventForm({
       language: getDefaultEventLanguage(savedCityId),
       isFree: eventIsFree,
       imageUri: eventImageUri,
-    });
+    };
+    const result = editingEvent
+      ? await updateOrganizerEvent(userId, {
+          ...input,
+          currentImageUrl: editingEvent.imageUrl ?? null,
+          eventId: editingEvent.id,
+        })
+      : await createOrganizerEvent(userId, input);
     setCreatingEvent(false);
 
     if (result.error) {
@@ -183,7 +231,12 @@ export function useCreateEventForm({
     setCreateEventOpen(false);
     resetEventForm();
     onEventCreated?.();
-    Alert.alert('Event submitted', 'CultureQuest will review it before students can see it.');
+    Alert.alert(
+      editingEvent ? 'Event changes submitted' : 'Event submitted',
+      editingEvent
+        ? 'Your changes are back in CultureQuest review before students can see the updated event.'
+        : 'CultureQuest will review it before students can see it.',
+    );
   }
 
   async function pickEventImage() {
@@ -222,7 +275,10 @@ export function useCreateEventForm({
     eventIsFree,
     eventTime,
     eventTitle,
+    editingEvent,
+    isEditingEvent: !!editingEvent,
     openCreateEvent,
+    openEditEvent,
     pickEventImage,
     placeQuery,
     placeSuggestions,
@@ -258,6 +314,18 @@ export function useCreateEventForm({
     timePickerOpen,
     timePickerTarget,
   };
+}
+
+function hydrateSelectedTime(
+  time: string,
+  setHour: (value: number) => void,
+  setMinute: (value: number) => void,
+) {
+  const match = time.match(/^(\d{2}):(\d{2})$/);
+  if (!match) return;
+
+  setHour(Number(match[1]));
+  setMinute(Number(match[2]));
 }
 
 function getDefaultEventLanguage(cityId: CityId): EventLanguage {

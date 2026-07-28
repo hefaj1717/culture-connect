@@ -4,6 +4,7 @@ import {
   CheckCircle2,
   ChevronRight,
   Clock,
+  Edit3,
   Gift,
   LogOut,
   MapPin,
@@ -731,11 +732,13 @@ export function UserActivityHistoryModal({
 export function OrganizerEventHistoryModal({
   events,
   onClose,
+  onEditEvent,
   stableModalTopInset,
   visible,
 }: {
   events: ManagedOrganizerEvent[];
   onClose: () => void;
+  onEditEvent: (event: ManagedOrganizerEvent) => void;
   stableModalTopInset: number;
   visible: boolean;
 }) {
@@ -771,6 +774,7 @@ export function OrganizerEventHistoryModal({
               <HistoryEventDetail
                 event={selectedEvent}
                 onBack={() => setSelectedEvent(null)}
+                onEditEvent={() => onEditEvent(selectedEvent)}
                 organizerStatus={selectedEvent.reviewStatus}
                 stableModalTopInset={stableModalTopInset}
               />
@@ -1150,12 +1154,14 @@ function OrganizerRewardRow({ reward }: { reward: ManagedOrganizerReward }) {
 function HistoryEventDetail({
   event,
   onBack,
+  onEditEvent,
   organizerStatus,
   stableModalTopInset,
   status,
 }: {
   event: CultureEvent;
   onBack: () => void;
+  onEditEvent?: () => void;
   organizerStatus?: OrganizerEventStatus;
   stableModalTopInset: number;
   status?: UserEventStatus;
@@ -1241,6 +1247,15 @@ function HistoryEventDetail({
                 className="mt-4 h-11 flex-row items-center justify-center rounded-xl bg-primary active:opacity-85"
               >
                 <Text className="text-[14px] font-semibold text-white">Open check-in QR</Text>
+              </Pressable>
+            )}
+            {onEditEvent && (
+              <Pressable
+                onPress={onEditEvent}
+                className="mt-3 h-11 flex-row items-center justify-center gap-2 rounded-xl border border-primary/25 bg-primary/5 active:opacity-85"
+              >
+                <Edit3 size={16} color={Colors.light.primary} strokeWidth={2.5} />
+                <Text className="text-[14px] font-semibold text-primary">Edit event</Text>
               </Pressable>
             )}
           </View>
