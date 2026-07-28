@@ -22,6 +22,7 @@ export type PendingAdminEvent = {
   organizerUserId: string;
   time: string;
   title: string;
+  updatedAt?: string | null;
   venueAddress?: string | null;
   venueName: string;
 };
@@ -61,6 +62,7 @@ type PendingEventRow = {
   organizer_user_id: string;
   time_label: string;
   title: string;
+  updated_at?: string | null;
   venue_address: string | null;
   venue_name: string;
 };
@@ -119,10 +121,10 @@ export async function fetchPendingAdminContent() {
     supabase
       .from('organizer_events')
       .select(
-        'id, organizer_user_id, city_key, venue_name, venue_address, title, description, category, date_label, time_label, end_time_label, image_url, created_at',
+        'id, organizer_user_id, city_key, venue_name, venue_address, title, description, category, date_label, time_label, end_time_label, image_url, created_at, updated_at',
       )
       .eq('status', 'pending')
-      .order('created_at', { ascending: true }),
+      .order('updated_at', { ascending: false }),
     supabase
       .from('organizer_rewards')
       .select(
@@ -351,6 +353,7 @@ function mapPendingEvent(
     organizerUserId: row.organizer_user_id,
     time: row.time_label,
     title: row.title,
+    updatedAt: row.updated_at ?? null,
     venueAddress: row.venue_address,
     venueName: row.venue_name,
   };

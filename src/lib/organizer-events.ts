@@ -186,7 +186,7 @@ export async function updateOrganizerEvent(userId: string, input: UpdateOrganize
     return { error: nextImageUrl.error };
   }
 
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from('organizer_events')
     .update({
       city_key: input.cityId,
@@ -214,9 +214,22 @@ export async function updateOrganizerEvent(userId: string, input: UpdateOrganize
       status: 'pending',
     })
     .eq('id', getOrganizerEventDatabaseId(input.eventId))
-    .eq('organizer_user_id', userId);
+    .eq('organizer_user_id', userId)
+    .select('id,status')
+    .single();
 
-  return { error: error?.message ?? null };
+  if (error) {
+    return { error: getOrganizerEventUpdateErrorMessage(error.message) };
+  }
+
+  if (!data || data.status !== 'pending') {
+    return {
+      error:
+        'Event changes were not submitted for review. Apply the latest Supabase migration and try again.',
+    };
+  }
+
+  return { error: null };
 }
 
 async function fetchOrganizerProfileLookup(rows: OrganizerEventRow[]) {
@@ -282,6 +295,18 @@ function isLegacyOrganizerEventsShapeError(message?: string | null) {
       message.includes('starts_at') ||
       message.includes('ends_at'))
   );
+}
+
+function getOrganizerEventUpdateErrorMessage(message: string) {
+  if (
+    message.includes('JSON object requested') ||
+    message.includes('Results contain 0 rows') ||
+    message.includes('row')
+  ) {
+    return 'Event changes were not submitted for review. Apply the latest Supabase migration and try again.';
+  }
+
+  return message;
 }
 
 async function uploadOrganizerEventImage(userId: string, imageUri: string) {
