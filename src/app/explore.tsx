@@ -1163,6 +1163,9 @@ function getEventImageSource(event: CultureEvent) {
   if (event.imageUrl) {
     return { uri: event.imageUrl };
   }
+  if (event.organizerAvatarUrl) {
+    return { uri: event.organizerAvatarUrl };
+  }
 
   return getOrganizerImageSource(event.organizerImage);
 }

@@ -101,7 +101,6 @@ export function OrganizerProfileModal({
       return !!endTime && !Number.isNaN(endTime) && endTime < now;
     });
   }, [organizerEvents]);
-
   function closeWithAnimation() {
     translateX.value = withTiming(width, { duration: 180 }, (finished) => {
       if (finished) {
@@ -119,6 +118,9 @@ export function OrganizerProfileModal({
   }
 
   if (!profile) return null;
+
+  const organizerBio = getOrganizerBio(profile);
+  const organizerLocation = getOrganizerLocation(profile, cityName);
 
   return (
     <Modal animationType="slide" transparent onRequestClose={closeWithAnimation} visible>
@@ -167,22 +169,21 @@ export function OrganizerProfileModal({
                     className="mt-2 text-[15px] leading-6"
                     style={{ color: 'rgba(255,255,255,0.9)' }}
                   >
-                    {profile.bio}
+                    {organizerBio}
                   </Text>
 
                   <View className="mt-4 flex-row items-start gap-2.5 border-t border-white/10 pt-4">
                     <MapPin size={17} color="rgba(255,255,255,0.72)" strokeWidth={2.4} />
                     <View className="min-w-0 flex-1">
                       <Text className="text-[13px] font-semibold text-white" numberOfLines={1}>
-                        {profile.locationName ?? cityName}
+                        {organizerLocation.title}
                       </Text>
                       <Text
                         className="mt-0.5 text-[12px] leading-4"
                         numberOfLines={2}
                         style={{ color: 'rgba(255,255,255,0.68)' }}
                       >
-                        {profile.locationAddress ??
-                          'No fixed venue listed. This organiser may host events across the city.'}
+                        {organizerLocation.subtitle}
                       </Text>
                     </View>
                   </View>
@@ -331,6 +332,9 @@ function getEventImageSource(event: CultureEvent) {
   if (event.imageUrl) {
     return { uri: event.imageUrl };
   }
+  if (event.organizerAvatarUrl) {
+    return { uri: event.organizerAvatarUrl };
+  }
 
   if (event.organizerImage === 'cafe') {
     return require('@/assets/images/culture/venue-cafe.jpg');
@@ -344,4 +348,27 @@ function getEventImageSource(event: CultureEvent) {
 
 function formatEventTimeRange(event: CultureEvent) {
   return event.endTime ? `${event.time}-${event.endTime}` : event.time;
+}
+
+function getOrganizerBio(profile: OrganizerProfile) {
+  const trimmedBio = profile.bio.trim();
+  if (trimmedBio && trimmedBio !== 'Verified CultureQuest organiser.') {
+    return trimmedBio;
+  }
+
+  return 'This organiser has not added a public description yet.';
+}
+
+function getOrganizerLocation(profile: OrganizerProfile, cityName: string) {
+  if (profile.locationName || profile.locationAddress) {
+    return {
+      title: profile.locationName ?? cityName,
+      subtitle: profile.locationAddress ?? 'Main location address not listed yet.',
+    };
+  }
+
+  return {
+    title: `Active in ${cityName}`,
+    subtitle: 'No fixed venue listed. This organiser may host events across the city.',
+  };
 }

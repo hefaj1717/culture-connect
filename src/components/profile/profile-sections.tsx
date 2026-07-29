@@ -1488,6 +1488,9 @@ function getEventImageSource(event: CultureEvent) {
   if (event.imageUrl) {
     return { uri: event.imageUrl };
   }
+  if (event.organizerAvatarUrl) {
+    return { uri: event.organizerAvatarUrl };
+  }
 
   if (event.organizerImage === 'cafe') {
     return require('@/assets/images/culture/venue-cafe.jpg');
