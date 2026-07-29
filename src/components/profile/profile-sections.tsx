@@ -1564,6 +1564,13 @@ function getOrganizerRewardStatusStyle(status: OrganizerRewardStatus) {
 }
 
 function getRewardHistoryImageSource(reward: ManagedOrganizerReward) {
+  if (reward.organizerAvatarUrl) {
+    return { uri: reward.organizerAvatarUrl };
+  }
+  if (reward.imageUrl) {
+    return { uri: reward.imageUrl };
+  }
+
   if (reward.category === 'bookstore') {
     return require('@/assets/images/culture/venue-museum.jpg');
   }

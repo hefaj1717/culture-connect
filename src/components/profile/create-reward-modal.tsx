@@ -15,6 +15,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { BrandImage } from '@/components/brand-image';
 import { textLimits } from '@/constants/text-limits';
 import { type CityId, getCultureCityData } from '@/data/culture';
 import { hasGooglePlacesApiKey, type PlaceSuggestion } from '@/lib/place-search';
@@ -34,6 +35,9 @@ type CreateRewardModalProps = {
   rewardPlaceSuggestions: PlaceSuggestion[];
   rewardTitle: string;
   rewardXp: string;
+  organizerAvatarUrl?: string | null;
+  organizerInitials: string;
+  organizerName: string;
   savedCityId: CityId;
   searchingRewardPlaces: boolean;
   selectedRewardPlace: PlaceSuggestion | null;
@@ -52,6 +56,9 @@ export function CreateRewardModal({
   onClose,
   onSelectRewardPlace,
   onSubmit,
+  organizerAvatarUrl,
+  organizerInitials,
+  organizerName,
   rewardDescription,
   rewardPlaceQuery,
   rewardPlaceSuggestions,
@@ -118,6 +125,44 @@ export function CreateRewardModal({
                   Add a partner reward students can unlock with CultureQuest XP.
                 </Text>
               </LinearGradient>
+            </View>
+
+            <View className="mb-5 rounded-[26px] border border-primary/10 bg-canvas p-4">
+              <View className="flex-row items-center gap-3">
+                <View className="h-16 w-16 overflow-hidden rounded-2xl bg-ink/10">
+                  {organizerAvatarUrl ? (
+                    <BrandImage
+                      className="h-full w-full"
+                      contentFit="cover"
+                      source={{ uri: organizerAvatarUrl }}
+                      withTextGradient={false}
+                    />
+                  ) : (
+                    <View className="h-full w-full items-center justify-center bg-ink">
+                      <Text className="font-ui text-[20px] font-extrabold text-white">
+                        {organizerInitials}
+                      </Text>
+                    </View>
+                  )}
+                </View>
+                <View className="min-w-0 flex-1">
+                  <Text className="text-[10px] font-extrabold uppercase tracking-wide text-muted">
+                    Reward preview
+                  </Text>
+                  <Text
+                    className="mt-1 font-ui text-[15px] font-extrabold text-ink"
+                    numberOfLines={1}
+                  >
+                    {selectedRewardPlace?.name || organizerName}
+                  </Text>
+                  <Text
+                    className="mt-0.5 text-[12px] font-medium leading-4 text-muted"
+                    numberOfLines={2}
+                  >
+                    {rewardTitle.trim() || 'Your reward title will appear here.'}
+                  </Text>
+                </View>
+              </View>
             </View>
 
             <Text className="mb-2 text-[13px] font-semibold text-ink">Reward title</Text>
