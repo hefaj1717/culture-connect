@@ -99,6 +99,8 @@ export type RewardPartner = {
   isPopular: boolean;
   badge?: string;
   color: string;
+  imageUrl?: string | null;
+  organizerAvatarUrl?: string | null;
 };
 
 export type CultureCityData = CultureCity & {

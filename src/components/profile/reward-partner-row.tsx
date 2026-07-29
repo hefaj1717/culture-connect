@@ -161,6 +161,13 @@ function formatLocation(value: string) {
 }
 
 function getRewardImageSource(reward: RewardPartner, variantIndex: number) {
+  if (reward.organizerAvatarUrl) {
+    return { uri: reward.organizerAvatarUrl };
+  }
+  if (reward.imageUrl) {
+    return { uri: reward.imageUrl };
+  }
+
   if (reward.category === 'cafe') {
     return require('@/assets/images/culture/venue-cafe.jpg');
   }
