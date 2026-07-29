@@ -1,5 +1,6 @@
 import { Colors } from '@/constants/theme';
 import { type CityId, type RewardPartner } from '@/data/culture';
+import { fetchOrganizerProfilesByIds, type OrganizerProfile } from '@/lib/organizer-profiles';
 import type { PlaceSuggestion } from '@/lib/place-search';
 import { supabase } from '@/lib/supabase';
 
@@ -15,6 +16,7 @@ type OrganizerRewardRow = {
   id: string;
   city_key: CityId;
   created_at?: string;
+  organizer_user_id: string;
   place_key: string;
   place_name: string;
   place_address: string;
@@ -35,7 +37,7 @@ export type ManagedOrganizerReward = RewardPartner & {
 };
 
 const ORGANIZER_REWARD_SELECT =
-  'id, city_key, place_key, place_name, place_address, title, description, xp_cost, category, image_url';
+  'id, organizer_user_id, city_key, place_key, place_name, place_address, title, description, xp_cost, category, image_url';
 const ORGANIZER_REWARD_WITH_STATUS_SELECT = `${ORGANIZER_REWARD_SELECT}, status, rejection_reason, created_at`;
 
 export async function fetchOrganizerRewards(cityId: CityId) {
@@ -50,9 +52,12 @@ export async function fetchOrganizerRewards(cityId: CityId) {
     return { error: error.message, rewards: [] as RewardPartner[] };
   }
 
+  const rows = (data ?? []) as unknown as OrganizerRewardRow[];
+  const organizerLookup = await fetchOrganizerProfileLookup(rows);
+
   return {
     error: null,
-    rewards: (data ?? []).map(mapOrganizerRewardRow),
+    rewards: rows.map((row) => mapOrganizerRewardRow(row, organizerLookup[row.organizer_user_id])),
   };
 }
 
@@ -73,10 +78,13 @@ export async function fetchMyOrganizerRewards(userId: string, cityId?: CityId) {
     return { error: error.message, rewards: [] as ManagedOrganizerReward[] };
   }
 
+  const rows = (data ?? []) as unknown as OrganizerRewardRow[];
+  const organizerLookup = await fetchOrganizerProfileLookup(rows);
+
   return {
     error: null,
-    rewards: ((data ?? []) as unknown as OrganizerRewardRow[]).map((row) => ({
-      ...mapOrganizerRewardRow(row),
+    rewards: rows.map((row) => ({
+      ...mapOrganizerRewardRow(row, organizerLookup[row.organizer_user_id]),
       createdAt: row.created_at ?? new Date().toISOString(),
       reviewStatus: row.status ?? 'pending',
       rejectionReason: row.rejection_reason ?? null,
@@ -103,7 +111,19 @@ export async function createOrganizerReward(userId: string, input: CreateOrganiz
   return { error: error?.message ?? null };
 }
 
-function mapOrganizerRewardRow(row: OrganizerRewardRow): RewardPartner {
+async function fetchOrganizerProfileLookup(rows: OrganizerRewardRow[]) {
+  const result = await fetchOrganizerProfilesByIds(rows.map((row) => row.organizer_user_id));
+
+  return result.profiles.reduce<Record<string, OrganizerProfile>>((lookup, profile) => {
+    lookup[profile.id] = profile;
+    return lookup;
+  }, {});
+}
+
+function mapOrganizerRewardRow(
+  row: OrganizerRewardRow,
+  organizerProfile?: OrganizerProfile,
+): RewardPartner {
   return {
     id: `organizer-reward-${row.id}`,
     name: row.place_name,
@@ -116,6 +136,8 @@ function mapOrganizerRewardRow(row: OrganizerRewardRow): RewardPartner {
     isPopular: false,
     badge: 'Partner',
     color: Colors.light.primary,
+    imageUrl: row.image_url,
+    organizerAvatarUrl: organizerProfile?.avatarUrl ?? null,
   };
 }
 
