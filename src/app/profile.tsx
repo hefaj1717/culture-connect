@@ -816,6 +816,9 @@ export default function ProfileScreen({
         onClose={() => setCreateRewardOpen(false)}
         onSelectRewardPlace={selectRewardPlace}
         onSubmit={submitReward}
+        organizerAvatarUrl={savedAvatarUrl}
+        organizerInitials={avatarInitials || 'CQ'}
+        organizerName={fullName || 'CultureQuest organiser'}
         rewardDescription={rewardDescription}
         rewardPlaceQuery={rewardPlaceQuery}
         rewardPlaceSuggestions={rewardPlaceSuggestions}
