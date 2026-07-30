@@ -233,6 +233,7 @@ function PendingEventCard({
   const deleteBusy = reviewingContentId === `event-delete-${event.id}`;
   const city = getCultureCityData(event.cityId);
   const isEditedEvent = event.changes.length > 0;
+  const submittedLabel = formatReviewTimestamp(event.updatedAt ?? event.createdAt);
 
   return (
     <View className="overflow-hidden rounded-3xl border border-gray-200 bg-white">
@@ -241,15 +242,23 @@ function PendingEventCard({
           source={
             event.imageUrl
               ? { uri: event.imageUrl }
-              : require('@/assets/images/culture/venue-theater.jpg')
+              : event.organizerAvatarUrl
+                ? { uri: event.organizerAvatarUrl }
+                : require('@/assets/images/culture/venue-theater.jpg')
           }
           contentFit="cover"
           style={StyleSheet.absoluteFillObject}
           withTextGradient
         >
-          <View className="absolute left-4 top-4 rounded-full bg-white/90 px-3 py-1">
-            <Text className="text-[11px] font-bold text-primary">
-              {isEditedEvent ? 'Edited event' : 'New event'} · {city.name}
+          <View
+            className={`absolute left-4 top-4 rounded-full px-3 py-1 ${
+              isEditedEvent ? 'bg-accent' : 'bg-white/90'
+            }`}
+          >
+            <Text
+              className={`text-[11px] font-bold ${isEditedEvent ? 'text-ink' : 'text-primary'}`}
+            >
+              {isEditedEvent ? 'Edit review' : 'New event'} · {city.name}
             </Text>
           </View>
           <View className="absolute bottom-4 left-4 right-4">
@@ -269,6 +278,9 @@ function PendingEventCard({
           icon={<UserRound size={15} color="#7C3AED" />}
           text={`Submitted by ${event.organizerName}`}
         />
+        <Text className="mt-2 text-[11px] font-semibold uppercase tracking-wide text-muted">
+          {isEditedEvent ? 'Review requested' : 'Submitted'} {submittedLabel}
+        </Text>
         <Text className="mt-3 text-[13px] leading-5 text-muted" numberOfLines={3}>
           {event.description}
         </Text>
@@ -288,29 +300,61 @@ function PendingEventCard({
 function PendingEventChanges({ changes }: { changes: PendingAdminEvent['changes'] }) {
   return (
     <View className="mt-4 rounded-2xl border border-accent/20 bg-accent/10 p-3">
-      <Text className="mb-2 text-[11px] font-extrabold uppercase tracking-wide text-accentDeep">
-        Changes requested
-      </Text>
+      <View className="mb-3 flex-row items-center justify-between gap-3">
+        <Text className="text-[11px] font-extrabold uppercase tracking-wide text-accentDeep">
+          Changes requested
+        </Text>
+        <View className="rounded-full bg-white/70 px-2 py-0.5">
+          <Text className="text-[10px] font-extrabold text-accentDeep">
+            {changes.length} {changes.length === 1 ? 'field' : 'fields'}
+          </Text>
+        </View>
+      </View>
       <View className="gap-2">
-        {changes.slice(0, 5).map((change) => (
-          <View key={`${change.field}-${change.from}-${change.to}`} className="gap-1">
-            <Text className="text-[12px] font-extrabold text-ink">{change.field}</Text>
-            <View className="flex-row gap-2">
-              <Text className="min-w-0 flex-1 rounded-xl bg-white/70 px-2 py-1 text-[11px] font-semibold text-muted">
-                {change.from}
-              </Text>
-              <Text className="min-w-0 flex-1 rounded-xl bg-white px-2 py-1 text-[11px] font-extrabold text-accentDeep">
-                {change.to}
-              </Text>
+        {changes.map((change) => (
+          <View
+            key={`${change.field}-${change.from}-${change.to}`}
+            className="rounded-2xl bg-white/70 p-2.5"
+          >
+            <Text className="mb-2 text-[12px] font-extrabold text-ink">{change.field}</Text>
+            <View className="gap-1.5">
+              <ChangeValue label="Previous" tone="muted" value={change.from} />
+              <ChangeValue label="Requested" tone="accent" value={change.to} />
             </View>
           </View>
         ))}
-        {changes.length > 5 && (
-          <Text className="text-[11px] font-semibold text-accentDeep">
-            +{changes.length - 5} more changes
-          </Text>
-        )}
       </View>
+    </View>
+  );
+}
+
+function ChangeValue({
+  label,
+  tone,
+  value,
+}: {
+  label: string;
+  tone: 'accent' | 'muted';
+  value: string;
+}) {
+  return (
+    <View
+      className={`rounded-xl px-2.5 py-2 ${tone === 'accent' ? 'bg-accent/15' : 'bg-gray-100'}`}
+    >
+      <Text
+        className={`text-[9px] font-extrabold uppercase tracking-wide ${
+          tone === 'accent' ? 'text-accentDeep' : 'text-muted'
+        }`}
+      >
+        {label}
+      </Text>
+      <Text
+        className={`mt-0.5 text-[11px] font-semibold leading-4 ${
+          tone === 'accent' ? 'text-ink' : 'text-muted'
+        }`}
+      >
+        {value}
+      </Text>
     </View>
   );
 }
@@ -334,8 +378,18 @@ function PendingRewardCard({
   return (
     <View className="rounded-3xl border border-gray-200 bg-white p-4">
       <View className="mb-3 flex-row items-start gap-3">
-        <View className="h-12 w-12 items-center justify-center rounded-2xl bg-primary/10">
-          <Gift size={22} color="#7C3AED" strokeWidth={2.4} />
+        <View className="h-12 w-12 overflow-hidden rounded-2xl bg-primary/10">
+          {reward.organizerAvatarUrl ? (
+            <BrandImage
+              className="h-full w-full"
+              source={{ uri: reward.organizerAvatarUrl }}
+              withTextGradient={false}
+            />
+          ) : (
+            <View className="h-full w-full items-center justify-center bg-primary/10">
+              <Gift size={21} color="#7C3AED" strokeWidth={2.4} />
+            </View>
+          )}
         </View>
         <View className="min-w-0 flex-1">
           <View className="mb-1 flex-row items-center justify-between gap-3">
@@ -364,6 +418,17 @@ function PendingRewardCard({
       />
     </View>
   );
+}
+
+function formatReviewTimestamp(value?: string | null) {
+  if (!value) return 'recently';
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) return 'recently';
+
+  return parsed.toLocaleDateString('en-US', {
+    day: 'numeric',
+    month: 'short',
+  });
 }
 
 function InfoLine({ icon, text }: { icon: React.ReactNode; text: string }) {

@@ -50,10 +50,12 @@ export type PendingAdminReward = {
 };
 
 export type AdminManagedEvent = CultureEvent & {
+  changes: PendingAdminEventChange[];
   cityId: CityId;
   createdAt: string;
   databaseId: string;
   organizerUserId: string;
+  reviewRequestedAt?: string | null;
   reviewStatus: OrganizerEventStatus;
 };
 
@@ -132,7 +134,7 @@ type ProfileSummaryRow = {
 };
 
 const ADMIN_EVENT_SELECT =
-  'id, organizer_user_id, city_key, venue_key, venue_name, venue_address, venue_latitude, venue_longitude, title, description, category, date_label, time_label, end_time_label, starts_at, ends_at, xp_bonus, language, is_free, is_international, interested_count, going_count, attendee_count, image_kind, image_url, check_in_code, status, created_at';
+  'id, organizer_user_id, city_key, venue_key, venue_name, venue_address, venue_latitude, venue_longitude, title, description, category, date_label, time_label, end_time_label, starts_at, ends_at, xp_bonus, language, is_free, is_international, interested_count, going_count, attendee_count, image_kind, image_url, check_in_code, status, created_at, updated_at, review_requested_at, review_previous_snapshot';
 const ADMIN_EVENT_LEGACY_GOING_SELECT =
   'id, organizer_user_id, city_key, venue_key, venue_name, venue_address, venue_latitude, venue_longitude, title, description, category, date_label, time_label, end_time_label, starts_at, ends_at, xp_bonus, language, is_free, is_international, interested_count, attendee_count, image_kind, image_url, check_in_code, status, created_at';
 const ADMIN_EVENT_LEGACY_COUNTER_SELECT =
@@ -502,6 +504,7 @@ function mapAdminManagedEvent(
   return {
     attendeeCount: row.attendee_count ?? 0,
     category: row.category,
+    changes: buildPendingEventChanges(row),
     checkInCode: row.check_in_code ?? `culturequest:event:${row.id}`,
     cityId: row.city_key,
     createdAt: row.created_at,
@@ -536,6 +539,7 @@ function mapAdminManagedEvent(
     organizerImage: row.image_kind ?? 'theater',
     organizerName: profile?.username?.trim() || `Organizer ${row.organizer_user_id.slice(0, 8)}`,
     organizerUserId: row.organizer_user_id,
+    reviewRequestedAt: row.review_requested_at ?? null,
     reviewStatus: row.status,
     startsAt: row.starts_at ?? undefined,
     time: row.time_label,
@@ -558,7 +562,10 @@ function isLegacyAdminEventsShapeError(message?: string | null) {
       message.includes('going_count') ||
       message.includes('end_time_label') ||
       message.includes('starts_at') ||
-      message.includes('ends_at'))
+      message.includes('ends_at') ||
+      message.includes('review_previous_snapshot') ||
+      message.includes('review_requested_at') ||
+      message.includes('schema cache'))
   );
 }
 

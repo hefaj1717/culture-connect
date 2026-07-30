@@ -409,7 +409,14 @@ function AdminManagedEventCard({
           <Text className="text-[11px] font-semibold uppercase tracking-wide text-muted">
             {event.date}
           </Text>
-          <AdminEventStatusPill status={event.reviewStatus} />
+          <View className="flex-row items-center gap-2">
+            {event.changes.length > 0 && event.reviewStatus === 'pending' && (
+              <View className="rounded-full bg-accent/20 px-2.5 py-1">
+                <Text className="text-[10px] font-extrabold text-accentDeep">Edit pending</Text>
+              </View>
+            )}
+            <AdminEventStatusPill status={event.reviewStatus} />
+          </View>
         </View>
         <Text className="font-ui text-[16px] font-extrabold text-ink" numberOfLines={2}>
           {event.title}
@@ -436,6 +443,11 @@ function AdminManagedEventCard({
           <MiniStat label="Attended" value={event.attendeeCount} />
           <MiniStat label="XP" value={event.xpBonus} />
         </View>
+        {event.changes.length > 0 && (
+          <Text className="mt-3 text-[11px] font-semibold text-accentDeep">
+            {event.changes.length} requested {event.changes.length === 1 ? 'change' : 'changes'}
+          </Text>
+        )}
       </View>
     </Pressable>
   );
@@ -602,6 +614,13 @@ function AdminEventEditor({
           />
         </View>
 
+        {event.changes.length > 0 && (
+          <ManageEventChanges
+            changes={event.changes}
+            requestedAt={event.reviewRequestedAt ?? event.createdAt}
+          />
+        )}
+
         <ChoiceSection label="Status">
           {editableStatuses.map((nextStatus) => (
             <ChoiceChip
@@ -715,6 +734,48 @@ function ChoiceSection({ children, label }: { children: ReactNode; label: string
     <View className="mb-4 rounded-3xl border border-gray-200 bg-white p-4">
       <Text className="mb-3 font-ui text-[15px] font-extrabold text-ink">{label}</Text>
       <View className="flex-row flex-wrap gap-2">{children}</View>
+    </View>
+  );
+}
+
+function ManageEventChanges({
+  changes,
+  requestedAt,
+}: {
+  changes: AdminManagedEvent['changes'];
+  requestedAt?: string | null;
+}) {
+  return (
+    <View className="mb-4 rounded-3xl border border-accent/20 bg-accent/10 p-4">
+      <View className="mb-3 flex-row items-center justify-between gap-3">
+        <View className="min-w-0 flex-1">
+          <Text className="text-[11px] font-extrabold uppercase tracking-wide text-accentDeep">
+            Organizer edit request
+          </Text>
+          <Text className="mt-1 text-[12px] font-semibold text-muted">
+            Requested {formatAuditDate(requestedAt ?? '')}
+          </Text>
+        </View>
+        <View className="rounded-full bg-white/75 px-2.5 py-1">
+          <Text className="text-[10px] font-extrabold text-accentDeep">
+            {changes.length} {changes.length === 1 ? 'field' : 'fields'}
+          </Text>
+        </View>
+      </View>
+
+      <View className="gap-2">
+        {changes.map((change) => (
+          <View className="rounded-2xl bg-white/75 p-3" key={`${change.field}-${change.to}`}>
+            <Text className="text-[12px] font-extrabold text-ink">{change.field}</Text>
+            <Text className="mt-1 text-[11px] font-semibold leading-4 text-muted">
+              Before: {change.from}
+            </Text>
+            <Text className="mt-1 text-[11px] font-extrabold leading-4 text-accentDeep">
+              Now: {change.to}
+            </Text>
+          </View>
+        ))}
+      </View>
     </View>
   );
 }
