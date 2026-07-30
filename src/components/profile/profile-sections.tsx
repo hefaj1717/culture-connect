@@ -301,17 +301,17 @@ type UserActivitySectionProps = {
 
 export function UserActivitySection({ history, onOpenAll }: UserActivitySectionProps) {
   return (
-    <View className="mb-6 px-5">
+    <View className="mb-4 px-5">
       <Pressable
         onPress={onOpenAll}
-        className="flex-row items-center gap-3 rounded-3xl border border-primary/10 bg-primary/5 p-4 active:opacity-85"
+        className="flex-row items-center gap-3 rounded-[26px] border border-primary/10 bg-primary/5 p-3.5 active:opacity-85"
         style={{ boxShadow: '0 8px 18px rgba(36, 28, 46, 0.05)' }}
       >
-        <View className="h-12 w-12 items-center justify-center rounded-2xl bg-white">
+        <View className="h-11 w-11 items-center justify-center rounded-2xl bg-white">
           <CalendarDays size={20} color={Colors.light.primary} strokeWidth={2.4} />
         </View>
         <View className="min-w-0 flex-1">
-          <Text className="font-heading text-[20px] font-extrabold text-ink">My activity</Text>
+          <Text className="font-heading text-[19px] font-extrabold text-ink">My activity</Text>
           <Text className="mt-0.5 text-[12px] font-medium text-muted">
             {history.length > 0
               ? `${history.length} saved ${history.length === 1 ? 'event' : 'events'}`
@@ -336,8 +336,8 @@ export function DigitalPassportSection({
   onOpenBadge,
 }: DigitalPassportSectionProps) {
   return (
-    <View className="mb-6">
-      <View className="mb-3 flex-row items-center justify-between px-5">
+    <View className="mb-8 mt-2">
+      <View className="mb-4 flex-row items-center justify-between px-5">
         <Text className="font-heading text-[22px] font-extrabold text-ink">Digital Passport</Text>
         <Pressable onPress={onOpenAll} className="active:opacity-75">
           <Text className="text-[12px] font-semibold text-primary">View all</Text>
@@ -346,7 +346,7 @@ export function DigitalPassportSection({
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{ paddingHorizontal: 20, gap: 12 }}
+        contentContainerStyle={{ paddingHorizontal: 20, gap: 10 }}
       >
         {badges.slice(0, 8).map((badge) => (
           <PassportBadge
@@ -380,40 +380,40 @@ export function OrganizerToolsSection({
   }
 
   return (
-    <View className="mb-6 px-5">
-      <View className="mb-3 flex-row items-center justify-between">
-        <Text className="font-heading text-[22px] font-extrabold text-ink">Organizer Tools</Text>
+    <View className="mb-4 px-5">
+      <View className="mb-2.5 flex-row items-center justify-between">
+        <Text className="font-heading text-[21px] font-extrabold text-ink">Organizer Tools</Text>
       </View>
 
       {status === 'approved' ? (
         <View
-          className="rounded-3xl border border-primary/10 bg-primary/5 p-4"
+          className="rounded-[26px] border border-primary/10 bg-primary/5 p-3.5"
           style={{ boxShadow: '0 8px 18px rgba(36, 28, 46, 0.05)' }}
         >
-          <View className="mb-4">
+          <View className="mb-3">
             <View className="mb-1 flex-row items-start justify-between gap-3">
-              <Text className="min-w-0 flex-1 font-heading text-[20px] font-extrabold text-ink">
+              <Text className="min-w-0 flex-1 font-heading text-[19px] font-extrabold text-ink">
                 Event maker tools
               </Text>
               <OrganizerVerifiedBadge compact />
             </View>
             <View className="min-w-0 flex-1">
-              <Text className="mt-1 text-[13px] leading-5 text-muted">
+              <Text className="mt-0.5 text-[12px] leading-4 text-muted">
                 Create and publish events for {cityName}.
               </Text>
             </View>
           </View>
 
-          <View className="gap-2">
+          <View className="gap-1.5">
             <Pressable
               onPress={onCreateEvent}
-              className="h-11 flex-row items-center justify-center rounded-xl bg-primary active:opacity-85"
+              className="h-10 flex-row items-center justify-center rounded-xl bg-primary active:opacity-85"
             >
               <Text className="text-[14px] font-semibold text-white">Create event</Text>
             </Pressable>
             <Pressable
               onPress={onCreateReward}
-              className="h-11 flex-row items-center justify-center rounded-xl border border-primary/25 bg-white active:opacity-85"
+              className="h-10 flex-row items-center justify-center rounded-xl border border-primary/25 bg-white active:opacity-85"
             >
               <Text className="text-[14px] font-semibold text-primary">Create reward</Text>
             </Pressable>
@@ -493,7 +493,7 @@ export function OrganizerEventHistorySection({
   onOpenAll,
 }: OrganizerEventHistorySectionProps) {
   return (
-    <View className="mb-6 px-5">
+    <View className="mb-4 px-5">
       {error && (
         <View className="rounded-2xl border border-secondary/20 bg-secondary/10 p-3">
           <Text className="text-[12px] leading-4 text-muted">
@@ -505,13 +505,13 @@ export function OrganizerEventHistorySection({
       {!error && (
         <Pressable
           onPress={onOpenAll}
-          className="flex-row items-center gap-3 rounded-3xl border border-gray-200 bg-white p-4 active:opacity-85"
+          className="flex-row items-center gap-3 rounded-[26px] border border-gray-200 bg-white p-3.5 active:opacity-85"
         >
-          <View className="h-12 w-12 items-center justify-center rounded-2xl bg-canvas">
+          <View className="h-11 w-11 items-center justify-center rounded-2xl bg-canvas">
             <CalendarDays size={20} color={Colors.light.primary} strokeWidth={2.4} />
           </View>
           <View className="min-w-0 flex-1">
-            <Text className="font-heading text-[20px] font-extrabold text-ink">My events</Text>
+            <Text className="font-heading text-[19px] font-extrabold text-ink">My events</Text>
             <Text className="mt-0.5 text-[12px] font-medium text-muted">
               {events.length > 0
                 ? `${events.length} submitted ${events.length === 1 ? 'event' : 'events'}`
@@ -537,7 +537,7 @@ export function OrganizerRewardHistorySection({
   rewards,
 }: OrganizerRewardHistorySectionProps) {
   return (
-    <View className="mb-6 px-5">
+    <View className="mb-4 px-5">
       {error && (
         <View className="rounded-2xl border border-secondary/20 bg-secondary/10 p-3">
           <Text className="text-[12px] leading-4 text-muted">
@@ -549,13 +549,13 @@ export function OrganizerRewardHistorySection({
       {!error && (
         <Pressable
           onPress={onOpenAll}
-          className="flex-row items-center gap-3 rounded-3xl border border-gray-200 bg-white p-4 active:opacity-85"
+          className="flex-row items-center gap-3 rounded-[26px] border border-gray-200 bg-white p-3.5 active:opacity-85"
         >
-          <View className="h-12 w-12 items-center justify-center rounded-2xl bg-accent/10">
+          <View className="h-11 w-11 items-center justify-center rounded-2xl bg-accent/10">
             <Gift size={20} color={Colors.light.accent} strokeWidth={2.4} />
           </View>
           <View className="min-w-0 flex-1">
-            <Text className="font-heading text-[20px] font-extrabold text-ink">My rewards</Text>
+            <Text className="font-heading text-[19px] font-extrabold text-ink">My rewards</Text>
             <Text className="mt-0.5 text-[12px] font-medium text-muted">
               {rewards.length > 0
                 ? `${rewards.length} submitted ${rewards.length === 1 ? 'reward' : 'rewards'}`
