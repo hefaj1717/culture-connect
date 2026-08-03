@@ -31,6 +31,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { ErrorState, LoadingState } from '@/components/async-state';
 import { BrandImage } from '@/components/brand-image';
 import { OrganizerProfileModal } from '@/components/organizer-profile-modal';
 import { CardStyles, Colors } from '@/constants/theme';
@@ -273,19 +274,10 @@ export function AdminManageEventsModal({
                   }}
                   showsVerticalScrollIndicator={false}
                 >
-                  {error && (
-                    <View className="rounded-2xl border border-destructive/20 bg-destructive/10 p-4">
-                      <Text className="text-[13px] leading-5 text-destructive">{error}</Text>
-                    </View>
-                  )}
+                  {error && <ErrorState body={error} compact title="Events could not load" />}
 
                   {loading ? (
-                    <View className="items-center justify-center rounded-3xl border border-gray-200 bg-white p-8">
-                      <ActivityIndicator color={Colors.light.primary} />
-                      <Text className="mt-3 text-[13px] font-semibold text-muted">
-                        Loading events
-                      </Text>
-                    </View>
+                    <LoadingState body="Loading organizer submissions." title="Loading events" />
                   ) : events.length === 0 ? (
                     <AdminEventEmptyState
                       body="Organizer events will appear here after they are submitted."

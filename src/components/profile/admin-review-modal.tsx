@@ -27,6 +27,7 @@ import { GestureDetector, type GestureType } from 'react-native-gesture-handler'
 import Animated from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { ErrorState, LoadingState } from '@/components/async-state';
 import { BrandImage } from '@/components/brand-image';
 import { getCultureCityData } from '@/data/culture';
 import { type PendingAdminEvent, type PendingAdminReward } from '@/lib/admin-moderation';
@@ -139,18 +140,16 @@ export function AdminReviewModal({
               </View>
 
               {error && (
-                <View className="mb-4 rounded-2xl border border-destructive/20 bg-destructive/10 p-4">
-                  <Text className="text-[13px] leading-5 text-destructive">{error}</Text>
-                </View>
+                <ErrorState
+                  body={error}
+                  compact
+                  style={{ marginBottom: 16 }}
+                  title="Review queue could not load"
+                />
               )}
 
               {loading ? (
-                <View className="items-center justify-center rounded-3xl border border-gray-200 bg-white p-8">
-                  <ActivityIndicator color="#7C3AED" />
-                  <Text className="mt-3 text-[13px] font-semibold text-muted">
-                    Loading pending {activeTab}
-                  </Text>
-                </View>
+                <LoadingState body={`Loading pending ${activeTab}.`} title="Loading review queue" />
               ) : activeItemsCount === 0 ? (
                 <View className="rounded-3xl border border-primary/10 bg-primary/5 p-5">
                   <Text className="font-heading text-[22px] font-extrabold text-ink">

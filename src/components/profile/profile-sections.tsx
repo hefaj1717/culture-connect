@@ -37,6 +37,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import QRCode from 'react-native-qrcode-svg';
 import { captureRef } from 'react-native-view-shot';
 
+import { EmptyState, ErrorState, LoadingState } from '@/components/async-state';
 import { BrandImage } from '@/components/brand-image';
 import { PassportBadge, type AchievementBadge } from '@/components/profile/badges';
 import { OrganizerStatusCard, OrganizerVerifiedBadge } from '@/components/profile/organizer-status';
@@ -532,25 +533,27 @@ export function AdminToolsSection({
 type OrganizerEventHistorySectionProps = {
   error?: string | null;
   events: ManagedOrganizerEvent[];
+  loading?: boolean;
   onOpenAll: () => void;
 };
 
 export function OrganizerEventHistorySection({
   error,
   events,
+  loading = false,
   onOpenAll,
 }: OrganizerEventHistorySectionProps) {
   return (
     <View className="mb-4 px-5">
-      {error && (
-        <View className="rounded-2xl border border-secondary/20 bg-secondary/10 p-3">
-          <Text className="text-[12px] leading-4 text-muted">
-            Your event history could not load yet. Apply the latest Supabase migration if needed.
-          </Text>
-        </View>
-      )}
-
-      {!error && (
+      {loading ? (
+        <LoadingState compact title="Loading your event history" />
+      ) : error ? (
+        <ErrorState
+          body="Apply the latest Supabase migration if needed, then refresh the app."
+          compact
+          title="Your event history could not load"
+        />
+      ) : (
         <Pressable
           onPress={onOpenAll}
           className="flex-row items-center gap-3 rounded-[26px] border border-gray-200 bg-white p-3.5 active:opacity-85"
@@ -575,26 +578,28 @@ export function OrganizerEventHistorySection({
 
 type OrganizerRewardHistorySectionProps = {
   error?: string | null;
+  loading?: boolean;
   onOpenAll: () => void;
   rewards: ManagedOrganizerReward[];
 };
 
 export function OrganizerRewardHistorySection({
   error,
+  loading = false,
   onOpenAll,
   rewards,
 }: OrganizerRewardHistorySectionProps) {
   return (
     <View className="mb-4 px-5">
-      {error && (
-        <View className="rounded-2xl border border-secondary/20 bg-secondary/10 p-3">
-          <Text className="text-[12px] leading-4 text-muted">
-            Your reward history could not load yet. Apply the latest Supabase migration if needed.
-          </Text>
-        </View>
-      )}
-
-      {!error && (
+      {loading ? (
+        <LoadingState compact title="Loading your reward history" />
+      ) : error ? (
+        <ErrorState
+          body="Apply the latest Supabase migration if needed, then refresh the app."
+          compact
+          title="Your reward history could not load"
+        />
+      ) : (
         <Pressable
           onPress={onOpenAll}
           className="flex-row items-center gap-3 rounded-[26px] border border-gray-200 bg-white p-3.5 active:opacity-85"
@@ -1649,6 +1654,7 @@ function formatEventTimeRange(event: CultureEvent) {
 type RewardsSectionProps = {
   cityName: string;
   error?: string | null;
+  loading?: boolean;
   onOpenAll: () => void;
   onSelectReward: (reward: RewardPartner) => void;
   redeemedRewards: Record<string, RedeemedRewardState>;
@@ -1659,6 +1665,7 @@ type RewardsSectionProps = {
 export function RewardsSection({
   cityName,
   error,
+  loading = false,
   onOpenAll,
   onSelectReward,
   redeemedRewards,
@@ -1681,26 +1688,27 @@ export function RewardsSection({
         )}
       </View>
 
-      {error && (
-        <View className="mb-3 rounded-2xl border border-secondary/20 bg-secondary/10 p-3">
-          <Text className="text-[12px] leading-4 text-muted">
-            Rewards could not load yet. Apply the latest Supabase migration if you have not done it.
-          </Text>
-        </View>
-      )}
+      {loading ? (
+        <LoadingState
+          body={`Loading approved partner rewards for ${cityName}.`}
+          compact
+          title="Loading rewards"
+        />
+      ) : error ? (
+        <ErrorState
+          body="Apply the latest Supabase migration if you have not done it."
+          compact
+          style={{ marginBottom: 12 }}
+          title="Rewards could not load"
+        />
+      ) : rewards.length === 0 ? (
+        <EmptyState
+          body={`Approved partner rewards for ${cityName} will appear here after CultureQuest review.`}
+          title="No approved rewards yet"
+        />
+      ) : null}
 
-      {!error && rewards.length === 0 && (
-        <View className="rounded-3xl border border-gray-200 bg-white p-5">
-          <Text className="font-heading text-[20px] font-extrabold text-ink">
-            No approved rewards yet
-          </Text>
-          <Text className="mt-2 text-[13px] leading-5 text-muted">
-            Approved partner rewards for {cityName} will appear here after CultureQuest review.
-          </Text>
-        </View>
-      )}
-
-      {featuredReward && (
+      {!loading && featuredReward && (
         <View>
           <RewardPartnerRow
             reward={featuredReward.reward}

@@ -33,6 +33,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { EmptyState, ErrorState, LoadingState } from '@/components/async-state';
 import { BrandImage } from '@/components/brand-image';
 import { OrganizerAvatar, OrganizerProfileModal } from '@/components/organizer-profile-modal';
 import { CardStyles } from '@/constants/theme';
@@ -452,12 +453,12 @@ export default function ExploreScreen({
 
             <View className="px-5">
               {eventsError && (
-                <View className="mb-3 rounded-xl bg-secondary/10 p-3">
-                  <Text className="text-[12px] leading-4 text-muted">
-                    Approved events could not load from Supabase. Apply the latest migration or
-                    check your connection.
-                  </Text>
-                </View>
+                <ErrorState
+                  body="Apply the latest migration or check your Supabase connection."
+                  compact
+                  style={{ marginBottom: 12 }}
+                  title="Approved events could not load"
+                />
               )}
 
               <Text className="mb-3 text-[11px] font-semibold uppercase tracking-wide text-muted">
@@ -471,17 +472,19 @@ export default function ExploreScreen({
               </Text>
 
               {eventsLoading ? (
-                <View className="items-center py-12">
-                  <Text className="text-[14px] text-muted">Loading approved events...</Text>
-                </View>
+                <LoadingState
+                  body={`Finding approved events for ${cityData.name}.`}
+                  title="Loading approved events"
+                />
               ) : filteredEvents.length === 0 ? (
-                <View className="items-center py-12">
-                  <Text className="text-[14px] text-muted">
-                    {eventsError
+                <EmptyState
+                  body={
+                    eventsError
                       ? 'Events are unavailable right now.'
-                      : 'No approved events found for this filter.'}
-                  </Text>
-                </View>
+                      : 'Try another filter or check back after organizers publish new events.'
+                  }
+                  title={eventsError ? 'Events unavailable' : 'No approved events found'}
+                />
               ) : (
                 <View className="gap-3">
                   {filteredEvents.map((event) => (
@@ -545,25 +548,23 @@ export default function ExploreScreen({
         ) : (
           <View className="gap-3 px-5">
             {organizerProfilesError && (
-              <View className="rounded-xl bg-secondary/10 p-3">
-                <Text className="text-[12px] leading-4 text-muted">
-                  Organizer profiles could not load from Supabase. Apply the latest migration or
-                  check your connection.
-                </Text>
-              </View>
+              <ErrorState
+                body="Apply the latest migration or check your Supabase connection."
+                compact
+                title="Organizer profiles could not load"
+              />
             )}
 
             {organizerProfilesLoading ? (
-              <View className="items-center py-12">
-                <Text className="text-[14px] text-muted">Loading organizers...</Text>
-              </View>
+              <LoadingState
+                body={`Loading approved organizer profiles for ${cityData.name}.`}
+                title="Loading organizers"
+              />
             ) : filteredOrganizerProfiles.length === 0 ? (
-              <View className="rounded-3xl border border-primary/10 bg-canvas p-5">
-                <Text className="font-display text-[26px] text-ink">No organizers yet</Text>
-                <Text className="mt-1 text-[13px] leading-5 text-muted">
-                  Approved organiser profiles for {cityData.name} will appear here.
-                </Text>
-              </View>
+              <EmptyState
+                body={`Approved organiser profiles for ${cityData.name} will appear here.`}
+                title="No organizers yet"
+              />
             ) : (
               filteredOrganizerProfiles.map((profile) => (
                 <Pressable

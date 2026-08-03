@@ -111,10 +111,13 @@ export default function ProfileScreen({
   const [approvedRewards, setApprovedRewards] = useState<RewardPartner[]>([]);
   const [myOrganizerEvents, setMyOrganizerEvents] = useState<ManagedOrganizerEvent[]>([]);
   const [myOrganizerEventsError, setMyOrganizerEventsError] = useState<string | null>(null);
+  const [myOrganizerEventsLoading, setMyOrganizerEventsLoading] = useState(false);
   const [myOrganizerRewards, setMyOrganizerRewards] = useState<ManagedOrganizerReward[]>([]);
   const [myOrganizerRewardsError, setMyOrganizerRewardsError] = useState<string | null>(null);
+  const [myOrganizerRewardsLoading, setMyOrganizerRewardsLoading] = useState(false);
   const [organizerContentRefreshNonce, setOrganizerContentRefreshNonce] = useState(0);
   const [rewardsError, setRewardsError] = useState<string | null>(null);
+  const [rewardsLoading, setRewardsLoading] = useState(true);
   const [universityMembership, setUniversityMembership] = useState<UserUniversityMembership | null>(
     null,
   );
@@ -537,11 +540,13 @@ export default function ProfileScreen({
     let active = true;
 
     async function loadApprovedRewards() {
+      setRewardsLoading(true);
       const result = await fetchOrganizerRewards(savedCityId);
       if (!active) return;
 
       setApprovedRewards(result.rewards);
       setRewardsError(result.error);
+      setRewardsLoading(false);
     }
 
     loadApprovedRewards();
@@ -557,8 +562,10 @@ export default function ProfileScreen({
     if (!userId || organizerApplicationStatus !== 'approved') {
       setMyOrganizerEvents([]);
       setMyOrganizerEventsError(null);
+      setMyOrganizerEventsLoading(false);
       setMyOrganizerRewards([]);
       setMyOrganizerRewardsError(null);
+      setMyOrganizerRewardsLoading(false);
       return;
     }
 
@@ -567,6 +574,8 @@ export default function ProfileScreen({
     let active = true;
 
     async function loadMyOrganizerContent() {
+      setMyOrganizerEventsLoading(true);
+      setMyOrganizerRewardsLoading(true);
       const [eventsResult, rewardsResult] = await Promise.all([
         fetchMyOrganizerEvents(userIdForLoad, cityIdForLoad),
         fetchMyOrganizerRewards(userIdForLoad, cityIdForLoad),
@@ -575,8 +584,10 @@ export default function ProfileScreen({
 
       setMyOrganizerEvents(eventsResult.events);
       setMyOrganizerEventsError(eventsResult.error);
+      setMyOrganizerEventsLoading(false);
       setMyOrganizerRewards(rewardsResult.rewards);
       setMyOrganizerRewardsError(rewardsResult.error);
+      setMyOrganizerRewardsLoading(false);
     }
 
     loadMyOrganizerContent();
@@ -697,6 +708,7 @@ export default function ProfileScreen({
         <RewardsSection
           cityName={cityData.name}
           error={rewardsError ?? rewardRedemptionsError}
+          loading={rewardsLoading}
           onOpenAll={() => setRewardsListOpen(true)}
           onSelectReward={setSelectedReward}
           redeemedRewards={redeemedRewards}
@@ -734,10 +746,12 @@ export default function ProfileScreen({
             <OrganizerEventHistorySection
               error={myOrganizerEventsError}
               events={myOrganizerEvents}
+              loading={myOrganizerEventsLoading}
               onOpenAll={() => setOrganizerHistoryOpen(true)}
             />
             <OrganizerRewardHistorySection
               error={myOrganizerRewardsError}
+              loading={myOrganizerRewardsLoading}
               onOpenAll={() => setOrganizerRewardsHistoryOpen(true)}
               rewards={myOrganizerRewards}
             />
