@@ -640,12 +640,9 @@ export default function ProfileScreen({
   return (
     <View className="flex-1 bg-white">
       <ScrollView
-        alwaysBounceVertical={false}
-        bounces={false}
         className="flex-1"
-        contentContainerStyle={{ paddingBottom: 112, paddingTop: stableModalTopInset + 24 }}
+        contentContainerStyle={{ paddingBottom: 112, paddingTop: stableModalTopInset + 8 }}
         contentInsetAdjustmentBehavior="automatic"
-        overScrollMode="never"
       >
         <ProfileRankCard
           avatarInitials={avatarInitials}
