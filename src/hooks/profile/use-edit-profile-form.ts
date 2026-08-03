@@ -4,7 +4,12 @@ import { Alert } from 'react-native';
 
 import { limitText, textLimits } from '@/constants/text-limits';
 import { type CityId, defaultCityId } from '@/data/culture';
+import { getUniversityById } from '@/data/universities';
 import { type PlaceSuggestion, searchPlaces } from '@/lib/place-search';
+import {
+  upsertMyUniversityMembership,
+  type UserUniversityMembership,
+} from '@/lib/university-leaderboard';
 
 type UpdateProfile = (profile: {
   cityId: CityId;
@@ -19,6 +24,7 @@ type UpdateProfile = (profile: {
 }) => Promise<{ error: string | null }>;
 
 type UseEditProfileFormInput = {
+  onUniversityMembershipSaved?: (membership: UserUniversityMembership) => void;
   savedAvatarUrl: string | null;
   savedCityId: CityId;
   savedFirstName: string;
@@ -28,10 +34,12 @@ type UseEditProfileFormInput = {
   savedOrganizerLocationLatitude?: number | null;
   savedOrganizerLocationLongitude?: number | null;
   savedOrganizerLocationName?: string | null;
+  savedUniversityMembership?: UserUniversityMembership | null;
   updateProfile: UpdateProfile;
 };
 
 export function useEditProfileForm({
+  onUniversityMembershipSaved,
   savedAvatarUrl,
   savedCityId,
   savedFirstName,
@@ -41,6 +49,7 @@ export function useEditProfileForm({
   savedOrganizerLocationLatitude = null,
   savedOrganizerLocationLongitude = null,
   savedOrganizerLocationName = null,
+  savedUniversityMembership = null,
   updateProfile,
 }: UseEditProfileFormInput) {
   const [editOpen, setEditOpen] = useState(false);
@@ -49,6 +58,9 @@ export function useEditProfileForm({
   const [cityId, setCityId] = useState<CityId>(defaultCityId);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [organizerBio, setOrganizerBio] = useState('');
+  const [isStudent, setIsStudent] = useState(false);
+  const [studentEmail, setStudentEmail] = useState('');
+  const [universityId, setUniversityId] = useState('');
   const [organizerLocationQuery, setOrganizerLocationQuery] = useState('');
   const [organizerLocationSuggestions, setOrganizerLocationSuggestions] = useState<
     PlaceSuggestion[]
@@ -65,6 +77,9 @@ export function useEditProfileForm({
     setCityId(savedCityId);
     setAvatarUrl(savedAvatarUrl);
     setOrganizerBio(savedOrganizerBio);
+    setIsStudent(!!savedUniversityMembership);
+    setStudentEmail(savedUniversityMembership?.studentEmail ?? '');
+    setUniversityId(savedUniversityMembership?.universityId ?? '');
     setOrganizerLocationQuery(savedOrganizerLocationName ?? '');
     setSelectedOrganizerLocation(
       savedOrganizerLocationName &&
@@ -91,6 +106,7 @@ export function useEditProfileForm({
     savedOrganizerLocationLatitude,
     savedOrganizerLocationLongitude,
     savedOrganizerLocationName,
+    savedUniversityMembership,
   ]);
 
   useEffect(() => {
@@ -131,6 +147,9 @@ export function useEditProfileForm({
     setCityId(savedCityId);
     setAvatarUrl(savedAvatarUrl);
     setOrganizerBio(savedOrganizerBio);
+    setIsStudent(!!savedUniversityMembership);
+    setStudentEmail(savedUniversityMembership?.studentEmail ?? '');
+    setUniversityId(savedUniversityMembership?.universityId ?? '');
     setOrganizerLocationQuery(savedOrganizerLocationName ?? '');
     setOrganizerLocationSuggestions([]);
     setSelectedOrganizerLocation(
@@ -165,6 +184,18 @@ export function useEditProfileForm({
 
   function changeLastName(value: string) {
     setLastName(limitText(value, textLimits.lastName));
+  }
+
+  function changeCity(nextCityId: CityId) {
+    setCityId(nextCityId);
+    const currentUniversity = getUniversityById(universityId);
+    if (currentUniversity && currentUniversity.cityId !== nextCityId) {
+      setUniversityId('');
+    }
+  }
+
+  function changeStudentEmail(value: string) {
+    setStudentEmail(limitText(value, textLimits.email));
   }
 
   function changeOrganizerBio(value: string) {
@@ -207,6 +238,18 @@ export function useEditProfileForm({
       return;
     }
 
+    if (isStudent) {
+      if (!universityId) {
+        setProfileError('Choose your university.');
+        return;
+      }
+
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(studentEmail.trim())) {
+        setProfileError('Enter a valid student email.');
+        return;
+      }
+    }
+
     setProfileError(null);
     setSavingProfile(true);
     const normalizedOrganizerLocationName =
@@ -222,13 +265,46 @@ export function useEditProfileForm({
       organizerLocationLongitude: selectedOrganizerLocation?.longitude ?? null,
       organizerLocationName: normalizedOrganizerLocationName,
     });
-    setSavingProfile(false);
 
     if (result.error) {
       setProfileError(result.error);
+      setSavingProfile(false);
       return;
     }
 
+    if (isStudent) {
+      const membershipResult = await upsertMyUniversityMembership({
+        studentEmail: studentEmail.trim().toLowerCase(),
+        universityId,
+      });
+
+      if (membershipResult.error) {
+        setSavingProfile(false);
+        setProfileError(membershipResult.error);
+        return;
+      }
+
+      const university = getUniversityById(universityId);
+      if (university) {
+        onUniversityMembershipSaved?.({
+          cityId: university.cityId,
+          name: university.name,
+          shortName: university.shortName,
+          status:
+            savedUniversityMembership?.universityId === universityId
+              ? savedUniversityMembership.status
+              : 'pending',
+          studentEmail: studentEmail.trim().toLowerCase(),
+          universityId,
+          verifiedAt:
+            savedUniversityMembership?.universityId === universityId
+              ? savedUniversityMembership.verifiedAt
+              : null,
+        });
+      }
+    }
+
+    setSavingProfile(false);
     setEditOpen(false);
   }
 
@@ -238,6 +314,7 @@ export function useEditProfileForm({
     cityId,
     editOpen,
     firstName,
+    isStudent,
     lastName,
     organizerBio,
     organizerLocationQuery,
@@ -250,13 +327,18 @@ export function useEditProfileForm({
     selectOrganizerLocation,
     savingProfile,
     setAvatarUrl,
-    setCityId,
+    setCityId: changeCity,
     setEditOpen,
     setFirstName: changeFirstName,
     setLastName: changeLastName,
+    setIsStudent,
     setOrganizerBio: changeOrganizerBio,
     setOrganizerLocationSuggestions,
     setProfileError,
+    setStudentEmail: changeStudentEmail,
+    setUniversityId,
+    studentEmail,
+    universityId,
     openEditProfile,
   };
 }

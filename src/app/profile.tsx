@@ -115,9 +115,13 @@ export default function ProfileScreen({
   const [myOrganizerRewardsError, setMyOrganizerRewardsError] = useState<string | null>(null);
   const [organizerContentRefreshNonce, setOrganizerContentRefreshNonce] = useState(0);
   const [rewardsError, setRewardsError] = useState<string | null>(null);
+  const [universityMembership, setUniversityMembership] = useState<UserUniversityMembership | null>(
+    null,
+  );
   const savedAvatarUrl = session?.user.user_metadata?.avatar_url || null;
   const levelProgress = getXpLevelProgress(userXp);
   const editProfileForm = useEditProfileForm({
+    onUniversityMembershipSaved: setUniversityMembership,
     savedAvatarUrl,
     savedCityId,
     savedFirstName,
@@ -127,6 +131,7 @@ export default function ProfileScreen({
     savedOrganizerLocationLatitude,
     savedOrganizerLocationLongitude,
     savedOrganizerLocationName,
+    savedUniversityMembership: universityMembership,
     updateProfile,
   });
   const createEventForm = useCreateEventForm({
@@ -166,6 +171,7 @@ export default function ProfileScreen({
     cityId,
     editOpen,
     firstName,
+    isStudent,
     lastName,
     changeOrganizerLocationQuery,
     openEditProfile,
@@ -179,11 +185,16 @@ export default function ProfileScreen({
     selectedOrganizerLocation,
     selectOrganizerLocation,
     savingProfile,
+    setIsStudent,
     setCityId,
     setEditOpen,
     setFirstName,
     setLastName,
     setOrganizerBio,
+    setStudentEmail,
+    setUniversityId,
+    studentEmail,
+    universityId,
   } = editProfileForm;
   const {
     calendarMonth,
@@ -332,9 +343,6 @@ export default function ProfileScreen({
   const [organizerHistoryOpen, setOrganizerHistoryOpen] = useState(false);
   const [organizerRewardsHistoryOpen, setOrganizerRewardsHistoryOpen] = useState(false);
   const [rewardsListOpen, setRewardsListOpen] = useState(false);
-  const [universityMembership, setUniversityMembership] = useState<UserUniversityMembership | null>(
-    null,
-  );
   const [selectedBadge, setSelectedBadge] = useState<(typeof achievementBadges)[number] | null>(
     null,
   );
@@ -754,6 +762,7 @@ export default function ProfileScreen({
         avatarUrl={avatarUrl}
         cityId={cityId}
         firstName={firstName}
+        isStudent={isStudent}
         isOrganizer={isOrganizer}
         lastName={lastName}
         onChangeAvatar={pickAvatar}
@@ -762,9 +771,12 @@ export default function ProfileScreen({
         onChangeLastName={setLastName}
         onChangeOrganizerBio={setOrganizerBio}
         onChangeOrganizerLocationQuery={changeOrganizerLocationQuery}
+        onChangeStudentEmail={setStudentEmail}
+        onChangeUniversity={setUniversityId}
         onClose={() => setEditOpen(false)}
         onSave={saveProfile}
         onSelectOrganizerLocation={selectOrganizerLocation}
+        onToggleStudent={setIsStudent}
         organizerBio={organizerBio}
         organizerLocationQuery={organizerLocationQuery}
         organizerLocationSuggestions={organizerLocationSuggestions}
@@ -772,6 +784,8 @@ export default function ProfileScreen({
         searchingOrganizerLocation={searchingOrganizerLocation}
         selectedOrganizerLocation={selectedOrganizerLocation}
         savingProfile={savingProfile}
+        studentEmail={studentEmail}
+        universityId={universityId}
         visible={editOpen}
       />
 

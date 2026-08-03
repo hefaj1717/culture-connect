@@ -1,4 +1,4 @@
-import { Camera, MapPin, Search, X } from 'lucide-react-native';
+import { Camera, Check, GraduationCap, MapPin, Search, X } from 'lucide-react-native';
 import { useRef } from 'react';
 import {
   ActivityIndicator,
@@ -18,6 +18,7 @@ import { CitySelector } from '@/components/city-selector';
 import { Avatar } from '@/components/profile/profile-avatar';
 import { textLimits } from '@/constants/text-limits';
 import type { CityId } from '@/data/culture';
+import { getUniversitiesForCity } from '@/data/universities';
 import { useStableTopInset } from '@/hooks/use-stable-safe-area';
 import type { PlaceSuggestion } from '@/lib/place-search';
 
@@ -26,6 +27,7 @@ type EditProfileModalProps = {
   avatarUrl: string | null;
   cityId: CityId;
   firstName: string;
+  isStudent: boolean;
   isOrganizer?: boolean;
   lastName: string;
   onChangeAvatar: () => void;
@@ -34,9 +36,12 @@ type EditProfileModalProps = {
   onChangeLastName: (lastName: string) => void;
   onChangeOrganizerBio?: (bio: string) => void;
   onChangeOrganizerLocationQuery?: (query: string) => void;
+  onChangeStudentEmail: (email: string) => void;
+  onChangeUniversity: (universityId: string) => void;
   onClose: () => void;
   onSave: () => void;
   onSelectOrganizerLocation?: (place: PlaceSuggestion) => void;
+  onToggleStudent: (isStudent: boolean) => void;
   organizerBio?: string;
   organizerLocationQuery?: string;
   organizerLocationSuggestions?: PlaceSuggestion[];
@@ -44,6 +49,8 @@ type EditProfileModalProps = {
   searchingOrganizerLocation?: boolean;
   selectedOrganizerLocation?: PlaceSuggestion | null;
   savingProfile: boolean;
+  studentEmail: string;
+  universityId: string;
   visible: boolean;
 };
 
@@ -52,6 +59,7 @@ export function EditProfileModal({
   avatarUrl,
   cityId,
   firstName,
+  isStudent,
   isOrganizer = false,
   lastName,
   onChangeAvatar,
@@ -60,9 +68,12 @@ export function EditProfileModal({
   onChangeLastName,
   onChangeOrganizerBio,
   onChangeOrganizerLocationQuery,
+  onChangeStudentEmail,
+  onChangeUniversity,
   onClose,
   onSave,
   onSelectOrganizerLocation,
+  onToggleStudent,
   organizerBio = '',
   organizerLocationQuery = '',
   organizerLocationSuggestions = [],
@@ -70,10 +81,13 @@ export function EditProfileModal({
   searchingOrganizerLocation = false,
   selectedOrganizerLocation = null,
   savingProfile,
+  studentEmail,
+  universityId,
   visible,
 }: EditProfileModalProps) {
   const stableTopInset = useStableTopInset();
   const scrollViewRef = useRef<ScrollView>(null);
+  const universityOptions = getUniversitiesForCity(cityId);
 
   function focusFormArea(y: number) {
     setTimeout(() => {
@@ -176,6 +190,93 @@ export function EditProfileModal({
               Profile details are saved to your account. Profile photos are kept as a device image
               until cloud avatar storage is enabled.
             </Text>
+
+            <View className="mb-6 rounded-3xl border border-primary/10 bg-primary/5 p-4">
+              <Pressable
+                accessibilityRole="checkbox"
+                accessibilityState={{ checked: isStudent }}
+                accessibilityLabel="I am a student"
+                onPress={() => {
+                  Keyboard.dismiss();
+                  onToggleStudent(!isStudent);
+                }}
+                className="flex-row items-start gap-3 active:opacity-85"
+              >
+                <View
+                  className={`mt-0.5 h-8 w-8 items-center justify-center rounded-full ${
+                    isStudent ? 'bg-primary' : 'bg-white'
+                  }`}
+                >
+                  {isStudent ? (
+                    <Check size={17} color="white" strokeWidth={2.7} />
+                  ) : (
+                    <GraduationCap size={17} color="#7C3AED" strokeWidth={2.4} />
+                  )}
+                </View>
+                <View className="min-w-0 flex-1">
+                  <Text className="text-[15px] font-extrabold text-ink">I am a student</Text>
+                  <Text className="mt-0.5 text-[12px] leading-4 text-muted">
+                    Link your university so your XP contributes to the campus ranking.
+                  </Text>
+                </View>
+              </Pressable>
+
+              {isStudent && (
+                <View className="mt-4">
+                  <Text className="mb-2 text-[13px] font-semibold text-ink">University</Text>
+                  <View className="mb-4 gap-2">
+                    {universityOptions.map((university) => {
+                      const active = university.id === universityId;
+
+                      return (
+                        <Pressable
+                          key={university.id}
+                          accessibilityRole="radio"
+                          accessibilityState={{ checked: active }}
+                          accessibilityLabel={`University: ${university.name}`}
+                          onPress={() => {
+                            Keyboard.dismiss();
+                            onChangeUniversity(university.id);
+                          }}
+                          className={`rounded-xl border px-3 py-2.5 active:opacity-85 ${
+                            active ? 'border-primary bg-white' : 'border-gray-200 bg-white/70'
+                          }`}
+                        >
+                          <Text
+                            className={`text-[13px] font-semibold ${
+                              active ? 'text-primary' : 'text-ink'
+                            }`}
+                          >
+                            {university.shortName}
+                          </Text>
+                          <Text className="mt-0.5 text-[11px] leading-4 text-muted">
+                            {university.name}
+                          </Text>
+                        </Pressable>
+                      );
+                    })}
+                  </View>
+
+                  <Text className="mb-2 text-[13px] font-semibold text-ink">Student email</Text>
+                  <TextInput
+                    value={studentEmail}
+                    onChangeText={onChangeStudentEmail}
+                    onFocus={() => focusFormArea(380)}
+                    placeholder="Add student email"
+                    placeholderTextColor="#8B909A"
+                    autoCapitalize="none"
+                    keyboardType="email-address"
+                    textContentType="emailAddress"
+                    autoComplete="email"
+                    maxLength={textLimits.email}
+                    className="rounded-xl border border-gray-300 bg-white px-4 py-3 text-[15px] text-ink"
+                  />
+                  <Text className="mt-2 text-[11px] leading-4 text-muted">
+                    Verification will be added later. For now this links you to the ranking.
+                  </Text>
+                </View>
+              )}
+            </View>
 
             {isOrganizer && (
               <View className="mb-6 rounded-3xl border border-primary/10 bg-primary/5 p-4">
