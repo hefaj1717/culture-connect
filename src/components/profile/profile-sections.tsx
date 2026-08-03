@@ -9,6 +9,8 @@ import {
   GraduationCap,
   LogOut,
   MapPin,
+  ReceiptText,
+  RefreshCw,
   Settings,
   Users,
   UserRound,
@@ -51,6 +53,7 @@ import type { UserEventHistoryItem, UserEventStatus } from '@/lib/event-history'
 import type { ManagedOrganizerEvent, OrganizerEventStatus } from '@/lib/organizer-events';
 import type { ManagedOrganizerReward, OrganizerRewardStatus } from '@/lib/organizer-rewards';
 import type { UserUniversityMembership } from '@/lib/university-leaderboard';
+import type { XpTransaction } from '@/lib/xp-transactions';
 import { useResponsiveLayout } from '@/hooks/use-responsive-layout';
 
 type OrganizerStatus = 'none' | 'pending' | 'approved' | 'rejected';
@@ -491,6 +494,7 @@ export function OrganizerToolsSection({
 type AdminToolsSectionProps = {
   onCreateQuest: () => void;
   onManageEvents: () => void;
+  onOpenXpAudit: () => void;
   onOpenReview: () => void;
   pendingCount: number;
 };
@@ -498,6 +502,7 @@ type AdminToolsSectionProps = {
 export function AdminToolsSection({
   onCreateQuest,
   onManageEvents,
+  onOpenXpAudit,
   onOpenReview,
   pendingCount,
 }: AdminToolsSectionProps) {
@@ -537,6 +542,245 @@ export function AdminToolsSection({
           >
             <Text className="text-[14px] font-semibold text-white">Manage events</Text>
           </Pressable>
+          <Pressable
+            onPress={onOpenXpAudit}
+            className="h-11 flex-row items-center justify-center rounded-xl border border-white/15 bg-white/10 active:opacity-85"
+          >
+            <Text className="text-[14px] font-semibold text-white">XP audit</Text>
+          </Pressable>
+        </View>
+      </View>
+    </View>
+  );
+}
+
+type XpHistorySectionProps = {
+  error?: string | null;
+  loading?: boolean;
+  transactions: XpTransaction[];
+};
+
+export function XpHistorySection({
+  error,
+  loading = false,
+  transactions,
+}: XpHistorySectionProps) {
+  const latestTransactions = transactions.slice(0, 3);
+
+  return (
+    <View className="mb-6 px-5">
+      <View className="mb-3 flex-row items-center justify-between">
+        <Text className="font-heading text-[22px] font-extrabold text-ink">XP awards</Text>
+      </View>
+
+      {loading ? (
+        <LoadingState compact title="Loading XP history" />
+      ) : error ? (
+        <ErrorState compact title="XP history could not load" body={error} />
+      ) : latestTransactions.length === 0 ? (
+        <View
+          className="rounded-3xl border border-gray-200 bg-white p-4"
+          style={CardStyles.compact}
+        >
+          <Text className="font-ui text-[16px] font-extrabold text-ink">No XP awards yet</Text>
+          <Text className="mt-1 text-[13px] leading-5 text-muted">
+            Check-ins, completed quests, and redeemed rewards will appear here with the exact XP
+            amount.
+          </Text>
+        </View>
+      ) : (
+        <View className="gap-2.5">
+          {latestTransactions.map((transaction) => (
+            <XpTransactionRow key={transaction.id} transaction={transaction} />
+          ))}
+        </View>
+      )}
+    </View>
+  );
+}
+
+export function AdminXpAuditModal({
+  error,
+  loading,
+  onClose,
+  onRefresh,
+  stableModalTopInset,
+  transactions,
+  visible,
+}: {
+  error?: string | null;
+  loading?: boolean;
+  onClose: () => void;
+  onRefresh: () => void;
+  stableModalTopInset: number;
+  transactions: XpTransaction[];
+  visible: boolean;
+}) {
+  const { closeWithAnimation, gesture, swipeStyle } = useHistorySwipeBack({
+    onSwipeBack: onClose,
+    visible,
+  });
+  const earnedTotal = transactions
+    .filter((transaction) => transaction.transactionType === 'earn')
+    .reduce((sum, transaction) => sum + transaction.amount, 0);
+  const spentTotal = transactions
+    .filter((transaction) => transaction.transactionType === 'spend')
+    .reduce((sum, transaction) => sum + transaction.amount, 0);
+
+  return (
+    <Modal animationType="slide" transparent onRequestClose={closeWithAnimation} visible={visible}>
+      <GestureDetector gesture={gesture}>
+        <Animated.View className="flex-1 bg-white" style={swipeStyle}>
+          <SafeAreaView className="flex-1 bg-white" edges={['bottom']}>
+            <View
+              className="flex-row items-center justify-between bg-white px-5 pb-3"
+              style={{ paddingTop: stableModalTopInset + 6 }}
+            >
+              <Pressable
+                onPress={closeWithAnimation}
+                className="h-10 w-10 items-center justify-center rounded-full bg-gray-100 active:opacity-80"
+              >
+                <ArrowLeft size={21} color="#756F7B" strokeWidth={2.6} />
+              </Pressable>
+              <Pressable
+                disabled={loading}
+                onPress={onRefresh}
+                className="h-10 w-10 items-center justify-center rounded-full bg-primary/10 active:opacity-80 disabled:opacity-50"
+              >
+                <RefreshCw size={19} color={Colors.light.primary} strokeWidth={2.5} />
+              </Pressable>
+            </View>
+
+            <ScrollView
+              className="flex-1"
+              contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 40, paddingTop: 8 }}
+              showsVerticalScrollIndicator={false}
+            >
+              <View
+                className="mb-4 overflow-hidden rounded-[30px] bg-ink p-5"
+                style={{ boxShadow: '0 14px 28px rgba(36, 28, 46, 0.14)' }}
+              >
+                <Text className="text-[11px] font-extrabold uppercase tracking-[2px] text-white/60">
+                  Admin audit
+                </Text>
+                <Text className="mt-2 font-heading text-[34px] font-extrabold leading-[38px] text-white">
+                  XP ledger
+                </Text>
+                <Text className="mt-2 text-[13px] leading-5 text-white/70">
+                  Server-side XP transactions, duplicate protection, reward spends, and quest
+                  awards.
+                </Text>
+                <View className="mt-5 flex-row gap-2">
+                  <AuditSummaryPill label="Earned" value={earnedTotal} />
+                  <AuditSummaryPill label="Spent" value={spentTotal} />
+                </View>
+              </View>
+
+              {loading ? (
+                <LoadingState title="Loading XP audit" />
+              ) : error ? (
+                <ErrorState
+                  body="Make sure the latest XP transaction migration is applied, then refresh."
+                  title="XP audit could not load"
+                />
+              ) : transactions.length === 0 ? (
+                <EmptyState
+                  body="New check-ins, quest completions, and reward redemptions will appear here."
+                  title="No XP transactions yet"
+                />
+              ) : (
+                <View className="gap-2.5">
+                  {transactions.map((transaction) => (
+                    <XpTransactionRow admin key={transaction.id} transaction={transaction} />
+                  ))}
+                </View>
+              )}
+            </ScrollView>
+          </SafeAreaView>
+        </Animated.View>
+      </GestureDetector>
+    </Modal>
+  );
+}
+
+function AuditSummaryPill({ label, value }: { label: string; value: number }) {
+  return (
+    <View className="min-w-0 flex-1 rounded-2xl bg-white/10 px-3 py-2">
+      <Text className="text-[10px] font-extrabold uppercase tracking-wide text-white/55">
+        {label}
+      </Text>
+      <Text className="mt-0.5 font-heading text-[24px] font-extrabold text-white">
+        {value.toLocaleString()}
+      </Text>
+    </View>
+  );
+}
+
+function XpTransactionRow({
+  admin = false,
+  transaction,
+}: {
+  admin?: boolean;
+  transaction: XpTransaction;
+}) {
+  const isSpend = transaction.transactionType === 'spend';
+  const isAdjustment = transaction.transactionType === 'adjustment';
+  const amountLabel = `${isSpend ? '-' : '+'}${transaction.amount.toLocaleString()}`;
+  const sourceLabel = getXpSourceLabel(transaction.sourceType, transaction.transactionType);
+
+  return (
+    <View
+      className={`rounded-3xl border p-4 ${
+        isSpend ? 'border-gray-200 bg-white' : 'border-accent/15 bg-accent/5'
+      }`}
+      style={CardStyles.compact}
+    >
+      <View className="flex-row items-start gap-3">
+        <View
+          className={`h-11 w-11 items-center justify-center rounded-2xl ${
+            isSpend ? 'bg-gray-100' : 'bg-accent/12'
+          }`}
+        >
+          <ReceiptText
+            size={20}
+            color={isSpend ? '#756F7B' : Colors.light.accentDeep}
+            strokeWidth={2.4}
+          />
+        </View>
+
+        <View className="min-w-0 flex-1">
+          <View className="mb-1 flex-row items-start justify-between gap-3">
+            <View className="min-w-0 flex-1">
+              {admin && (
+                <Text className="mb-0.5 text-[11px] font-extrabold uppercase tracking-wide text-primary">
+                  {transaction.userLabel}
+                </Text>
+              )}
+              <Text className="font-ui text-[15px] font-extrabold leading-5 text-ink">
+                {transaction.reason}
+              </Text>
+            </View>
+            <Text
+              className={`font-heading text-[24px] font-extrabold leading-7 ${
+                isSpend ? 'text-muted' : isAdjustment ? 'text-primary' : 'text-accentDeep'
+              }`}
+            >
+              {amountLabel}
+            </Text>
+          </View>
+
+          <View className="flex-row flex-wrap items-center gap-2">
+            <Text className="text-[11px] font-semibold text-muted">
+              {sourceLabel} · {formatAuditDate(transaction.createdAt)}
+            </Text>
+            {transaction.balanceAfter !== null && (
+              <View className="rounded-full bg-white px-2 py-0.5">
+                <Text className="text-[10px] font-extrabold text-muted">
+                  Balance {transaction.balanceAfter.toLocaleString()}
+                </Text>
+              </View>
+            )}
+          </View>
         </View>
       </View>
     </View>
@@ -1049,6 +1293,26 @@ function getOrganizerRewardFilterEmptyLabel(filter: OrganizerRewardHistoryFilter
   if (filter === 'archived') return 'archived';
   if (filter === 'draft') return 'draft';
   return 'submitted';
+}
+
+function getXpSourceLabel(sourceType: string | null, transactionType: XpTransaction['transactionType']) {
+  if (sourceType === 'event') return 'Event award';
+  if (sourceType === 'quest') return 'Quest award';
+  if (sourceType === 'reward') return transactionType === 'spend' ? 'Reward spend' : 'Reward award';
+  if (sourceType === 'admin') return 'Admin adjustment';
+  return transactionType === 'spend' ? 'XP spend' : 'XP award';
+}
+
+function formatAuditDate(value: string) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return 'Just now';
+
+  return new Intl.DateTimeFormat('en', {
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    month: 'short',
+  }).format(date);
 }
 
 function isPastEventDateLabel(dateLabel: string) {

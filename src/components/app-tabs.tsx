@@ -12,7 +12,7 @@ import Animated, {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AuthScreen } from '@/components/auth-screen';
-import ExploreScreen from '@/app/explore';
+import ExploreScreen, { type EventCheckInResult } from '@/app/explore';
 import HomeScreen from '@/app/index';
 import ProfileScreen from '@/app/profile';
 import QuestsScreen from '@/app/quests';
@@ -213,19 +213,19 @@ function AuthenticatedTabs() {
   async function awardEventCheckInXp(
     event: CultureEvent,
     location: { latitude: number; longitude: number },
-  ) {
+  ): Promise<EventCheckInResult> {
     if (isOffline) {
       Alert.alert('Offline', OFFLINE_ERROR_MESSAGE);
-      return false;
+      return { error: OFFLINE_ERROR_MESSAGE, success: false };
     }
 
     if (checkedInEventIdsRef.current.has(event.id)) {
-      return false;
+      return { duplicate: true, success: true, totalXp: userXp, xpEarned: 0 };
     }
 
     const databaseEventId = getOrganizerEventDatabaseId(event.id);
     if (!databaseEventId) {
-      return false;
+      return { error: 'This event is not available for check-in yet.', success: false };
     }
 
     const result = await confirmOrganizerEventAttendance({
@@ -240,7 +240,12 @@ function AuthenticatedTabs() {
     }
 
     if (result.error && !result.duplicate) {
-      return false;
+      return {
+        error: result.error,
+        success: false,
+        totalXp: result.totalXp,
+        xpEarned: result.xpEarned ?? 0,
+      };
     }
 
     const previousStatus = eventStatuses[event.id] ?? null;
@@ -250,7 +255,12 @@ function AuthenticatedTabs() {
       updateEventEngagementCounts(current, event.id, previousStatus, 'attended'),
     );
     setEventStatuses((current) => ({ ...current, [event.id]: 'attended' }));
-    return true;
+    return {
+      duplicate: result.duplicate,
+      success: true,
+      totalXp: result.totalXp,
+      xpEarned: result.xpEarned ?? 0,
+    };
   }
 
   function updateEventStatus(eventId: string, status: UserEventStatus | null) {

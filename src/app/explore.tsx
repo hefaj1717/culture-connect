@@ -66,6 +66,14 @@ const audienceFilters = [
 ];
 const EVENT_CHECK_IN_RADIUS_METERS = 500;
 
+export type EventCheckInResult = {
+  duplicate?: boolean;
+  error?: string | null;
+  success: boolean;
+  totalXp?: number | null;
+  xpEarned?: number;
+};
+
 type ExploreScreenProps = {
   checkedInEventIds?: string[];
   cityData?: CultureCityData;
@@ -77,7 +85,7 @@ type ExploreScreenProps = {
   onEventCheckIn?: (
     event: CultureEvent,
     location: { latitude: number; longitude: number },
-  ) => Promise<boolean>;
+  ) => Promise<EventCheckInResult>;
   onEventStatusChange?: (eventId: string, status: UserEventStatus | null) => void;
   openEventId?: string;
   openEventNonce?: number;
@@ -621,16 +629,19 @@ export default function ExploreScreen({
         event={selectedEvent}
         venue={null}
         onCheckIn={async (event, location) => {
-          const didConfirm = (await onEventCheckIn?.(event, location)) ?? false;
+          const checkInResult = (await onEventCheckIn?.(event, location)) ?? {
+            error: 'Check-in is not available right now.',
+            success: false,
+          };
 
-          if (didConfirm) {
+          if (checkInResult.success) {
             setConfirmedCheckIns((current) => ({
               ...current,
               [event.id]: true,
             }));
           }
 
-          return didConfirm;
+          return checkInResult;
         }}
         onClose={() => setSelectedEvent(null)}
         onOpenOrganizer={(profile) => {
@@ -674,7 +685,7 @@ function EventDetailModal({
   onCheckIn: (
     event: CultureEvent,
     location: { latitude: number; longitude: number },
-  ) => Promise<boolean>;
+  ) => Promise<EventCheckInResult>;
   onClose: () => void;
   onOpenOrganizer: (profile: OrganizerProfile) => void;
   organizerProfile?: OrganizerProfile | null;
@@ -847,14 +858,10 @@ function EventDetailModal({
         return;
       }
 
-      const didAwardXp = await onCheckIn(event, locationResult.location);
+      const checkInResult = await onCheckIn(event, locationResult.location);
       setScannerOpen(false);
       setScanMessage(null);
-      setLocationMessage(
-        didAwardXp
-          ? `Attendance verified. ${event.xpBonus} XP has been added to your profile.`
-          : 'Attendance could not be confirmed, or XP was already added for this event.',
-      );
+      setLocationMessage(getCheckInResultMessage(event, checkInResult));
       return;
     }
 
@@ -1166,6 +1173,22 @@ function InfoRow({ icon, label }: { icon: React.ReactNode; label: string }) {
       <Text className="flex-1 text-[13px] font-medium text-ink/75">{label}</Text>
     </View>
   );
+}
+
+function getCheckInResultMessage(event: CultureEvent, result: EventCheckInResult) {
+  if (result.success && result.duplicate) {
+    return 'Attendance was already confirmed for this event. XP was not added again.';
+  }
+
+  if (result.success) {
+    const xpEarned = result.xpEarned && result.xpEarned > 0 ? result.xpEarned : event.xpBonus;
+    const balanceLabel =
+      typeof result.totalXp === 'number' ? ` New balance: ${result.totalXp.toLocaleString()} XP.` : '';
+
+    return `Attendance verified. +${xpEarned.toLocaleString()} XP for ${event.title}.${balanceLabel}`;
+  }
+
+  return result.error || 'Attendance could not be confirmed. Try again.';
 }
 
 function getEventImageSource(event: CultureEvent) {
