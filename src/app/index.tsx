@@ -6,6 +6,7 @@ import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-nati
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import MapView, { Circle as MapCircle, Marker } from 'react-native-maps';
 
+import { EmptyState, ErrorState, LoadingState } from '@/components/async-state';
 import { BrandImage } from '@/components/brand-image';
 import { CardStyles, Colors } from '@/constants/theme';
 import { cultureMapStyle } from '@/constants/map-style';
@@ -292,27 +293,26 @@ export default function HomeScreen({
             contentContainerStyle={{ paddingHorizontal: 20, gap: 12 }}
           >
             {eventsLoading ? (
-              <HomeEventStateCard
-                body={`Loading approved events for ${cityData.name}.`}
+              <LoadingState
+                body={`Checking approved events for ${cityData.name}.`}
+                compact
+                style={{ width: 260 }}
                 title="Loading events"
               />
             ) : eventsError ? (
-              <HomeEventStateCard
+              <ErrorState
                 body="Check your Supabase connection or apply the latest migrations, then refresh the app."
+                compact
+                style={{ width: 260 }}
                 title="Events could not load"
               />
             ) : happeningNow.length === 0 ? (
-              <View
-                className="w-[260px] rounded-2xl border border-primary/10 bg-white p-4"
-                style={CardStyles.compact}
-              >
-                <Text className="font-ui text-[15px] font-extrabold text-ink">
-                  No approved events yet
-                </Text>
-                <Text className="mt-1 text-[12px] leading-4 text-muted">
-                  Approved organizer events for {cityData.name} will appear here.
-                </Text>
-              </View>
+              <EmptyState
+                body={`Approved organizer events for ${cityData.name} will appear here.`}
+                compact
+                style={{ width: 260 }}
+                title="No approved events yet"
+              />
             ) : (
               happeningNow.map((event) => (
                 <Pressable
@@ -454,14 +454,13 @@ export default function HomeScreen({
 
             <View className="border-t border-primary/10 bg-white px-4 py-3">
               {eventsError ? (
-                <View className="mb-3">
-                  <Text className="font-ui text-[15px] font-bold text-ink">
-                    Event activity unavailable
-                  </Text>
-                  <Text className="mt-0.5 text-[12px] leading-4 text-muted">
-                    Approved events could not load from Supabase.
-                  </Text>
-                </View>
+                <ErrorState
+                  body="Approved events could not load from Supabase."
+                  compact
+                  style={{ marginBottom: 12 }}
+                  title="Event activity unavailable"
+                  tone="inline"
+                />
               ) : selectedActivitySpot ? (
                 <View className="mb-3 flex-row items-start justify-between gap-3">
                   <Pressable
@@ -485,14 +484,21 @@ export default function HomeScreen({
                 </View>
               ) : (
                 <View className="mb-3">
-                  <Text className="font-ui text-[15px] font-bold text-ink">
-                    No approved event activity yet
-                  </Text>
-                  <Text className="mt-0.5 text-[12px] leading-4 text-muted">
-                    {eventsLoading
-                      ? 'Loading approved organizer events for this city.'
-                      : 'Once an organizer event is approved, it will appear on this map.'}
-                  </Text>
+                  {eventsLoading ? (
+                    <LoadingState
+                      body="Loading approved organizer events for this city."
+                      compact
+                      title="Loading map activity"
+                      tone="inline"
+                    />
+                  ) : (
+                    <EmptyState
+                      body="Once an organizer event is approved, it will appear on this map."
+                      compact
+                      title="No approved event activity yet"
+                      tone="inline"
+                    />
+                  )}
                 </View>
               )}
 
@@ -535,9 +541,21 @@ export default function HomeScreen({
 
             <View className="gap-2 p-3">
               {leaderboardLoading ? (
-                <CampusRankingState text="Loading universities..." />
+                <LoadingState compact title="Loading universities" tone="inline" />
               ) : leaderboardError ? (
-                <CampusRankingState text="Leaderboard could not load from Supabase." />
+                <ErrorState
+                  body="Leaderboard could not load from Supabase."
+                  compact
+                  title="Campus ranking unavailable"
+                  tone="inline"
+                />
+              ) : leaderboard.length === 0 ? (
+                <EmptyState
+                  body={`Universities for ${cityData.name} will appear here after the setup migration.`}
+                  compact
+                  title="No universities linked yet"
+                  tone="inline"
+                />
               ) : (
                 leaderboard.slice(0, 5).map((row) => (
                   <View
@@ -704,26 +722,6 @@ function MiniEngagementStat({ icon, value }: { icon: ReactNode; value: number })
     <View className="flex-row items-center gap-1 rounded-full bg-primary/5 px-2 py-1">
       {icon}
       <Text className="text-[10px] font-extrabold text-primary">{value.toLocaleString()}</Text>
-    </View>
-  );
-}
-
-function HomeEventStateCard({ body, title }: { body: string; title: string }) {
-  return (
-    <View
-      className="w-[260px] rounded-2xl border border-primary/10 bg-white p-4"
-      style={CardStyles.compact}
-    >
-      <Text className="font-ui text-[15px] font-extrabold text-ink">{title}</Text>
-      <Text className="mt-1 text-[12px] leading-4 text-muted">{body}</Text>
-    </View>
-  );
-}
-
-function CampusRankingState({ text }: { text: string }) {
-  return (
-    <View className="rounded-2xl bg-canvas px-3 py-4">
-      <Text className="text-[13px] font-semibold text-muted">{text}</Text>
     </View>
   );
 }

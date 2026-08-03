@@ -18,6 +18,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 
+import { EmptyState, ErrorState, LoadingState } from '@/components/async-state';
 import { BrandImage } from '@/components/brand-image';
 import { CardStyles } from '@/constants/theme';
 import { type CultureCityData, getCultureCityData } from '@/data/culture';
@@ -40,6 +41,7 @@ export default function QuestsScreen({
   const stableTopInset = useStableTopInset();
   const [approvedQuests, setApprovedQuests] = useState<Quest[]>([]);
   const [questsError, setQuestsError] = useState<string | null>(null);
+  const [questsLoading, setQuestsLoading] = useState(true);
   const [selectedQuest, setSelectedQuest] = useState<Quest | null>(null);
   const quests = useMemo(
     () => applyCompletedQuestState(approvedQuests, completedQuestIds),
@@ -53,11 +55,13 @@ export default function QuestsScreen({
     let active = true;
 
     async function loadQuests() {
+      setQuestsLoading(true);
       const result = await fetchApprovedQuests(cityData.id);
       if (!active) return;
 
       setApprovedQuests(result.quests);
       setQuestsError(result.error);
+      setQuestsLoading(false);
     }
 
     loadQuests();
@@ -99,31 +103,30 @@ export default function QuestsScreen({
             Active paths
           </Text>
 
-          {questsError && (
-            <View className="mb-4 rounded-2xl border border-secondary/20 bg-secondary/10 p-4">
-              <Text className="text-[13px] leading-5 text-muted">
-                Quests could not load yet. Apply the latest Supabase migration if you have not done
-                it.
-              </Text>
+          {questsLoading ? (
+            <LoadingState
+              body={`Loading curated paths for ${cityData.name}.`}
+              style={{ marginBottom: 16 }}
+              title="Loading quests"
+            />
+          ) : questsError ? (
+            <ErrorState
+              body="Apply the latest Supabase migration if you have not done it."
+              style={{ marginBottom: 16 }}
+              title="Quests could not load"
+            />
+          ) : quests.length === 0 ? (
+            <EmptyState
+              body={`CultureQuest-curated paths for ${cityData.name} will appear here after admin review.`}
+              title="No active quests yet"
+            />
+          ) : (
+            <View className="gap-4">
+              {quests.map((quest) => (
+                <QuestCard key={quest.id} quest={quest} onPress={() => setSelectedQuest(quest)} />
+              ))}
             </View>
           )}
-
-          {!questsError && quests.length === 0 && (
-            <View className="rounded-3xl border border-gray-200 bg-white p-5">
-              <Text className="font-heading text-[22px] font-extrabold text-ink">
-                No active quests yet
-              </Text>
-              <Text className="mt-2 text-[13px] leading-5 text-muted">
-                CultureQuest-curated paths for {cityData.name} will appear here after admin review.
-              </Text>
-            </View>
-          )}
-
-          <View className="gap-4">
-            {quests.map((quest) => (
-              <QuestCard key={quest.id} quest={quest} onPress={() => setSelectedQuest(quest)} />
-            ))}
-          </View>
         </View>
       </ScrollView>
 
