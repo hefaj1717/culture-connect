@@ -1,4 +1,5 @@
 import type { CityId, CultureEvent } from '@/data/culture';
+import { getNetworkAwareErrorMessage } from '@/lib/network-errors';
 import { supabase } from '@/lib/supabase';
 
 export type OrganizerProfile = {
@@ -35,7 +36,10 @@ export async function fetchOrganizerProfiles(cityId: CityId) {
     .order('username', { ascending: true });
 
   if (error) {
-    return { error: error.message, profiles: [] as OrganizerProfile[] };
+    return {
+      error: getNetworkAwareErrorMessage(error.message),
+      profiles: [] as OrganizerProfile[],
+    };
   }
 
   return {
@@ -57,7 +61,10 @@ export async function fetchOrganizerProfilesByIds(ids: string[]) {
     .in('id', uniqueIds);
 
   if (error) {
-    return { error: error.message, profiles: [] as OrganizerProfile[] };
+    return {
+      error: getNetworkAwareErrorMessage(error.message),
+      profiles: [] as OrganizerProfile[],
+    };
   }
 
   return {

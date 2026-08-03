@@ -7,6 +7,7 @@ import {
   defaultEventXp,
 } from '@/data/culture';
 import type { PlaceSuggestion } from '@/lib/place-search';
+import { getNetworkAwareErrorMessage } from '@/lib/network-errors';
 import { fetchOrganizerProfilesByIds, type OrganizerProfile } from '@/lib/organizer-profiles';
 import { supabase } from '@/lib/supabase';
 
@@ -103,7 +104,7 @@ export async function fetchOrganizerEvents(cityId: CityId) {
   }
 
   if (error) {
-    return { events: [] as CultureEvent[], error: error.message };
+    return { events: [] as CultureEvent[], error: getNetworkAwareErrorMessage(error.message) };
   }
 
   const rows = (data ?? []) as unknown as OrganizerEventRow[];
@@ -147,7 +148,10 @@ export async function fetchMyOrganizerEvents(userId: string, cityId?: CityId) {
   }
 
   if (error) {
-    return { error: error.message, events: [] as ManagedOrganizerEvent[] };
+    return {
+      error: getNetworkAwareErrorMessage(error.message),
+      events: [] as ManagedOrganizerEvent[],
+    };
   }
 
   const rows = (data ?? []) as unknown as OrganizerEventRow[];
@@ -196,7 +200,7 @@ export async function createOrganizerEvent(userId: string, input: CreateOrganize
     status: 'pending',
   });
 
-  return { error: error?.message ?? null };
+  return { error: getNetworkAwareErrorMessage(error?.message, '') || null };
 }
 
 export async function updateOrganizerEvent(userId: string, input: UpdateOrganizerEventInput) {
@@ -238,7 +242,9 @@ export async function updateOrganizerEvent(userId: string, input: UpdateOrganize
     .select('id,status');
 
   if (error) {
-    return { error: getOrganizerEventUpdateErrorMessage(error.message) };
+    return {
+      error: getNetworkAwareErrorMessage(getOrganizerEventUpdateErrorMessage(error.message)),
+    };
   }
 
   const updatedEvent = data?.[0];
@@ -346,7 +352,7 @@ async function uploadOrganizerEventImage(userId: string, imageUri: string) {
     });
 
     if (error) {
-      return { url: null, error: error.message };
+      return { url: null, error: getNetworkAwareErrorMessage(error.message) };
     }
 
     const { data } = supabase.storage.from(EVENT_IMAGES_BUCKET).getPublicUrl(path);

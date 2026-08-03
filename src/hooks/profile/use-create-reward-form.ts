@@ -3,8 +3,10 @@ import { Alert } from 'react-native';
 
 import { limitText, textLimits } from '@/constants/text-limits';
 import { type CityId } from '@/data/culture';
+import { OFFLINE_ERROR_MESSAGE } from '@/lib/network-errors';
 import { createOrganizerReward } from '@/lib/organizer-rewards';
 import { type PlaceSuggestion, searchPlaces } from '@/lib/place-search';
+import { useNetworkStatus } from '@/providers/network-provider';
 
 type UseCreateRewardFormInput = {
   onRewardCreated?: () => void;
@@ -27,6 +29,7 @@ export function useCreateRewardForm({
   const [rewardXp, setRewardXp] = useState('100');
   const [createRewardError, setCreateRewardError] = useState<string | null>(null);
   const [creatingReward, setCreatingReward] = useState(false);
+  const { isOffline } = useNetworkStatus();
 
   useEffect(() => {
     let active = true;
@@ -39,6 +42,12 @@ export function useCreateRewardForm({
       }
 
       if (rewardPlaceQuery.trim().length < 2) {
+        setRewardPlaceSuggestions([]);
+        setSearchingRewardPlaces(false);
+        return;
+      }
+
+      if (isOffline) {
         setRewardPlaceSuggestions([]);
         setSearchingRewardPlaces(false);
         return;
@@ -57,7 +66,7 @@ export function useCreateRewardForm({
     return () => {
       active = false;
     };
-  }, [rewardPlaceQuery, savedCityId, selectedRewardPlace]);
+  }, [isOffline, rewardPlaceQuery, savedCityId, selectedRewardPlace]);
 
   function resetRewardForm() {
     setRewardTitle('');
@@ -104,6 +113,10 @@ export function useCreateRewardForm({
 
     if (!userId) {
       setCreateRewardError('Log in again before submitting a reward.');
+      return;
+    }
+    if (isOffline) {
+      setCreateRewardError(OFFLINE_ERROR_MESSAGE);
       return;
     }
     if (!normalizedTitle || !normalizedDescription) {

@@ -5,6 +5,7 @@ import { createContext, useCallback, useContext, useEffect, useState, type React
 
 import { limitText, textLimits } from '@/constants/text-limits';
 import { type CityId, defaultCityId } from '@/data/culture';
+import { getNetworkAwareErrorMessage, OFFLINE_ERROR_MESSAGE } from '@/lib/network-errors';
 import { supabase } from '@/lib/supabase';
 
 export type OrganizerApplicationInput = {
@@ -229,11 +230,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [refreshRoles]);
 
   async function signIn(email: string, password: string) {
-    const { error } = await supabase.auth.signInWithPassword({
-      email: email.trim().toLowerCase(),
-      password,
-    });
-    return { error: error?.message ?? null };
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email: email.trim().toLowerCase(),
+        password,
+      });
+      return { error: getNetworkAwareErrorMessage(error?.message, '') || null };
+    } catch {
+      return { error: OFFLINE_ERROR_MESSAGE };
+    }
   }
 
   async function signUp(
@@ -281,67 +286,79 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           }
         : null;
 
-    const { data, error } = await supabase.auth.signUp({
-      email: normalizedEmail,
-      password,
-      options: {
-        emailRedirectTo: getAuthRedirectUrl(),
-        data: {
-          first_name: normalizedFirstName,
-          last_name: normalizedLastName,
-          full_name: fullName,
-          city_id: cityId,
-          requested_role: normalizedOrganizerApplication ? 'organizer_pending' : 'user',
-          organizer_application: normalizedOrganizerApplication,
-          student_university: normalizedStudentUniversity,
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email: normalizedEmail,
+        password,
+        options: {
+          emailRedirectTo: getAuthRedirectUrl(),
+          data: {
+            first_name: normalizedFirstName,
+            last_name: normalizedLastName,
+            full_name: fullName,
+            city_id: cityId,
+            requested_role: normalizedOrganizerApplication ? 'organizer_pending' : 'user',
+            organizer_application: normalizedOrganizerApplication,
+            student_university: normalizedStudentUniversity,
+          },
         },
-      },
-    });
-
-    if (!error && data.session && normalizedStudentUniversity) {
-      await supabase.rpc('upsert_my_university_membership', {
-        _student_email: normalizedStudentUniversity.student_email,
-        _university_id: normalizedStudentUniversity.university_id,
       });
-    }
 
-    return {
-      error: error?.message ?? null,
-      needsConfirmation: !data.session,
-    };
+      if (!error && data.session && normalizedStudentUniversity) {
+        await supabase.rpc('upsert_my_university_membership', {
+          _student_email: normalizedStudentUniversity.student_email,
+          _university_id: normalizedStudentUniversity.university_id,
+        });
+      }
+
+      return {
+        error: getNetworkAwareErrorMessage(error?.message, '') || null,
+        needsConfirmation: !data.session,
+      };
+    } catch {
+      return { error: OFFLINE_ERROR_MESSAGE, needsConfirmation: false };
+    }
   }
 
   async function verifySignUpCode(email: string, token: string) {
     const normalizedEmail = email.trim().toLowerCase();
     const normalizedToken = token.trim();
-    const { error } = await supabase.auth.verifyOtp({
-      email: normalizedEmail,
-      token: normalizedToken,
-      type: 'email',
-    });
+    try {
+      const { error } = await supabase.auth.verifyOtp({
+        email: normalizedEmail,
+        token: normalizedToken,
+        type: 'email',
+      });
 
-    if (!error) {
-      return { error: null };
+      if (!error) {
+        return { error: null };
+      }
+
+      const fallback = await supabase.auth.verifyOtp({
+        email: normalizedEmail,
+        token: normalizedToken,
+        type: 'signup',
+      });
+
+      return { error: getNetworkAwareErrorMessage(fallback.error?.message ?? error.message) };
+    } catch {
+      return { error: OFFLINE_ERROR_MESSAGE };
     }
-
-    const fallback = await supabase.auth.verifyOtp({
-      email: normalizedEmail,
-      token: normalizedToken,
-      type: 'signup',
-    });
-
-    return { error: fallback.error?.message ?? error.message };
   }
 
   async function resendSignUpCode(email: string) {
-    const { error } = await supabase.auth.resend({
-      email: email.trim().toLowerCase(),
-      type: 'signup',
-      options: {
-        emailRedirectTo: getAuthRedirectUrl(),
-      },
-    });
-    return { error: error?.message ?? null };
+    try {
+      const { error } = await supabase.auth.resend({
+        email: email.trim().toLowerCase(),
+        type: 'signup',
+        options: {
+          emailRedirectTo: getAuthRedirectUrl(),
+        },
+      });
+      return { error: getNetworkAwareErrorMessage(error?.message, '') || null };
+    } catch {
+      return { error: OFFLINE_ERROR_MESSAGE };
+    }
   }
 
   async function updateProfile({
@@ -379,69 +396,73 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const normalizedOrganizerLocationAddress = organizerLocationAddress?.trim() || null;
     const fullName = `${normalizedFirstName} ${normalizedLastName}`.trim();
 
-    const { data, error } = await supabase.auth.updateUser({
-      data: {
-        first_name: normalizedFirstName,
-        last_name: normalizedLastName,
-        full_name: fullName,
-        city_id: normalizedCityId,
-        avatar_url: normalizedAvatarUrl,
-        organizer_bio: normalizedOrganizerBio,
-        organizer_location_address: normalizedOrganizerLocationAddress,
-        organizer_location_latitude: organizerLocationLatitude,
-        organizer_location_longitude: organizerLocationLongitude,
-        organizer_location_name: normalizedOrganizerLocationName,
-      },
-    });
-    if (error) {
-      return { error: error.message };
-    }
-
-    if (data.user && session) {
-      setSession({
-        ...session,
-        user: data.user,
+    try {
+      const { data, error } = await supabase.auth.updateUser({
+        data: {
+          first_name: normalizedFirstName,
+          last_name: normalizedLastName,
+          full_name: fullName,
+          city_id: normalizedCityId,
+          avatar_url: normalizedAvatarUrl,
+          organizer_bio: normalizedOrganizerBio,
+          organizer_location_address: normalizedOrganizerLocationAddress,
+          organizer_location_latitude: organizerLocationLatitude,
+          organizer_location_longitude: organizerLocationLongitude,
+          organizer_location_name: normalizedOrganizerLocationName,
+        },
       });
-    }
-
-    const { error: profileError } = await supabase.from('profiles').upsert(
-      {
-        id: session.user.id,
-        username: fullName,
-        first_name: normalizedFirstName,
-        last_name: normalizedLastName,
-        city_key: normalizedCityId,
-        avatar_url: normalizedAvatarUrl,
-        organizer_bio: normalizedOrganizerBio,
-        organizer_location_address: normalizedOrganizerLocationAddress,
-        organizer_location_latitude: organizerLocationLatitude,
-        organizer_location_longitude: organizerLocationLongitude,
-        organizer_location_name: normalizedOrganizerLocationName,
-      },
-      { onConflict: 'id' },
-    );
-
-    if (profileError) {
-      if (!isProfileSchemaCacheError(profileError.message)) {
-        console.warn('Profile metadata saved, but profiles sync failed:', profileError.message);
-        return { error: null };
+      if (error) {
+        return { error: getNetworkAwareErrorMessage(error.message) };
       }
 
-      const { error: fallbackProfileError } = await supabase.from('profiles').upsert(
+      if (data.user && session) {
+        setSession({
+          ...session,
+          user: data.user,
+        });
+      }
+
+      const { error: profileError } = await supabase.from('profiles').upsert(
         {
           id: session.user.id,
           username: fullName,
+          first_name: normalizedFirstName,
+          last_name: normalizedLastName,
+          city_key: normalizedCityId,
           avatar_url: normalizedAvatarUrl,
+          organizer_bio: normalizedOrganizerBio,
+          organizer_location_address: normalizedOrganizerLocationAddress,
+          organizer_location_latitude: organizerLocationLatitude,
+          organizer_location_longitude: organizerLocationLongitude,
+          organizer_location_name: normalizedOrganizerLocationName,
         },
         { onConflict: 'id' },
       );
 
-      if (fallbackProfileError) {
-        console.warn(
-          'Profile metadata saved, but legacy profiles sync failed:',
-          fallbackProfileError.message,
+      if (profileError) {
+        if (!isProfileSchemaCacheError(profileError.message)) {
+          console.warn('Profile metadata saved, but profiles sync failed:', profileError.message);
+          return { error: null };
+        }
+
+        const { error: fallbackProfileError } = await supabase.from('profiles').upsert(
+          {
+            id: session.user.id,
+            username: fullName,
+            avatar_url: normalizedAvatarUrl,
+          },
+          { onConflict: 'id' },
         );
+
+        if (fallbackProfileError) {
+          console.warn(
+            'Profile metadata saved, but legacy profiles sync failed:',
+            fallbackProfileError.message,
+          );
+        }
       }
+    } catch {
+      return { error: OFFLINE_ERROR_MESSAGE };
     }
 
     return { error: null };

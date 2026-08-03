@@ -6,6 +6,7 @@ import {
   type RewardPartner,
 } from '@/data/culture';
 import type { OrganizerEventStatus } from '@/lib/organizer-events';
+import { getNetworkAwareErrorMessage } from '@/lib/network-errors';
 import { supabase } from '@/lib/supabase';
 
 export type PendingAdminEvent = {
@@ -160,8 +161,10 @@ export async function fetchPendingAdminContent() {
 
   if (eventsResult.error || rewardsResult.error) {
     return {
-      error:
-        eventsResult.error?.message ?? rewardsResult.error?.message ?? 'Could not load content.',
+      error: getNetworkAwareErrorMessage(
+        eventsResult.error?.message ?? rewardsResult.error?.message,
+        'Could not load content.',
+      ),
       events: [] as PendingAdminEvent[],
       rewards: [] as PendingAdminReward[],
     };
@@ -225,7 +228,7 @@ export async function fetchAdminManagedEvents() {
   }
 
   if (error) {
-    return { error: error.message, events: [] as AdminManagedEvent[] };
+    return { error: getNetworkAwareErrorMessage(error.message), events: [] as AdminManagedEvent[] };
   }
 
   const rows = (data ?? []) as unknown as AdminManagedEventRow[];
@@ -271,10 +274,10 @@ export async function reviewOrganizerEvent({
       .update(reviewUpdate)
       .eq('id', eventId);
 
-    return { error: fallbackResult.error?.message ?? null };
+    return { error: getNetworkAwareErrorMessage(fallbackResult.error?.message, '') || null };
   }
 
-  return { error: result.error?.message ?? null };
+  return { error: getNetworkAwareErrorMessage(result.error?.message, '') || null };
 }
 
 export async function updateAdminManagedEvent({
@@ -316,13 +319,13 @@ export async function updateAdminManagedEvent({
     })
     .eq('id', eventId);
 
-  return { error: error?.message ?? null };
+  return { error: getNetworkAwareErrorMessage(error?.message, '') || null };
 }
 
 export async function deleteOrganizerEvent({ eventId }: { eventId: string }) {
   const { error } = await supabase.from('organizer_events').delete().eq('id', eventId);
 
-  return { error: error?.message ?? null };
+  return { error: getNetworkAwareErrorMessage(error?.message, '') || null };
 }
 
 export async function reviewOrganizerReward({
@@ -347,7 +350,7 @@ export async function reviewOrganizerReward({
     })
     .eq('id', rewardId);
 
-  return { error: error?.message ?? null };
+  return { error: getNetworkAwareErrorMessage(error?.message, '') || null };
 }
 
 async function fetchOrganizerProfileSummaries(

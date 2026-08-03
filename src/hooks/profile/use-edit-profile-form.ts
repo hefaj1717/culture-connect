@@ -5,11 +5,13 @@ import { Alert } from 'react-native';
 import { limitText, textLimits } from '@/constants/text-limits';
 import { type CityId, defaultCityId } from '@/data/culture';
 import { getUniversityById } from '@/data/universities';
+import { OFFLINE_ERROR_MESSAGE } from '@/lib/network-errors';
 import { type PlaceSuggestion, searchPlaces } from '@/lib/place-search';
 import {
   upsertMyUniversityMembership,
   type UserUniversityMembership,
 } from '@/lib/university-leaderboard';
+import { useNetworkStatus } from '@/providers/network-provider';
 
 type UpdateProfile = (profile: {
   cityId: CityId;
@@ -70,6 +72,7 @@ export function useEditProfileForm({
     useState<PlaceSuggestion | null>(null);
   const [profileError, setProfileError] = useState<string | null>(null);
   const [savingProfile, setSavingProfile] = useState(false);
+  const { isOffline } = useNetworkStatus();
 
   useEffect(() => {
     setFirstName(savedFirstName);
@@ -125,6 +128,12 @@ export function useEditProfileForm({
       return;
     }
 
+    if (isOffline) {
+      setOrganizerLocationSuggestions([]);
+      setSearchingOrganizerLocation(false);
+      return;
+    }
+
     setSearchingOrganizerLocation(true);
     const searchTimer = setTimeout(async () => {
       const suggestions = await searchPlaces(normalizedQuery, cityId);
@@ -138,7 +147,7 @@ export function useEditProfileForm({
       active = false;
       clearTimeout(searchTimer);
     };
-  }, [cityId, organizerLocationQuery, selectedOrganizerLocation?.name]);
+  }, [cityId, isOffline, organizerLocationQuery, selectedOrganizerLocation?.name]);
 
   function openEditProfile() {
     setProfileError(null);
@@ -235,6 +244,11 @@ export function useEditProfileForm({
 
     if (!normalizedFirstName || !normalizedLastName) {
       setProfileError('Please enter your first and last name.');
+      return;
+    }
+
+    if (isOffline) {
+      setProfileError(OFFLINE_ERROR_MESSAGE);
       return;
     }
 
