@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Building2, Check } from 'lucide-react-native';
+import { Building2, Check, GraduationCap } from 'lucide-react-native';
 import {
   ActivityIndicator,
   findNodeHandle,
@@ -20,6 +20,7 @@ import { CitySelector } from '@/components/city-selector';
 import { FormFieldError } from '@/components/form-field-error';
 import { limitText, textLimits } from '@/constants/text-limits';
 import { type CityId, defaultCityId } from '@/data/culture';
+import { getUniversitiesForCity } from '@/data/universities';
 import {
   type AuthFieldErrors,
   type AuthValidationInput,
@@ -81,6 +82,7 @@ export function AuthScreen() {
   const websiteUrlRef = useRef<TextInput>(null);
   const contactRoleRef = useRef<TextInput>(null);
   const organizerNoteRef = useRef<TextInput>(null);
+  const studentEmailRef = useRef<TextInput>(null);
   const emailRef = useRef<TextInput>(null);
   const passwordRef = useRef<TextInput>(null);
   const [mode, setMode] = useState<'signIn' | 'signUp' | 'confirmSignUp'>('signIn');
@@ -91,6 +93,9 @@ export function AuthScreen() {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [cityId, setCityId] = useState<CityId>(defaultCityId);
+  const [isStudent, setIsStudent] = useState(false);
+  const [selectedUniversityId, setSelectedUniversityId] = useState('');
+  const [studentEmail, setStudentEmail] = useState('');
   const [applyAsOrganizer, setApplyAsOrganizer] = useState(false);
   const [institutionName, setInstitutionName] = useState('');
   const [institutionType, setInstitutionType] = useState(organizerTypes[0].key);
@@ -108,10 +113,20 @@ export function AuthScreen() {
     email: mode === 'confirmSignUp' ? pendingEmail || email : email,
     firstName,
     institutionName,
+    isStudent,
     lastName,
     mode,
     password,
+    studentEmail,
+    universityId: selectedUniversityId,
   };
+  const cityUniversities = getUniversitiesForCity(cityId);
+  const selectedUniversity = cityUniversities.find(
+    (university) => university.id === selectedUniversityId,
+  );
+  const studentEmailExample = selectedUniversity?.domains[0]
+    ? `name.surname@${selectedUniversity.domains[0]}`
+    : 'name.surname@student.university.edu';
 
   function keepInputAboveKeyboard(inputRef: React.RefObject<TextInput | null>) {
     setTimeout(() => {
@@ -194,6 +209,13 @@ export function AuthScreen() {
             websiteUrl: limitText(websiteUrl.trim(), textLimits.websiteUrl),
             contactRole: limitText(contactRole.trim(), textLimits.organizerRole),
             note: limitText(organizerNote.trim(), textLimits.organizerNote),
+          }
+        : null,
+      isStudent
+        ? {
+            isStudent: true,
+            studentEmail: limitText(studentEmail.trim().toLowerCase(), textLimits.email),
+            universityId: selectedUniversityId,
           }
         : null,
     );
@@ -403,9 +425,116 @@ export function AuthScreen() {
                     onChange={(nextCityId) => {
                       Keyboard.dismiss();
                       setCityId(nextCityId);
+                      setSelectedUniversityId('');
                     }}
                   />
                 </View>
+
+                <Pressable
+                  accessibilityRole="checkbox"
+                  accessibilityState={{ checked: isStudent }}
+                  accessibilityLabel="I am a student"
+                  onPress={() => {
+                    Keyboard.dismiss();
+                    setIsStudent((current) => {
+                      const next = !current;
+                      if (!next) {
+                        setSelectedUniversityId('');
+                        setStudentEmail('');
+                      }
+                      return next;
+                    });
+                  }}
+                  className={`mb-4 flex-row items-center gap-3 rounded-xl border p-4 active:opacity-85 ${
+                    isStudent ? 'border-primary bg-primary/10' : 'border-gray-300 bg-white'
+                  }`}
+                >
+                  <View
+                    className={`h-7 w-7 items-center justify-center rounded-full ${
+                      isStudent ? 'bg-primary' : 'bg-gray-200'
+                    }`}
+                  >
+                    {isStudent ? (
+                      <Check size={16} color="white" strokeWidth={2.7} />
+                    ) : (
+                      <GraduationCap size={15} color="#756F7B" strokeWidth={2.4} />
+                    )}
+                  </View>
+                  <View className="flex-1">
+                    <Text className="text-[14px] font-bold text-ink">I am a student</Text>
+                    <Text className="mt-0.5 text-[12px] leading-4 text-muted">
+                      Choose your university to contribute XP to the campus ranking.
+                    </Text>
+                  </View>
+                </Pressable>
+
+                {isStudent && (
+                  <View className="mb-4 rounded-2xl border border-primary/10 bg-primary/5 p-4">
+                    <Text className="mb-3 text-[13px] font-semibold text-ink">
+                      Student affiliation
+                    </Text>
+                    <View className="mb-3 gap-2">
+                      {cityUniversities.map((university) => {
+                        const active = selectedUniversityId === university.id;
+
+                        return (
+                          <Pressable
+                            key={university.id}
+                            accessibilityRole="radio"
+                            accessibilityState={{ checked: active }}
+                            accessibilityLabel={`University: ${university.name}`}
+                            onPress={() => {
+                              Keyboard.dismiss();
+                              setSelectedUniversityId(university.id);
+                              clearFieldError('universityId');
+                            }}
+                            className={`rounded-xl border px-3 py-2.5 active:opacity-85 ${
+                              active ? 'border-primary bg-white' : 'border-gray-200 bg-white/70'
+                            }`}
+                          >
+                            <Text
+                              className={`text-[13px] font-semibold ${
+                                active ? 'text-primary' : 'text-ink'
+                              }`}
+                            >
+                              {university.shortName}
+                            </Text>
+                            <Text className="mt-0.5 text-[11px] leading-4 text-muted">
+                              {university.name}
+                            </Text>
+                          </Pressable>
+                        );
+                      })}
+                    </View>
+                    <FormFieldError message={fieldErrors.universityId} />
+                    <AuthInput
+                      inputRef={studentEmailRef}
+                      value={studentEmail}
+                      onChangeText={(value) => {
+                        setStudentEmail(limitText(value, textLimits.email));
+                        clearFieldError('studentEmail');
+                      }}
+                      maxLength={textLimits.email}
+                      placeholder="Student email"
+                      placeholderTextColor="#8B909A"
+                      autoCapitalize="none"
+                      keyboardType="email-address"
+                      textContentType="emailAddress"
+                      autoComplete="email"
+                      returnKeyType="next"
+                      blurOnSubmit={false}
+                      onFocus={() => keepInputAboveKeyboard(studentEmailRef)}
+                      onBlur={() => handleFieldBlur('studentEmail')}
+                      onSubmitEditing={() => emailRef.current?.focus()}
+                      className="mb-2 rounded-xl border border-gray-300 bg-white px-4 py-3 text-[15px] text-ink"
+                    />
+                    <FormFieldError message={fieldErrors.studentEmail} />
+                    <Text className="text-[11px] leading-4 text-muted">
+                      Example: {studentEmailExample}. Email verification will be enabled after
+                      CultureQuest has a domain and sending setup.
+                    </Text>
+                  </View>
+                )}
 
                 <Pressable
                   accessibilityRole="checkbox"

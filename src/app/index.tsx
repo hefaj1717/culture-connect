@@ -18,6 +18,7 @@ import {
 import { getEventEngagement } from '@/lib/event-engagement';
 import type { UserEventStatus } from '@/lib/event-history';
 import { useStableTopInset } from '@/hooks/use-stable-safe-area';
+import type { UniversityLeaderboardRow } from '@/lib/university-leaderboard';
 import type { OrganizerApplicationStatus } from '@/providers/auth-provider';
 
 type HomeScreenProps = {
@@ -28,6 +29,9 @@ type HomeScreenProps = {
   eventsError?: string | null;
   eventsLoading?: boolean;
   eventStatuses?: Record<string, UserEventStatus>;
+  leaderboard?: UniversityLeaderboardRow[];
+  leaderboardError?: string | null;
+  leaderboardLoading?: boolean;
   organizerApplicationStatus?: OrganizerApplicationStatus;
   onOpenDiscover?: () => void;
   onOpenEvent?: (eventId: string) => void;
@@ -42,6 +46,9 @@ export default function HomeScreen({
   eventsError = null,
   eventsLoading = false,
   eventStatuses = {},
+  leaderboard = [],
+  leaderboardError = null,
+  leaderboardLoading = false,
   organizerApplicationStatus = 'none',
   onOpenDiscover,
   onOpenEvent,
@@ -364,6 +371,64 @@ export default function HomeScreen({
         <View className="bg-white px-5 pb-8">
           <View className="mb-3 flex-row items-center justify-between">
             <Text className="text-[11px] font-semibold uppercase tracking-wide text-muted">
+              Campus ranking
+            </Text>
+            <Text className="text-[11px] font-semibold text-primary">{cityData.name}</Text>
+          </View>
+
+          <View
+            className="overflow-hidden rounded-3xl border border-primary/10 bg-white"
+            style={CardStyles.elevated}
+          >
+            <LinearGradient
+              colors={['#241C2E', '#4C1D95']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={{ paddingHorizontal: 16, paddingVertical: 16 }}
+            >
+              <Text className="font-heading text-[25px] leading-[29px] text-white">
+                University leaderboard
+              </Text>
+              <Text className="mt-1 text-[12px] leading-4 text-white/70">
+                XP counts only for students linked to a university.
+              </Text>
+            </LinearGradient>
+
+            <View className="gap-2 p-3">
+              {leaderboardLoading ? (
+                <CampusRankingState text="Loading universities..." />
+              ) : leaderboardError ? (
+                <CampusRankingState text="Leaderboard could not load from Supabase." />
+              ) : (
+                leaderboard.slice(0, 5).map((row) => (
+                  <View
+                    key={row.universityId}
+                    className="flex-row items-center gap-3 rounded-2xl bg-canvas px-3 py-3"
+                  >
+                    <View className="h-9 w-9 items-center justify-center rounded-full bg-primary/10">
+                      <Text className="text-[13px] font-extrabold text-primary">#{row.rank}</Text>
+                    </View>
+                    <View className="min-w-0 flex-1">
+                      <Text className="text-[14px] font-extrabold text-ink" numberOfLines={1}>
+                        {row.shortName}
+                      </Text>
+                      <Text className="mt-0.5 text-[11px] text-muted" numberOfLines={1}>
+                        {row.memberCount} linked student{row.memberCount === 1 ? '' : 's'}
+                      </Text>
+                    </View>
+                    <Text className="font-heading text-[20px] leading-[24px] text-accentDeep">
+                      {row.totalXp.toLocaleString()}
+                    </Text>
+                  </View>
+                ))
+              )}
+            </View>
+          </View>
+        </View>
+
+        <View className="bg-white px-5 pb-8">
+          <View className="mb-3 flex-row items-center justify-between">
+            <Text className="text-[11px] font-semibold uppercase tracking-wide text-muted">
               City activity
             </Text>
             <Text className="text-[11px] font-semibold text-primary">Approved events only</Text>
@@ -651,6 +716,14 @@ function HomeEventStateCard({ body, title }: { body: string; title: string }) {
     >
       <Text className="font-ui text-[15px] font-extrabold text-ink">{title}</Text>
       <Text className="mt-1 text-[12px] leading-4 text-muted">{body}</Text>
+    </View>
+  );
+}
+
+function CampusRankingState({ text }: { text: string }) {
+  return (
+    <View className="rounded-2xl bg-canvas px-3 py-4">
+      <Text className="text-[13px] font-semibold text-muted">{text}</Text>
     </View>
   );
 }

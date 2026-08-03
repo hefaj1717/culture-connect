@@ -6,6 +6,7 @@ import {
   Clock,
   Edit3,
   Gift,
+  GraduationCap,
   LogOut,
   MapPin,
   Settings,
@@ -48,6 +49,7 @@ import { getEventEngagement } from '@/lib/event-engagement';
 import type { UserEventHistoryItem, UserEventStatus } from '@/lib/event-history';
 import type { ManagedOrganizerEvent, OrganizerEventStatus } from '@/lib/organizer-events';
 import type { ManagedOrganizerReward, OrganizerRewardStatus } from '@/lib/organizer-rewards';
+import type { UserUniversityMembership } from '@/lib/university-leaderboard';
 
 type OrganizerStatus = 'none' | 'pending' | 'approved' | 'rejected';
 type ActivityHistoryFilter = 'all' | UserEventStatus;
@@ -170,6 +172,71 @@ export function ProfileRankCard({
           </View>
         </View>
         <XpProgressBar progressPercent={levelProgress.progressPercent} />
+      </View>
+    </View>
+  );
+}
+
+type UniversityAffiliationSectionProps = {
+  membership: UserUniversityMembership | null;
+};
+
+export function UniversityAffiliationSection({ membership }: UniversityAffiliationSectionProps) {
+  if (!membership) {
+    return (
+      <View
+        className="mx-5 mb-7 rounded-3xl border border-gray-200 bg-white px-4 py-4"
+        style={CardStyles.compact}
+      >
+        <View className="flex-row items-center gap-3">
+          <View className="h-12 w-12 items-center justify-center rounded-2xl bg-primary/10">
+            <GraduationCap size={22} color={Colors.light.primary} strokeWidth={2.4} />
+          </View>
+          <View className="min-w-0 flex-1">
+            <Text className="font-ui text-[15px] font-extrabold text-ink">
+              No university linked
+            </Text>
+            <Text className="mt-0.5 text-[12px] leading-4 text-muted">
+              Add a student email later to contribute XP to the campus ranking.
+            </Text>
+          </View>
+        </View>
+      </View>
+    );
+  }
+
+  return (
+    <View
+      className="mx-5 mb-7 rounded-3xl border border-primary/10 bg-primary/5 px-4 py-4"
+      style={CardStyles.compact}
+    >
+      <View className="flex-row items-center gap-3">
+        <View className="h-12 w-12 items-center justify-center rounded-2xl bg-primary">
+          <GraduationCap size={22} color="white" strokeWidth={2.4} />
+        </View>
+        <View className="min-w-0 flex-1">
+          <View className="mb-1 flex-row items-center gap-2">
+            <Text className="text-[11px] font-extrabold uppercase tracking-wide text-primary">
+              Campus ranking
+            </Text>
+            <View className="rounded-full bg-white px-2 py-0.5">
+              <Text className="text-[10px] font-extrabold text-muted">
+                {membership.status === 'verified' ? 'Verified' : 'Pending'}
+              </Text>
+            </View>
+          </View>
+          <Text className="font-ui text-[15px] font-extrabold text-ink" numberOfLines={1}>
+            {membership.shortName}
+          </Text>
+          <Text className="mt-0.5 text-[12px] leading-4 text-muted" numberOfLines={1}>
+            {membership.studentEmail}
+          </Text>
+          {membership.status !== 'verified' && (
+            <Text className="mt-1 text-[11px] leading-4 text-muted">
+              Student email confirmation will be enabled after the email domain setup.
+            </Text>
+          )}
+        </View>
       </View>
     </View>
   );

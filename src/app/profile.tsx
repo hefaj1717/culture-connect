@@ -24,6 +24,7 @@ import {
   UserActivitySection,
   RewardsListModal,
   RewardsSection,
+  UniversityAffiliationSection,
 } from '@/components/profile/profile-sections';
 import { RewardDetailModal } from '@/components/profile/reward-detail-modal';
 import { type CityId, type RewardPartner, defaultCityId, getCultureCityData } from '@/data/culture';
@@ -42,6 +43,10 @@ import {
   fetchOrganizerRewards,
   type ManagedOrganizerReward,
 } from '@/lib/organizer-rewards';
+import {
+  fetchMyUniversityMembership,
+  type UserUniversityMembership,
+} from '@/lib/university-leaderboard';
 import { useAuth } from '@/providers/auth-provider';
 
 type ProfileScreenProps = {
@@ -327,6 +332,9 @@ export default function ProfileScreen({
   const [organizerHistoryOpen, setOrganizerHistoryOpen] = useState(false);
   const [organizerRewardsHistoryOpen, setOrganizerRewardsHistoryOpen] = useState(false);
   const [rewardsListOpen, setRewardsListOpen] = useState(false);
+  const [universityMembership, setUniversityMembership] = useState<UserUniversityMembership | null>(
+    null,
+  );
   const [selectedBadge, setSelectedBadge] = useState<(typeof achievementBadges)[number] | null>(
     null,
   );
@@ -498,6 +506,28 @@ export default function ProfileScreen({
   useEffect(() => {
     let active = true;
 
+    async function loadUniversityMembership() {
+      if (!session?.user.id) {
+        setUniversityMembership(null);
+        return;
+      }
+
+      const result = await fetchMyUniversityMembership();
+      if (!active) return;
+
+      setUniversityMembership(result.membership);
+    }
+
+    loadUniversityMembership();
+
+    return () => {
+      active = false;
+    };
+  }, [session?.user.id]);
+
+  useEffect(() => {
+    let active = true;
+
     async function loadApprovedRewards() {
       const result = await fetchOrganizerRewards(savedCityId);
       if (!active) return;
@@ -653,6 +683,8 @@ export default function ProfileScreen({
           organizerStatus={organizerApplicationStatus}
           userXp={userXp}
         />
+
+        <UniversityAffiliationSection membership={universityMembership} />
 
         <RewardsSection
           cityName={cityData.name}

@@ -29,6 +29,10 @@ import { updateEventEngagementCounts } from '@/lib/event-engagement';
 import { fetchOrganizerEvents } from '@/lib/organizer-events';
 import { completeQuest, fetchCompletedQuestIds } from '@/lib/quest-completions';
 import { confirmOrganizerEventAttendance, fetchUserXp } from '@/lib/profile-xp';
+import {
+  fetchUniversityLeaderboard,
+  type UniversityLeaderboardRow,
+} from '@/lib/university-leaderboard';
 import { useAuth } from '@/providers/auth-provider';
 
 const ACTIVE = Colors.light.primary;
@@ -70,6 +74,11 @@ function AuthenticatedTabs() {
   const [approvedEventsError, setApprovedEventsError] = useState<string | null>(null);
   const [approvedEventsLoading, setApprovedEventsLoading] = useState(true);
   const [userXp, setUserXp] = useState(0);
+  const [universityLeaderboard, setUniversityLeaderboard] = useState<UniversityLeaderboardRow[]>(
+    [],
+  );
+  const [universityLeaderboardError, setUniversityLeaderboardError] = useState<string | null>(null);
+  const [universityLeaderboardLoading, setUniversityLeaderboardLoading] = useState(true);
   const [checkedInEventIds, setCheckedInEventIds] = useState<string[]>([]);
   const [eventStatuses, setEventStatuses] = useState<Record<string, UserEventStatus>>({});
   const [completedQuestIds, setCompletedQuestIds] = useState<string[]>([]);
@@ -117,6 +126,26 @@ function AuthenticatedTabs() {
       active = false;
     };
   }, [cityData.id, organizerEventsVersion]);
+
+  useEffect(() => {
+    let active = true;
+
+    async function loadUniversityLeaderboard() {
+      setUniversityLeaderboardLoading(true);
+      const result = await fetchUniversityLeaderboard(cityData.id);
+      if (!active) return;
+
+      setUniversityLeaderboard(result.rows);
+      setUniversityLeaderboardError(result.error);
+      setUniversityLeaderboardLoading(false);
+    }
+
+    loadUniversityLeaderboard();
+
+    return () => {
+      active = false;
+    };
+  }, [cityData.id, userXp]);
 
   useEffect(() => {
     const userId = user?.id;
@@ -309,6 +338,9 @@ function AuthenticatedTabs() {
               eventsError={approvedEventsError}
               eventsLoading={approvedEventsLoading}
               eventStatuses={eventStatuses}
+              leaderboard={universityLeaderboard}
+              leaderboardError={universityLeaderboardError}
+              leaderboardLoading={universityLeaderboardLoading}
               organizerApplicationStatus={organizerApplicationStatus}
               onOpenDiscover={() => goToTab(1)}
               onOpenEvent={openDiscoverEvent}
