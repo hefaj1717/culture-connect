@@ -12,6 +12,7 @@ import { CreateRewardModal } from '@/components/profile/create-reward-modal';
 import { EditProfileModal } from '@/components/profile/edit-profile-modal';
 import {
   AccountActionsModal,
+  AdminXpAuditModal,
   AdminToolsSection,
   DigitalPassportSection,
   OrganizerEventHistoryModal,
@@ -25,6 +26,7 @@ import {
   RewardsListModal,
   RewardsSection,
   UniversityAffiliationSection,
+  XpHistorySection,
 } from '@/components/profile/profile-sections';
 import { RewardDetailModal } from '@/components/profile/reward-detail-modal';
 import { type CityId, type RewardPartner, defaultCityId, getCultureCityData } from '@/data/culture';
@@ -47,6 +49,7 @@ import {
   fetchMyUniversityMembership,
   type UserUniversityMembership,
 } from '@/lib/university-leaderboard';
+import { fetchXpTransactions, type XpTransaction } from '@/lib/xp-transactions';
 import { useAuth } from '@/providers/auth-provider';
 
 type ProfileScreenProps = {
@@ -121,6 +124,13 @@ export default function ProfileScreen({
   const [universityMembership, setUniversityMembership] = useState<UserUniversityMembership | null>(
     null,
   );
+  const [xpTransactions, setXpTransactions] = useState<XpTransaction[]>([]);
+  const [xpTransactionsError, setXpTransactionsError] = useState<string | null>(null);
+  const [xpTransactionsLoading, setXpTransactionsLoading] = useState(false);
+  const [adminXpAuditOpen, setAdminXpAuditOpen] = useState(false);
+  const [adminXpTransactions, setAdminXpTransactions] = useState<XpTransaction[]>([]);
+  const [adminXpTransactionsError, setAdminXpTransactionsError] = useState<string | null>(null);
+  const [adminXpTransactionsLoading, setAdminXpTransactionsLoading] = useState(false);
   const savedAvatarUrl = session?.user.user_metadata?.avatar_url || null;
   const levelProgress = getXpLevelProgress(userXp);
   const editProfileForm = useEditProfileForm({
@@ -537,6 +547,35 @@ export default function ProfileScreen({
   }, [session?.user.id]);
 
   useEffect(() => {
+    const userId = session?.user.id;
+
+    if (!userId) {
+      setXpTransactions([]);
+      setXpTransactionsError(null);
+      setXpTransactionsLoading(false);
+      return;
+    }
+
+    let active = true;
+
+    async function loadXpTransactions() {
+      setXpTransactionsLoading(true);
+      const result = await fetchXpTransactions({ limit: 5, userId });
+      if (!active) return;
+
+      setXpTransactions(result.transactions);
+      setXpTransactionsError(result.error);
+      setXpTransactionsLoading(false);
+    }
+
+    loadXpTransactions();
+
+    return () => {
+      active = false;
+    };
+  }, [session?.user.id, userXp]);
+
+  useEffect(() => {
     let active = true;
 
     async function loadApprovedRewards() {
@@ -685,6 +724,21 @@ export default function ProfileScreen({
     });
   }
 
+  async function openAdminXpAudit() {
+    setAdminXpAuditOpen(true);
+    await refreshAdminXpAudit();
+  }
+
+  async function refreshAdminXpAudit() {
+    if (!isAdmin) return;
+
+    setAdminXpTransactionsLoading(true);
+    const result = await fetchXpTransactions({ limit: 60 });
+    setAdminXpTransactions(result.transactions);
+    setAdminXpTransactionsError(result.error);
+    setAdminXpTransactionsLoading(false);
+  }
+
   return (
     <View className="flex-1 bg-white">
       <ScrollView
@@ -704,6 +758,12 @@ export default function ProfileScreen({
         />
 
         <UniversityAffiliationSection membership={universityMembership} />
+
+        <XpHistorySection
+          error={xpTransactionsError}
+          loading={xpTransactionsLoading}
+          transactions={xpTransactions}
+        />
 
         <RewardsSection
           cityName={cityData.name}
@@ -736,6 +796,7 @@ export default function ProfileScreen({
           <AdminToolsSection
             onCreateQuest={openCreateQuest}
             onManageEvents={openAdminManageEvents}
+            onOpenXpAudit={openAdminXpAudit}
             onOpenReview={openAdminReview}
             pendingCount={pendingEvents.length + pendingRewards.length}
           />
@@ -949,6 +1010,16 @@ export default function ProfileScreen({
         savingEventId={savingManagedEventId}
         stableModalTopInset={stableModalTopInset}
         visible={adminManageEventsOpen}
+      />
+
+      <AdminXpAuditModal
+        error={adminXpTransactionsError}
+        loading={adminXpTransactionsLoading}
+        onClose={() => setAdminXpAuditOpen(false)}
+        onRefresh={refreshAdminXpAudit}
+        stableModalTopInset={stableModalTopInset}
+        transactions={adminXpTransactions}
+        visible={adminXpAuditOpen}
       />
 
       <BadgesModal
