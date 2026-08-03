@@ -9,6 +9,7 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AuthScreen } from '@/components/auth-screen';
 import ExploreScreen from '@/app/explore';
@@ -34,6 +35,7 @@ import {
   type UniversityLeaderboardRow,
 } from '@/lib/university-leaderboard';
 import { useAuth } from '@/providers/auth-provider';
+import { useResponsiveLayout } from '@/hooks/use-responsive-layout';
 
 const ACTIVE = Colors.light.primary;
 const INACTIVE = '#7D8594';
@@ -65,6 +67,8 @@ export default function AppTabs() {
 
 function AuthenticatedTabs() {
   const { width } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
+  const layout = useResponsiveLayout();
   const { organizerApplicationStatus, user } = useAuth();
   const [activeIndex, setActiveIndex] = useState(0);
   const [organizerEventsVersion, setOrganizerEventsVersion] = useState(0);
@@ -393,9 +397,9 @@ function AuthenticatedTabs() {
 
       <View
         style={{
-          height: 84,
+          height: layout.tabHeight + Math.max(0, insets.bottom - 18),
           paddingTop: 8,
-          paddingBottom: 18,
+          paddingBottom: Math.max(14, insets.bottom),
           borderTopWidth: 1,
           borderTopColor: '#E5E7EB',
           backgroundColor: '#FFFFFF',
@@ -415,6 +419,8 @@ function AuthenticatedTabs() {
             />
           }
           label="Home"
+          labelSize={layout.tabLabelSize}
+          minWidth={layout.tabMinWidth}
           position={1}
           onPress={() => goToTab(0)}
         />
@@ -429,6 +435,8 @@ function AuthenticatedTabs() {
             />
           }
           label="Discover"
+          labelSize={layout.tabLabelSize}
+          minWidth={layout.tabMinWidth}
           position={2}
           onPress={() => goToTab(1)}
         />
@@ -443,6 +451,8 @@ function AuthenticatedTabs() {
             />
           }
           label="Quests"
+          labelSize={layout.tabLabelSize}
+          minWidth={layout.tabMinWidth}
           position={3}
           onPress={() => goToTab(2)}
         />
@@ -457,6 +467,8 @@ function AuthenticatedTabs() {
             />
           }
           label="Profile"
+          labelSize={layout.tabLabelSize}
+          minWidth={layout.tabMinWidth}
           position={4}
           onPress={() => goToTab(3)}
         />
@@ -493,12 +505,16 @@ function TabButton({
   active,
   icon,
   label,
+  labelSize,
+  minWidth,
   onPress,
   position,
 }: {
   active: boolean;
   icon: React.ReactNode;
   label: string;
+  labelSize: number;
+  minWidth: number;
   onPress: () => void;
   position: number;
 }) {
@@ -509,14 +525,15 @@ function TabButton({
       accessibilityRole="tab"
       accessibilityState={{ selected: active }}
       onPress={onPress}
-      className="min-w-[72px] items-center justify-center gap-1"
+      className="items-center justify-center gap-1"
+      style={{ minWidth }}
     >
       {icon}
       <Text
         style={{
           color: active ? ACTIVE : INACTIVE,
           fontFamily: FontTokens.ui,
-          fontSize: 13,
+          fontSize: labelSize,
           fontWeight: '700',
         }}
       >

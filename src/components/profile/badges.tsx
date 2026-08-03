@@ -24,18 +24,23 @@ export type AchievementBadge = {
 
 export function PassportBadge({
   badge,
+  itemWidth = 104,
   onPress,
 }: {
   badge: AchievementBadge;
+  itemWidth?: number;
   onPress: () => void;
 }) {
   return (
     <Pressable
       onPress={onPress}
-      className={`w-[104px] rounded-3xl border p-3 active:opacity-80 ${
+      className={`rounded-3xl border p-3 active:opacity-80 ${
         badge.unlocked ? 'border-white bg-white' : 'border-gray-200 bg-gray-100'
       }`}
-      style={badge.unlocked ? { boxShadow: '0 10px 20px rgba(36, 28, 46, 0.10)' } : undefined}
+      style={[
+        { width: itemWidth },
+        badge.unlocked ? { boxShadow: '0 10px 20px rgba(36, 28, 46, 0.10)' } : undefined,
+      ]}
     >
       <BadgeIcon badge={badge} className="mb-3 h-14 w-14 rounded-2xl" iconSize={25} />
       <Text

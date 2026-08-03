@@ -18,6 +18,7 @@ import {
 } from '@/data/culture';
 import { getEventEngagement } from '@/lib/event-engagement';
 import type { UserEventStatus } from '@/lib/event-history';
+import { useResponsiveLayout } from '@/hooks/use-responsive-layout';
 import { useStableTopInset } from '@/hooks/use-stable-safe-area';
 import type { UniversityLeaderboardRow } from '@/lib/university-leaderboard';
 import type { OrganizerApplicationStatus } from '@/providers/auth-provider';
@@ -56,6 +57,7 @@ export default function HomeScreen({
   onOpenProfile,
 }: HomeScreenProps) {
   const stableTopInset = useStableTopInset();
+  const layout = useResponsiveLayout();
   const [canShowUserLocation, setCanShowUserLocation] = useState(false);
   const happeningNow = events.slice(0, 3);
   const activitySpots = useMemo(() => {
@@ -207,7 +209,7 @@ export default function HomeScreen({
         contentContainerStyle={{ paddingBottom: 104 }}
         showsVerticalScrollIndicator={false}
       >
-        <View className="h-[520px] overflow-hidden bg-ink">
+        <View className="overflow-hidden bg-ink" style={{ height: layout.heroHeight }}>
           <BrandImage
             source={getHeroImageSource(cityData.heroImage)}
             contentFit="cover"
@@ -256,10 +258,19 @@ export default function HomeScreen({
           </View>
 
           <View className="absolute bottom-0 left-0 right-0 px-6 pb-7">
-            <Text className="mb-2 font-display text-[42px] font-extrabold leading-[45px] text-white">
+            <Text
+              className="mb-2 font-display font-extrabold text-white"
+              style={{
+                fontSize: layout.isSmallPhone ? 36 : 42,
+                lineHeight: layout.isSmallPhone ? 39 : 45,
+              }}
+            >
               {cityData.heroTitle}
             </Text>
-            <Text className="mb-4 max-w-[310px] text-[15px] leading-5 text-white/75">
+            <Text
+              className="mb-4 text-[15px] leading-5 text-white/75"
+              style={{ maxWidth: Math.min(310, layout.usableWidth) }}
+            >
               {cityData.heroSubtitle}
             </Text>
 
@@ -296,32 +307,32 @@ export default function HomeScreen({
               <LoadingState
                 body={`Checking approved events for ${cityData.name}.`}
                 compact
-                style={{ width: 260 }}
+                style={{ width: layout.stateCardWidth }}
                 title="Loading events"
               />
             ) : eventsError ? (
               <ErrorState
                 body="Check your Supabase connection or apply the latest migrations, then refresh the app."
                 compact
-                style={{ width: 260 }}
+                style={{ width: layout.stateCardWidth }}
                 title="Events could not load"
               />
             ) : happeningNow.length === 0 ? (
               <EmptyState
                 body={`Approved organizer events for ${cityData.name} will appear here.`}
                 compact
-                style={{ width: 260 }}
+                style={{ width: layout.stateCardWidth }}
                 title="No approved events yet"
               />
             ) : (
               happeningNow.map((event) => (
                 <Pressable
                   onPress={() => onOpenEvent?.(event.id)}
-                  className="w-[220px] overflow-hidden rounded-2xl border border-primary/10 bg-white active:opacity-85"
-                  style={CardStyles.compact}
+                  className="overflow-hidden rounded-2xl border border-primary/10 bg-white active:opacity-85"
+                  style={[CardStyles.compact, { width: layout.cardWidth }]}
                   key={event.id}
                 >
-                  <View className="h-[112px] bg-gray-200">
+                  <View className="bg-gray-200" style={{ height: layout.eventImageHeight }}>
                     <BrandImage
                       source={getEventImageSource(event)}
                       contentFit="cover"

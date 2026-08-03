@@ -51,6 +51,7 @@ import type { UserEventHistoryItem, UserEventStatus } from '@/lib/event-history'
 import type { ManagedOrganizerEvent, OrganizerEventStatus } from '@/lib/organizer-events';
 import type { ManagedOrganizerReward, OrganizerRewardStatus } from '@/lib/organizer-rewards';
 import type { UserUniversityMembership } from '@/lib/university-leaderboard';
+import { useResponsiveLayout } from '@/hooks/use-responsive-layout';
 
 type OrganizerStatus = 'none' | 'pending' | 'approved' | 'rejected';
 type ActivityHistoryFilter = 'all' | UserEventStatus;
@@ -109,6 +110,8 @@ export function ProfileRankCard({
   organizerStatus,
   userXp,
 }: ProfileRankCardProps) {
+  const layout = useResponsiveLayout();
+
   return (
     <View
       className="mx-5 mb-5 rounded-[28px] border border-gray-200 bg-white p-4"
@@ -124,8 +127,14 @@ export function ProfileRankCard({
         <View className="min-w-0 flex-1">
           <View className="mb-1 flex-row items-start justify-between gap-2">
             <Text
-              className="min-w-0 flex-1 font-heading text-[34px] font-extrabold leading-[37px] text-ink"
+              className="min-w-0 flex-1 font-heading font-extrabold text-ink"
               numberOfLines={2}
+              adjustsFontSizeToFit
+              minimumFontScale={0.82}
+              style={{
+                fontSize: layout.profileNameSize,
+                lineHeight: layout.profileNameLineHeight,
+              }}
             >
               {fullName}
             </Text>
@@ -384,6 +393,9 @@ export function DigitalPassportSection({
   onOpenAll,
   onOpenBadge,
 }: DigitalPassportSectionProps) {
+  const layout = useResponsiveLayout();
+  const badgeWidth = Math.min(112, Math.max(96, layout.usableWidth * 0.28));
+
   return (
     <View className="mb-8 mt-2">
       <View className="mb-4 flex-row items-center justify-between px-5">
@@ -400,6 +412,7 @@ export function DigitalPassportSection({
         {badges.slice(0, 8).map((badge) => (
           <PassportBadge
             badge={badge}
+            itemWidth={badgeWidth}
             key={badge.id}
             onPress={() => {
               onOpenBadge(badge);

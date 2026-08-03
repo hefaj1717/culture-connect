@@ -53,6 +53,7 @@ import {
   type OrganizerProfile,
 } from '@/lib/organizer-profiles';
 import { useStableTopInset } from '@/hooks/use-stable-safe-area';
+import { useResponsiveLayout } from '@/hooks/use-responsive-layout';
 import type { UserEventStatus } from '@/lib/event-history';
 import { useAuth } from '@/providers/auth-provider';
 
@@ -97,6 +98,7 @@ export default function ExploreScreen({
 }: ExploreScreenProps) {
   const { hasRole, organizerApplicationStatus, session } = useAuth();
   const stableTopInset = useStableTopInset();
+  const layout = useResponsiveLayout();
   const [search, setSearch] = useState('');
   const [tab, setTab] = useState<'events' | 'venues'>('events');
   const [audienceFilter, setAudienceFilter] = useState('all');
@@ -386,7 +388,7 @@ export default function ExploreScreen({
                   className="overflow-hidden rounded-3xl border border-primary/10 bg-white active:opacity-90"
                   style={CardStyles.elevated}
                 >
-                  <View className="h-[170px] bg-gray-200">
+                  <View className="bg-gray-200" style={{ height: layout.isSmallPhone ? 150 : 170 }}>
                     <BrandImage
                       source={getEventImageSource(featuredEvent)}
                       contentFit="cover"
@@ -497,7 +499,13 @@ export default function ExploreScreen({
                       className="flex-row items-start gap-3 rounded-3xl border border-primary/10 bg-white p-3 active:opacity-90"
                       style={CardStyles.compact}
                     >
-                      <View className="h-[86px] w-[86px] shrink-0 overflow-hidden rounded-xl bg-gray-200">
+                      <View
+                        className="shrink-0 overflow-hidden rounded-xl bg-gray-200"
+                        style={{
+                          height: layout.isSmallPhone ? 76 : 86,
+                          width: layout.isSmallPhone ? 76 : 86,
+                        }}
+                      >
                         <BrandImage
                           source={getEventImageSource(event)}
                           contentFit="cover"
