@@ -22,11 +22,7 @@ import {
   Text,
   TextInput,
   View,
-  type StyleProp,
-  type ViewStyle,
 } from 'react-native';
-import { GestureDetector, type GestureType } from 'react-native-gesture-handler';
-import Animated from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BrandImage } from '@/components/brand-image';
@@ -62,7 +58,6 @@ type CreateEventModalProps = {
   eventIsFree: boolean;
   eventTime: string;
   eventTitle: string;
-  edgeSwipeGesture: GestureType;
   isEditingEvent?: boolean;
   onChangeCalendarMonth: (date: Date) => void;
   onChangeEventCategory: (category: EventCategory) => void;
@@ -97,7 +92,6 @@ type CreateEventModalProps = {
   selectedPlace: PlaceSuggestion | null;
   setSelectedPlace: (place: PlaceSuggestion | null) => void;
   stableModalTopInset: number;
-  swipeStyle: StyleProp<ViewStyle>;
   timePickerOpen: boolean;
   timePickerTarget: 'end' | 'start';
   visible: boolean;
@@ -127,7 +121,6 @@ export function CreateEventModal({
   eventIsFree,
   eventTime,
   eventTitle,
-  edgeSwipeGesture,
   isEditingEvent = false,
   onChangeCalendarMonth,
   onChangeEventCategory,
@@ -162,7 +155,6 @@ export function CreateEventModal({
   selectedPlace,
   setSelectedPlace,
   stableModalTopInset,
-  swipeStyle,
   timePickerOpen,
   timePickerTarget,
   visible,
@@ -181,7 +173,7 @@ export function CreateEventModal({
 
   return (
     <Modal animationType="slide" transparent onRequestClose={onClose} visible={visible}>
-      <Animated.View className="flex-1 bg-white" style={swipeStyle}>
+      <View className="flex-1 bg-white">
         <SafeAreaView className="flex-1 bg-white" edges={['bottom']}>
           <KeyboardAvoidingView
             behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -518,10 +510,7 @@ export function CreateEventModal({
           }}
           visible={timePickerOpen}
         />
-        <GestureDetector gesture={edgeSwipeGesture}>
-          <Animated.View className="absolute bottom-0 left-0 top-0 z-50 w-7" />
-        </GestureDetector>
-      </Animated.View>
+      </View>
     </Modal>
   );
 }

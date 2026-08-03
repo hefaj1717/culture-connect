@@ -338,41 +338,10 @@ export default function ProfileScreen({
     [],
   );
   const unlockedBadgeCount = achievementBadges.filter((badge) => badge.unlocked).length;
-  const createEventTranslateX = useSharedValue(0);
   const createQuestTranslateX = useSharedValue(0);
   const adminReviewTranslateX = useSharedValue(0);
   const badgesTranslateX = useSharedValue(0);
   const rewardTranslateX = useSharedValue(0);
-
-  const createEventEdgeSwipeGesture = useMemo(
-    () =>
-      Gesture.Pan()
-        .activeOffsetX([-999, 18])
-        .failOffsetY([-35, 35])
-        .onUpdate((event) => {
-          createEventTranslateX.value = Math.max(0, event.translationX);
-        })
-        .onEnd((event) => {
-          const shouldClose = createEventTranslateX.value > width * 0.28 || event.velocityX > 700;
-
-          if (shouldClose) {
-            createEventTranslateX.value = withTiming(width, { duration: 180 }, (finished) => {
-              if (finished) {
-                runOnJS(setCreateEventOpen)(false);
-                createEventTranslateX.value = 0;
-              }
-            });
-            return;
-          }
-
-          createEventTranslateX.value = withTiming(0, { duration: 180 });
-        }),
-    [createEventTranslateX, setCreateEventOpen, width],
-  );
-
-  const createEventSwipeStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: createEventTranslateX.value }],
-  }));
 
   const createQuestSwipeGesture = useMemo(
     () =>
@@ -556,12 +525,6 @@ export default function ProfileScreen({
   ]);
 
   useEffect(() => {
-    if (createEventOpen) {
-      createEventTranslateX.value = 0;
-    }
-  }, [createEventOpen, createEventTranslateX]);
-
-  useEffect(() => {
     if (createQuestOpen) {
       createQuestTranslateX.value = 0;
     }
@@ -596,11 +559,7 @@ export default function ProfileScreen({
   }
 
   function closeCreateEventWithAnimation() {
-    createEventTranslateX.value = withTiming(width, { duration: 180 }, (finished) => {
-      if (finished) {
-        runOnJS(setCreateEventOpen)(false);
-      }
-    });
+    setCreateEventOpen(false);
   }
 
   function closeCreateQuestWithAnimation() {
@@ -759,7 +718,6 @@ export default function ProfileScreen({
         eventIsFree={eventIsFree}
         eventTime={eventTime}
         eventTitle={eventTitle}
-        edgeSwipeGesture={createEventEdgeSwipeGesture}
         isEditingEvent={isEditingEvent}
         onChangeCalendarMonth={setCalendarMonth}
         onChangeEventCategory={setEventCategory}
@@ -801,7 +759,6 @@ export default function ProfileScreen({
         selectedPlace={selectedPlace}
         setSelectedPlace={setSelectedPlace}
         stableModalTopInset={stableModalTopInset}
-        swipeStyle={createEventSwipeStyle}
         timePickerOpen={timePickerOpen}
         timePickerTarget={timePickerTarget}
         visible={createEventOpen}
