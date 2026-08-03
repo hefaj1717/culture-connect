@@ -183,26 +183,7 @@ type UniversityAffiliationSectionProps = {
 
 export function UniversityAffiliationSection({ membership }: UniversityAffiliationSectionProps) {
   if (!membership) {
-    return (
-      <View
-        className="mx-5 mb-7 rounded-3xl border border-gray-200 bg-white px-4 py-4"
-        style={CardStyles.compact}
-      >
-        <View className="flex-row items-center gap-3">
-          <View className="h-12 w-12 items-center justify-center rounded-2xl bg-primary/10">
-            <GraduationCap size={22} color={Colors.light.primary} strokeWidth={2.4} />
-          </View>
-          <View className="min-w-0 flex-1">
-            <Text className="font-ui text-[15px] font-extrabold text-ink">
-              No university linked
-            </Text>
-            <Text className="mt-0.5 text-[12px] leading-4 text-muted">
-              Add a student email later to contribute XP to the campus ranking.
-            </Text>
-          </View>
-        </View>
-      </View>
-    );
+    return null;
   }
 
   return (
