@@ -980,12 +980,7 @@ export function OrganizerRewardHistoryModal({
 }
 
 function HistoryEmptyState({ body, title }: { body: string; title: string }) {
-  return (
-    <View className="rounded-3xl border border-primary/10 bg-primary/5 p-5">
-      <Text className="font-ui text-[15px] font-extrabold text-ink">{title}</Text>
-      <Text className="mt-1 text-[13px] leading-5 text-muted">{body}</Text>
-    </View>
-  );
+  return <EmptyState body={body} title={title} />;
 }
 
 function HistoryFilterBar<T extends string>({
@@ -1716,8 +1711,8 @@ export function RewardsSection({
         />
       ) : rewards.length === 0 ? (
         <EmptyState
-          body={`Approved partner rewards for ${cityName} will appear here after CultureQuest review.`}
-          title="No approved rewards yet"
+          body={`Approved partner rewards in ${cityName} will appear here after CultureQuest review.`}
+          title="No rewards yet"
         />
       ) : null}
 

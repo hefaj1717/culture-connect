@@ -102,10 +102,13 @@ export function EmptyState({
   tone = 'card',
 }: AsyncStateProps) {
   return (
-    <View className={getContainerClass(tone, compact)} style={[CardStyles.soft, style]}>
+    <View
+      className={`${getContainerClass(tone, compact)} border-primary/15 bg-primary/5`}
+      style={[CardStyles.soft, style]}
+    >
       <View className="flex-row items-start gap-3">
-        <View className="h-9 w-9 items-center justify-center rounded-2xl bg-primary/10">
-          <Inbox color={Colors.light.primary} size={18} strokeWidth={2.4} />
+        <View className="h-9 w-9 items-center justify-center rounded-2xl bg-white">
+          <Inbox color={Colors.light.accentDeep} size={18} strokeWidth={2.4} />
         </View>
         <View className="min-w-0 flex-1">
           <Text className="font-ui text-[14px] font-extrabold text-ink">{title}</Text>

@@ -27,7 +27,7 @@ import { GestureDetector, type GestureType } from 'react-native-gesture-handler'
 import Animated from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { ErrorState, LoadingState } from '@/components/async-state';
+import { EmptyState, ErrorState, LoadingState } from '@/components/async-state';
 import { BrandImage } from '@/components/brand-image';
 import { getCultureCityData } from '@/data/culture';
 import { type PendingAdminEvent, type PendingAdminReward } from '@/lib/admin-moderation';
@@ -151,14 +151,10 @@ export function AdminReviewModal({
               {loading ? (
                 <LoadingState body={`Loading pending ${activeTab}.`} title="Loading review queue" />
               ) : activeItemsCount === 0 ? (
-                <View className="rounded-3xl border border-primary/10 bg-primary/5 p-5">
-                  <Text className="font-heading text-[22px] font-extrabold text-ink">
-                    Nothing to review
-                  </Text>
-                  <Text className="mt-2 text-[13px] leading-5 text-muted">
-                    Pending {activeTab} will appear here as soon as organizers submit them.
-                  </Text>
-                </View>
+                <EmptyState
+                  body={`Pending ${activeTab} will appear here as soon as organizers submit them.`}
+                  title="Nothing to review"
+                />
               ) : (
                 <View className="gap-4">
                   {activeTab === 'events'

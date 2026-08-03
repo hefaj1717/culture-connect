@@ -483,9 +483,9 @@ export default function ExploreScreen({
                   body={
                     eventsError
                       ? 'Events are unavailable right now.'
-                      : 'Try another filter or check back after organizers publish new events.'
+                      : 'Try another filter, or check back when organizers publish something new.'
                   }
-                  title={eventsError ? 'Events unavailable' : 'No approved events found'}
+                  title={eventsError ? 'Events unavailable' : 'No events found'}
                 />
               ) : (
                 <View className="gap-3">
@@ -570,7 +570,7 @@ export default function ExploreScreen({
               />
             ) : filteredOrganizerProfiles.length === 0 ? (
               <EmptyState
-                body={`Approved organiser profiles for ${cityData.name} will appear here.`}
+                body={`Approved organizers in ${cityData.name} will appear here once they complete their profiles.`}
                 title="No organizers yet"
               />
             ) : (
