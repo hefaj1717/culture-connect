@@ -15,6 +15,12 @@ export type OrganizerApplicationInput = {
   note?: string;
 };
 
+export type StudentUniversityInput = {
+  isStudent: boolean;
+  studentEmail: string;
+  universityId: string;
+};
+
 export type OrganizerApplicationStatus = 'none' | 'pending' | 'approved' | 'rejected';
 export type AppRole = 'admin' | 'organizer' | 'user' | 'guest';
 
@@ -34,6 +40,7 @@ type AuthContextValue = {
     lastName: string,
     cityId: CityId,
     organizerApplication?: OrganizerApplicationInput | null,
+    studentUniversity?: StudentUniversityInput | null,
   ) => Promise<{ error: string | null; needsConfirmation: boolean }>;
   verifySignUpCode: (email: string, token: string) => Promise<{ error: string | null }>;
   resendSignUpCode: (email: string) => Promise<{ error: string | null }>;
@@ -236,6 +243,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     lastName: string,
     cityId: CityId,
     organizerApplication?: OrganizerApplicationInput | null,
+    studentUniversity?: StudentUniversityInput | null,
   ) {
     const normalizedEmail = email.trim().toLowerCase();
     const normalizedFirstName = limitText(firstName.trim(), textLimits.firstName);
@@ -259,6 +267,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           note: limitText(organizerApplication.note?.trim() ?? '', textLimits.organizerNote),
         }
       : null;
+    const normalizedStudentUniversity =
+      studentUniversity?.isStudent &&
+      studentUniversity.universityId &&
+      studentUniversity.studentEmail
+        ? {
+            is_student: true,
+            student_email: limitText(
+              studentUniversity.studentEmail.trim().toLowerCase(),
+              textLimits.email,
+            ),
+            university_id: studentUniversity.universityId,
+          }
+        : null;
 
     const { data, error } = await supabase.auth.signUp({
       email: normalizedEmail,
@@ -272,9 +293,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           city_id: cityId,
           requested_role: normalizedOrganizerApplication ? 'organizer_pending' : 'user',
           organizer_application: normalizedOrganizerApplication,
+          student_university: normalizedStudentUniversity,
         },
       },
     });
+
+    if (!error && data.session && normalizedStudentUniversity) {
+      await supabase.rpc('upsert_my_university_membership', {
+        _student_email: normalizedStudentUniversity.student_email,
+        _university_id: normalizedStudentUniversity.university_id,
+      });
+    }
+
     return {
       error: error?.message ?? null,
       needsConfirmation: !data.session,
