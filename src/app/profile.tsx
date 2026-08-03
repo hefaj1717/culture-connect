@@ -347,6 +347,7 @@ export default function ProfileScreen({
   const createEventSwipeGesture = useMemo(
     () =>
       Gesture.Pan()
+        .hitSlop({ left: 0, width: 28 })
         .activeOffsetX([-999, 18])
         .failOffsetY([-35, 35])
         .onUpdate((event) => {
@@ -639,9 +640,12 @@ export default function ProfileScreen({
   return (
     <View className="flex-1 bg-white">
       <ScrollView
+        alwaysBounceVertical={false}
+        bounces={false}
         className="flex-1"
         contentContainerStyle={{ paddingBottom: 112, paddingTop: stableModalTopInset + 24 }}
         contentInsetAdjustmentBehavior="automatic"
+        overScrollMode="never"
       >
         <ProfileRankCard
           avatarInitials={avatarInitials}
