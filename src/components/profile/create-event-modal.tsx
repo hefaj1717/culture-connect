@@ -27,7 +27,6 @@ import {
 } from 'react-native';
 import Animated from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRef } from 'react';
 
 import { BrandImage } from '@/components/brand-image';
 import { ChoicePill, type ChoiceIcon } from '@/components/profile/choice-pill';
@@ -166,13 +165,6 @@ export function CreateEventModal({
   visible,
 }: CreateEventModalProps) {
   const cityData = getCultureCityData(cityId);
-  const scrollViewRef = useRef<ScrollView>(null);
-
-  function focusFormArea(y: number) {
-    setTimeout(() => {
-      scrollViewRef.current?.scrollTo({ animated: true, y });
-    }, 80);
-  }
 
   function openDatePicker() {
     Keyboard.dismiss();
@@ -193,15 +185,14 @@ export function CreateEventModal({
             className="flex-1"
           >
             <ScrollView
-              ref={scrollViewRef}
               className="flex-1"
               contentContainerStyle={{
                 paddingHorizontal: 20,
                 paddingBottom: 118,
                 paddingTop: stableModalTopInset + 14,
               }}
-              keyboardDismissMode="interactive"
-              keyboardShouldPersistTaps="handled"
+              keyboardDismissMode="on-drag"
+              keyboardShouldPersistTaps="always"
               scrollIndicatorInsets={{ bottom: 118 }}
             >
               <Pressable
@@ -241,7 +232,6 @@ export function CreateEventModal({
               <TextInput
                 value={eventTitle}
                 onChangeText={onChangeEventTitle}
-                onFocus={() => focusFormArea(150)}
                 placeholder="e.g. Student Jazz Night"
                 placeholderTextColor="#8B909A"
                 maxLength={textLimits.eventTitle}
@@ -303,7 +293,6 @@ export function CreateEventModal({
                       onChangePlaceQuery(value);
                       setSelectedPlace(null);
                     }}
-                    onFocus={() => focusFormArea(390)}
                     placeholder={`Search places in ${cityData.name}`}
                     placeholderTextColor="#8B909A"
                     maxLength={textLimits.placeSearch}
@@ -455,7 +444,6 @@ export function CreateEventModal({
               <TextInput
                 value={eventDescription}
                 onChangeText={onChangeEventDescription}
-                onFocus={() => focusFormArea(820)}
                 placeholder="What should students know before joining?"
                 placeholderTextColor="#8B909A"
                 multiline
