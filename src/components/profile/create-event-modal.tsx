@@ -25,6 +25,7 @@ import {
   type StyleProp,
   type ViewStyle,
 } from 'react-native';
+import { GestureDetector, type GestureType } from 'react-native-gesture-handler';
 import Animated from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -61,6 +62,7 @@ type CreateEventModalProps = {
   eventIsFree: boolean;
   eventTime: string;
   eventTitle: string;
+  edgeSwipeGesture: GestureType;
   isEditingEvent?: boolean;
   onChangeCalendarMonth: (date: Date) => void;
   onChangeEventCategory: (category: EventCategory) => void;
@@ -125,6 +127,7 @@ export function CreateEventModal({
   eventIsFree,
   eventTime,
   eventTitle,
+  edgeSwipeGesture,
   isEditingEvent = false,
   onChangeCalendarMonth,
   onChangeEventCategory,
@@ -515,6 +518,9 @@ export function CreateEventModal({
           }}
           visible={timePickerOpen}
         />
+        <GestureDetector gesture={edgeSwipeGesture}>
+          <Animated.View className="absolute bottom-0 left-0 top-0 z-50 w-7" />
+        </GestureDetector>
       </Animated.View>
     </Modal>
   );

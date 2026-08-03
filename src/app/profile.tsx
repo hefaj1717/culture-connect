@@ -344,6 +344,32 @@ export default function ProfileScreen({
   const badgesTranslateX = useSharedValue(0);
   const rewardTranslateX = useSharedValue(0);
 
+  const createEventEdgeSwipeGesture = useMemo(
+    () =>
+      Gesture.Pan()
+        .activeOffsetX([-999, 18])
+        .failOffsetY([-35, 35])
+        .onUpdate((event) => {
+          createEventTranslateX.value = Math.max(0, event.translationX);
+        })
+        .onEnd((event) => {
+          const shouldClose = createEventTranslateX.value > width * 0.28 || event.velocityX > 700;
+
+          if (shouldClose) {
+            createEventTranslateX.value = withTiming(width, { duration: 180 }, (finished) => {
+              if (finished) {
+                runOnJS(setCreateEventOpen)(false);
+                createEventTranslateX.value = 0;
+              }
+            });
+            return;
+          }
+
+          createEventTranslateX.value = withTiming(0, { duration: 180 });
+        }),
+    [createEventTranslateX, setCreateEventOpen, width],
+  );
+
   const createEventSwipeStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: createEventTranslateX.value }],
   }));
@@ -733,6 +759,7 @@ export default function ProfileScreen({
         eventIsFree={eventIsFree}
         eventTime={eventTime}
         eventTitle={eventTitle}
+        edgeSwipeGesture={createEventEdgeSwipeGesture}
         isEditingEvent={isEditingEvent}
         onChangeCalendarMonth={setCalendarMonth}
         onChangeEventCategory={setEventCategory}
