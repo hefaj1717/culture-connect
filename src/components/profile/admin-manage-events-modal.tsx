@@ -31,7 +31,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { ErrorState, LoadingState } from '@/components/async-state';
+import { EmptyState, ErrorState, LoadingState } from '@/components/async-state';
 import { BrandImage } from '@/components/brand-image';
 import { OrganizerProfileModal } from '@/components/organizer-profile-modal';
 import { CardStyles, Colors } from '@/constants/theme';
@@ -865,12 +865,7 @@ function MiniStat({
 }
 
 function AdminEventEmptyState({ body, title }: { body: string; title: string }) {
-  return (
-    <View className="rounded-3xl border border-primary/10 bg-primary/5 p-5">
-      <Text className="font-ui text-[15px] font-extrabold text-ink">{title}</Text>
-      <Text className="mt-1 text-[13px] leading-5 text-muted">{body}</Text>
-    </View>
-  );
+  return <EmptyState body={body} title={title} />;
 }
 
 function AdminEventStatusPill({ status }: { status: OrganizerEventStatus }) {

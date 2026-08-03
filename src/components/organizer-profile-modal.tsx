@@ -19,6 +19,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { EmptyState } from '@/components/async-state';
 import { BrandImage } from '@/components/brand-image';
 import { CardStyles } from '@/constants/theme';
 import type { CultureEvent } from '@/data/culture';
@@ -268,9 +269,7 @@ function OrganizerEventGroup({
         {title}
       </Text>
       {events.length === 0 ? (
-        <View className="rounded-3xl border border-gray-200 bg-gray-50 p-4">
-          <Text className="text-[13px] font-medium text-muted">{emptyLabel}</Text>
-        </View>
+        <EmptyState body={emptyLabel} compact title="No events here yet" />
       ) : (
         <View className="gap-3">
           {events.map((event) => (

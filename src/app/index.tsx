@@ -319,10 +319,10 @@ export default function HomeScreen({
               />
             ) : happeningNow.length === 0 ? (
               <EmptyState
-                body={`Approved organizer events for ${cityData.name} will appear here.`}
+                body={`Approved events in ${cityData.name} will appear here as soon as organizers publish them.`}
                 compact
                 style={{ width: layout.stateCardWidth }}
-                title="No approved events yet"
+                title="No events yet"
               />
             ) : (
               happeningNow.map((event) => (
@@ -504,9 +504,9 @@ export default function HomeScreen({
                     />
                   ) : (
                     <EmptyState
-                      body="Once an organizer event is approved, it will appear on this map."
+                      body="The city map will light up once approved events have activity."
                       compact
-                      title="No approved event activity yet"
+                      title="No live activity yet"
                       tone="inline"
                     />
                   )}
