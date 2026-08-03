@@ -1,7 +1,7 @@
 import { StatusBar } from 'expo-status-bar';
-import { Compass, Home, Route, User } from 'lucide-react-native';
+import { Compass, Home, Route, User, WifiOff } from 'lucide-react-native';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, Pressable, Text, useWindowDimensions, View } from 'react-native';
+import { ActivityIndicator, Alert, Pressable, Text, useWindowDimensions, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
   runOnJS,
@@ -27,6 +27,7 @@ import {
   type UserEventStatus,
 } from '@/lib/event-history';
 import { updateEventEngagementCounts } from '@/lib/event-engagement';
+import { OFFLINE_ERROR_MESSAGE } from '@/lib/network-errors';
 import { fetchOrganizerEvents } from '@/lib/organizer-events';
 import { completeQuest, fetchCompletedQuestIds } from '@/lib/quest-completions';
 import { confirmOrganizerEventAttendance, fetchUserXp } from '@/lib/profile-xp';
@@ -36,6 +37,7 @@ import {
 } from '@/lib/university-leaderboard';
 import { useAuth } from '@/providers/auth-provider';
 import { useResponsiveLayout } from '@/hooks/use-responsive-layout';
+import { useNetworkStatus } from '@/providers/network-provider';
 
 const ACTIVE = Colors.light.primary;
 const INACTIVE = '#7D8594';
@@ -69,6 +71,7 @@ function AuthenticatedTabs() {
   const { width } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const layout = useResponsiveLayout();
+  const { isOffline } = useNetworkStatus();
   const { organizerApplicationStatus, user } = useAuth();
   const [activeIndex, setActiveIndex] = useState(0);
   const [organizerEventsVersion, setOrganizerEventsVersion] = useState(0);
@@ -211,6 +214,11 @@ function AuthenticatedTabs() {
     event: CultureEvent,
     location: { latitude: number; longitude: number },
   ) {
+    if (isOffline) {
+      Alert.alert('Offline', OFFLINE_ERROR_MESSAGE);
+      return false;
+    }
+
     if (checkedInEventIdsRef.current.has(event.id)) {
       return false;
     }
@@ -246,6 +254,11 @@ function AuthenticatedTabs() {
   }
 
   function updateEventStatus(eventId: string, status: UserEventStatus | null) {
+    if (isOffline) {
+      Alert.alert('Offline', OFFLINE_ERROR_MESSAGE);
+      return;
+    }
+
     const previousStatus = eventStatuses[eventId] ?? null;
     setApprovedEvents((current) =>
       updateEventEngagementCounts(current, eventId, previousStatus, status),
@@ -274,6 +287,11 @@ function AuthenticatedTabs() {
   }
 
   function awardQuestCompletionXp(questId: string, totalXp: number) {
+    if (isOffline) {
+      Alert.alert('Offline', OFFLINE_ERROR_MESSAGE);
+      return false;
+    }
+
     if (completedQuestIdsRef.current.has(questId)) {
       return false;
     }
@@ -394,6 +412,15 @@ function AuthenticatedTabs() {
           </View>
         </Animated.View>
       </GestureDetector>
+
+      {isOffline && (
+        <View className="flex-row items-center justify-center gap-2 border-t border-accent/15 bg-ink px-4 py-2">
+          <WifiOff size={15} color={Colors.light.accent} strokeWidth={2.4} />
+          <Text className="text-center text-[12px] font-semibold text-white" numberOfLines={2}>
+            {"You're offline. Some updates will resume when your connection returns."}
+          </Text>
+        </View>
+      )}
 
       <View
         style={{

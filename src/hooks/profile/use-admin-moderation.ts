@@ -13,7 +13,9 @@ import {
   type PendingAdminReward,
 } from '@/lib/admin-moderation';
 import type { EventCategory } from '@/data/culture';
+import { OFFLINE_ERROR_MESSAGE } from '@/lib/network-errors';
 import type { OrganizerEventStatus } from '@/lib/organizer-events';
+import { useNetworkStatus } from '@/providers/network-provider';
 
 type ReviewKind = 'event' | 'reward';
 type ReviewStatus = 'approved' | 'rejected';
@@ -40,6 +42,7 @@ export function useAdminModeration({
   const [pendingRewards, setPendingRewards] = useState<PendingAdminReward[]>([]);
   const [reviewingContentId, setReviewingContentId] = useState<string | null>(null);
   const [savingManagedEventId, setSavingManagedEventId] = useState<string | null>(null);
+  const { isOffline } = useNetworkStatus();
 
   const loadPendingContent = useCallback(async () => {
     if (!isAdmin) return;
@@ -97,6 +100,10 @@ export function useAdminModeration({
       setAdminReviewError('Log in again before reviewing content.');
       return;
     }
+    if (isOffline) {
+      setAdminReviewError(OFFLINE_ERROR_MESSAGE);
+      return;
+    }
 
     setReviewingContentId(`${kind}-${id}`);
     const result =
@@ -130,6 +137,11 @@ export function useAdminModeration({
     if (!userId) {
       setAdminReviewError('Log in again before deleting events.');
       setAdminManageEventsError('Log in again before deleting events.');
+      return;
+    }
+    if (isOffline) {
+      setAdminReviewError(OFFLINE_ERROR_MESSAGE);
+      setAdminManageEventsError(OFFLINE_ERROR_MESSAGE);
       return;
     }
 
@@ -183,6 +195,10 @@ export function useAdminModeration({
   ) {
     if (!userId) {
       setAdminManageEventsError('Log in again before editing events.');
+      return { success: false };
+    }
+    if (isOffline) {
+      setAdminManageEventsError(OFFLINE_ERROR_MESSAGE);
       return { success: false };
     }
 

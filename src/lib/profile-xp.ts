@@ -1,3 +1,4 @@
+import { getNetworkAwareErrorMessage } from '@/lib/network-errors';
 import { supabase } from '@/lib/supabase';
 
 type AwardXpResponse = {
@@ -20,7 +21,7 @@ export async function fetchUserXp(userId: string) {
     .maybeSingle();
 
   if (error) {
-    return { error: error.message, totalXp: 0 };
+    return { error: getNetworkAwareErrorMessage(error.message), totalXp: 0 };
   }
 
   return { error: null, totalXp: Number(data?.total_xp ?? 0) };
@@ -42,7 +43,12 @@ export async function awardUserXp({
   });
 
   if (error) {
-    return { duplicate: false, error: error.message, totalXp: null, xpEarned: 0 };
+    return {
+      duplicate: false,
+      error: getNetworkAwareErrorMessage(error.message),
+      totalXp: null,
+      xpEarned: 0,
+    };
   }
 
   const result = data as AwardXpResponse;
@@ -81,7 +87,7 @@ export async function confirmOrganizerEventAttendance({
   });
 
   if (error) {
-    return { duplicate: false, error: error.message, totalXp: null };
+    return { duplicate: false, error: getNetworkAwareErrorMessage(error.message), totalXp: null };
   }
 
   const result = data as ConfirmEventAttendanceResponse;

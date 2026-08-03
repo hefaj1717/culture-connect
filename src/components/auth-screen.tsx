@@ -27,7 +27,9 @@ import {
   validateAuthField,
   validateAuthForm,
 } from '@/lib/auth-validation';
+import { OFFLINE_ERROR_MESSAGE } from '@/lib/network-errors';
 import { useAuth } from '@/providers/auth-provider';
+import { useNetworkStatus } from '@/providers/network-provider';
 
 const organizerTypes = [
   { key: 'cultural_institution', label: 'Cultural institution' },
@@ -74,6 +76,7 @@ function AuthInput({ inputRef, inputClassName, className, ...props }: AuthInputP
 
 export function AuthScreen() {
   const { signIn, signUp, verifySignUpCode, resendSignUpCode } = useAuth();
+  const { isOffline } = useNetworkStatus();
   const scrollViewRef = useRef<ScrollView>(null);
   const confirmationCodeRef = useRef<TextInput>(null);
   const firstNameRef = useRef<TextInput>(null);
@@ -183,6 +186,11 @@ export function AuthScreen() {
       return;
     }
 
+    if (isOffline) {
+      setError(OFFLINE_ERROR_MESSAGE);
+      return;
+    }
+
     Keyboard.dismiss();
     setLoading(true);
 
@@ -255,6 +263,11 @@ export function AuthScreen() {
       return;
     }
 
+    if (isOffline) {
+      setError(OFFLINE_ERROR_MESSAGE);
+      return;
+    }
+
     Keyboard.dismiss();
     setLoading(true);
     const result = await verifySignUpCode(normalizedEmail, normalizedCode);
@@ -275,6 +288,11 @@ export function AuthScreen() {
     const normalizedEmail = (pendingEmail || email).trim();
     if (!normalizedEmail) {
       setError('Enter your email first.');
+      return;
+    }
+
+    if (isOffline) {
+      setError(OFFLINE_ERROR_MESSAGE);
       return;
     }
 

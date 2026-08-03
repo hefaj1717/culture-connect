@@ -1,4 +1,5 @@
 import type { RedeemedRewardState } from '@/data/profile';
+import { getNetworkAwareErrorMessage } from '@/lib/network-errors';
 import { supabase } from '@/lib/supabase';
 
 type RewardRedemptionRow = {
@@ -42,7 +43,10 @@ export async function fetchRewardRedemptions(rewardIds: string[]) {
     .in('reward_id', organizerRewardIds);
 
   if (error) {
-    return { error: error.message, redemptions: {} as Record<string, RedeemedRewardState> };
+    return {
+      error: getNetworkAwareErrorMessage(error.message),
+      redemptions: {} as Record<string, RedeemedRewardState>,
+    };
   }
 
   return {
@@ -63,7 +67,12 @@ export async function redeemOrganizerReward(rewardId: string) {
   });
 
   if (error) {
-    return { error: error.message, redemption: null, totalXp: null, xpNeeded: null };
+    return {
+      error: getNetworkAwareErrorMessage(error.message),
+      redemption: null,
+      totalXp: null,
+      xpNeeded: null,
+    };
   }
 
   const result = data as RedeemOrganizerRewardResponse;

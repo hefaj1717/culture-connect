@@ -2,7 +2,9 @@ import { useEffect, useState } from 'react';
 
 import type { RewardPartner } from '@/data/culture';
 import { type RedeemedRewardState } from '@/data/profile';
+import { OFFLINE_ERROR_MESSAGE } from '@/lib/network-errors';
 import { fetchRewardRedemptions, redeemOrganizerReward } from '@/lib/reward-redemptions';
+import { useNetworkStatus } from '@/providers/network-provider';
 
 export function useRewardRedemption({
   onUserXpChange,
@@ -22,6 +24,7 @@ export function useRewardRedemption({
   const [rewardRedemptionsError, setRewardRedemptionsError] = useState<string | null>(null);
   const [rewardRedeeming, setRewardRedeeming] = useState(false);
   const [rewardNow, setRewardNow] = useState(() => Date.now());
+  const { isOffline } = useNetworkStatus();
 
   useEffect(() => {
     if (!userId || rewards.length === 0) {
@@ -90,6 +93,10 @@ export function useRewardRedemption({
   async function redeemSelectedReward() {
     if (!selectedReward) return;
     if (selectedRewardState) return;
+    if (isOffline) {
+      setRewardRedeemError(OFFLINE_ERROR_MESSAGE);
+      return;
+    }
     if (userXp < selectedReward.xpCost) {
       setRewardRedeemError(
         `You need ${selectedRewardXpNeeded.toLocaleString()} more XP to redeem this reward.`,

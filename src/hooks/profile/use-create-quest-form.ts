@@ -4,7 +4,9 @@ import { Alert } from 'react-native';
 
 import { limitText, textLimits } from '@/constants/text-limits';
 import { type CityId } from '@/data/culture';
+import { OFFLINE_ERROR_MESSAGE } from '@/lib/network-errors';
 import { createQuest, type QuestImageKind } from '@/lib/quests';
+import { useNetworkStatus } from '@/providers/network-provider';
 
 type QuestDraftStop = {
   description: string;
@@ -43,6 +45,7 @@ export function useCreateQuestForm({
   const [questXp, setQuestXp] = useState('150');
   const [createQuestError, setCreateQuestError] = useState<string | null>(null);
   const [creatingQuest, setCreatingQuest] = useState(false);
+  const { isOffline } = useNetworkStatus();
 
   function resetQuestForm() {
     setQuestCityId(savedCityId);
@@ -144,6 +147,10 @@ export function useCreateQuestForm({
 
     if (!userId) {
       setCreateQuestError('Log in again before creating a quest.');
+      return;
+    }
+    if (isOffline) {
+      setCreateQuestError(OFFLINE_ERROR_MESSAGE);
       return;
     }
     if (!normalizedTitle || !normalizedTheme || !normalizedDescription) {

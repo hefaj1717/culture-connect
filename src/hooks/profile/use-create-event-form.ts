@@ -10,7 +10,9 @@ import {
   updateOrganizerEvent,
   type ManagedOrganizerEvent,
 } from '@/lib/organizer-events';
+import { OFFLINE_ERROR_MESSAGE } from '@/lib/network-errors';
 import { type PlaceSuggestion, searchPlaces } from '@/lib/place-search';
+import { useNetworkStatus } from '@/providers/network-provider';
 
 type UseCreateEventFormInput = {
   onEventCreated?: () => void;
@@ -48,6 +50,7 @@ export function useCreateEventForm({
   const [selectedMinute, setSelectedMinute] = useState(0);
   const [selectedEndHour, setSelectedEndHour] = useState(21);
   const [selectedEndMinute, setSelectedEndMinute] = useState(0);
+  const { isOffline } = useNetworkStatus();
 
   useEffect(() => {
     let active = true;
@@ -60,6 +63,12 @@ export function useCreateEventForm({
       }
 
       if (placeQuery.trim().length < 2) {
+        setPlaceSuggestions([]);
+        setSearchingPlaces(false);
+        return;
+      }
+
+      if (isOffline) {
         setPlaceSuggestions([]);
         setSearchingPlaces(false);
         return;
@@ -78,7 +87,7 @@ export function useCreateEventForm({
     return () => {
       active = false;
     };
-  }, [placeQuery, savedCityId, selectedPlace]);
+  }, [isOffline, placeQuery, savedCityId, selectedPlace]);
 
   function resetEventForm() {
     setEditingEvent(null);
@@ -174,6 +183,10 @@ export function useCreateEventForm({
 
     if (!userId) {
       setCreateEventError('Log in again before publishing an event.');
+      return;
+    }
+    if (isOffline) {
+      setCreateEventError(OFFLINE_ERROR_MESSAGE);
       return;
     }
     if (!selectedPlace) {

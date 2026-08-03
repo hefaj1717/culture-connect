@@ -1,3 +1,4 @@
+import { getNetworkAwareErrorMessage } from '@/lib/network-errors';
 import { supabase } from '@/lib/supabase';
 
 type CompleteQuestResponse = {
@@ -15,7 +16,7 @@ export async function fetchCompletedQuestIds() {
     .order('completed_at', { ascending: false });
 
   if (error) {
-    return { completedQuestIds: [] as string[], error: error.message };
+    return { completedQuestIds: [] as string[], error: getNetworkAwareErrorMessage(error.message) };
   }
 
   return {
@@ -30,7 +31,7 @@ export async function completeQuest(questId: string) {
   });
 
   if (error) {
-    return { duplicate: false, error: error.message, totalXp: null };
+    return { duplicate: false, error: getNetworkAwareErrorMessage(error.message), totalXp: null };
   }
 
   const result = data as CompleteQuestResponse;

@@ -1,4 +1,5 @@
 import { type CityId } from '@/data/culture';
+import { getNetworkAwareErrorMessage } from '@/lib/network-errors';
 import { supabase } from '@/lib/supabase';
 
 export type QuestStop = {
@@ -83,7 +84,7 @@ export async function fetchApprovedQuests(cityId: CityId) {
   }
 
   if (questsError) {
-    return { error: questsError.message, quests: [] as Quest[] };
+    return { error: getNetworkAwareErrorMessage(questsError.message), quests: [] as Quest[] };
   }
 
   const quests = (questRows ?? []) as unknown as QuestRow[];
@@ -99,7 +100,7 @@ export async function fetchApprovedQuests(cityId: CityId) {
     .order('position', { ascending: true });
 
   if (stopsError) {
-    return { error: stopsError.message, quests: [] as Quest[] };
+    return { error: getNetworkAwareErrorMessage(stopsError.message), quests: [] as Quest[] };
   }
 
   const stopsByQuestId = ((stopRows ?? []) as QuestStopRow[]).reduce<Record<string, QuestStop[]>>(
@@ -170,7 +171,7 @@ export async function createQuest(input: CreateQuestInput) {
     .single();
 
   if (questError) {
-    return { error: questError.message, questId: null };
+    return { error: getNetworkAwareErrorMessage(questError.message), questId: null };
   }
 
   const questId = (questRow as { id: string }).id;
@@ -191,7 +192,7 @@ export async function createQuest(input: CreateQuestInput) {
 
   if (stopsError) {
     await supabase.from('quests').delete().eq('id', questId);
-    return { error: stopsError.message, questId: null };
+    return { error: getNetworkAwareErrorMessage(stopsError.message), questId: null };
   }
 
   return { error: null, questId };
@@ -211,7 +212,7 @@ async function uploadQuestImage(userId: string, imageUri: string) {
     });
 
     if (error) {
-      return { url: null, error: error.message };
+      return { url: null, error: getNetworkAwareErrorMessage(error.message) };
     }
 
     const { data } = supabase.storage.from(QUEST_IMAGES_BUCKET).getPublicUrl(path);

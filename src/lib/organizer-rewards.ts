@@ -1,5 +1,6 @@
 import { Colors } from '@/constants/theme';
 import { type CityId, type RewardPartner } from '@/data/culture';
+import { getNetworkAwareErrorMessage } from '@/lib/network-errors';
 import { fetchOrganizerProfilesByIds, type OrganizerProfile } from '@/lib/organizer-profiles';
 import type { PlaceSuggestion } from '@/lib/place-search';
 import { supabase } from '@/lib/supabase';
@@ -49,7 +50,7 @@ export async function fetchOrganizerRewards(cityId: CityId) {
     .order('created_at', { ascending: false });
 
   if (error) {
-    return { error: error.message, rewards: [] as RewardPartner[] };
+    return { error: getNetworkAwareErrorMessage(error.message), rewards: [] as RewardPartner[] };
   }
 
   const rows = (data ?? []) as unknown as OrganizerRewardRow[];
@@ -75,7 +76,10 @@ export async function fetchMyOrganizerRewards(userId: string, cityId?: CityId) {
   const { data, error } = await query;
 
   if (error) {
-    return { error: error.message, rewards: [] as ManagedOrganizerReward[] };
+    return {
+      error: getNetworkAwareErrorMessage(error.message),
+      rewards: [] as ManagedOrganizerReward[],
+    };
   }
 
   const rows = (data ?? []) as unknown as OrganizerRewardRow[];
@@ -108,7 +112,7 @@ export async function createOrganizerReward(userId: string, input: CreateOrganiz
     status: 'pending',
   });
 
-  return { error: error?.message ?? null };
+  return { error: getNetworkAwareErrorMessage(error?.message, '') || null };
 }
 
 async function fetchOrganizerProfileLookup(rows: OrganizerRewardRow[]) {

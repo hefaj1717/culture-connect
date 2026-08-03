@@ -1,5 +1,6 @@
 import type { CityId } from '@/data/culture';
 import { getUniversityById, universities } from '@/data/universities';
+import { getNetworkAwareErrorMessage } from '@/lib/network-errors';
 import { supabase } from '@/lib/supabase';
 
 export type UniversityLeaderboardRow = {
@@ -58,7 +59,7 @@ export async function fetchUniversityLeaderboard(cityId: CityId) {
 
   if (error) {
     return {
-      error: error.message,
+      error: getNetworkAwareErrorMessage(error.message),
       rows: getFallbackUniversityLeaderboard(cityId),
     };
   }
@@ -78,7 +79,7 @@ export async function fetchMyUniversityMembership() {
     .maybeSingle();
 
   if (error) {
-    return { error: error.message, membership: null };
+    return { error: getNetworkAwareErrorMessage(error.message), membership: null };
   }
 
   return {
@@ -100,7 +101,7 @@ export async function upsertMyUniversityMembership({
   });
 
   if (error) {
-    return { error: error.message };
+    return { error: getNetworkAwareErrorMessage(error.message) };
   }
 
   const result = data as { error?: string; success?: boolean };

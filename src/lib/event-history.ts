@@ -1,4 +1,5 @@
 import type { CultureEvent } from '@/data/culture';
+import { getNetworkAwareErrorMessage } from '@/lib/network-errors';
 import { supabase } from '@/lib/supabase';
 
 export type UserEventStatus = 'interested' | 'going' | 'attended';
@@ -25,7 +26,10 @@ export async function fetchUserEventResponses(userId: string) {
     .order('updated_at', { ascending: false });
 
   if (error) {
-    return { error: error.message, responses: {} as Record<string, UserEventStatus> };
+    return {
+      error: getNetworkAwareErrorMessage(error.message),
+      responses: {} as Record<string, UserEventStatus>,
+    };
   }
 
   const responses = ((data ?? []) as UserEventResponseRow[]).reduce<
@@ -59,7 +63,7 @@ export async function setUserEventResponse(
     { onConflict: 'user_id,event_id' },
   );
 
-  return { error: error?.message ?? null };
+  return { error: getNetworkAwareErrorMessage(error?.message, '') || null };
 }
 
 export async function removeUserEventResponse(userId: string, eventId: string) {
@@ -74,7 +78,7 @@ export async function removeUserEventResponse(userId: string, eventId: string) {
     .eq('user_id', userId)
     .eq('event_id', databaseEventId);
 
-  return { error: error?.message ?? null };
+  return { error: getNetworkAwareErrorMessage(error?.message, '') || null };
 }
 
 export function buildUserEventHistory(

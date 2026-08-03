@@ -21,6 +21,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import AppTabs from '@/components/app-tabs';
 import { AuthProvider } from '@/providers/auth-provider';
+import { NetworkProvider } from '@/providers/network-provider';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -65,9 +66,11 @@ export default function TabLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <ThemeProvider value={DefaultTheme}>
-        <AuthProvider>
-          <AppTabs />
-        </AuthProvider>
+        <NetworkProvider>
+          <AuthProvider>
+            <AppTabs />
+          </AuthProvider>
+        </NetworkProvider>
       </ThemeProvider>
     </GestureHandlerRootView>
   );
