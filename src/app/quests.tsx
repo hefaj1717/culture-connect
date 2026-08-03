@@ -22,6 +22,7 @@ import { EmptyState, ErrorState, LoadingState } from '@/components/async-state';
 import { BrandImage } from '@/components/brand-image';
 import { CardStyles } from '@/constants/theme';
 import { type CultureCityData, getCultureCityData } from '@/data/culture';
+import { useResponsiveLayout } from '@/hooks/use-responsive-layout';
 import { useStableTopInset } from '@/hooks/use-stable-safe-area';
 import { fetchApprovedQuests, type Quest, type QuestStop } from '@/lib/quests';
 
@@ -140,6 +141,7 @@ export default function QuestsScreen({
 }
 
 function QuestCard({ onPress, quest }: { onPress: () => void; quest: Quest }) {
+  const layout = useResponsiveLayout();
   const totalStops = quest.stops.length;
   const progressPercent =
     totalStops > 0 ? Math.round((quest.completedStops / totalStops) * 100) : 0;
@@ -150,7 +152,7 @@ function QuestCard({ onPress, quest }: { onPress: () => void; quest: Quest }) {
       className="overflow-hidden rounded-3xl border border-primary/10 bg-white active:opacity-90"
       style={CardStyles.elevated}
     >
-      <View className="h-[142px] bg-gray-200">
+      <View className="bg-gray-200" style={{ height: layout.isSmallPhone ? 126 : 142 }}>
         <BrandImage
           source={getQuestImageSource(quest.image, quest.imageUrl)}
           contentFit="cover"
