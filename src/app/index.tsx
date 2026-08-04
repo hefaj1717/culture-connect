@@ -63,6 +63,14 @@ export default function HomeScreen({
   const layout = useResponsiveLayout();
   const [canShowUserLocation, setCanShowUserLocation] = useState(false);
   const happeningNow = events.slice(0, 3);
+  const eventsThisWeekCount = useMemo(() => countEventsThisWeek(events), [events]);
+  const weeklyEventMessage = useMemo(() => {
+    if (eventsLoading) return `Checking this week's events in ${cityData.name}`;
+    if (eventsError) return `Fresh ${cityData.name} events update soon`;
+    if (eventsThisWeekCount === 0) return `No events scheduled in ${cityData.name} this week yet`;
+    if (eventsThisWeekCount === 1) return `1 event in ${cityData.name} this week`;
+    return `${eventsThisWeekCount} events in ${cityData.name} this week`;
+  }, [cityData.name, eventsError, eventsLoading, eventsThisWeekCount]);
   const activitySpots = useMemo(() => {
     const mapSpots = events.reduce<
       {
@@ -288,7 +296,7 @@ export default function HomeScreen({
 
             <View className="mb-4 rounded-xl bg-secondary/95 px-4 py-2.5">
               <Text className="text-center text-[13px] font-semibold text-white">
-                {cityData.pilotText}
+                {weeklyEventMessage}
               </Text>
             </View>
 
@@ -725,6 +733,60 @@ function getEventImageSource(event: CultureEvent) {
   }
 
   return require('@/assets/images/culture/venue-museum.jpg');
+}
+
+function countEventsThisWeek(events: CultureEvent[]) {
+  const now = new Date();
+  const weekStart = getStartOfWeek(now);
+  const weekEnd = new Date(weekStart);
+  weekEnd.setDate(weekStart.getDate() + 7);
+
+  return events.filter((event) => {
+    const eventDate = getEventDate(event);
+    if (!eventDate) return false;
+
+    return eventDate >= weekStart && eventDate < weekEnd;
+  }).length;
+}
+
+function getStartOfWeek(date: Date) {
+  const start = new Date(date);
+  start.setHours(0, 0, 0, 0);
+  const day = start.getDay();
+  const mondayOffset = day === 0 ? -6 : 1 - day;
+  start.setDate(start.getDate() + mondayOffset);
+  return start;
+}
+
+function getEventDate(event: CultureEvent) {
+  if (event.startsAt) {
+    const startsAtDate = new Date(event.startsAt);
+    if (!Number.isNaN(startsAtDate.getTime())) return startsAtDate;
+  }
+
+  const dateMatch = event.date.match(/\b([A-Z][a-z]{2,8})\s+(\d{1,2})\b/);
+  if (!dateMatch) return null;
+
+  const monthIndex = [
+    'jan',
+    'feb',
+    'mar',
+    'apr',
+    'may',
+    'jun',
+    'jul',
+    'aug',
+    'sep',
+    'oct',
+    'nov',
+    'dec',
+  ].indexOf(dateMatch[1].slice(0, 3).toLowerCase());
+
+  if (monthIndex < 0) return null;
+
+  const now = new Date();
+  const fallbackDate = new Date(now.getFullYear(), monthIndex, Number(dateMatch[2]));
+  return Number.isNaN(fallbackDate.getTime()) ? null : fallbackDate;
 }
 
 function getActivityColor(intensity: number) {
