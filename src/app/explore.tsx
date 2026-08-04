@@ -59,6 +59,8 @@ import { useAuth } from '@/providers/auth-provider';
 
 const audienceFilters = [
   { key: 'all', label: 'All Events' },
+  { key: 'live', label: 'Live now' },
+  { key: 'upcoming', label: 'Coming up' },
   { key: 'international', label: 'International' },
   { key: 'english', label: 'In English' },
   { key: 'free', label: 'Free' },
@@ -259,26 +261,39 @@ export default function ExploreScreen({
 
   const filteredEvents = useMemo(
     () =>
-      allEvents.filter((event) => {
-        const matchesSearch =
-          event.title.toLowerCase().includes(normalizedSearch) ||
-          event.venueName.toLowerCase().includes(normalizedSearch);
+      allEvents
+        .filter((event) => {
+          const matchesSearch =
+            event.title.toLowerCase().includes(normalizedSearch) ||
+            event.venueName.toLowerCase().includes(normalizedSearch);
 
-        let matchesAudience = true;
-        if (audienceFilter === 'international') matchesAudience = event.isInternational;
-        if (audienceFilter === 'english') {
-          matchesAudience = event.language === 'en' || event.language === 'multilingual';
-        }
-        if (audienceFilter === 'free') matchesAudience = event.isFree;
-        if (audienceFilter === 'tonight') {
-          matchesAudience =
-            event.date.toLowerCase().includes('thu') ||
-            event.date.toLowerCase().includes('fri') ||
-            event.date.toLowerCase().includes('sat');
-        }
+          let matchesAudience = true;
+          if (audienceFilter === 'live') matchesAudience = getCheckInWindowState(event) === 'open';
+          if (audienceFilter === 'upcoming') {
+            matchesAudience = getCheckInWindowState(event) === 'not-started';
+          }
+          if (audienceFilter === 'international') matchesAudience = event.isInternational;
+          if (audienceFilter === 'english') {
+            matchesAudience = event.language === 'en' || event.language === 'multilingual';
+          }
+          if (audienceFilter === 'free') matchesAudience = event.isFree;
+          if (audienceFilter === 'tonight') {
+            matchesAudience =
+              event.date.toLowerCase().includes('thu') ||
+              event.date.toLowerCase().includes('fri') ||
+              event.date.toLowerCase().includes('sat');
+          }
 
-        return matchesSearch && matchesAudience;
-      }),
+          return matchesSearch && matchesAudience;
+        })
+        .sort((eventA, eventB) => {
+          const eventALive = getCheckInWindowState(eventA) === 'open';
+          const eventBLive = getCheckInWindowState(eventB) === 'open';
+
+          if (eventALive !== eventBLive) return eventALive ? -1 : 1;
+
+          return getEventStartTimestamp(eventA) - getEventStartTimestamp(eventB);
+        }),
     [allEvents, audienceFilter, normalizedSearch],
   );
 
@@ -504,7 +519,11 @@ export default function ExploreScreen({
                     ? 'Events in English'
                     : audienceFilter === 'free'
                       ? 'Free Events'
-                      : 'Events'}
+                      : audienceFilter === 'live'
+                        ? 'Live Now'
+                        : audienceFilter === 'upcoming'
+                          ? 'Coming Up'
+                          : 'Events'}
               </Text>
 
               {eventsLoading ? (
@@ -1289,6 +1308,13 @@ function getOrganizerImageSource(image: CultureEvent['organizerImage']) {
 
 function formatEventTimeRange(event: CultureEvent) {
   return event.endTime ? `${event.time}-${event.endTime}` : event.time;
+}
+
+function getEventStartTimestamp(event: CultureEvent) {
+  if (!event.startsAt) return Number.POSITIVE_INFINITY;
+
+  const startsAt = Date.parse(event.startsAt);
+  return Number.isNaN(startsAt) ? Number.POSITIVE_INFINITY : startsAt;
 }
 
 function getCheckInWindowState(event: CultureEvent) {
