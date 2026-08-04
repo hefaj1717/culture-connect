@@ -62,7 +62,7 @@ export default function HomeScreen({
   const stableTopInset = useStableTopInset();
   const layout = useResponsiveLayout();
   const [canShowUserLocation, setCanShowUserLocation] = useState(false);
-  const [isMapInteractive, setIsMapInteractive] = useState(false);
+  const [isMapInteractive, setIsMapInteractive] = useState(true);
   const happeningNow = events.slice(0, 3);
   const eventsThisWeekCount = useMemo(() => countEventsThisWeek(events), [events]);
   const weeklyEventMessage = useMemo(() => {
@@ -201,7 +201,7 @@ export default function HomeScreen({
 
   useEffect(() => {
     setSelectedActivityId(null);
-    setIsMapInteractive(false);
+    setIsMapInteractive(true);
   }, [cityData.id]);
 
   useEffect(() => {
@@ -808,8 +808,8 @@ function getCityMapRegion(cityData: CultureCityData) {
     return {
       latitude: 51.2479,
       longitude: 22.5662,
-      latitudeDelta: 0.055,
-      longitudeDelta: 0.055,
+      latitudeDelta: 0.075,
+      longitudeDelta: 0.075,
     };
   }
 
@@ -817,15 +817,15 @@ function getCityMapRegion(cityData: CultureCityData) {
     return {
       latitude: 50.8798,
       longitude: 4.7005,
-      latitudeDelta: 0.035,
-      longitudeDelta: 0.035,
+      latitudeDelta: 0.05,
+      longitudeDelta: 0.05,
     };
   }
 
   return {
     latitude: 50.8798,
     longitude: 4.7005,
-    latitudeDelta: 0.045,
-    longitudeDelta: 0.045,
+    latitudeDelta: 0.06,
+    longitudeDelta: 0.06,
   };
 }
