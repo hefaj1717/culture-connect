@@ -431,17 +431,23 @@ export default function HomeScreen({
                     tracksViewChanges={false}
                   >
                     <View
-                      className="items-center justify-center rounded-full border-[3px] border-white"
+                      className="h-8 w-8 items-center justify-center rounded-full"
                       style={{
-                        backgroundColor: spot.color,
-                        height: selectedActivitySpot?.id === spot.id ? 28 : 23,
                         shadowColor: '#7F1D1D',
                         shadowOffset: { height: 2, width: 0 },
                         shadowOpacity: selectedActivitySpot?.id === spot.id ? 0.28 : 0.18,
                         shadowRadius: selectedActivitySpot?.id === spot.id ? 8 : 5,
-                        width: selectedActivitySpot?.id === spot.id ? 28 : 23,
                       }}
-                    />
+                    >
+                      <View
+                        className="items-center justify-center rounded-full border-[3px] border-white"
+                        style={{
+                          backgroundColor: spot.color,
+                          height: selectedActivitySpot?.id === spot.id ? 24 : 22,
+                          width: selectedActivitySpot?.id === spot.id ? 24 : 22,
+                        }}
+                      />
+                    </View>
                   </Marker>
                 ))}
               </MapView>
