@@ -37,12 +37,14 @@ type RewardAvailabilitySource = {
 };
 
 export function getDefaultRewardAvailability(): RewardAvailabilityInput {
+  const today = formatDateInput(new Date());
+
   return {
-    availableDays: defaultRewardAvailabilityDays,
+    availableDays: getIsoDaysInDateRange(today, today),
     availableEndTime: defaultRewardEndTime,
-    availableFrom: formatDateInput(new Date()),
+    availableFrom: today,
     availableStartTime: defaultRewardStartTime,
-    availableUntil: '',
+    availableUntil: today,
   };
 }
 
@@ -55,6 +57,24 @@ export function normalizeRewardTimeInput(value: string) {
   if (digits.length <= 2) return digits;
 
   return `${digits.slice(0, 2)}:${digits.slice(2)}`;
+}
+
+export function getIsoDaysInDateRange(from: string, until?: string | null) {
+  if (!isValidDateInput(from)) return defaultRewardAvailabilityDays;
+
+  const end = until && isValidDateInput(until) && until >= from ? until : from;
+  const startDate = parseDateInput(from);
+  const endDate = parseDateInput(end);
+  if (!startDate || !endDate) return defaultRewardAvailabilityDays;
+
+  const days = new Set<number>();
+  const cursor = new Date(startDate);
+  while (cursor <= endDate) {
+    days.add(toIsoWeekday(cursor));
+    cursor.setDate(cursor.getDate() + 1);
+  }
+
+  return Array.from(days).sort((a, b) => a - b);
 }
 
 export function validateRewardAvailability(input: RewardAvailabilityInput) {
@@ -148,6 +168,16 @@ function formatDateInput(date: Date) {
 
 function isValidDateInput(value: string) {
   return /^\d{4}-\d{2}-\d{2}$/.test(value);
+}
+
+function parseDateInput(value: string) {
+  if (!isValidDateInput(value)) return null;
+  return new Date(`${value}T00:00:00`);
+}
+
+function toIsoWeekday(date: Date) {
+  const day = date.getDay();
+  return day === 0 ? 7 : day;
 }
 
 function isValidTimeInput(value: string) {
