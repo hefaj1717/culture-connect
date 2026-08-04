@@ -1,10 +1,12 @@
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Location from 'expo-location';
-import { ArrowRight, Bell, CheckCircle2, Globe, User, Users, X } from 'lucide-react-native';
+import { ArrowLeft, ArrowRight, Bell, CheckCircle2, Globe, User, Users } from 'lucide-react-native';
 import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import MapView, { Circle as MapCircle, Marker } from 'react-native-maps';
+import { GestureDetector } from 'react-native-gesture-handler';
+import Animated from 'react-native-reanimated';
 
 import { EmptyState, ErrorState, LoadingState } from '@/components/async-state';
 import { BrandImage } from '@/components/brand-image';
@@ -20,6 +22,7 @@ import { getEventEngagement } from '@/lib/event-engagement';
 import type { UserEventStatus } from '@/lib/event-history';
 import { useResponsiveLayout } from '@/hooks/use-responsive-layout';
 import { useStableTopInset } from '@/hooks/use-stable-safe-area';
+import { useCardSwipeBack } from '@/hooks/use-card-swipe-back';
 import type { UniversityLeaderboardRow } from '@/lib/university-leaderboard';
 import type { OrganizerApplicationStatus } from '@/providers/auth-provider';
 
@@ -188,6 +191,15 @@ export default function HomeScreen({
   const [hasUnreadNotifications, setHasUnreadNotifications] = useState(
     visibleNotifications.some((notification) => notification.unread),
   );
+  const {
+    closeWithAnimation: closeNotificationsWithAnimation,
+    gesture: notificationsGesture,
+    swipeStyle: notificationsSwipeStyle,
+  } = useCardSwipeBack({
+    onSwipeBack: () => setNotificationsOpen(false),
+    resetKey: visibleNotifications.map((notification) => notification.id).join('-'),
+    visible: notificationsOpen,
+  });
 
   useEffect(() => {
     setSelectedActivityId(null);
@@ -596,102 +608,118 @@ export default function HomeScreen({
       </ScrollView>
 
       <Modal
-        animationType="fade"
-        onRequestClose={() => setNotificationsOpen(false)}
+        animationType="none"
+        onRequestClose={closeNotificationsWithAnimation}
         transparent
         visible={notificationsOpen}
       >
-        <Pressable className="flex-1 bg-black/35" onPress={() => setNotificationsOpen(false)}>
-          <View className="flex-1 justify-start px-4" style={{ paddingTop: stableTopInset + 8 }}>
-            <Pressable
-              className="overflow-hidden rounded-[30px] bg-white"
-              onPress={(event) => event.stopPropagation()}
+        <GestureDetector gesture={notificationsGesture}>
+          <Animated.View className="flex-1 bg-white" style={notificationsSwipeStyle}>
+            <View
+              className="flex-row items-center justify-between bg-white px-5 pb-3"
+              style={{ paddingTop: stableTopInset + 6 }}
             >
-              <View className="items-center bg-white pt-2">
-                <View className="h-1.5 w-10 rounded-full bg-gray-300" />
+              <Pressable
+                onPress={closeNotificationsWithAnimation}
+                className="h-11 w-11 items-center justify-center rounded-full bg-gray-100 active:opacity-80"
+                accessibilityRole="button"
+                accessibilityLabel="Close notifications"
+              >
+                <ArrowLeft size={22} color="#756F7B" strokeWidth={2.6} />
+              </Pressable>
+
+              <View className="relative h-11 w-11 items-center justify-center rounded-full bg-primary/10">
+                <Bell size={21} color={Colors.light.primary} strokeWidth={2.4} />
+                {visibleNotifications.some((notification) => notification.unread) && (
+                  <View className="absolute -right-1 -top-1 min-w-5 items-center justify-center rounded-full bg-destructive px-1 py-0.5">
+                    <Text className="text-[10px] font-extrabold leading-3 text-white">
+                      {visibleNotifications.filter((notification) => notification.unread).length}
+                    </Text>
+                  </View>
+                )}
+              </View>
+            </View>
+
+            <ScrollView
+              className="flex-1 bg-white"
+              contentContainerStyle={{
+                gap: 14,
+                paddingHorizontal: 20,
+                paddingTop: 8,
+                paddingBottom: 40,
+              }}
+              showsVerticalScrollIndicator={false}
+            >
+              <View className="overflow-hidden rounded-[30px] bg-ink" style={CardStyles.compact}>
+                <LinearGradient
+                  colors={['rgba(124,58,237,0.72)', 'rgba(36,28,46,0.98)']}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={{ padding: 22 }}
+                >
+                  <Text className="text-[12px] font-semibold uppercase tracking-[3px] text-white/60">
+                    CultureQuest updates
+                  </Text>
+                  <Text className="mt-2 font-heading text-[34px] font-extrabold leading-[38px] text-white">
+                    Notifications
+                  </Text>
+                  <Text className="mt-2 max-w-[300px] text-[14px] leading-5 text-white/78">
+                    Account, organizer, reward, and event updates collected in one place.
+                  </Text>
+                </LinearGradient>
               </View>
 
-              <LinearGradient
-                colors={['rgba(124,58,237,0.12)', 'rgba(244,162,97,0.08)']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-              >
-                <View className="flex-row items-start justify-between px-5 pb-4 pt-4">
-                  <View className="min-w-0 flex-1 pr-4">
-                    <View className="mb-3 flex-row items-center gap-2">
-                      <View className="relative h-11 w-11 items-center justify-center rounded-2xl bg-primary">
-                        <Bell size={21} color="white" strokeWidth={2.3} />
-                        {visibleNotifications.some((notification) => notification.unread) && (
-                          <View className="absolute -left-1 -top-1 min-w-5 items-center justify-center rounded-full bg-destructive px-1 py-0.5">
-                            <Text className="text-[10px] font-extrabold leading-3 text-white">
-                              {
-                                visibleNotifications.filter((notification) => notification.unread)
-                                  .length
-                              }
-                            </Text>
-                          </View>
-                        )}
-                      </View>
-                    </View>
-                    <Text className="font-heading text-[25px] font-extrabold leading-[29px] text-ink">
-                      Updates
-                    </Text>
-                  </View>
-                  <Pressable
-                    onPress={() => setNotificationsOpen(false)}
-                    className="h-9 w-9 items-center justify-center rounded-full bg-white/80 active:opacity-80"
-                    accessibilityRole="button"
-                    accessibilityLabel="Close notifications"
-                  >
-                    <X size={18} color="#756F7B" strokeWidth={2.4} />
-                  </Pressable>
+              {visibleNotifications.length === 0 ? (
+                <View
+                  className="rounded-[26px] border border-gray-200 bg-canvas px-5 py-6"
+                  style={CardStyles.soft}
+                >
+                  <Text className="font-heading text-[26px] leading-[31px] text-ink">
+                    Quiet for now
+                  </Text>
+                  <Text className="mt-2 text-[14px] leading-6 text-muted">
+                    Important account and CultureQuest updates will appear here when there is
+                    something new.
+                  </Text>
                 </View>
-              </LinearGradient>
-
-              <View className="gap-2 bg-white p-3">
-                {visibleNotifications.length === 0 ? (
-                  <View className="rounded-2xl border border-primary/10 bg-primary/5 px-4 py-5">
-                    <Text className="text-[15px] font-extrabold text-ink">No updates yet</Text>
-                    <Text className="mt-1 text-[13px] leading-5 text-muted">
-                      Account, organizer, and event updates will appear here when they are created.
-                    </Text>
-                  </View>
-                ) : (
-                  visibleNotifications.map((notification) => (
-                    <Pressable
-                      key={notification.id}
-                      className="flex-row gap-3 rounded-2xl border border-primary/10 bg-primary/5 px-3 py-3.5 active:opacity-80"
-                      onPress={() => setNotificationsOpen(false)}
-                    >
-                      <View className="pt-1.5">
+              ) : (
+                visibleNotifications.map((notification) => (
+                  <Pressable
+                    key={notification.id}
+                    className="rounded-[24px] border border-primary/10 bg-primary/5 px-4 py-4 active:opacity-85"
+                    onPress={closeNotificationsWithAnimation}
+                    style={CardStyles.soft}
+                  >
+                    <View className="flex-row items-start gap-3">
+                      <View className="pt-1">
                         <View
-                          className={`h-2.5 w-2.5 rounded-full ${
+                          className={`h-3 w-3 rounded-full ${
                             notification.unread ? 'bg-destructive' : 'bg-primary/35'
                           }`}
                         />
                       </View>
                       <View className="min-w-0 flex-1">
-                        <View className="mb-1 flex-row items-center justify-between gap-3">
-                          <Text className="min-w-0 flex-1 text-[15px] font-extrabold text-ink">
+                        <View className="flex-row items-start justify-between gap-3">
+                          <Text className="min-w-0 flex-1 text-[16px] font-extrabold leading-5 text-ink">
                             {notification.title}
                           </Text>
-                          <View className="rounded-full bg-white px-2 py-0.5">
-                            <Text className="text-[10px] font-bold text-muted">
+                          <View className="rounded-full bg-white px-3 py-1">
+                            <Text className="text-[11px] font-extrabold text-primary">
                               {notification.time}
                             </Text>
                           </View>
                         </View>
-                        <Text className="text-[13px] leading-5 text-muted">
+                        <Text className="mt-2 text-[14px] leading-6 text-muted">
                           {notification.message}
                         </Text>
                       </View>
-                    </Pressable>
-                  ))
-                )}
-              </View>
-            </Pressable>
-          </View>
-        </Pressable>
+                    </View>
+                  </Pressable>
+                ))
+              )}
+            </ScrollView>
+          </Animated.View>
+        </GestureDetector>
       </Modal>
     </View>
   );
