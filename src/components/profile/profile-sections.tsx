@@ -102,6 +102,8 @@ export function ProfileRankCard({
   userXp,
 }: ProfileRankCardProps) {
   const layout = useResponsiveLayout();
+  const displayName = formatProfileDisplayName(fullName);
+  const displayNameLines = displayName.includes('\n') ? 2 : 1;
 
   return (
     <View
@@ -121,13 +123,19 @@ export function ProfileRankCard({
               className="min-w-0 flex-1 font-heading font-extrabold text-ink"
               numberOfLines={2}
               adjustsFontSizeToFit
-              minimumFontScale={0.82}
+              minimumFontScale={0.76}
               style={{
-                fontSize: layout.profileNameSize,
-                lineHeight: layout.profileNameLineHeight,
+                fontSize:
+                  displayNameLines > 1
+                    ? layout.profileNameSize
+                    : Math.max(26, layout.profileNameSize - 3),
+                lineHeight:
+                  displayNameLines > 1
+                    ? layout.profileNameLineHeight
+                    : Math.max(29, layout.profileNameLineHeight - 3),
               }}
             >
-              {fullName}
+              {displayName}
             </Text>
             <Pressable
               accessibilityLabel="Open profile settings"
@@ -1862,6 +1870,16 @@ function getOrganizerRewardStatusStyle(status: OrganizerRewardStatus) {
   }
 
   return { container: 'bg-secondary/12', label: 'Pending', text: 'text-secondary' };
+}
+
+function formatProfileDisplayName(value: string) {
+  const words = value.replace(/\s+/g, ' ').trim().split(' ').filter(Boolean);
+
+  if (words.length < 2) {
+    return words[0] ?? value;
+  }
+
+  return `${words[0]}\n${words.slice(1).join(' ')}`;
 }
 
 function getRewardHistoryImageSource(reward: ManagedOrganizerReward) {
