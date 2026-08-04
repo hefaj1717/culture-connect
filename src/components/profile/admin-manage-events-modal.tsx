@@ -10,7 +10,7 @@ import {
   Search,
   Trash2,
 } from 'lucide-react-native';
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -211,25 +211,24 @@ export function AdminManageEventsModal({
     }
   }, [visible]);
 
-  const closeOrBack = useCallback(() => {
-    if (selectedEvent) {
-      setSelectedEvent(null);
-      return;
-    }
-    if (selectedReward) {
-      setSelectedReward(null);
-      return;
-    }
-
-    onClose();
-  }, [onClose, selectedEvent, selectedReward]);
+  const hasSelectedContent = !!visibleSelectedEvent || !!visibleSelectedReward;
   const { closeWithAnimation, gesture, swipeStyle } = useCardSwipeBack({
-    onSwipeBack: closeOrBack,
-    resetKey:
-      selectedEvent?.databaseId ??
-      selectedReward?.databaseId ??
-      `${activeTab}-${activeTab === 'events' ? activeFilter : activeRewardFilter}`,
+    enabled: !hasSelectedContent,
+    onSwipeBack: onClose,
+    resetKey: `${activeTab}-${activeTab === 'events' ? activeFilter : activeRewardFilter}`,
     visible,
+  });
+  const {
+    closeWithAnimation: closeDetailWithAnimation,
+    gesture: detailGesture,
+    swipeStyle: detailSwipeStyle,
+  } = useCardSwipeBack({
+    onSwipeBack: () => {
+      setSelectedEvent(null);
+      setSelectedReward(null);
+    },
+    resetKey: selectedEvent?.databaseId ?? selectedReward?.databaseId ?? null,
+    visible: visible && hasSelectedContent,
   });
 
   function openOrganizerProfile(event: AdminManagedEvent) {
@@ -253,172 +252,185 @@ export function AdminManageEventsModal({
   }
 
   return (
-    <Modal animationType="slide" transparent onRequestClose={closeWithAnimation} visible={visible}>
+    <Modal
+      animationType="slide"
+      transparent
+      onRequestClose={hasSelectedContent ? closeDetailWithAnimation : closeWithAnimation}
+      visible={visible}
+    >
       <GestureDetector gesture={gesture}>
         <Animated.View className="flex-1 bg-white" style={swipeStyle}>
           <SafeAreaView className="flex-1 bg-white" edges={['bottom']}>
-            {visibleSelectedEvent ? (
-              <AdminEventEditor
-                event={visibleSelectedEvent}
-                onBack={closeWithAnimation}
-                onDelete={() => onDeleteEvent(visibleSelectedEvent.databaseId)}
-                onOpenOrganizer={() => openOrganizerProfile(visibleSelectedEvent)}
-                onSave={onSaveEvent}
-                saving={savingEventId === visibleSelectedEvent.databaseId}
-                stableModalTopInset={stableModalTopInset}
-              />
-            ) : visibleSelectedReward ? (
-              <AdminRewardEditor
-                onBack={closeWithAnimation}
-                onDelete={() => onDeleteReward(visibleSelectedReward.databaseId)}
-                onOpenOrganizer={() => openRewardOrganizerProfile(visibleSelectedReward)}
-                onSave={onSaveReward}
-                reward={visibleSelectedReward}
-                saving={savingRewardId === visibleSelectedReward.databaseId}
-                stableModalTopInset={stableModalTopInset}
+            <View
+              className="flex-row items-center justify-between bg-white px-5 pb-3"
+              style={{ paddingTop: stableModalTopInset + 6 }}
+            >
+              <Pressable
+                onPress={closeWithAnimation}
+                className="h-10 w-10 items-center justify-center rounded-full bg-gray-100 active:opacity-80"
+                accessibilityLabel="Close manage events"
+                accessibilityRole="button"
+              >
+                <ArrowLeft size={21} color="#756F7B" strokeWidth={2.6} />
+              </Pressable>
+              <Pressable
+                onPress={onRefresh}
+                className="h-10 w-10 items-center justify-center rounded-full bg-primary/10 active:opacity-80"
+                accessibilityLabel="Refresh events"
+                accessibilityRole="button"
+              >
+                <RefreshCw size={18} color={Colors.light.primary} strokeWidth={2.5} />
+              </Pressable>
+            </View>
+
+            <View className="px-5">
+              <View className="mb-4 overflow-hidden rounded-3xl bg-ink">
+                <LinearGradient
+                  colors={['rgba(124,58,237,0.72)', 'rgba(36,28,46,0.98)']}
+                  end={{ x: 1, y: 1 }}
+                  start={{ x: 0, y: 0 }}
+                  style={{ padding: 20 }}
+                >
+                  <Text className="text-[12px] font-semibold uppercase tracking-wide text-white/70">
+                    Admin manage
+                  </Text>
+                  <Text className="mt-1 font-heading text-[29px] font-extrabold leading-[33px] text-white">
+                    Manage content.
+                  </Text>
+                  <Text className="mt-2 max-w-[300px] text-[13px] leading-5 text-white/80">
+                    Edit events and rewards, change status, update XP, or archive content.
+                  </Text>
+                </LinearGradient>
+              </View>
+            </View>
+
+            <AdminContentTabBar
+              activeTab={activeTab}
+              eventCount={events.length}
+              onSelect={setActiveTab}
+              rewardCount={rewards.length}
+            />
+
+            {activeTab === 'events' ? (
+              <AdminEventFilterBar
+                activeKey={activeFilter}
+                events={events}
+                onSelect={setActiveFilter}
               />
             ) : (
-              <>
-                <View
-                  className="flex-row items-center justify-between bg-white px-5 pb-3"
-                  style={{ paddingTop: stableModalTopInset + 6 }}
-                >
-                  <Pressable
-                    onPress={closeWithAnimation}
-                    className="h-10 w-10 items-center justify-center rounded-full bg-gray-100 active:opacity-80"
-                    accessibilityLabel="Close manage events"
-                    accessibilityRole="button"
-                  >
-                    <ArrowLeft size={21} color="#756F7B" strokeWidth={2.6} />
-                  </Pressable>
-                  <Pressable
-                    onPress={onRefresh}
-                    className="h-10 w-10 items-center justify-center rounded-full bg-primary/10 active:opacity-80"
-                    accessibilityLabel="Refresh events"
-                    accessibilityRole="button"
-                  >
-                    <RefreshCw size={18} color={Colors.light.primary} strokeWidth={2.5} />
-                  </Pressable>
-                </View>
+              <AdminRewardFilterBar
+                activeKey={activeRewardFilter}
+                onSelect={setActiveRewardFilter}
+                rewards={rewards}
+              />
+            )}
 
-                <View className="px-5">
-                  <View className="mb-4 overflow-hidden rounded-3xl bg-ink">
-                    <LinearGradient
-                      colors={['rgba(124,58,237,0.72)', 'rgba(36,28,46,0.98)']}
-                      end={{ x: 1, y: 1 }}
-                      start={{ x: 0, y: 0 }}
-                      style={{ padding: 20 }}
-                    >
-                      <Text className="text-[12px] font-semibold uppercase tracking-wide text-white/70">
-                        Admin manage
-                      </Text>
-                      <Text className="mt-1 font-heading text-[29px] font-extrabold leading-[33px] text-white">
-                        Manage content.
-                      </Text>
-                      <Text className="mt-2 max-w-[300px] text-[13px] leading-5 text-white/80">
-                        Edit events and rewards, change status, update XP, or archive content.
-                      </Text>
-                    </LinearGradient>
-                  </View>
-                </View>
-
-                <AdminContentTabBar
-                  activeTab={activeTab}
-                  eventCount={events.length}
-                  onSelect={setActiveTab}
-                  rewardCount={rewards.length}
+            <View className="px-5 pb-2">
+              <View className="h-12 flex-row items-center gap-2 rounded-2xl border border-gray-200 bg-white px-4">
+                <Search size={17} color="#756F7B" strokeWidth={2.4} />
+                <TextInput
+                  autoCorrect={false}
+                  className="min-w-0 flex-1 text-[14px] font-semibold text-ink"
+                  onChangeText={setSearchQuery}
+                  placeholder={
+                    activeTab === 'events'
+                      ? 'Search title, venue, or organizer'
+                      : 'Search reward, place, or organizer'
+                  }
+                  placeholderTextColor="#8B909A"
+                  returnKeyType="search"
+                  value={searchQuery}
                 />
+              </View>
+            </View>
 
-                {activeTab === 'events' ? (
-                  <AdminEventFilterBar
-                    activeKey={activeFilter}
-                    events={events}
-                    onSelect={setActiveFilter}
+            <ScrollView
+              className="flex-1"
+              contentContainerStyle={{
+                gap: 12,
+                paddingHorizontal: 20,
+                paddingTop: 12,
+                paddingBottom: 36,
+              }}
+              showsVerticalScrollIndicator={false}
+            >
+              {error && <ErrorState body={error} compact title="Content could not load" />}
+
+              {loading ? (
+                <LoadingState body="Loading organizer submissions." title="Loading content" />
+              ) : activeTab === 'events' ? (
+                events.length === 0 ? (
+                  <AdminEventEmptyState
+                    body="Organizer events will appear here after they are submitted."
+                    title="No events yet"
+                  />
+                ) : filteredEvents.length === 0 ? (
+                  <AdminEventEmptyState
+                    body="No events match this status filter."
+                    title="Nothing here"
                   />
                 ) : (
-                  <AdminRewardFilterBar
-                    activeKey={activeRewardFilter}
-                    onSelect={setActiveRewardFilter}
-                    rewards={rewards}
+                  filteredEvents.map((event) => (
+                    <AdminManagedEventCard
+                      event={event}
+                      key={event.databaseId}
+                      onOpenOrganizer={() => openOrganizerProfile(event)}
+                      onPress={() => setSelectedEvent(event)}
+                    />
+                  ))
+                )
+              ) : rewards.length === 0 ? (
+                <AdminEventEmptyState
+                  body="Organizer rewards will appear here after they are submitted."
+                  title="No rewards yet"
+                />
+              ) : filteredRewards.length === 0 ? (
+                <AdminEventEmptyState
+                  body="No rewards match this status filter."
+                  title="Nothing here"
+                />
+              ) : (
+                filteredRewards.map((reward) => (
+                  <AdminManagedRewardCard
+                    key={reward.databaseId}
+                    onOpenOrganizer={() => openRewardOrganizerProfile(reward)}
+                    onPress={() => setSelectedReward(reward)}
+                    reward={reward}
                   />
-                )}
+                ))
+              )}
+            </ScrollView>
 
-                <View className="px-5 pb-2">
-                  <View className="h-12 flex-row items-center gap-2 rounded-2xl border border-gray-200 bg-white px-4">
-                    <Search size={17} color="#756F7B" strokeWidth={2.4} />
-                    <TextInput
-                      autoCorrect={false}
-                      className="min-w-0 flex-1 text-[14px] font-semibold text-ink"
-                      onChangeText={setSearchQuery}
-                      placeholder={
-                        activeTab === 'events'
-                          ? 'Search title, venue, or organizer'
-                          : 'Search reward, place, or organizer'
-                      }
-                      placeholderTextColor="#8B909A"
-                      returnKeyType="search"
-                      value={searchQuery}
-                    />
-                  </View>
-                </View>
+            {visibleSelectedEvent && (
+              <GestureDetector gesture={detailGesture}>
+                <Animated.View className="absolute inset-0 bg-white" style={detailSwipeStyle}>
+                  <AdminEventEditor
+                    event={visibleSelectedEvent}
+                    onBack={closeDetailWithAnimation}
+                    onDelete={() => onDeleteEvent(visibleSelectedEvent.databaseId)}
+                    onOpenOrganizer={() => openOrganizerProfile(visibleSelectedEvent)}
+                    onSave={onSaveEvent}
+                    saving={savingEventId === visibleSelectedEvent.databaseId}
+                    stableModalTopInset={stableModalTopInset}
+                  />
+                </Animated.View>
+              </GestureDetector>
+            )}
 
-                <ScrollView
-                  className="flex-1"
-                  contentContainerStyle={{
-                    gap: 12,
-                    paddingHorizontal: 20,
-                    paddingTop: 12,
-                    paddingBottom: 36,
-                  }}
-                  showsVerticalScrollIndicator={false}
-                >
-                  {error && <ErrorState body={error} compact title="Content could not load" />}
-
-                  {loading ? (
-                    <LoadingState body="Loading organizer submissions." title="Loading content" />
-                  ) : activeTab === 'events' ? (
-                    events.length === 0 ? (
-                      <AdminEventEmptyState
-                        body="Organizer events will appear here after they are submitted."
-                        title="No events yet"
-                      />
-                    ) : filteredEvents.length === 0 ? (
-                      <AdminEventEmptyState
-                        body="No events match this status filter."
-                        title="Nothing here"
-                      />
-                    ) : (
-                      filteredEvents.map((event) => (
-                        <AdminManagedEventCard
-                          event={event}
-                          key={event.databaseId}
-                          onOpenOrganizer={() => openOrganizerProfile(event)}
-                          onPress={() => setSelectedEvent(event)}
-                        />
-                      ))
-                    )
-                  ) : rewards.length === 0 ? (
-                    <AdminEventEmptyState
-                      body="Organizer rewards will appear here after they are submitted."
-                      title="No rewards yet"
-                    />
-                  ) : filteredRewards.length === 0 ? (
-                    <AdminEventEmptyState
-                      body="No rewards match this status filter."
-                      title="Nothing here"
-                    />
-                  ) : (
-                    filteredRewards.map((reward) => (
-                      <AdminManagedRewardCard
-                        key={reward.databaseId}
-                        onOpenOrganizer={() => openRewardOrganizerProfile(reward)}
-                        onPress={() => setSelectedReward(reward)}
-                        reward={reward}
-                      />
-                    ))
-                  )}
-                </ScrollView>
-              </>
+            {visibleSelectedReward && (
+              <GestureDetector gesture={detailGesture}>
+                <Animated.View className="absolute inset-0 bg-white" style={detailSwipeStyle}>
+                  <AdminRewardEditor
+                    onBack={closeDetailWithAnimation}
+                    onDelete={() => onDeleteReward(visibleSelectedReward.databaseId)}
+                    onOpenOrganizer={() => openRewardOrganizerProfile(visibleSelectedReward)}
+                    onSave={onSaveReward}
+                    reward={visibleSelectedReward}
+                    saving={savingRewardId === visibleSelectedReward.databaseId}
+                    stableModalTopInset={stableModalTopInset}
+                  />
+                </Animated.View>
+              </GestureDetector>
             )}
           </SafeAreaView>
           <OrganizerProfileModal
