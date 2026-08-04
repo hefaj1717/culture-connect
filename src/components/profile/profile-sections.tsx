@@ -1872,14 +1872,7 @@ function getRewardHistoryImageSource(reward: ManagedOrganizerReward) {
     return { uri: reward.imageUrl };
   }
 
-  if (reward.category === 'bookstore') {
-    return require('@/assets/images/culture/venue-museum.jpg');
-  }
-  if (reward.category === 'bar' || reward.name.toLowerCase().includes('brew')) {
-    return require('@/assets/images/culture/venue-theater.jpg');
-  }
-
-  return require('@/assets/images/culture/venue-cafe.jpg');
+  return require('@/assets/images/culture/default-coffee.jpg');
 }
 
 function formatSubmittedDate(value: string) {
@@ -1960,7 +1953,6 @@ export function RewardsSection({
             onPress={() => onSelectReward(featuredReward.reward)}
             redemption={redeemedRewards[featuredReward.reward.id]}
             userXp={userXp}
-            variantIndex={featuredReward.index}
           />
         </View>
       )}
@@ -2032,7 +2024,6 @@ export function RewardsListModal({
                   redemption={redeemedRewards[reward.id]}
                   reward={reward}
                   userXp={userXp}
-                  variantIndex={index}
                 />
               ))}
             </ScrollView>

@@ -4,7 +4,6 @@ import {
   CalendarDays,
   Check,
   Clock,
-  Gift,
   MapPin,
   RefreshCw,
   Trash2,
@@ -383,9 +382,11 @@ function PendingRewardCard({
               withTextGradient={false}
             />
           ) : (
-            <View className="h-full w-full items-center justify-center bg-primary/10">
-              <Gift size={21} color="#7C3AED" strokeWidth={2.4} />
-            </View>
+            <BrandImage
+              className="h-full w-full"
+              source={require('@/assets/images/culture/default-coffee.jpg')}
+              withTextGradient={false}
+            />
           )}
         </View>
         <View className="min-w-0 flex-1">

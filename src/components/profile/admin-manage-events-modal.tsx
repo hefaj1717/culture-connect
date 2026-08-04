@@ -1626,21 +1626,14 @@ function getEventImageSource(event: AdminManagedEvent) {
 }
 
 function getRewardImageSource(reward: AdminManagedReward) {
-  if (reward.imageUrl) {
-    return { uri: reward.imageUrl };
-  }
   if (reward.organizerAvatarUrl) {
     return { uri: reward.organizerAvatarUrl };
   }
-
-  if (reward.category === 'bookstore') {
-    return require('@/assets/images/culture/venue-museum.jpg');
-  }
-  if (reward.category === 'bar') {
-    return require('@/assets/images/culture/venue-theater.jpg');
+  if (reward.imageUrl) {
+    return { uri: reward.imageUrl };
   }
 
-  return require('@/assets/images/culture/venue-cafe.jpg');
+  return require('@/assets/images/culture/default-coffee.jpg');
 }
 
 function getStatusLabel(status: OrganizerEventStatus) {
