@@ -465,7 +465,7 @@ function AuthenticatedTabs() {
             <Home
               size={24}
               color={activeIndex === 0 ? ACTIVE : INACTIVE}
-              fill={activeIndex === 0 ? ACTIVE : 'none'}
+              fill="none"
               strokeWidth={activeIndex === 0 ? 2.6 : 2.2}
             />
           }
@@ -481,7 +481,7 @@ function AuthenticatedTabs() {
             <Compass
               size={23}
               color={activeIndex === 1 ? ACTIVE : INACTIVE}
-              fill={activeIndex === 1 ? ACTIVE : 'none'}
+              fill="none"
               strokeWidth={activeIndex === 1 ? 2.6 : 2.3}
             />
           }
@@ -497,7 +497,7 @@ function AuthenticatedTabs() {
             <Route
               size={23}
               color={activeIndex === 2 ? ACTIVE : INACTIVE}
-              fill={activeIndex === 2 ? ACTIVE : 'none'}
+              fill="none"
               strokeWidth={activeIndex === 2 ? 2.6 : 2.3}
             />
           }
@@ -513,7 +513,7 @@ function AuthenticatedTabs() {
             <User
               size={24}
               color={activeIndex === 3 ? ACTIVE : INACTIVE}
-              fill={activeIndex === 3 ? ACTIVE : 'none'}
+              fill="none"
               strokeWidth={activeIndex === 3 ? 2.6 : 2.2}
             />
           }
