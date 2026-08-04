@@ -26,7 +26,6 @@ import {
   RewardsListModal,
   RewardsSection,
   UniversityAffiliationSection,
-  XpHistorySection,
 } from '@/components/profile/profile-sections';
 import { RewardDetailModal } from '@/components/profile/reward-detail-modal';
 import { type CityId, type RewardPartner, defaultCityId, getCultureCityData } from '@/data/culture';
@@ -560,7 +559,7 @@ export default function ProfileScreen({
 
     async function loadXpTransactions() {
       setXpTransactionsLoading(true);
-      const result = await fetchXpTransactions({ limit: 5, userId });
+      const result = await fetchXpTransactions({ limit: 30, userId });
       if (!active) return;
 
       setXpTransactions(result.transactions);
@@ -759,12 +758,6 @@ export default function ProfileScreen({
 
         <UniversityAffiliationSection membership={universityMembership} />
 
-        <XpHistorySection
-          error={xpTransactionsError}
-          loading={xpTransactionsLoading}
-          transactions={xpTransactions}
-        />
-
         <RewardsSection
           cityName={cityData.name}
           error={rewardsError ?? rewardRedemptionsError}
@@ -822,6 +815,7 @@ export default function ProfileScreen({
         <UserActivitySection
           history={userEventHistory}
           onOpenAll={() => setActivityHistoryOpen(true)}
+          transactions={xpTransactions}
         />
       </ScrollView>
 
@@ -1036,9 +1030,12 @@ export default function ProfileScreen({
       />
 
       <UserActivityHistoryModal
+        error={xpTransactionsError}
         history={userEventHistory}
+        loading={xpTransactionsLoading}
         onClose={() => setActivityHistoryOpen(false)}
         stableModalTopInset={stableModalTopInset}
+        transactions={xpTransactions}
         visible={activityHistoryOpen}
       />
 

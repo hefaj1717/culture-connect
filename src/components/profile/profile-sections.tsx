@@ -358,9 +358,13 @@ export function ProfileActions({ onEdit, onSignOut }: ProfileActionsProps) {
 type UserActivitySectionProps = {
   history: UserEventHistoryItem[];
   onOpenAll: () => void;
+  transactions: XpTransaction[];
 };
 
-export function UserActivitySection({ history, onOpenAll }: UserActivitySectionProps) {
+export function UserActivitySection({ history, onOpenAll, transactions }: UserActivitySectionProps) {
+  const activityTransactions = getUserVisibleXpTransactions(transactions);
+  const activityCount = history.length + activityTransactions.length;
+
   return (
     <View className="mb-4 px-5">
       <Pressable
@@ -374,9 +378,9 @@ export function UserActivitySection({ history, onOpenAll }: UserActivitySectionP
         <View className="min-w-0 flex-1">
           <Text className="font-heading text-[19px] font-extrabold text-ink">My activity</Text>
           <Text className="mt-0.5 text-[12px] font-medium text-muted">
-            {history.length > 0
-              ? `${history.length} saved ${history.length === 1 ? 'event' : 'events'}`
-              : 'Interested, going, and attended events'}
+            {activityCount > 0
+              ? `${activityCount} ${activityCount === 1 ? 'activity' : 'activities'}`
+              : 'Events, reward spends, and XP changes'}
           </Text>
         </View>
         <ChevronRight size={18} color={Colors.light.primary} strokeWidth={2.5} />
@@ -550,51 +554,6 @@ export function AdminToolsSection({
           </Pressable>
         </View>
       </View>
-    </View>
-  );
-}
-
-type XpHistorySectionProps = {
-  error?: string | null;
-  loading?: boolean;
-  transactions: XpTransaction[];
-};
-
-export function XpHistorySection({
-  error,
-  loading = false,
-  transactions,
-}: XpHistorySectionProps) {
-  const latestTransactions = transactions.slice(0, 3);
-
-  return (
-    <View className="mb-6 px-5">
-      <View className="mb-3 flex-row items-center justify-between">
-        <Text className="font-heading text-[22px] font-extrabold text-ink">XP awards</Text>
-      </View>
-
-      {loading ? (
-        <LoadingState compact title="Loading XP history" />
-      ) : error ? (
-        <ErrorState compact title="XP history could not load" body={error} />
-      ) : latestTransactions.length === 0 ? (
-        <View
-          className="rounded-3xl border border-gray-200 bg-white p-4"
-          style={CardStyles.compact}
-        >
-          <Text className="font-ui text-[16px] font-extrabold text-ink">No XP awards yet</Text>
-          <Text className="mt-1 text-[13px] leading-5 text-muted">
-            Check-ins, completed quests, and redeemed rewards will appear here with the exact XP
-            amount.
-          </Text>
-        </View>
-      ) : (
-        <View className="gap-2.5">
-          {latestTransactions.map((transaction) => (
-            <XpTransactionRow key={transaction.id} transaction={transaction} />
-          ))}
-        </View>
-      )}
     </View>
   );
 }
@@ -941,14 +900,20 @@ function useHistorySwipeBack({
 }
 
 export function UserActivityHistoryModal({
+  error,
   history,
+  loading = false,
   onClose,
   stableModalTopInset,
+  transactions,
   visible,
 }: {
+  error?: string | null;
   history: UserEventHistoryItem[];
+  loading?: boolean;
   onClose: () => void;
   stableModalTopInset: number;
+  transactions: XpTransaction[];
   visible: boolean;
 }) {
   const [selectedEvent, setSelectedEvent] = useState<CultureEvent | null>(null);
@@ -956,8 +921,12 @@ export function UserActivityHistoryModal({
   const selectedHistoryItem = selectedEvent
     ? history.find((item) => item.event.id === selectedEvent.id)
     : null;
+  const transactionsByEventId = useMemo(() => getEventTransactionLookup(transactions), [transactions]);
+  const visibleXpTransactions = useMemo(() => getUserVisibleXpTransactions(transactions), [transactions]);
   const filteredHistory =
     activityFilter === 'all' ? history : history.filter((item) => item.status === activityFilter);
+  const showXpTransactions = activityFilter === 'all';
+  const hasAnyActivity = history.length > 0 || visibleXpTransactions.length > 0;
   const { closeWithAnimation, gesture, swipeStyle } = useHistorySwipeBack({
     enabled: !selectedEvent,
     onSwipeBack: onClose,
@@ -1001,25 +970,39 @@ export function UserActivityHistoryModal({
               }}
               showsVerticalScrollIndicator={false}
             >
-              {history.length === 0 ? (
-                <HistoryEmptyState
-                  body="Events you mark as Interested, Going, or Attended will appear here."
-                  title="No saved events yet"
+              {loading && !hasAnyActivity ? (
+                <LoadingState title="Loading your activity" />
+              ) : error && !hasAnyActivity ? (
+                <ErrorState
+                  body="Your event history loaded, but XP activity could not be refreshed."
+                  title="Some activity could not load"
                 />
-              ) : filteredHistory.length === 0 ? (
+              ) : !hasAnyActivity ? (
+                <HistoryEmptyState
+                  body="Events you mark as Interested, Going, or Attended, plus reward spends and quest awards, will appear here."
+                  title="No activity yet"
+                />
+              ) : filteredHistory.length === 0 && !showXpTransactions ? (
                 <HistoryEmptyState
                   body={`No ${getActivityFilterEmptyLabel(activityFilter)} events in your history yet.`}
                   title="Nothing here yet"
                 />
               ) : (
-                filteredHistory.map((item) => (
-                  <EventHistoryRow
-                    event={item.event}
-                    key={`${item.event.id}-${item.status}-full`}
-                    onPress={() => setSelectedEvent(item.event)}
-                    status={item.status}
-                  />
-                ))
+                <>
+                  {filteredHistory.map((item) => (
+                    <EventHistoryRow
+                      event={item.event}
+                      key={`${item.event.id}-${item.status}-full`}
+                      onPress={() => setSelectedEvent(item.event)}
+                      status={item.status}
+                      transaction={transactionsByEventId[item.event.id]}
+                    />
+                  ))}
+                  {showXpTransactions &&
+                    visibleXpTransactions.map((transaction) => (
+                      <XpTransactionRow key={`${transaction.id}-activity`} transaction={transaction} />
+                    ))}
+                </>
               )}
             </ScrollView>
 
@@ -1031,6 +1014,7 @@ export function UserActivityHistoryModal({
                     onBack={closeDetailWithAnimation}
                     stableModalTopInset={stableModalTopInset}
                     status={selectedHistoryItem?.status}
+                    transaction={transactionsByEventId[selectedEvent.id]}
                   />
                 </Animated.View>
               </GestureDetector>
@@ -1315,6 +1299,38 @@ function formatAuditDate(value: string) {
   }).format(date);
 }
 
+function getUserVisibleXpTransactions(transactions: XpTransaction[]) {
+  return transactions.filter((transaction) => transaction.sourceType !== 'event');
+}
+
+function getEventTransactionLookup(transactions: XpTransaction[]) {
+  return transactions
+    .filter((transaction) => transaction.sourceType === 'event')
+    .reduce<Record<string, XpTransaction>>((lookup, transaction) => {
+      const eventId = transaction.sourceId
+        ? `organizer-${transaction.sourceId}`
+        : transaction.sourceKey?.startsWith('event:')
+          ? `organizer-${transaction.sourceKey.replace(/^event:/, '')}`
+          : null;
+
+      if (!eventId) return lookup;
+
+      return {
+        ...lookup,
+        [eventId]: transaction,
+      };
+    }, {});
+}
+
+function getEventXpLabel(event: CultureEvent, transaction?: XpTransaction) {
+  const amount =
+    transaction && transaction.transactionType === 'earn' && transaction.amount > 0
+      ? transaction.amount
+      : event.xpBonus;
+
+  return `+${amount.toLocaleString()} XP`;
+}
+
 function isPastEventDateLabel(dateLabel: string) {
   const match = dateLabel.match(/\b([A-Z][a-z]{2,8})\s+(\d{1,2})\b/);
   if (!match) return false;
@@ -1346,11 +1362,15 @@ function EventHistoryRow({
   event,
   onPress,
   status,
+  transaction,
 }: {
   event: CultureEvent;
   onPress?: () => void;
   status: UserEventStatus;
+  transaction?: XpTransaction;
 }) {
+  const xpLabel = getEventXpLabel(event, transaction);
+
   return (
     <Pressable
       onPress={onPress}
@@ -1377,6 +1397,9 @@ function EventHistoryRow({
         <Text className="mt-1 text-[13px] font-medium text-muted" numberOfLines={1}>
           {event.venueName} · {formatEventTimeRange(event)}
         </Text>
+        <View className="mt-3 self-start rounded-full bg-accent/10 px-3 py-1">
+          <Text className="text-[12px] font-extrabold text-accentDeep">{xpLabel}</Text>
+        </View>
         <HistoryEngagementStats event={event} status={status} />
       </View>
     </Pressable>
@@ -1486,6 +1509,7 @@ function HistoryEventDetail({
   organizerStatus,
   stableModalTopInset,
   status,
+  transaction,
 }: {
   event: CultureEvent;
   onBack: () => void;
@@ -1493,6 +1517,7 @@ function HistoryEventDetail({
   organizerStatus?: OrganizerEventStatus;
   stableModalTopInset: number;
   status?: UserEventStatus;
+  transaction?: XpTransaction;
 }) {
   const [qrPassOpen, setQrPassOpen] = useState(false);
   const canShowOrganizerQr = organizerStatus === 'approved';
@@ -1561,7 +1586,7 @@ function HistoryEventDetail({
             </View>
             <View className="rounded-2xl bg-primary/5 px-3 py-2.5">
               <Text className="text-[13px] font-semibold text-primary">
-                +{event.xpBonus} XP after confirmed attendance
+                {getEventXpLabel(event, transaction)} after confirmed attendance
               </Text>
             </View>
           </View>
