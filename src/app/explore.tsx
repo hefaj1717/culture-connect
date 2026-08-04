@@ -504,7 +504,7 @@ export default function ExploreScreen({
                     ? 'Events in English'
                     : audienceFilter === 'free'
                       ? 'Free Events'
-                      : 'Coming Up'}
+                      : 'Events'}
               </Text>
 
               {eventsLoading ? (
@@ -523,66 +523,79 @@ export default function ExploreScreen({
                 />
               ) : (
                 <View className="gap-3">
-                  {filteredEvents.map((event) => (
-                    <Pressable
-                      key={event.id}
-                      onPress={() => {
-                        Keyboard.dismiss();
-                        setSelectedEvent(event);
-                      }}
-                      className="flex-row items-start gap-3 rounded-3xl border border-primary/10 bg-white p-3 active:opacity-90"
-                      style={CardStyles.compact}
-                    >
-                      <View
-                        className="shrink-0 overflow-hidden rounded-xl bg-gray-200"
-                        style={{
-                          height: layout.isSmallPhone ? 98 : 108,
-                          width: layout.isSmallPhone ? 98 : 108,
+                  {filteredEvents.map((event) => {
+                    const isLiveNow = getCheckInWindowState(event) === 'open';
+
+                    return (
+                      <Pressable
+                        key={event.id}
+                        onPress={() => {
+                          Keyboard.dismiss();
+                          setSelectedEvent(event);
                         }}
+                        className="flex-row items-start gap-3 rounded-3xl border border-primary/10 bg-white p-3 active:opacity-90"
+                        style={CardStyles.compact}
                       >
-                        <BrandImage
-                          source={getEventImageSource(event)}
-                          contentFit="cover"
-                          style={StyleSheet.absoluteFillObject}
-                        />
-                      </View>
-                      <View className="min-w-0 flex-1">
-                        <View className="mb-1 flex-row items-center gap-2">
-                          <Text className="text-[11px] font-semibold uppercase text-muted">
-                            {event.date}
-                          </Text>
-                          {event.isFree && (
-                            <Text className="text-[11px] font-bold text-success">Free</Text>
-                          )}
-                        </View>
-                        <Text
-                          className="mb-1 font-ui text-[15px] font-bold text-ink"
-                          numberOfLines={2}
+                        <View
+                          className="shrink-0 overflow-hidden rounded-xl bg-gray-200"
+                          style={{
+                            height: layout.isSmallPhone ? 98 : 108,
+                            width: layout.isSmallPhone ? 98 : 108,
+                          }}
                         >
-                          {event.title}
-                        </Text>
-                        <Text className="mb-2 text-[12px] text-muted" numberOfLines={1}>
-                          {event.venueName}
-                        </Text>
-                        <View className="flex-row flex-wrap items-center gap-2.5">
-                          <View className="flex-row items-center gap-1">
-                            <Clock size={12} color="#756F7B" />
-                            <Text className="text-[12px] text-muted">
-                              {formatEventTimeRange(event)}
-                            </Text>
-                          </View>
-                          <EventEngagementPills
-                            attended={getEventEngagement(event, eventStatuses[event.id]).attended}
-                            going={getEventEngagement(event, eventStatuses[event.id]).going}
-                            interested={
-                              getEventEngagement(event, eventStatuses[event.id]).interested
-                            }
+                          <BrandImage
+                            source={getEventImageSource(event)}
+                            contentFit="cover"
+                            style={StyleSheet.absoluteFillObject}
                           />
                         </View>
-                      </View>
-                      <ChevronRight size={18} color="#8B909A" />
-                    </Pressable>
-                  ))}
+                        <View className="min-w-0 flex-1">
+                          <View className="mb-1 flex-row items-center gap-2">
+                            {isLiveNow ? (
+                              <View className="flex-row items-center gap-1.5">
+                                <View className="h-2 w-2 rounded-full bg-red-500" />
+                                <Text className="text-[11px] font-bold uppercase text-red-500">
+                                  Live now
+                                </Text>
+                              </View>
+                            ) : (
+                              <Text className="text-[11px] font-semibold uppercase text-muted">
+                                {event.date}
+                              </Text>
+                            )}
+                            {event.isFree && (
+                              <Text className="text-[11px] font-bold text-success">Free</Text>
+                            )}
+                          </View>
+                          <Text
+                            className="mb-1 font-ui text-[15px] font-bold text-ink"
+                            numberOfLines={2}
+                          >
+                            {event.title}
+                          </Text>
+                          <Text className="mb-2 text-[12px] text-muted" numberOfLines={1}>
+                            {event.venueName}
+                          </Text>
+                          <View className="flex-row flex-wrap items-center gap-2.5">
+                            <View className="flex-row items-center gap-1">
+                              <Clock size={12} color="#756F7B" />
+                              <Text className="text-[12px] text-muted">
+                                {formatEventTimeRange(event)}
+                              </Text>
+                            </View>
+                            <EventEngagementPills
+                              attended={getEventEngagement(event, eventStatuses[event.id]).attended}
+                              going={getEventEngagement(event, eventStatuses[event.id]).going}
+                              interested={
+                                getEventEngagement(event, eventStatuses[event.id]).interested
+                              }
+                            />
+                          </View>
+                        </View>
+                        <ChevronRight size={18} color="#8B909A" />
+                      </Pressable>
+                    );
+                  })}
                 </View>
               )}
             </View>
