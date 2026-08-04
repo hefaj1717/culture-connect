@@ -406,8 +406,10 @@ export default function HomeScreen({
                 customMapStyle={cultureMapStyle}
                 key={cityData.id}
                 mapType="standard"
+                moveOnMarkerPress={false}
                 pitchEnabled={false}
                 rotateEnabled={false}
+                scrollEnabled={false}
                 showsBuildings
                 showsCompass={false}
                 showsMyLocationButton={canShowUserLocation}
@@ -416,6 +418,7 @@ export default function HomeScreen({
                 showsUserLocation={canShowUserLocation}
                 style={StyleSheet.absoluteFillObject}
                 toolbarEnabled={false}
+                zoomEnabled={false}
               >
                 {activitySpots.map((spot) => (
                   <Marker
@@ -767,16 +770,16 @@ function getEventDate(event: CultureEvent) {
 
 function getActivityColor(intensity: number) {
   const redScale = [
-    '#FEE2E2',
-    '#FECACA',
-    '#FCA5A5',
     '#F87171',
-    '#EF4444',
-    '#DC2626',
+    '#F56565',
+    '#F05252',
+    '#EB4646',
+    '#E43A3A',
+    '#DB3232',
+    '#D12B2B',
+    '#C72525',
+    '#BD2020',
     '#B91C1C',
-    '#991B1B',
-    '#7F1D1D',
-    '#5F1111',
   ];
   const shadeIndex = Math.max(0, Math.min(redScale.length - 1, Math.ceil(intensity * 10) - 1));
 
