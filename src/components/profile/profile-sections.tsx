@@ -2009,16 +2009,21 @@ export function RewardsListModal({
           <SafeAreaView className="flex-1 bg-white" edges={['bottom']}>
             <View className="bg-white px-5 pb-3" style={{ paddingTop: stableModalTopInset + 6 }}>
               <View className="flex-row items-center justify-between">
-                <Pressable
-                  onPress={closeWithAnimation}
-                  className="h-10 w-10 items-center justify-center rounded-full bg-gray-100 active:opacity-80"
-                >
-                  <ArrowLeft size={21} color="#756F7B" strokeWidth={2.6} />
-                </Pressable>
-                <View className="items-end">
-                  <Text className="font-heading text-[25px] font-extrabold text-ink">Rewards</Text>
-                  <Text className="text-[12px] font-semibold text-primary">{cityName}</Text>
+                <View className="min-w-0 flex-1 flex-row items-center gap-3">
+                  <Pressable
+                    onPress={closeWithAnimation}
+                    className="h-10 w-10 items-center justify-center rounded-full bg-gray-100 active:opacity-80"
+                  >
+                    <ArrowLeft size={21} color="#756F7B" strokeWidth={2.6} />
+                  </Pressable>
+                  <View className="min-w-0 flex-1">
+                    <Text className="font-heading text-[25px] font-extrabold text-ink">
+                      Rewards
+                    </Text>
+                    <Text className="text-[12px] font-semibold text-primary">{cityName}</Text>
+                  </View>
                 </View>
+                <View className="h-10 w-10" />
               </View>
             </View>
 
