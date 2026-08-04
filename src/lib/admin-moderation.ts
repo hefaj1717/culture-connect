@@ -60,6 +60,31 @@ export type AdminManagedEvent = CultureEvent & {
   reviewStatus: OrganizerEventStatus;
 };
 
+export type AdminManagedReward = {
+  category: RewardPartner['category'];
+  cityId: CityId;
+  createdAt: string;
+  databaseId: string;
+  description: string;
+  imageUrl?: string | null;
+  organizerAvatarUrl?: string | null;
+  organizerBio?: string;
+  organizerCityId: CityId;
+  organizerId: string;
+  organizerLocationAddress?: string | null;
+  organizerLocationCoordinates?: { latitude: number; longitude: number } | null;
+  organizerLocationName?: string | null;
+  organizerName: string;
+  organizerUserId: string;
+  placeAddress: string;
+  placeName: string;
+  reviewStatus: RewardPartnerStatus;
+  title: string;
+  xpCost: number;
+};
+
+export type RewardPartnerStatus = 'draft' | 'pending' | 'approved' | 'rejected' | 'archived';
+
 type PendingEventRow = {
   category: EventCategory;
   city_key: CityId;
@@ -122,6 +147,13 @@ type PendingRewardRow = {
   xp_cost: number;
 };
 
+type AdminManagedRewardRow = PendingRewardRow & {
+  image_url: string | null;
+  place_latitude?: number | null;
+  place_longitude?: number | null;
+  status: RewardPartnerStatus;
+};
+
 type ProfileSummaryRow = {
   avatar_url: string | null;
   city_key?: CityId | null;
@@ -146,6 +178,8 @@ const PENDING_EVENT_SELECT =
   'id, organizer_user_id, city_key, venue_name, venue_address, title, description, category, date_label, time_label, end_time_label, image_url, created_at, updated_at, review_requested_at, review_previous_snapshot';
 const PENDING_EVENT_LEGACY_SELECT =
   'id, organizer_user_id, city_key, venue_name, venue_address, title, description, category, date_label, time_label, end_time_label, image_url, created_at, updated_at';
+const ADMIN_REWARD_SELECT =
+  'id, organizer_user_id, city_key, place_name, place_address, place_latitude, place_longitude, title, description, xp_cost, category, image_url, status, created_at';
 
 export async function fetchPendingAdminContent() {
   const [eventsResult, rewardsResult] = await Promise.all([
@@ -240,6 +274,28 @@ export async function fetchAdminManagedEvents() {
   };
 }
 
+export async function fetchAdminManagedRewards() {
+  const { data, error } = await supabase
+    .from('organizer_rewards')
+    .select(ADMIN_REWARD_SELECT)
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    return {
+      error: getNetworkAwareErrorMessage(error.message),
+      rewards: [] as AdminManagedReward[],
+    };
+  }
+
+  const rows = (data ?? []) as unknown as AdminManagedRewardRow[];
+  const organizerProfiles = await fetchOrganizerProfileSummaries(rows);
+
+  return {
+    error: null,
+    rewards: rows.map((row) => mapAdminManagedReward(row, organizerProfiles)),
+  };
+}
+
 export async function reviewOrganizerEvent({
   adminUserId,
   eventId,
@@ -324,6 +380,51 @@ export async function updateAdminManagedEvent({
 
 export async function deleteOrganizerEvent({ eventId }: { eventId: string }) {
   const { error } = await supabase.from('organizer_events').delete().eq('id', eventId);
+
+  return { error: getNetworkAwareErrorMessage(error?.message, '') || null };
+}
+
+export async function updateAdminManagedReward({
+  adminUserId,
+  input,
+  rewardId,
+}: {
+  adminUserId: string;
+  input: {
+    category: RewardPartner['category'];
+    description: string;
+    placeAddress: string;
+    placeName: string;
+    status: RewardPartnerStatus;
+    title: string;
+    xpCost: number;
+  };
+  rewardId: string;
+}) {
+  const { error } = await supabase
+    .from('organizer_rewards')
+    .update({
+      category: input.category,
+      description: input.description,
+      place_address: input.placeAddress,
+      place_name: input.placeName,
+      rejection_reason: input.status === 'rejected' ? 'Rejected by CultureQuest admin.' : null,
+      reviewed_at: new Date().toISOString(),
+      reviewed_by: adminUserId,
+      status: input.status,
+      title: input.title,
+      xp_cost: input.xpCost,
+    })
+    .eq('id', rewardId);
+
+  return { error: getNetworkAwareErrorMessage(error?.message, '') || null };
+}
+
+export async function archiveOrganizerReward({ rewardId }: { rewardId: string }) {
+  const { error } = await supabase
+    .from('organizer_rewards')
+    .update({ status: 'archived' })
+    .eq('id', rewardId);
 
   return { error: getNetworkAwareErrorMessage(error?.message, '') || null };
 }
@@ -555,6 +656,43 @@ function mapAdminManagedEvent(
     venueId: row.venue_key,
     venueName: row.venue_name,
     xpBonus: row.xp_bonus ?? 50,
+  };
+}
+
+function mapAdminManagedReward(
+  row: AdminManagedRewardRow,
+  profiles: Record<string, ProfileSummaryRow>,
+): AdminManagedReward {
+  const profile = profiles[row.organizer_user_id];
+
+  return {
+    category: row.category,
+    cityId: row.city_key,
+    createdAt: row.created_at,
+    databaseId: row.id,
+    description: row.description,
+    imageUrl: row.image_url,
+    organizerAvatarUrl: profile?.avatar_url ?? null,
+    organizerBio: profile?.organizer_bio ?? undefined,
+    organizerCityId: row.city_key,
+    organizerId: row.organizer_user_id,
+    organizerLocationAddress: profile?.organizer_location_address ?? null,
+    organizerLocationCoordinates:
+      typeof profile?.organizer_location_latitude === 'number' &&
+      typeof profile?.organizer_location_longitude === 'number'
+        ? {
+            latitude: profile.organizer_location_latitude,
+            longitude: profile.organizer_location_longitude,
+          }
+        : null,
+    organizerLocationName: profile?.organizer_location_name ?? null,
+    organizerName: profile?.username?.trim() || `Organizer ${row.organizer_user_id.slice(0, 8)}`,
+    organizerUserId: row.organizer_user_id,
+    placeAddress: row.place_address,
+    placeName: row.place_name,
+    reviewStatus: row.status,
+    title: row.title,
+    xpCost: row.xp_cost,
   };
 }
 

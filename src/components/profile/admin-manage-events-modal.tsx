@@ -3,6 +3,7 @@ import {
   ArrowLeft,
   CalendarDays,
   Clock,
+  Gift,
   MapPin,
   RefreshCw,
   Save,
@@ -29,13 +30,24 @@ import { EmptyState, ErrorState, LoadingState } from '@/components/async-state';
 import { BrandImage } from '@/components/brand-image';
 import { OrganizerProfileModal } from '@/components/organizer-profile-modal';
 import { CardStyles, Colors } from '@/constants/theme';
-import { eventCategoryLabels, getCultureCityData, type EventCategory } from '@/data/culture';
+import {
+  eventCategoryLabels,
+  getCultureCityData,
+  type EventCategory,
+  type RewardPartner,
+} from '@/data/culture';
 import { useCardSwipeBack } from '@/hooks/use-card-swipe-back';
-import type { AdminManagedEvent } from '@/lib/admin-moderation';
+import type {
+  AdminManagedEvent,
+  AdminManagedReward,
+  RewardPartnerStatus,
+} from '@/lib/admin-moderation';
 import type { OrganizerEventStatus } from '@/lib/organizer-events';
 import { organizerProfileFromEvent, type OrganizerProfile } from '@/lib/organizer-profiles';
 
+type ManageContentTab = 'events' | 'rewards';
 type AdminEventFilter = 'all' | OrganizerEventStatus | 'past';
+type AdminRewardFilter = 'all' | RewardPartnerStatus;
 
 const adminEventFilters: { key: AdminEventFilter; label: string }[] = [
   { key: 'all', label: 'All' },
@@ -46,9 +58,31 @@ const adminEventFilters: { key: AdminEventFilter; label: string }[] = [
   { key: 'past', label: 'Past' },
 ];
 
+const adminRewardFilters: { key: AdminRewardFilter; label: string }[] = [
+  { key: 'all', label: 'All' },
+  { key: 'pending', label: 'Pending' },
+  { key: 'approved', label: 'Approved' },
+  { key: 'rejected', label: 'Rejected' },
+  { key: 'archived', label: 'Archived' },
+];
+
 const editableStatuses: OrganizerEventStatus[] = ['pending', 'approved', 'rejected', 'cancelled'];
+const editableRewardStatuses: RewardPartnerStatus[] = [
+  'pending',
+  'approved',
+  'rejected',
+  'archived',
+];
 
 const editableCategories = Object.keys(eventCategoryLabels) as EventCategory[];
+const rewardCategoryLabels: Record<RewardPartner['category'], string> = {
+  bar: 'Bar',
+  bookstore: 'Bookstore',
+  cafe: 'Cafe',
+  restaurant: 'Restaurant',
+  shop: 'Shop',
+};
+const editableRewardCategories = Object.keys(rewardCategoryLabels) as RewardPartner['category'][];
 
 type AdminManageEventsModalProps = {
   error: string | null;
@@ -56,6 +90,7 @@ type AdminManageEventsModalProps = {
   loading: boolean;
   onClose: () => void;
   onDeleteEvent: (id: string) => void;
+  onDeleteReward: (id: string) => void;
   onRefresh: () => void;
   onSaveEvent: (
     eventId: string,
@@ -72,7 +107,21 @@ type AdminManageEventsModalProps = {
       xpBonus: number;
     },
   ) => Promise<{ success: boolean }>;
+  onSaveReward: (
+    rewardId: string,
+    input: {
+      category: RewardPartner['category'];
+      description: string;
+      placeAddress: string;
+      placeName: string;
+      status: RewardPartnerStatus;
+      title: string;
+      xpCost: number;
+    },
+  ) => Promise<{ success: boolean }>;
+  rewards: AdminManagedReward[];
   savingEventId: string | null;
+  savingRewardId: string | null;
   stableModalTopInset: number;
   visible: boolean;
 };
@@ -83,20 +132,30 @@ export function AdminManageEventsModal({
   loading,
   onClose,
   onDeleteEvent,
+  onDeleteReward,
   onRefresh,
   onSaveEvent,
+  onSaveReward,
+  rewards,
   savingEventId,
+  savingRewardId,
   stableModalTopInset,
   visible,
 }: AdminManageEventsModalProps) {
+  const [activeTab, setActiveTab] = useState<ManageContentTab>('events');
   const [activeFilter, setActiveFilter] = useState<AdminEventFilter>('all');
+  const [activeRewardFilter, setActiveRewardFilter] = useState<AdminRewardFilter>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedEvent, setSelectedEvent] = useState<AdminManagedEvent | null>(null);
+  const [selectedReward, setSelectedReward] = useState<AdminManagedReward | null>(null);
   const [selectedOrganizerProfile, setSelectedOrganizerProfile] = useState<OrganizerProfile | null>(
     null,
   );
   const visibleSelectedEvent = selectedEvent
     ? (events.find((event) => event.databaseId === selectedEvent.databaseId) ?? selectedEvent)
+    : null;
+  const visibleSelectedReward = selectedReward
+    ? (rewards.find((reward) => reward.databaseId === selectedReward.databaseId) ?? selectedReward)
     : null;
   const filteredEvents = useMemo(() => {
     const normalizedSearch = searchQuery.trim().toLowerCase();
@@ -116,10 +175,25 @@ export function AdminManageEventsModal({
       return matchesFilter && matchesSearch;
     });
   }, [activeFilter, events, searchQuery]);
+  const filteredRewards = useMemo(() => {
+    const normalizedSearch = searchQuery.trim().toLowerCase();
+    return rewards.filter((reward) => {
+      const matchesFilter =
+        activeRewardFilter === 'all' ? true : reward.reviewStatus === activeRewardFilter;
+      const matchesSearch =
+        normalizedSearch.length === 0 ||
+        reward.title.toLowerCase().includes(normalizedSearch) ||
+        reward.placeName.toLowerCase().includes(normalizedSearch) ||
+        reward.organizerName.toLowerCase().includes(normalizedSearch);
+
+      return matchesFilter && matchesSearch;
+    });
+  }, [activeRewardFilter, rewards, searchQuery]);
 
   useEffect(() => {
     if (visible) {
       setSelectedEvent(null);
+      setSelectedReward(null);
       setSelectedOrganizerProfile(null);
     }
   }, [visible]);
@@ -129,12 +203,19 @@ export function AdminManageEventsModal({
       setSelectedEvent(null);
       return;
     }
+    if (selectedReward) {
+      setSelectedReward(null);
+      return;
+    }
 
     onClose();
-  }, [onClose, selectedEvent]);
+  }, [onClose, selectedEvent, selectedReward]);
   const { closeWithAnimation, gesture, swipeStyle } = useCardSwipeBack({
     onSwipeBack: closeOrBack,
-    resetKey: selectedEvent?.databaseId ?? 'event-list',
+    resetKey:
+      selectedEvent?.databaseId ??
+      selectedReward?.databaseId ??
+      `${activeTab}-${activeTab === 'events' ? activeFilter : activeRewardFilter}`,
     visible,
   });
 
@@ -143,6 +224,19 @@ export function AdminManageEventsModal({
     if (profile) {
       setSelectedOrganizerProfile(profile);
     }
+  }
+
+  function openRewardOrganizerProfile(reward: AdminManagedReward) {
+    setSelectedOrganizerProfile({
+      avatarUrl: reward.organizerAvatarUrl ?? null,
+      bio: reward.organizerBio?.trim() || 'Verified CultureQuest organiser.',
+      cityId: reward.organizerCityId,
+      id: reward.organizerId,
+      locationAddress: reward.organizerLocationAddress ?? null,
+      locationCoordinates: reward.organizerLocationCoordinates ?? null,
+      locationName: reward.organizerLocationName ?? null,
+      name: reward.organizerName,
+    });
   }
 
   return (
@@ -158,6 +252,16 @@ export function AdminManageEventsModal({
                 onOpenOrganizer={() => openOrganizerProfile(visibleSelectedEvent)}
                 onSave={onSaveEvent}
                 saving={savingEventId === visibleSelectedEvent.databaseId}
+                stableModalTopInset={stableModalTopInset}
+              />
+            ) : visibleSelectedReward ? (
+              <AdminRewardEditor
+                onBack={closeWithAnimation}
+                onDelete={() => onDeleteReward(visibleSelectedReward.databaseId)}
+                onOpenOrganizer={() => openRewardOrganizerProfile(visibleSelectedReward)}
+                onSave={onSaveReward}
+                reward={visibleSelectedReward}
+                saving={savingRewardId === visibleSelectedReward.databaseId}
                 stableModalTopInset={stableModalTopInset}
               />
             ) : (
@@ -196,20 +300,35 @@ export function AdminManageEventsModal({
                         Admin manage
                       </Text>
                       <Text className="mt-1 font-heading text-[29px] font-extrabold leading-[33px] text-white">
-                        Manage all events.
+                        Manage content.
                       </Text>
                       <Text className="mt-2 max-w-[300px] text-[13px] leading-5 text-white/80">
-                        Edit event details, change status, update XP, or remove events.
+                        Edit events and rewards, change status, update XP, or archive content.
                       </Text>
                     </LinearGradient>
                   </View>
                 </View>
 
-                <AdminEventFilterBar
-                  activeKey={activeFilter}
-                  events={events}
-                  onSelect={setActiveFilter}
+                <AdminContentTabBar
+                  activeTab={activeTab}
+                  eventCount={events.length}
+                  onSelect={setActiveTab}
+                  rewardCount={rewards.length}
                 />
+
+                {activeTab === 'events' ? (
+                  <AdminEventFilterBar
+                    activeKey={activeFilter}
+                    events={events}
+                    onSelect={setActiveFilter}
+                  />
+                ) : (
+                  <AdminRewardFilterBar
+                    activeKey={activeRewardFilter}
+                    onSelect={setActiveRewardFilter}
+                    rewards={rewards}
+                  />
+                )}
 
                 <View className="px-5 pb-2">
                   <View className="h-12 flex-row items-center gap-2 rounded-2xl border border-gray-200 bg-white px-4">
@@ -218,7 +337,11 @@ export function AdminManageEventsModal({
                       autoCorrect={false}
                       className="min-w-0 flex-1 text-[14px] font-semibold text-ink"
                       onChangeText={setSearchQuery}
-                      placeholder="Search title, venue, or organizer"
+                      placeholder={
+                        activeTab === 'events'
+                          ? 'Search title, venue, or organizer'
+                          : 'Search reward, place, or organizer'
+                      }
                       placeholderTextColor="#8B909A"
                       returnKeyType="search"
                       value={searchQuery}
@@ -236,27 +359,48 @@ export function AdminManageEventsModal({
                   }}
                   showsVerticalScrollIndicator={false}
                 >
-                  {error && <ErrorState body={error} compact title="Events could not load" />}
+                  {error && <ErrorState body={error} compact title="Content could not load" />}
 
                   {loading ? (
-                    <LoadingState body="Loading organizer submissions." title="Loading events" />
-                  ) : events.length === 0 ? (
+                    <LoadingState body="Loading organizer submissions." title="Loading content" />
+                  ) : activeTab === 'events' ? (
+                    events.length === 0 ? (
+                      <AdminEventEmptyState
+                        body="Organizer events will appear here after they are submitted."
+                        title="No events yet"
+                      />
+                    ) : filteredEvents.length === 0 ? (
+                      <AdminEventEmptyState
+                        body="No events match this status filter."
+                        title="Nothing here"
+                      />
+                    ) : (
+                      filteredEvents.map((event) => (
+                        <AdminManagedEventCard
+                          event={event}
+                          key={event.databaseId}
+                          onOpenOrganizer={() => openOrganizerProfile(event)}
+                          onPress={() => setSelectedEvent(event)}
+                        />
+                      ))
+                    )
+                  ) : rewards.length === 0 ? (
                     <AdminEventEmptyState
-                      body="Organizer events will appear here after they are submitted."
-                      title="No events yet"
+                      body="Organizer rewards will appear here after they are submitted."
+                      title="No rewards yet"
                     />
-                  ) : filteredEvents.length === 0 ? (
+                  ) : filteredRewards.length === 0 ? (
                     <AdminEventEmptyState
-                      body="No events match this status filter."
+                      body="No rewards match this status filter."
                       title="Nothing here"
                     />
                   ) : (
-                    filteredEvents.map((event) => (
-                      <AdminManagedEventCard
-                        event={event}
-                        key={event.databaseId}
-                        onOpenOrganizer={() => openOrganizerProfile(event)}
-                        onPress={() => setSelectedEvent(event)}
+                    filteredRewards.map((reward) => (
+                      <AdminManagedRewardCard
+                        key={reward.databaseId}
+                        onOpenOrganizer={() => openRewardOrganizerProfile(reward)}
+                        onPress={() => setSelectedReward(reward)}
+                        reward={reward}
                       />
                     ))
                   )}
@@ -278,6 +422,7 @@ export function AdminManageEventsModal({
                 events.find((candidate) => candidate.id === event.id) ??
                 events.find((candidate) => candidate.databaseId === event.id);
               if (adminEvent) {
+                setSelectedReward(null);
                 setSelectedEvent(adminEvent);
               }
             }}
@@ -314,6 +459,95 @@ function AdminEventFilterBar({
       {adminEventFilters.map((filter) => {
         const active = activeKey === filter.key;
         const count = countEventsForFilter(events, filter.key);
+
+        return (
+          <Pressable
+            key={filter.key}
+            onPress={() => onSelect(filter.key)}
+            className={`h-9 flex-row items-center gap-2 rounded-full px-4 ${
+              active ? 'bg-primary' : 'border border-gray-200 bg-gray-100'
+            }`}
+          >
+            <Text className={`text-[12px] font-semibold ${active ? 'text-white' : 'text-muted'}`}>
+              {filter.label}
+            </Text>
+            <Text className={`text-[11px] font-extrabold ${active ? 'text-white' : 'text-muted'}`}>
+              {count}
+            </Text>
+          </Pressable>
+        );
+      })}
+    </ScrollView>
+  );
+}
+
+function AdminContentTabBar({
+  activeTab,
+  eventCount,
+  onSelect,
+  rewardCount,
+}: {
+  activeTab: ManageContentTab;
+  eventCount: number;
+  onSelect: (tab: ManageContentTab) => void;
+  rewardCount: number;
+}) {
+  return (
+    <View className="mx-5 mb-3 flex-row rounded-2xl bg-gray-100 p-1">
+      {[
+        { count: eventCount, key: 'events' as const, label: 'Events' },
+        { count: rewardCount, key: 'rewards' as const, label: 'Rewards' },
+      ].map((tab) => {
+        const active = activeTab === tab.key;
+
+        return (
+          <Pressable
+            key={tab.key}
+            onPress={() => onSelect(tab.key)}
+            className={`h-11 flex-1 flex-row items-center justify-center gap-2 rounded-xl ${
+              active ? 'bg-white' : ''
+            }`}
+          >
+            <Text className={`text-[13px] font-extrabold ${active ? 'text-ink' : 'text-muted'}`}>
+              {tab.label}
+            </Text>
+            <Text
+              className={`text-[12px] font-extrabold ${active ? 'text-primary' : 'text-muted'}`}
+            >
+              {tab.count}
+            </Text>
+          </Pressable>
+        );
+      })}
+    </View>
+  );
+}
+
+function AdminRewardFilterBar({
+  activeKey,
+  onSelect,
+  rewards,
+}: {
+  activeKey: AdminRewardFilter;
+  onSelect: (key: AdminRewardFilter) => void;
+  rewards: AdminManagedReward[];
+}) {
+  return (
+    <ScrollView
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      style={{ flexGrow: 0, height: 52, maxHeight: 52 }}
+      contentContainerStyle={{
+        alignItems: 'center',
+        gap: 8,
+        paddingHorizontal: 20,
+        paddingTop: 4,
+        paddingBottom: 8,
+      }}
+    >
+      {adminRewardFilters.map((filter) => {
+        const active = activeKey === filter.key;
+        const count = countRewardsForFilter(rewards, filter.key);
 
         return (
           <Pressable
@@ -402,6 +636,62 @@ function AdminManagedEventCard({
             {event.changes.length} requested {event.changes.length === 1 ? 'change' : 'changes'}
           </Text>
         )}
+      </View>
+    </Pressable>
+  );
+}
+
+function AdminManagedRewardCard({
+  onOpenOrganizer,
+  onPress,
+  reward,
+}: {
+  onOpenOrganizer: () => void;
+  onPress: () => void;
+  reward: AdminManagedReward;
+}) {
+  return (
+    <Pressable
+      onPress={onPress}
+      className="overflow-hidden rounded-3xl border border-primary/10 bg-white active:opacity-85"
+      style={CardStyles.compact}
+    >
+      <View className="h-[126px] bg-gray-200">
+        <BrandImage
+          contentFit="cover"
+          source={getRewardImageSource(reward)}
+          style={StyleSheet.absoluteFillObject}
+        />
+      </View>
+      <View className="p-4">
+        <View className="mb-2 flex-row items-center justify-between gap-3">
+          <Text className="text-[11px] font-semibold uppercase tracking-wide text-muted">
+            {rewardCategoryLabels[reward.category]}
+          </Text>
+          <AdminRewardStatusPill status={reward.reviewStatus} />
+        </View>
+        <Text className="font-ui text-[16px] font-extrabold text-ink" numberOfLines={2}>
+          {reward.title}
+        </Text>
+        <Text className="mt-1 text-[13px] font-medium text-muted" numberOfLines={1}>
+          {reward.placeName} · {reward.xpCost.toLocaleString()} XP
+        </Text>
+        <Pressable
+          accessibilityLabel={`Open organizer profile for ${reward.organizerName}`}
+          accessibilityRole="button"
+          className="mt-1 self-start active:opacity-75"
+          onPress={(pressEvent) => {
+            pressEvent.stopPropagation();
+            onOpenOrganizer();
+          }}
+        >
+          <Text className="text-[12px] font-semibold text-primary" numberOfLines={1}>
+            Created by {reward.organizerName}
+          </Text>
+        </Pressable>
+        <Text className="mt-3 text-[12px] font-medium leading-4 text-muted" numberOfLines={2}>
+          {reward.description}
+        </Text>
       </View>
     </Pressable>
   );
@@ -652,6 +942,215 @@ function AdminEventEditor({
   );
 }
 
+function AdminRewardEditor({
+  onBack,
+  onDelete,
+  onOpenOrganizer,
+  onSave,
+  reward,
+  saving,
+  stableModalTopInset,
+}: {
+  onBack: () => void;
+  onDelete: () => void;
+  onOpenOrganizer: () => void;
+  onSave: AdminManageEventsModalProps['onSaveReward'];
+  reward: AdminManagedReward;
+  saving: boolean;
+  stableModalTopInset: number;
+}) {
+  const [category, setCategory] = useState<RewardPartner['category']>(reward.category);
+  const [description, setDescription] = useState(reward.description);
+  const [placeAddress, setPlaceAddress] = useState(reward.placeAddress);
+  const [placeName, setPlaceName] = useState(reward.placeName);
+  const [status, setStatus] = useState<RewardPartnerStatus>(reward.reviewStatus);
+  const [title, setTitle] = useState(reward.title);
+  const [xpCost, setXpCost] = useState(String(reward.xpCost));
+
+  useEffect(() => {
+    setCategory(reward.category);
+    setDescription(reward.description);
+    setPlaceAddress(reward.placeAddress);
+    setPlaceName(reward.placeName);
+    setStatus(reward.reviewStatus);
+    setTitle(reward.title);
+    setXpCost(String(reward.xpCost));
+  }, [reward]);
+
+  async function save() {
+    const parsedXp = Number.parseInt(xpCost, 10);
+
+    if (!title.trim() || !placeName.trim() || !placeAddress.trim()) {
+      Alert.alert('Missing details', 'Reward title, place, and address are required.');
+      return;
+    }
+
+    if (!Number.isFinite(parsedXp) || parsedXp <= 0 || parsedXp > 5000) {
+      Alert.alert('Invalid XP', 'Reward XP cost must be between 1 and 5000.');
+      return;
+    }
+
+    const result = await onSave(reward.databaseId, {
+      category,
+      description: description.trim(),
+      placeAddress: placeAddress.trim(),
+      placeName: placeName.trim(),
+      status,
+      title: title.trim(),
+      xpCost: parsedXp,
+    });
+
+    if (result.success) {
+      onBack();
+    }
+  }
+
+  return (
+    <View className="flex-1 bg-white">
+      <View
+        className="flex-row items-center justify-between bg-white px-5 pb-3"
+        style={{ paddingTop: stableModalTopInset + 6 }}
+      >
+        <Pressable
+          onPress={onBack}
+          className="h-10 w-10 items-center justify-center rounded-full bg-gray-100 active:opacity-80"
+          accessibilityLabel="Back to reward list"
+          accessibilityRole="button"
+        >
+          <ArrowLeft size={21} color="#756F7B" strokeWidth={2.6} />
+        </Pressable>
+        <View className="h-10 w-10" />
+      </View>
+
+      <ScrollView
+        className="flex-1"
+        contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 36, paddingTop: 12 }}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        <View className="mb-4 overflow-hidden rounded-3xl bg-ink">
+          <BrandImage
+            contentFit="cover"
+            source={getRewardImageSource(reward)}
+            style={StyleSheet.absoluteFillObject}
+            withTextGradient
+          />
+          <View className="min-h-[190px] justify-end p-5">
+            <View className="mb-2 flex-row flex-wrap items-center gap-2">
+              <AdminRewardStatusPill status={reward.reviewStatus} />
+              <View className="rounded-full bg-white/90 px-2.5 py-1">
+                <Text className="text-[10px] font-extrabold text-primary">
+                  {reward.xpCost.toLocaleString()} XP
+                </Text>
+              </View>
+            </View>
+            <Text className="font-heading text-[30px] font-extrabold leading-[34px] text-white">
+              {reward.title}
+            </Text>
+            <Pressable
+              accessibilityLabel={`Open organizer profile for ${reward.organizerName}`}
+              accessibilityRole="button"
+              className="mt-1 self-start active:opacity-75"
+              onPress={onOpenOrganizer}
+            >
+              <Text className="text-[13px] font-semibold text-white/80">
+                {reward.organizerName}
+              </Text>
+            </Pressable>
+          </View>
+        </View>
+
+        <View className="mb-4 rounded-3xl border border-gray-200 bg-white p-4">
+          <Text className="mb-3 font-ui text-[15px] font-extrabold text-ink">Reward details</Text>
+          <AdminTextField label="Reward title" onChangeText={setTitle} value={title} />
+          <AdminTextField label="Place name" onChangeText={setPlaceName} value={placeName} />
+          <AdminTextField
+            label="Place address"
+            onChangeText={setPlaceAddress}
+            value={placeAddress}
+          />
+          <AdminTextField
+            keyboardType="number-pad"
+            label="XP cost"
+            onChangeText={(value) => setXpCost(value.replace(/\D/g, ''))}
+            value={xpCost}
+          />
+          <AdminTextField
+            label="Description"
+            multiline
+            onChangeText={setDescription}
+            value={description}
+          />
+        </View>
+
+        <ChoiceSection label="Status">
+          {editableRewardStatuses.map((nextStatus) => (
+            <ChoiceChip
+              active={status === nextStatus}
+              key={nextStatus}
+              label={getRewardStatusLabel(nextStatus)}
+              onPress={() => setStatus(nextStatus)}
+            />
+          ))}
+        </ChoiceSection>
+
+        <ChoiceSection label="Category">
+          {editableRewardCategories.map((nextCategory) => (
+            <ChoiceChip
+              active={category === nextCategory}
+              key={nextCategory}
+              label={rewardCategoryLabels[nextCategory]}
+              onPress={() => setCategory(nextCategory)}
+            />
+          ))}
+        </ChoiceSection>
+
+        <View className="mb-4 rounded-3xl border border-primary/10 bg-primary/5 p-4">
+          <InfoRow icon={<Gift size={16} color={Colors.light.primary} />} text={title} />
+          <InfoRow icon={<MapPin size={16} color={Colors.light.primary} />} text={placeName} />
+          <View className="mt-3 flex-row gap-2">
+            <MiniStat label="City" valueText={reward.cityId} />
+            <MiniStat label="XP cost" value={Number.parseInt(xpCost, 10) || 0} />
+          </View>
+        </View>
+
+        <View className="mb-4 rounded-3xl border border-gray-200 bg-white p-4">
+          <Text className="mb-3 font-ui text-[15px] font-extrabold text-ink">Reward audit</Text>
+          <AuditRow label="Database ID" value={reward.databaseId} />
+          <AuditRow label="Organizer" onPress={onOpenOrganizer} value={reward.organizerName} />
+          <AuditRow label="Status" value={getRewardStatusLabel(status)} />
+          <AuditRow label="Created" value={formatAuditDate(reward.createdAt)} />
+          <AuditRow label="Address" value={placeAddress} />
+        </View>
+
+        <Pressable
+          disabled={saving}
+          onPress={save}
+          className="h-[52px] flex-row items-center justify-center gap-2 rounded-2xl bg-primary active:opacity-85 disabled:opacity-60"
+        >
+          {saving ? (
+            <ActivityIndicator color="white" size="small" />
+          ) : (
+            <Save size={17} color="white" strokeWidth={2.5} />
+          )}
+          <Text className="text-[15px] font-extrabold text-white">
+            {saving ? 'Saving reward...' : 'Save reward'}
+          </Text>
+        </Pressable>
+
+        <Pressable
+          disabled={saving}
+          onPress={onDelete}
+          className="mt-3 h-[52px] flex-row items-center justify-center gap-2 rounded-2xl bg-destructive active:opacity-85 disabled:opacity-60"
+        >
+          <Trash2 size={17} color="white" strokeWidth={2.5} />
+          <Text className="text-[15px] font-extrabold text-white">Archive reward</Text>
+        </Pressable>
+      </ScrollView>
+    </View>
+  );
+}
+
 function AdminTextField({
   containerClassName = '',
   keyboardType,
@@ -840,6 +1339,16 @@ function AdminEventStatusPill({ status }: { status: OrganizerEventStatus }) {
   );
 }
 
+function AdminRewardStatusPill({ status }: { status: RewardPartnerStatus }) {
+  const statusStyle = getRewardStatusStyle(status);
+
+  return (
+    <View className={`rounded-full px-2.5 py-1 ${statusStyle.container}`}>
+      <Text className={`text-[10px] font-extrabold ${statusStyle.text}`}>{statusStyle.label}</Text>
+    </View>
+  );
+}
+
 function countEventsForFilter(events: AdminManagedEvent[], filter: AdminEventFilter) {
   if (filter === 'all') return events.length;
   if (filter === 'past') {
@@ -849,6 +1358,12 @@ function countEventsForFilter(events: AdminManagedEvent[], filter: AdminEventFil
   }
 
   return events.filter((event) => event.reviewStatus === filter).length;
+}
+
+function countRewardsForFilter(rewards: AdminManagedReward[], filter: AdminRewardFilter) {
+  if (filter === 'all') return rewards.length;
+
+  return rewards.filter((reward) => reward.reviewStatus === filter).length;
 }
 
 function getEventImageSource(event: AdminManagedEvent) {
@@ -869,10 +1384,36 @@ function getEventImageSource(event: AdminManagedEvent) {
   return require('@/assets/images/culture/venue-museum.jpg');
 }
 
+function getRewardImageSource(reward: AdminManagedReward) {
+  if (reward.imageUrl) {
+    return { uri: reward.imageUrl };
+  }
+  if (reward.organizerAvatarUrl) {
+    return { uri: reward.organizerAvatarUrl };
+  }
+
+  if (reward.category === 'bookstore') {
+    return require('@/assets/images/culture/venue-museum.jpg');
+  }
+  if (reward.category === 'bar') {
+    return require('@/assets/images/culture/venue-theater.jpg');
+  }
+
+  return require('@/assets/images/culture/venue-cafe.jpg');
+}
+
 function getStatusLabel(status: OrganizerEventStatus) {
   if (status === 'approved') return 'Approved';
   if (status === 'rejected') return 'Rejected';
   if (status === 'cancelled') return 'Cancelled';
+  if (status === 'draft') return 'Draft';
+  return 'Pending';
+}
+
+function getRewardStatusLabel(status: RewardPartnerStatus) {
+  if (status === 'approved') return 'Approved';
+  if (status === 'rejected') return 'Rejected';
+  if (status === 'archived') return 'Archived';
   if (status === 'draft') return 'Draft';
   return 'Pending';
 }
@@ -886,6 +1427,23 @@ function getStatusStyle(status: OrganizerEventStatus) {
   }
   if (status === 'cancelled') {
     return { container: 'bg-gray-100', label: 'Cancelled', text: 'text-muted' };
+  }
+  if (status === 'draft') {
+    return { container: 'bg-gray-100', label: 'Draft', text: 'text-muted' };
+  }
+
+  return { container: 'bg-secondary/12', label: 'Pending', text: 'text-secondary' };
+}
+
+function getRewardStatusStyle(status: RewardPartnerStatus) {
+  if (status === 'approved') {
+    return { container: 'bg-primary/10', label: 'Approved', text: 'text-primary' };
+  }
+  if (status === 'rejected') {
+    return { container: 'bg-destructive/10', label: 'Rejected', text: 'text-destructive' };
+  }
+  if (status === 'archived') {
+    return { container: 'bg-gray-100', label: 'Archived', text: 'text-muted' };
   }
   if (status === 'draft') {
     return { container: 'bg-gray-100', label: 'Draft', text: 'text-muted' };

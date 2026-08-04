@@ -312,10 +312,12 @@ export default function ProfileScreen({
     adminManageEventsError,
     adminManageEventsLoading,
     adminManageEventsOpen,
+    adminManageRewards,
     adminReviewError,
     adminReviewLoading,
     adminReviewOpen,
     deleteEvent,
+    deleteReward,
     openAdminManageEvents,
     openAdminReview,
     pendingEvents,
@@ -325,7 +327,9 @@ export default function ProfileScreen({
     reviewContent,
     reviewingContentId,
     saveManagedEvent,
+    saveManagedReward,
     savingManagedEventId,
+    savingManagedRewardId,
     setAdminManageEventsOpen,
     setAdminReviewOpen,
   } = adminModeration;
@@ -822,9 +826,13 @@ export default function ProfileScreen({
         loading={adminManageEventsLoading}
         onClose={() => setAdminManageEventsOpen(false)}
         onDeleteEvent={deleteEvent}
+        onDeleteReward={deleteReward}
         onRefresh={refreshManagedEvents}
         onSaveEvent={saveManagedEvent}
+        onSaveReward={saveManagedReward}
+        rewards={adminManageRewards}
         savingEventId={savingManagedEventId}
+        savingRewardId={savingManagedRewardId}
         stableModalTopInset={stableModalTopInset}
         visible={adminManageEventsOpen}
       />
