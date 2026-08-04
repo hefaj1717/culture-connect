@@ -127,6 +127,7 @@ export default function ExploreScreen({
   );
   const handledOpenEventNonceRef = useRef<number | null>(null);
   const externalSelectedEventIdRef = useRef<string | null>(null);
+  const organizerReturnEventRef = useRef<CultureEvent | null>(null);
   const hasApprovedEventsProp = approvedEventsProp !== undefined;
   const allEvents = approvedEventsProp ?? organizerEvents;
   const eventsError = hasApprovedEventsProp ? approvedEventsError : organizerEventsError;
@@ -304,6 +305,7 @@ export default function ExploreScreen({
     setSelectedOrganizerProfile(null);
     handledOpenEventNonceRef.current = null;
     externalSelectedEventIdRef.current = null;
+    organizerReturnEventRef.current = null;
   }, [cityData.id]);
 
   useEffect(() => {
@@ -703,6 +705,8 @@ export default function ExploreScreen({
         }}
         onClose={closeSelectedEvent}
         onOpenOrganizer={(profile) => {
+          organizerReturnEventRef.current = selectedEvent;
+          setSelectedEvent(null);
           setSelectedOrganizerProfile(profile);
         }}
         organizerProfile={selectedEventOrganizerProfile}
@@ -715,10 +719,18 @@ export default function ExploreScreen({
         cityName={cityData.name}
         events={allEvents}
         onOpenEvent={(event) => {
+          organizerReturnEventRef.current = null;
           setSelectedOrganizerProfile(null);
           setSelectedEvent(event);
         }}
-        onClose={() => setSelectedOrganizerProfile(null)}
+        onClose={() => {
+          const eventToRestore = organizerReturnEventRef.current;
+          organizerReturnEventRef.current = null;
+          setSelectedOrganizerProfile(null);
+          if (eventToRestore) {
+            setSelectedEvent(eventToRestore);
+          }
+        }}
         profile={selectedOrganizerProfile}
       />
     </View>
