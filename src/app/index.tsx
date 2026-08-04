@@ -63,7 +63,14 @@ export default function HomeScreen({
   const layout = useResponsiveLayout();
   const [canShowUserLocation, setCanShowUserLocation] = useState(false);
   const [isMapInteractive, setIsMapInteractive] = useState(true);
-  const happeningNow = events.slice(0, 3);
+  const happeningNow = useMemo(
+    () =>
+      events
+        .filter(isEventLiveNow)
+        .sort((eventA, eventB) => getEventStartTimestamp(eventA) - getEventStartTimestamp(eventB))
+        .slice(0, 3),
+    [events],
+  );
   const eventsThisWeekCount = useMemo(() => countEventsThisWeek(events), [events]);
   const weeklyEventMessage = useMemo(() => {
     if (eventsLoading) return `Checking this week's events in ${cityData.name}`;
@@ -330,10 +337,10 @@ export default function HomeScreen({
               />
             ) : happeningNow.length === 0 ? (
               <EmptyState
-                body={`Approved events in ${cityData.name} will appear here as soon as organizers publish them.`}
+                body={`Live events in ${cityData.name} will appear here during their scheduled time.`}
                 compact
                 style={{ width: layout.stateCardWidth }}
-                title="No events yet"
+                title="Nothing live right now"
               />
             ) : (
               happeningNow.map((event) => (
@@ -780,6 +787,24 @@ function getEventDate(event: CultureEvent) {
   const now = new Date();
   const fallbackDate = new Date(now.getFullYear(), monthIndex, Number(dateMatch[2]));
   return Number.isNaN(fallbackDate.getTime()) ? null : fallbackDate;
+}
+
+function isEventLiveNow(event: CultureEvent) {
+  const now = Date.now();
+  const startsAt = event.startsAt ? Date.parse(event.startsAt) : null;
+  const endsAt = event.endsAt ? Date.parse(event.endsAt) : null;
+
+  if (!startsAt || Number.isNaN(startsAt) || now < startsAt) return false;
+  if (!endsAt || Number.isNaN(endsAt)) return true;
+
+  return now <= endsAt;
+}
+
+function getEventStartTimestamp(event: CultureEvent) {
+  if (!event.startsAt) return Number.POSITIVE_INFINITY;
+
+  const startsAt = Date.parse(event.startsAt);
+  return Number.isNaN(startsAt) ? Number.POSITIVE_INFINITY : startsAt;
 }
 
 function getActivityColor(intensity: number) {
