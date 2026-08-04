@@ -4,6 +4,7 @@ import type { RewardPartner } from '@/data/culture';
 import { type RedeemedRewardState } from '@/data/profile';
 import { OFFLINE_ERROR_MESSAGE } from '@/lib/network-errors';
 import { fetchRewardRedemptions, redeemOrganizerReward } from '@/lib/reward-redemptions';
+import { isRewardCurrentlyAvailable } from '@/lib/reward-availability';
 import { useNetworkStatus } from '@/providers/network-provider';
 
 export function useRewardRedemption({
@@ -81,8 +82,14 @@ export function useRewardRedemption({
   const selectedRewardState = selectedReward ? redeemedRewards[selectedReward.id] : undefined;
   const selectedRewardIsUsed = !!selectedRewardState?.used;
   const selectedRewardIsActive = !!selectedRewardState && !selectedRewardIsUsed;
+  const selectedRewardIsAvailableNow = selectedReward
+    ? isRewardCurrentlyAvailable(selectedReward, new Date(rewardNow))
+    : false;
   const selectedRewardCanRedeem =
-    !!selectedReward && !selectedRewardState && userXp >= selectedReward.xpCost;
+    !!selectedReward &&
+    !selectedRewardState &&
+    userXp >= selectedReward.xpCost &&
+    selectedRewardIsAvailableNow;
   const selectedRewardXpNeeded = selectedReward ? Math.max(0, selectedReward.xpCost - userXp) : 0;
   const selectedRewardRemainingMs =
     selectedRewardState && !selectedRewardIsUsed
@@ -101,6 +108,10 @@ export function useRewardRedemption({
       setRewardRedeemError(
         `You need ${selectedRewardXpNeeded.toLocaleString()} more XP to redeem this reward.`,
       );
+      return;
+    }
+    if (!isRewardCurrentlyAvailable(selectedReward)) {
+      setRewardRedeemError('This reward is not available at this time.');
       return;
     }
 
@@ -143,6 +154,7 @@ export function useRewardRedemption({
     selectedReward,
     selectedRewardCanRedeem,
     selectedRewardIsActive,
+    selectedRewardIsAvailableNow,
     selectedRewardIsUsed,
     selectedRewardPickupCode,
     selectedRewardRemainingMs,

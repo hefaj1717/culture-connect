@@ -133,6 +133,9 @@ function getRedeemErrorMessage(error?: string, xpNeeded?: number) {
   if (error === 'reward_unavailable') {
     return 'This reward is not available anymore.';
   }
+  if (error === 'reward_not_available_now') {
+    return 'This reward is not available at this time.';
+  }
 
   return 'Could not redeem this reward. Try again.';
 }

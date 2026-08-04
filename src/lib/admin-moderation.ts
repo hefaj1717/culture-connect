@@ -7,6 +7,11 @@ import {
 } from '@/data/culture';
 import type { OrganizerEventStatus } from '@/lib/organizer-events';
 import { getNetworkAwareErrorMessage } from '@/lib/network-errors';
+import {
+  defaultRewardAvailabilityDays,
+  defaultRewardEndTime,
+  defaultRewardStartTime,
+} from '@/lib/reward-availability';
 import { supabase } from '@/lib/supabase';
 
 export type PendingAdminEvent = {
@@ -36,6 +41,11 @@ export type PendingAdminEventChange = {
 };
 
 export type PendingAdminReward = {
+  availableDays: number[];
+  availableEndTime: string;
+  availableFrom?: string | null;
+  availableStartTime: string;
+  availableUntil?: string | null;
   category: RewardPartner['category'];
   cityId: CityId;
   createdAt: string;
@@ -61,6 +71,11 @@ export type AdminManagedEvent = CultureEvent & {
 };
 
 export type AdminManagedReward = {
+  availableDays: number[];
+  availableEndTime: string;
+  availableFrom?: string | null;
+  availableStartTime: string;
+  availableUntil?: string | null;
   category: RewardPartner['category'];
   cityId: CityId;
   createdAt: string;
@@ -135,6 +150,11 @@ type AdminManagedEventRow = PendingEventRow & {
 };
 
 type PendingRewardRow = {
+  available_days?: number[] | null;
+  available_end_time?: string | null;
+  available_from?: string | null;
+  available_start_time?: string | null;
+  available_until?: string | null;
   category: RewardPartner['category'];
   city_key: CityId;
   created_at: string;
@@ -179,7 +199,7 @@ const PENDING_EVENT_SELECT =
 const PENDING_EVENT_LEGACY_SELECT =
   'id, organizer_user_id, city_key, venue_name, venue_address, title, description, category, date_label, time_label, end_time_label, image_url, created_at, updated_at';
 const ADMIN_REWARD_SELECT =
-  'id, organizer_user_id, city_key, place_name, place_address, place_latitude, place_longitude, title, description, xp_cost, category, image_url, status, created_at';
+  'id, organizer_user_id, city_key, place_name, place_address, place_latitude, place_longitude, title, description, xp_cost, category, image_url, status, created_at, available_from, available_until, available_days, available_start_time, available_end_time';
 
 export async function fetchPendingAdminContent() {
   const [eventsResult, rewardsResult] = await Promise.all([
@@ -187,7 +207,7 @@ export async function fetchPendingAdminContent() {
     supabase
       .from('organizer_rewards')
       .select(
-        'id, organizer_user_id, city_key, place_name, place_address, title, description, xp_cost, category, created_at',
+        'id, organizer_user_id, city_key, place_name, place_address, title, description, xp_cost, category, created_at, available_from, available_until, available_days, available_start_time, available_end_time',
       )
       .eq('status', 'pending')
       .order('created_at', { ascending: true }),
@@ -391,6 +411,11 @@ export async function updateAdminManagedReward({
 }: {
   adminUserId: string;
   input: {
+    availableDays: number[];
+    availableEndTime: string;
+    availableFrom: string;
+    availableStartTime: string;
+    availableUntil?: string | null;
     category: RewardPartner['category'];
     description: string;
     placeAddress: string;
@@ -405,6 +430,11 @@ export async function updateAdminManagedReward({
     .from('organizer_rewards')
     .update({
       category: input.category,
+      available_days: input.availableDays,
+      available_end_time: input.availableEndTime,
+      available_from: input.availableFrom,
+      available_start_time: input.availableStartTime,
+      available_until: input.availableUntil ?? null,
       description: input.description,
       place_address: input.placeAddress,
       place_name: input.placeName,
@@ -584,6 +614,11 @@ function mapPendingReward(
   const profile = profiles[row.organizer_user_id];
 
   return {
+    availableDays: row.available_days ?? defaultRewardAvailabilityDays,
+    availableEndTime: normalizeDbTime(row.available_end_time) ?? defaultRewardEndTime,
+    availableFrom: row.available_from ?? null,
+    availableStartTime: normalizeDbTime(row.available_start_time) ?? defaultRewardStartTime,
+    availableUntil: row.available_until ?? null,
     category: row.category,
     cityId: row.city_key,
     createdAt: row.created_at,
@@ -597,6 +632,10 @@ function mapPendingReward(
     title: row.title,
     xpCost: row.xp_cost,
   };
+}
+
+function normalizeDbTime(value?: string | null) {
+  return value?.slice(0, 5) ?? null;
 }
 
 function mapAdminManagedEvent(
@@ -666,6 +705,11 @@ function mapAdminManagedReward(
   const profile = profiles[row.organizer_user_id];
 
   return {
+    availableDays: row.available_days ?? defaultRewardAvailabilityDays,
+    availableEndTime: normalizeDbTime(row.available_end_time) ?? defaultRewardEndTime,
+    availableFrom: row.available_from ?? null,
+    availableStartTime: normalizeDbTime(row.available_start_time) ?? defaultRewardStartTime,
+    availableUntil: row.available_until ?? null,
     category: row.category,
     cityId: row.city_key,
     createdAt: row.created_at,

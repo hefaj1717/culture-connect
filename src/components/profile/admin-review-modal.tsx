@@ -3,6 +3,7 @@ import {
   ArrowLeft,
   CalendarDays,
   Check,
+  Clock,
   Gift,
   MapPin,
   RefreshCw,
@@ -31,6 +32,7 @@ import { EmptyState, ErrorState, LoadingState } from '@/components/async-state';
 import { BrandImage } from '@/components/brand-image';
 import { getCultureCityData } from '@/data/culture';
 import { type PendingAdminEvent, type PendingAdminReward } from '@/lib/admin-moderation';
+import { formatRewardAvailability } from '@/lib/reward-availability';
 
 type ReviewTab = 'events' | 'rewards';
 type ReviewContentKind = 'event' | 'reward';
@@ -402,6 +404,7 @@ function PendingRewardCard({
         {reward.description}
       </Text>
       <InfoLine icon={<MapPin size={15} color="#7C3AED" />} text={reward.placeAddress} />
+      <InfoLine icon={<Clock size={15} color="#7C3AED" />} text={formatRewardAvailability(reward)} />
       <InfoLine
         icon={<UserRound size={15} color="#7C3AED" />}
         text={`Submitted by ${reward.organizerName}`}

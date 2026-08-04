@@ -282,6 +282,11 @@ export function useAdminModeration({
   async function saveManagedReward(
     rewardId: string,
     input: {
+      availableDays: number[];
+      availableEndTime: string;
+      availableFrom: string;
+      availableStartTime: string;
+      availableUntil?: string | null;
       category: RewardPartner['category'];
       description: string;
       placeAddress: string;

@@ -38,6 +38,7 @@ import { getEventEngagement } from '@/lib/event-engagement';
 import type { UserEventHistoryItem, UserEventStatus } from '@/lib/event-history';
 import type { ManagedOrganizerEvent, OrganizerEventStatus } from '@/lib/organizer-events';
 import type { ManagedOrganizerReward, OrganizerRewardStatus } from '@/lib/organizer-rewards';
+import { formatRewardAvailability } from '@/lib/reward-availability';
 import type { UserUniversityMembership } from '@/lib/university-leaderboard';
 import type { XpTransaction } from '@/lib/xp-transactions';
 import { useCardSwipeBack } from '@/hooks/use-card-swipe-back';
@@ -1421,6 +1422,9 @@ function OrganizerRewardRow({ reward }: { reward: ManagedOrganizerReward }) {
             </Text>
             <Text className="mt-1 text-[12px] font-medium leading-4 text-muted" numberOfLines={1}>
               {reward.name}
+            </Text>
+            <Text className="mt-1 text-[11px] font-semibold leading-4 text-muted" numberOfLines={1}>
+              {formatRewardAvailability(reward)}
             </Text>
           </View>
 
