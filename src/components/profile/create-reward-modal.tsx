@@ -1,6 +1,6 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { ArrowLeft, MapPin, Search } from 'lucide-react-native';
-import { useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import {
   ActivityIndicator,
   Keyboard,
@@ -11,8 +11,16 @@ import {
   ScrollView,
   Text,
   TextInput,
+  useWindowDimensions,
   View,
 } from 'react-native';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import Animated, {
+  runOnJS,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BrandImage } from '@/components/brand-image';
@@ -71,8 +79,53 @@ export function CreateRewardModal({
   stableModalTopInset,
   visible,
 }: CreateRewardModalProps) {
+  const { width } = useWindowDimensions();
   const cityData = getCultureCityData(savedCityId);
   const scrollViewRef = useRef<ScrollView>(null);
+  const translateX = useSharedValue(0);
+
+  useEffect(() => {
+    if (visible) {
+      translateX.value = 0;
+    }
+  }, [translateX, visible]);
+
+  const swipeGesture = Gesture.Pan()
+    .activeOffsetX([-999, 18])
+    .failOffsetY([-35, 35])
+    .onUpdate((event) => {
+      translateX.value = Math.max(0, event.translationX);
+    })
+    .onEnd((event) => {
+      const shouldClose = translateX.value > width * 0.28 || event.velocityX > 700;
+
+      if (shouldClose) {
+        translateX.value = withTiming(width, { duration: 180 }, (finished) => {
+          if (finished) {
+            translateX.value = 0;
+            runOnJS(Keyboard.dismiss)();
+            runOnJS(onClose)();
+          }
+        });
+        return;
+      }
+
+      translateX.value = withTiming(0, { duration: 180 });
+    });
+
+  const swipeStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: translateX.value }],
+  }));
+
+  function closeWithAnimation() {
+    translateX.value = withTiming(width, { duration: 180 }, (finished) => {
+      if (finished) {
+        translateX.value = 0;
+        runOnJS(Keyboard.dismiss)();
+        runOnJS(onClose)();
+      }
+    });
+  }
 
   function focusFormArea(y: number) {
     setTimeout(() => {
@@ -81,220 +134,224 @@ export function CreateRewardModal({
   }
 
   return (
-    <Modal animationType="slide" transparent onRequestClose={onClose} visible={visible}>
-      <SafeAreaView className="flex-1 bg-white" edges={['bottom']}>
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-          className="flex-1"
-        >
-          <ScrollView
-            ref={scrollViewRef}
-            className="flex-1"
-            contentContainerStyle={{
-              paddingHorizontal: 20,
-              paddingBottom: 90,
-              paddingTop: stableModalTopInset + 14,
-            }}
-            keyboardDismissMode="interactive"
-            keyboardShouldPersistTaps="handled"
-            scrollIndicatorInsets={{ bottom: 90 }}
-          >
-            <Pressable
-              onPress={() => {
-                Keyboard.dismiss();
-                onClose();
-              }}
-              className="mb-5 h-10 w-10 items-center justify-center rounded-full bg-gray-100 active:opacity-80"
-              accessibilityRole="button"
-              accessibilityLabel="Close create reward"
+    <Modal animationType="slide" transparent onRequestClose={closeWithAnimation} visible={visible}>
+      <GestureDetector gesture={swipeGesture}>
+        <Animated.View className="flex-1 bg-white" style={swipeStyle}>
+          <SafeAreaView className="flex-1 bg-white" edges={['bottom']}>
+            <KeyboardAvoidingView
+              behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+              className="flex-1"
             >
-              <ArrowLeft size={21} color="#756F7B" strokeWidth={2.6} />
-            </Pressable>
-
-            <View className="mb-5 overflow-hidden rounded-3xl bg-ink">
-              <LinearGradient
-                colors={['rgba(124,58,237,0.74)', 'rgba(36,28,46,0.98)']}
-                end={{ x: 1, y: 1 }}
-                start={{ x: 0, y: 0 }}
-                style={{ padding: 20 }}
+              <ScrollView
+                ref={scrollViewRef}
+                className="flex-1"
+                contentContainerStyle={{
+                  paddingHorizontal: 20,
+                  paddingBottom: 90,
+                  paddingTop: stableModalTopInset + 14,
+                }}
+                keyboardDismissMode="interactive"
+                keyboardShouldPersistTaps="handled"
+                scrollIndicatorInsets={{ bottom: 90 }}
               >
-                <Text className="font-heading text-[29px] font-extrabold leading-[33px] text-white">
-                  Create reward
-                </Text>
-                <Text className="mt-2 max-w-[290px] text-[13px] leading-5 text-white/80">
-                  Add a partner reward students can unlock with CultureQuest XP.
-                </Text>
-              </LinearGradient>
-            </View>
+                <Pressable
+                  onPress={closeWithAnimation}
+                  className="mb-5 h-10 w-10 items-center justify-center rounded-full bg-gray-100 active:opacity-80"
+                  accessibilityRole="button"
+                  accessibilityLabel="Close create reward"
+                >
+                  <ArrowLeft size={21} color="#756F7B" strokeWidth={2.6} />
+                </Pressable>
 
-            <View className="mb-5 rounded-[26px] border border-primary/10 bg-canvas p-4">
-              <View className="flex-row items-center gap-3">
-                <View className="h-16 w-16 overflow-hidden rounded-2xl bg-ink/10">
-                  {organizerAvatarUrl ? (
-                    <BrandImage
-                      className="h-full w-full"
-                      contentFit="cover"
-                      source={{ uri: organizerAvatarUrl }}
-                      withTextGradient={false}
-                    />
-                  ) : (
-                    <View className="h-full w-full items-center justify-center bg-ink">
-                      <Text className="font-ui text-[20px] font-extrabold text-white">
-                        {organizerInitials}
+                <View className="mb-5 overflow-hidden rounded-3xl bg-ink">
+                  <LinearGradient
+                    colors={['rgba(124,58,237,0.74)', 'rgba(36,28,46,0.98)']}
+                    end={{ x: 1, y: 1 }}
+                    start={{ x: 0, y: 0 }}
+                    style={{ padding: 20 }}
+                  >
+                    <Text className="font-heading text-[29px] font-extrabold leading-[33px] text-white">
+                      Create reward
+                    </Text>
+                    <Text className="mt-2 max-w-[290px] text-[13px] leading-5 text-white/80">
+                      Add a partner reward students can unlock with CultureQuest XP.
+                    </Text>
+                  </LinearGradient>
+                </View>
+
+                <View className="mb-5 rounded-[26px] border border-primary/10 bg-canvas p-4">
+                  <View className="flex-row items-center gap-3">
+                    <View className="h-16 w-16 overflow-hidden rounded-2xl bg-ink/10">
+                      {organizerAvatarUrl ? (
+                        <BrandImage
+                          className="h-full w-full"
+                          contentFit="cover"
+                          source={{ uri: organizerAvatarUrl }}
+                          withTextGradient={false}
+                        />
+                      ) : (
+                        <View className="h-full w-full items-center justify-center bg-ink">
+                          <Text className="font-ui text-[20px] font-extrabold text-white">
+                            {organizerInitials}
+                          </Text>
+                        </View>
+                      )}
+                    </View>
+                    <View className="min-w-0 flex-1">
+                      <Text className="text-[10px] font-extrabold uppercase tracking-wide text-muted">
+                        Reward preview
+                      </Text>
+                      <Text
+                        className="mt-1 font-ui text-[15px] font-extrabold text-ink"
+                        numberOfLines={1}
+                      >
+                        {selectedRewardPlace?.name || organizerName}
+                      </Text>
+                      <Text
+                        className="mt-0.5 text-[12px] font-medium leading-4 text-muted"
+                        numberOfLines={2}
+                      >
+                        {rewardTitle.trim() || 'Your reward title will appear here.'}
                       </Text>
                     </View>
-                  )}
+                  </View>
                 </View>
-                <View className="min-w-0 flex-1">
-                  <Text className="text-[10px] font-extrabold uppercase tracking-wide text-muted">
-                    Reward preview
-                  </Text>
-                  <Text
-                    className="mt-1 font-ui text-[15px] font-extrabold text-ink"
-                    numberOfLines={1}
-                  >
-                    {selectedRewardPlace?.name || organizerName}
-                  </Text>
-                  <Text
-                    className="mt-0.5 text-[12px] font-medium leading-4 text-muted"
-                    numberOfLines={2}
-                  >
-                    {rewardTitle.trim() || 'Your reward title will appear here.'}
-                  </Text>
-                </View>
-              </View>
-            </View>
 
-            <Text className="mb-2 text-[13px] font-semibold text-ink">Reward title</Text>
-            <TextInput
-              value={rewardTitle}
-              onChangeText={onChangeRewardTitle}
-              onFocus={() => focusFormArea(150)}
-              placeholder="e.g. Free espresso after check-in"
-              placeholderTextColor="#8B909A"
-              maxLength={textLimits.rewardTitle}
-              className="mb-4 rounded-xl border border-gray-300 px-4 py-3 text-[15px] text-ink"
-            />
-
-            <Text className="mb-2 text-[13px] font-semibold text-ink">Reward place</Text>
-            <View className="mb-4">
-              <View className="h-12 flex-row items-center gap-3 rounded-xl border border-gray-300 px-4">
-                <Search size={16} color="#756F7B" strokeWidth={2.4} />
+                <Text className="mb-2 text-[13px] font-semibold text-ink">Reward title</Text>
                 <TextInput
-                  value={rewardPlaceQuery}
-                  onChangeText={(value) => {
-                    onChangeRewardPlaceQuery(value);
-                    setSelectedRewardPlace(null);
-                  }}
-                  onFocus={() => focusFormArea(260)}
-                  placeholder={`Search places in ${cityData.name}`}
+                  value={rewardTitle}
+                  onChangeText={onChangeRewardTitle}
+                  onFocus={() => focusFormArea(150)}
+                  placeholder="e.g. Free espresso after check-in"
                   placeholderTextColor="#8B909A"
-                  maxLength={textLimits.placeSearch}
-                  className="flex-1 text-[15px] text-ink"
+                  maxLength={textLimits.rewardTitle}
+                  className="mb-4 rounded-xl border border-gray-300 px-4 py-3 text-[15px] text-ink"
                 />
-                {searchingRewardPlaces && <ActivityIndicator color="#7C3AED" size="small" />}
-              </View>
-              <Text className="mt-2 text-[11px] leading-4 text-muted">
-                {hasGooglePlacesApiKey
-                  ? 'Powered by Google Places suggestions.'
-                  : 'Google Places key is missing, so place suggestions are unavailable.'}
-              </Text>
 
-              {selectedRewardPlace && (
-                <View className="mt-2 flex-row gap-3 rounded-xl border border-primary/25 bg-primary/10 p-3">
-                  <View className="h-9 w-9 items-center justify-center rounded-full bg-primary/15">
-                    <MapPin size={16} color="#7C3AED" strokeWidth={2.4} />
-                  </View>
-                  <View className="min-w-0 flex-1">
-                    <Text className="font-ui text-[13px] font-bold text-ink" numberOfLines={1}>
-                      {selectedRewardPlace.name}
-                    </Text>
-                    <Text className="text-[11px] leading-4 text-muted" numberOfLines={2}>
-                      {selectedRewardPlace.address}
-                    </Text>
-                  </View>
-                </View>
-              )}
-
-              {rewardPlaceSuggestions.length > 0 && (
-                <View className="mt-2 overflow-hidden rounded-xl border border-gray-200 bg-white">
-                  {rewardPlaceSuggestions.map((place) => (
-                    <Pressable
-                      key={`${place.source}-${place.id}`}
-                      onPress={() => {
-                        Keyboard.dismiss();
-                        onSelectRewardPlace(place);
+                <Text className="mb-2 text-[13px] font-semibold text-ink">Reward place</Text>
+                <View className="mb-4">
+                  <View className="h-12 flex-row items-center gap-3 rounded-xl border border-gray-300 px-4">
+                    <Search size={16} color="#756F7B" strokeWidth={2.4} />
+                    <TextInput
+                      value={rewardPlaceQuery}
+                      onChangeText={(value) => {
+                        onChangeRewardPlaceQuery(value);
+                        setSelectedRewardPlace(null);
                       }}
-                      className="flex-row items-start gap-3 border-b border-gray-100 p-3 active:bg-gray-50"
-                    >
-                      <View className="h-9 w-9 items-center justify-center rounded-full bg-primary/10">
+                      onFocus={() => focusFormArea(260)}
+                      placeholder={`Search places in ${cityData.name}`}
+                      placeholderTextColor="#8B909A"
+                      maxLength={textLimits.placeSearch}
+                      className="flex-1 text-[15px] text-ink"
+                    />
+                    {searchingRewardPlaces && <ActivityIndicator color="#7C3AED" size="small" />}
+                  </View>
+                  <Text className="mt-2 text-[11px] leading-4 text-muted">
+                    {hasGooglePlacesApiKey
+                      ? 'Powered by Google Places suggestions.'
+                      : 'Google Places key is missing, so place suggestions are unavailable.'}
+                  </Text>
+
+                  {selectedRewardPlace && (
+                    <View className="mt-2 flex-row gap-3 rounded-xl border border-primary/25 bg-primary/10 p-3">
+                      <View className="h-9 w-9 items-center justify-center rounded-full bg-primary/15">
                         <MapPin size={16} color="#7C3AED" strokeWidth={2.4} />
                       </View>
                       <View className="min-w-0 flex-1">
                         <Text className="font-ui text-[13px] font-bold text-ink" numberOfLines={1}>
-                          {place.name}
+                          {selectedRewardPlace.name}
                         </Text>
                         <Text className="text-[11px] leading-4 text-muted" numberOfLines={2}>
-                          {place.address}
+                          {selectedRewardPlace.address}
                         </Text>
                       </View>
-                    </Pressable>
-                  ))}
+                    </View>
+                  )}
+
+                  {rewardPlaceSuggestions.length > 0 && (
+                    <View className="mt-2 overflow-hidden rounded-xl border border-gray-200 bg-white">
+                      {rewardPlaceSuggestions.map((place) => (
+                        <Pressable
+                          key={`${place.source}-${place.id}`}
+                          onPress={() => {
+                            Keyboard.dismiss();
+                            onSelectRewardPlace(place);
+                          }}
+                          className="flex-row items-start gap-3 border-b border-gray-100 p-3 active:bg-gray-50"
+                        >
+                          <View className="h-9 w-9 items-center justify-center rounded-full bg-primary/10">
+                            <MapPin size={16} color="#7C3AED" strokeWidth={2.4} />
+                          </View>
+                          <View className="min-w-0 flex-1">
+                            <Text
+                              className="font-ui text-[13px] font-bold text-ink"
+                              numberOfLines={1}
+                            >
+                              {place.name}
+                            </Text>
+                            <Text className="text-[11px] leading-4 text-muted" numberOfLines={2}>
+                              {place.address}
+                            </Text>
+                          </View>
+                        </Pressable>
+                      ))}
+                    </View>
+                  )}
                 </View>
-              )}
-            </View>
 
-            <Text className="mb-2 text-[13px] font-semibold text-ink">XP required</Text>
-            <TextInput
-              value={rewardXp}
-              onChangeText={onChangeRewardXp}
-              onFocus={() => focusFormArea(420)}
-              keyboardType="number-pad"
-              placeholder="100"
-              placeholderTextColor="#8B909A"
-              maxLength={textLimits.rewardXp}
-              className="mb-4 rounded-xl border border-gray-300 px-4 py-3 text-[15px] text-ink"
-            />
+                <Text className="mb-2 text-[13px] font-semibold text-ink">XP required</Text>
+                <TextInput
+                  value={rewardXp}
+                  onChangeText={onChangeRewardXp}
+                  onFocus={() => focusFormArea(420)}
+                  keyboardType="number-pad"
+                  placeholder="100"
+                  placeholderTextColor="#8B909A"
+                  maxLength={textLimits.rewardXp}
+                  className="mb-4 rounded-xl border border-gray-300 px-4 py-3 text-[15px] text-ink"
+                />
 
-            <Text className="mb-2 text-[13px] font-semibold text-ink">Description</Text>
-            <TextInput
-              value={rewardDescription}
-              onChangeText={onChangeRewardDescription}
-              onFocus={() => focusFormArea(490)}
-              placeholder="What does the student receive and how should staff verify it?"
-              placeholderTextColor="#8B909A"
-              multiline
-              textAlignVertical="top"
-              maxLength={textLimits.rewardDescription}
-              className="mb-4 min-h-[112px] rounded-xl border border-gray-300 px-4 py-3 text-[15px] leading-5 text-ink"
-            />
-            <Text className="-mt-3 mb-4 text-right text-[11px] text-muted">
-              {rewardDescription.length}/{textLimits.rewardDescription}
-            </Text>
+                <Text className="mb-2 text-[13px] font-semibold text-ink">Description</Text>
+                <TextInput
+                  value={rewardDescription}
+                  onChangeText={onChangeRewardDescription}
+                  onFocus={() => focusFormArea(490)}
+                  placeholder="What does the student receive and how should staff verify it?"
+                  placeholderTextColor="#8B909A"
+                  multiline
+                  textAlignVertical="top"
+                  maxLength={textLimits.rewardDescription}
+                  className="mb-4 min-h-[112px] rounded-xl border border-gray-300 px-4 py-3 text-[15px] leading-5 text-ink"
+                />
+                <Text className="-mt-3 mb-4 text-right text-[11px] text-muted">
+                  {rewardDescription.length}/{textLimits.rewardDescription}
+                </Text>
 
-            {createRewardError && (
-              <Text className="mb-4 text-[13px] font-medium text-destructive">
-                {createRewardError}
-              </Text>
-            )}
+                {createRewardError && (
+                  <Text className="mb-4 text-[13px] font-medium text-destructive">
+                    {createRewardError}
+                  </Text>
+                )}
 
-            <Pressable
-              onPress={() => {
-                Keyboard.dismiss();
-                onSubmit();
-              }}
-              disabled={creatingReward}
-              className="h-[52px] items-center justify-center rounded-xl bg-primary active:opacity-85"
-            >
-              {creatingReward ? (
-                <ActivityIndicator color="white" />
-              ) : (
-                <Text className="text-[15px] font-semibold text-white">Submit for review</Text>
-              )}
-            </Pressable>
-          </ScrollView>
-        </KeyboardAvoidingView>
-      </SafeAreaView>
+                <Pressable
+                  onPress={() => {
+                    Keyboard.dismiss();
+                    onSubmit();
+                  }}
+                  disabled={creatingReward}
+                  className="h-[52px] items-center justify-center rounded-xl bg-primary active:opacity-85"
+                >
+                  {creatingReward ? (
+                    <ActivityIndicator color="white" />
+                  ) : (
+                    <Text className="text-[15px] font-semibold text-white">Submit for review</Text>
+                  )}
+                </Pressable>
+              </ScrollView>
+            </KeyboardAvoidingView>
+          </SafeAreaView>
+        </Animated.View>
+      </GestureDetector>
     </Modal>
   );
 }

@@ -191,7 +191,7 @@ export function AdminManageEventsModal({
             {visibleSelectedEvent ? (
               <AdminEventEditor
                 event={visibleSelectedEvent}
-                onBack={() => setSelectedEvent(null)}
+                onBack={closeWithAnimation}
                 onDelete={() => onDeleteEvent(visibleSelectedEvent.databaseId)}
                 onOpenOrganizer={() => openOrganizerProfile(visibleSelectedEvent)}
                 onSave={onSaveEvent}
