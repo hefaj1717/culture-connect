@@ -703,8 +703,6 @@ export default function ExploreScreen({
         }}
         onClose={closeSelectedEvent}
         onOpenOrganizer={(profile) => {
-          externalSelectedEventIdRef.current = null;
-          setSelectedEvent(null);
           setSelectedOrganizerProfile(profile);
         }}
         organizerProfile={selectedEventOrganizerProfile}
