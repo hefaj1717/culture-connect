@@ -62,6 +62,7 @@ export default function HomeScreen({
   const stableTopInset = useStableTopInset();
   const layout = useResponsiveLayout();
   const [canShowUserLocation, setCanShowUserLocation] = useState(false);
+  const [isMapInteractive, setIsMapInteractive] = useState(false);
   const happeningNow = events.slice(0, 3);
   const eventsThisWeekCount = useMemo(() => countEventsThisWeek(events), [events]);
   const weeklyEventMessage = useMemo(() => {
@@ -200,6 +201,7 @@ export default function HomeScreen({
 
   useEffect(() => {
     setSelectedActivityId(null);
+    setIsMapInteractive(false);
   }, [cityData.id]);
 
   useEffect(() => {
@@ -409,7 +411,7 @@ export default function HomeScreen({
                 moveOnMarkerPress={false}
                 pitchEnabled={false}
                 rotateEnabled={false}
-                scrollEnabled={false}
+                scrollEnabled={isMapInteractive}
                 showsBuildings
                 showsCompass={false}
                 showsMyLocationButton={canShowUserLocation}
@@ -418,7 +420,7 @@ export default function HomeScreen({
                 showsUserLocation={canShowUserLocation}
                 style={StyleSheet.absoluteFillObject}
                 toolbarEnabled={false}
-                zoomEnabled={false}
+                zoomEnabled={isMapInteractive}
               >
                 {activitySpots.map((spot) => (
                   <Marker
@@ -451,15 +453,21 @@ export default function HomeScreen({
               <View className="absolute left-5 top-5 rounded-full bg-white/80 px-3 py-1">
                 <Text className="text-[11px] font-bold text-primary">{cityData.name}</Text>
               </View>
-              <View className="absolute bottom-3 right-3 rounded-full bg-white/90 px-3 py-1">
+              <Pressable
+                disabled={eventsLoading || activitySpots.length === 0}
+                onPress={() => setIsMapInteractive((current) => !current)}
+                className="absolute bottom-3 right-3 rounded-full bg-white/90 px-3 py-1 active:opacity-80"
+              >
                 <Text className="text-[10px] font-bold text-muted">
                   {eventsLoading
                     ? 'Loading events'
-                    : activitySpots.length > 0
-                      ? 'Live map'
-                      : 'No live events'}
+                    : activitySpots.length === 0
+                      ? 'No live events'
+                      : isMapInteractive
+                        ? 'Lock map'
+                        : 'Move map'}
                 </Text>
-              </View>
+              </Pressable>
             </View>
 
             <View className="border-t border-primary/10 bg-white px-4 py-3">
