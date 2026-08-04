@@ -361,7 +361,11 @@ type UserActivitySectionProps = {
   transactions: XpTransaction[];
 };
 
-export function UserActivitySection({ history, onOpenAll, transactions }: UserActivitySectionProps) {
+export function UserActivitySection({
+  history,
+  onOpenAll,
+  transactions,
+}: UserActivitySectionProps) {
   const activityTransactions = getUserVisibleXpTransactions(transactions);
   const activityCount = history.length + activityTransactions.length;
 
@@ -921,8 +925,14 @@ export function UserActivityHistoryModal({
   const selectedHistoryItem = selectedEvent
     ? history.find((item) => item.event.id === selectedEvent.id)
     : null;
-  const transactionsByEventId = useMemo(() => getEventTransactionLookup(transactions), [transactions]);
-  const visibleXpTransactions = useMemo(() => getUserVisibleXpTransactions(transactions), [transactions]);
+  const transactionsByEventId = useMemo(
+    () => getEventTransactionLookup(transactions),
+    [transactions],
+  );
+  const visibleXpTransactions = useMemo(
+    () => getUserVisibleXpTransactions(transactions),
+    [transactions],
+  );
   const filteredHistory =
     activityFilter === 'all' ? history : history.filter((item) => item.status === activityFilter);
   const showXpTransactions = activityFilter === 'all';
@@ -1000,7 +1010,10 @@ export function UserActivityHistoryModal({
                   ))}
                   {showXpTransactions &&
                     visibleXpTransactions.map((transaction) => (
-                      <XpTransactionRow key={`${transaction.id}-activity`} transaction={transaction} />
+                      <XpTransactionRow
+                        key={`${transaction.id}-activity`}
+                        transaction={transaction}
+                      />
                     ))}
                 </>
               )}
@@ -1279,7 +1292,10 @@ function getOrganizerRewardFilterEmptyLabel(filter: OrganizerRewardHistoryFilter
   return 'submitted';
 }
 
-function getXpSourceLabel(sourceType: string | null, transactionType: XpTransaction['transactionType']) {
+function getXpSourceLabel(
+  sourceType: string | null,
+  transactionType: XpTransaction['transactionType'],
+) {
   if (sourceType === 'event') return 'Event award';
   if (sourceType === 'quest') return 'Quest award';
   if (sourceType === 'reward') return transactionType === 'spend' ? 'Reward spend' : 'Reward award';
@@ -2039,49 +2055,58 @@ export function RewardsListModal({
   userXp: number;
   visible: boolean;
 }) {
-  return (
-    <Modal animationType="slide" transparent onRequestClose={onClose} visible={visible}>
-      <SafeAreaView className="flex-1 bg-white" edges={['bottom']}>
-        <View className="bg-white px-5 pb-3" style={{ paddingTop: stableModalTopInset + 6 }}>
-          <View className="flex-row items-center justify-between">
-            <Pressable
-              onPress={onClose}
-              className="h-10 w-10 items-center justify-center rounded-full bg-gray-100 active:opacity-80"
-            >
-              <ArrowLeft size={21} color="#756F7B" strokeWidth={2.6} />
-            </Pressable>
-            <View className="items-end">
-              <Text className="font-heading text-[25px] font-extrabold text-ink">Rewards</Text>
-              <Text className="text-[12px] font-semibold text-primary">{cityName}</Text>
-            </View>
-          </View>
-        </View>
+  const { closeWithAnimation, gesture, swipeStyle } = useHistorySwipeBack({
+    onSwipeBack: onClose,
+    visible,
+  });
 
-        <ScrollView
-          className="flex-1"
-          contentContainerStyle={{
-            gap: 12,
-            paddingHorizontal: 20,
-            paddingTop: 12,
-            paddingBottom: 36,
-          }}
-          showsVerticalScrollIndicator={false}
-        >
-          {getRewardDisplayOrder(rewards, userXp, redeemedRewards).map(({ index, reward }) => (
-            <RewardPartnerRow
-              key={reward.id}
-              onPress={() => {
-                onClose();
-                onSelectReward(reward);
+  return (
+    <Modal animationType="slide" transparent onRequestClose={closeWithAnimation} visible={visible}>
+      <GestureDetector gesture={gesture}>
+        <Animated.View className="flex-1 bg-white" style={swipeStyle}>
+          <SafeAreaView className="flex-1 bg-white" edges={['bottom']}>
+            <View className="bg-white px-5 pb-3" style={{ paddingTop: stableModalTopInset + 6 }}>
+              <View className="flex-row items-center justify-between">
+                <Pressable
+                  onPress={closeWithAnimation}
+                  className="h-10 w-10 items-center justify-center rounded-full bg-gray-100 active:opacity-80"
+                >
+                  <ArrowLeft size={21} color="#756F7B" strokeWidth={2.6} />
+                </Pressable>
+                <View className="items-end">
+                  <Text className="font-heading text-[25px] font-extrabold text-ink">Rewards</Text>
+                  <Text className="text-[12px] font-semibold text-primary">{cityName}</Text>
+                </View>
+              </View>
+            </View>
+
+            <ScrollView
+              className="flex-1"
+              contentContainerStyle={{
+                gap: 12,
+                paddingHorizontal: 20,
+                paddingTop: 12,
+                paddingBottom: 36,
               }}
-              redemption={redeemedRewards[reward.id]}
-              reward={reward}
-              userXp={userXp}
-              variantIndex={index}
-            />
-          ))}
-        </ScrollView>
-      </SafeAreaView>
+              showsVerticalScrollIndicator={false}
+            >
+              {getRewardDisplayOrder(rewards, userXp, redeemedRewards).map(({ index, reward }) => (
+                <RewardPartnerRow
+                  key={reward.id}
+                  onPress={() => {
+                    onClose();
+                    onSelectReward(reward);
+                  }}
+                  redemption={redeemedRewards[reward.id]}
+                  reward={reward}
+                  userXp={userXp}
+                  variantIndex={index}
+                />
+              ))}
+            </ScrollView>
+          </SafeAreaView>
+        </Animated.View>
+      </GestureDetector>
     </Modal>
   );
 }
