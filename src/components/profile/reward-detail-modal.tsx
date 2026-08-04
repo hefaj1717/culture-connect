@@ -17,6 +17,7 @@ import { Colors } from '@/constants/theme';
 import type { RewardPartner } from '@/data/culture';
 import { formatRewardTime } from '@/data/profile';
 import { useStableTopInset } from '@/hooks/use-stable-safe-area';
+import { formatRewardAvailability } from '@/lib/reward-availability';
 
 type RewardDetailModalProps = {
   detailsExpanded: boolean;
@@ -28,6 +29,7 @@ type RewardDetailModalProps = {
   remainingMs: number;
   reward: RewardPartner | null;
   rewardCanRedeem: boolean;
+  rewardIsAvailableNow: boolean;
   rewardRedeemError: string | null;
   rewardRedeeming: boolean;
   rewardIsActive: boolean;
@@ -48,6 +50,7 @@ export function RewardDetailModal({
   remainingMs,
   reward,
   rewardCanRedeem,
+  rewardIsAvailableNow,
   rewardRedeemError,
   rewardRedeeming,
   rewardIsActive,
@@ -64,6 +67,8 @@ export function RewardDetailModal({
       ? formatRewardTime(remainingMs)
       : rewardCanRedeem
         ? 'Ready'
+        : reward && userXp >= reward.xpCost && !rewardIsAvailableNow
+          ? 'Closed'
         : 'Locked';
   const pickupTitle = rewardIsUsed
     ? 'Coupon used'
@@ -80,6 +85,8 @@ export function RewardDetailModal({
         ? 'Redeeming...'
         : rewardCanRedeem
           ? 'Redeem'
+          : reward && userXp >= reward.xpCost && !rewardIsAvailableNow
+            ? 'Not available now'
           : `Need ${rewardXpNeeded.toLocaleString()} more XP`;
   const venueName = formatVenueName(reward?.name);
   const redeemDisabled = rewardStateExists || rewardRedeeming || !rewardCanRedeem;
@@ -156,7 +163,7 @@ export function RewardDetailModal({
                       <View className="min-w-0 flex-1">
                         <Text className="text-[14px] font-extrabold leading-5 text-ink">
                           {rewardCanRedeem || rewardStateExists
-                            ? reward.condition
+                            ? `${reward.condition} · ${formatRewardAvailability(reward)}`
                             : `${userXp.toLocaleString()} / ${reward.xpCost.toLocaleString()} XP`}
                         </Text>
                       </View>
@@ -293,6 +300,8 @@ export function RewardDetailModal({
                             ? 'The reward code is no longer visible after use.'
                             : rewardCanRedeem
                               ? 'Tap Redeem only when you are ready to show this screen to staff.'
+                              : userXp >= reward.xpCost && !rewardIsAvailableNow
+                                ? `This reward can be redeemed ${formatRewardAvailability(reward)}.`
                               : 'Attend events and complete quests to unlock this reward.'}
                       </Text>
                     </View>

@@ -3,9 +3,19 @@ import { type CityId, type RewardPartner } from '@/data/culture';
 import { getNetworkAwareErrorMessage } from '@/lib/network-errors';
 import { fetchOrganizerProfilesByIds, type OrganizerProfile } from '@/lib/organizer-profiles';
 import type { PlaceSuggestion } from '@/lib/place-search';
+import {
+  defaultRewardAvailabilityDays,
+  defaultRewardEndTime,
+  defaultRewardStartTime,
+} from '@/lib/reward-availability';
 import { supabase } from '@/lib/supabase';
 
 export type CreateOrganizerRewardInput = {
+  availableDays: number[];
+  availableEndTime: string;
+  availableFrom: string;
+  availableStartTime: string;
+  availableUntil?: string | null;
   cityId: CityId;
   description: string;
   place: PlaceSuggestion;
@@ -14,6 +24,11 @@ export type CreateOrganizerRewardInput = {
 };
 
 type OrganizerRewardRow = {
+  available_days?: number[] | null;
+  available_end_time?: string | null;
+  available_from?: string | null;
+  available_start_time?: string | null;
+  available_until?: string | null;
   id: string;
   city_key: CityId;
   created_at?: string;
@@ -38,7 +53,7 @@ export type ManagedOrganizerReward = RewardPartner & {
 };
 
 const ORGANIZER_REWARD_SELECT =
-  'id, organizer_user_id, city_key, place_key, place_name, place_address, title, description, xp_cost, category, image_url';
+  'id, organizer_user_id, city_key, place_key, place_name, place_address, title, description, xp_cost, category, image_url, available_from, available_until, available_days, available_start_time, available_end_time';
 const ORGANIZER_REWARD_WITH_STATUS_SELECT = `${ORGANIZER_REWARD_SELECT}, status, rejection_reason, created_at`;
 
 export async function fetchOrganizerRewards(cityId: CityId) {
@@ -109,6 +124,11 @@ export async function createOrganizerReward(userId: string, input: CreateOrganiz
     description: input.description,
     xp_cost: input.xpCost,
     category: inferRewardCategory(input.place.name, input.title),
+    available_from: input.availableFrom,
+    available_until: input.availableUntil ?? null,
+    available_days: input.availableDays,
+    available_start_time: input.availableStartTime,
+    available_end_time: input.availableEndTime,
     status: 'pending',
   });
 
@@ -130,6 +150,12 @@ function mapOrganizerRewardRow(
 ): RewardPartner {
   return {
     id: `organizer-reward-${row.id}`,
+    availableDays: row.available_days ?? defaultRewardAvailabilityDays,
+    availableEndTime: normalizeDbTime(row.available_end_time) ?? defaultRewardEndTime,
+    availableFrom: row.available_from ?? null,
+    availableStartTime: normalizeDbTime(row.available_start_time) ?? defaultRewardStartTime,
+    availableUntil: row.available_until ?? null,
+    cityId: row.city_key,
     name: row.place_name,
     category: row.category,
     location: row.place_address,
@@ -143,6 +169,10 @@ function mapOrganizerRewardRow(
     imageUrl: row.image_url,
     organizerAvatarUrl: organizerProfile?.avatarUrl ?? null,
   };
+}
+
+function normalizeDbTime(value?: string | null) {
+  return value?.slice(0, 5) ?? null;
 }
 
 function inferRewardCategory(placeName: string, title: string): RewardPartner['category'] {

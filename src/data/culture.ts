@@ -88,6 +88,12 @@ export type CultureEvent = {
 };
 
 export type RewardPartner = {
+  availableDays?: number[];
+  availableEndTime?: string | null;
+  availableFrom?: string | null;
+  availableStartTime?: string | null;
+  availableUntil?: string | null;
+  cityId?: CityId;
   id: string;
   name: string;
   category: 'cafe' | 'bar' | 'restaurant' | 'shop' | 'bookstore';

@@ -265,6 +265,7 @@ export default function ProfileScreen({
     creatingReward,
     openCreateReward,
     rewardDescription,
+    rewardAvailability,
     rewardPlaceQuery,
     rewardPlaceSuggestions,
     rewardTitle,
@@ -278,7 +279,12 @@ export default function ProfileScreen({
     setRewardTitle,
     setRewardXp,
     setSelectedRewardPlace,
+    setRewardAvailableEndTime,
+    setRewardAvailableFrom,
+    setRewardAvailableStartTime,
+    setRewardAvailableUntil,
     submitReward,
+    toggleRewardAvailableDay,
   } = createRewardForm;
   const {
     addQuestStop,
@@ -344,6 +350,7 @@ export default function ProfileScreen({
     selectedReward,
     selectedRewardCanRedeem,
     selectedRewardIsActive,
+    selectedRewardIsAvailableNow,
     selectedRewardIsUsed,
     selectedRewardPickupCode,
     selectedRewardRemainingMs,
@@ -751,6 +758,10 @@ export default function ProfileScreen({
       <CreateRewardModal
         createRewardError={createRewardError}
         creatingReward={creatingReward}
+        onChangeRewardAvailableEndTime={setRewardAvailableEndTime}
+        onChangeRewardAvailableFrom={setRewardAvailableFrom}
+        onChangeRewardAvailableStartTime={setRewardAvailableStartTime}
+        onChangeRewardAvailableUntil={setRewardAvailableUntil}
         onChangeRewardDescription={setRewardDescription}
         onChangeRewardPlaceQuery={setRewardPlaceQuery}
         onChangeRewardTitle={setRewardTitle}
@@ -758,9 +769,11 @@ export default function ProfileScreen({
         onClose={() => setCreateRewardOpen(false)}
         onSelectRewardPlace={selectRewardPlace}
         onSubmit={submitReward}
+        onToggleRewardAvailableDay={toggleRewardAvailableDay}
         organizerAvatarUrl={savedAvatarUrl}
         organizerInitials={avatarInitials || 'CQ'}
         organizerName={fullName || 'CultureQuest organiser'}
+        rewardAvailability={rewardAvailability}
         rewardDescription={rewardDescription}
         rewardPlaceQuery={rewardPlaceQuery}
         rewardPlaceSuggestions={rewardPlaceSuggestions}
@@ -909,6 +922,7 @@ export default function ProfileScreen({
         remainingMs={selectedRewardRemainingMs}
         reward={selectedReward}
         rewardCanRedeem={selectedRewardCanRedeem}
+        rewardIsAvailableNow={selectedRewardIsAvailableNow}
         rewardRedeemError={rewardRedeemError}
         rewardRedeeming={rewardRedeeming}
         rewardIsActive={selectedRewardIsActive}

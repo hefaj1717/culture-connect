@@ -5,6 +5,7 @@ import { BrandImage } from '@/components/brand-image';
 import { CardStyles } from '@/constants/theme';
 import type { RewardPartner } from '@/data/culture';
 import type { RedeemedRewardState } from '@/data/profile';
+import { formatRewardAvailability, isRewardCurrentlyAvailable } from '@/lib/reward-availability';
 
 type RewardPartnerRowProps = {
   onPress: () => void;
@@ -23,9 +24,20 @@ export function RewardPartnerRow({
 }: RewardPartnerRowProps) {
   const isUsed = !!redemption?.used;
   const isActive = !!redemption && !isUsed;
-  const isUnlocked = userXp >= reward.xpCost && !isUsed && !isActive;
+  const isAvailableNow = isRewardCurrentlyAvailable(reward);
+  const hasEnoughXp = userXp >= reward.xpCost;
+  const isUnlocked = hasEnoughXp && isAvailableNow && !isUsed && !isActive;
+  const isClosed = hasEnoughXp && !isAvailableNow && !isUsed && !isActive;
   const xpRemaining = Math.max(0, reward.xpCost - userXp);
-  const rowState = isUsed ? 'used' : isActive ? 'active' : isUnlocked ? 'ready' : 'locked';
+  const rowState = isUsed
+    ? 'used'
+    : isActive
+      ? 'active'
+      : isUnlocked
+        ? 'ready'
+        : isClosed
+          ? 'closed'
+          : 'locked';
 
   return (
     <Pressable
@@ -76,6 +88,8 @@ export function RewardPartnerRow({
                   ? 'Coupon active'
                   : rowState === 'ready'
                     ? 'Available now'
+                    : rowState === 'closed'
+                      ? formatRewardAvailability(reward)
                     : `${xpRemaining.toLocaleString()} XP left`}
             </Text>
             <View
@@ -102,6 +116,8 @@ export function RewardPartnerRow({
                     ? 'Open'
                     : rowState === 'ready'
                       ? 'Redeem'
+                      : rowState === 'closed'
+                        ? 'Closed'
                       : `${reward.xpCost} XP`}
               </Text>
             </View>
@@ -112,7 +128,7 @@ export function RewardPartnerRow({
   );
 }
 
-type RewardRowState = 'active' | 'locked' | 'ready' | 'used';
+type RewardRowState = 'active' | 'closed' | 'locked' | 'ready' | 'used';
 
 function RewardStatusPill({ state }: { state: RewardRowState }) {
   const isReady = state === 'ready';
@@ -124,6 +140,8 @@ function RewardStatusPill({ state }: { state: RewardRowState }) {
         ? 'ACTIVE'
         : state === 'ready'
           ? 'READY'
+          : state === 'closed'
+            ? 'CLOSED'
           : 'LOCKED';
 
   return (

@@ -44,6 +44,14 @@ import type {
 } from '@/lib/admin-moderation';
 import type { OrganizerEventStatus } from '@/lib/organizer-events';
 import { organizerProfileFromEvent, type OrganizerProfile } from '@/lib/organizer-profiles';
+import {
+  formatRewardAvailability,
+  normalizeRewardDateInput,
+  normalizeRewardTimeInput,
+  rewardWeekdays,
+  toggleRewardAvailabilityDay,
+  validateRewardAvailability,
+} from '@/lib/reward-availability';
 
 type ManageContentTab = 'events' | 'rewards';
 type AdminEventFilter = 'all' | OrganizerEventStatus | 'past';
@@ -110,6 +118,11 @@ type AdminManageEventsModalProps = {
   onSaveReward: (
     rewardId: string,
     input: {
+      availableDays: number[];
+      availableEndTime: string;
+      availableFrom: string;
+      availableStartTime: string;
+      availableUntil?: string | null;
       category: RewardPartner['category'];
       description: string;
       placeAddress: string;
@@ -676,6 +689,9 @@ function AdminManagedRewardCard({
         <Text className="mt-1 text-[13px] font-medium text-muted" numberOfLines={1}>
           {reward.placeName} · {reward.xpCost.toLocaleString()} XP
         </Text>
+        <Text className="mt-1 text-[12px] font-semibold text-muted" numberOfLines={1}>
+          {formatRewardAvailability(reward)}
+        </Text>
         <Pressable
           accessibilityLabel={`Open organizer profile for ${reward.organizerName}`}
           accessibilityRole="button"
@@ -960,6 +976,11 @@ function AdminRewardEditor({
   stableModalTopInset: number;
 }) {
   const [category, setCategory] = useState<RewardPartner['category']>(reward.category);
+  const [availableDays, setAvailableDays] = useState(reward.availableDays);
+  const [availableEndTime, setAvailableEndTime] = useState(reward.availableEndTime);
+  const [availableFrom, setAvailableFrom] = useState(reward.availableFrom ?? '');
+  const [availableStartTime, setAvailableStartTime] = useState(reward.availableStartTime);
+  const [availableUntil, setAvailableUntil] = useState(reward.availableUntil ?? '');
   const [description, setDescription] = useState(reward.description);
   const [placeAddress, setPlaceAddress] = useState(reward.placeAddress);
   const [placeName, setPlaceName] = useState(reward.placeName);
@@ -969,6 +990,11 @@ function AdminRewardEditor({
 
   useEffect(() => {
     setCategory(reward.category);
+    setAvailableDays(reward.availableDays);
+    setAvailableEndTime(reward.availableEndTime);
+    setAvailableFrom(reward.availableFrom ?? '');
+    setAvailableStartTime(reward.availableStartTime);
+    setAvailableUntil(reward.availableUntil ?? '');
     setDescription(reward.description);
     setPlaceAddress(reward.placeAddress);
     setPlaceName(reward.placeName);
@@ -989,8 +1015,24 @@ function AdminRewardEditor({
       Alert.alert('Invalid XP', 'Reward XP cost must be between 1 and 5000.');
       return;
     }
+    const availabilityError = validateRewardAvailability({
+      availableDays,
+      availableEndTime,
+      availableFrom,
+      availableStartTime,
+      availableUntil,
+    });
+    if (availabilityError) {
+      Alert.alert('Invalid availability', availabilityError);
+      return;
+    }
 
     const result = await onSave(reward.databaseId, {
+      availableDays,
+      availableEndTime,
+      availableFrom,
+      availableStartTime,
+      availableUntil: availableUntil || null,
       category,
       description: description.trim(),
       placeAddress: placeAddress.trim(),
@@ -1104,6 +1146,73 @@ function AdminRewardEditor({
             />
           ))}
         </ChoiceSection>
+
+        <View className="mb-4 rounded-3xl border border-gray-200 bg-white p-4">
+          <Text className="mb-1 font-ui text-[15px] font-extrabold text-ink">
+            Redeem availability
+          </Text>
+          <Text className="mb-3 text-[12px] leading-4 text-muted">
+            Controls when students can redeem this reward.
+          </Text>
+          <View className="mb-3 flex-row flex-wrap gap-2">
+            {rewardWeekdays.map((day) => {
+              const active = availableDays.includes(day.key);
+
+              return (
+                <ChoiceChip
+                  active={active}
+                  key={day.key}
+                  label={day.label}
+                  onPress={() =>
+                    setAvailableDays((currentDays) =>
+                      toggleRewardAvailabilityDay(currentDays, day.key),
+                    )
+                  }
+                />
+              );
+            })}
+          </View>
+          <View className="flex-row gap-3">
+            <AdminTextField
+              containerClassName="flex-1"
+              label="From date"
+              onChangeText={(value) => setAvailableFrom(normalizeRewardDateInput(value))}
+              value={availableFrom}
+            />
+            <AdminTextField
+              containerClassName="flex-1"
+              label="Until date"
+              onChangeText={(value) => setAvailableUntil(normalizeRewardDateInput(value))}
+              value={availableUntil}
+            />
+          </View>
+          <View className="flex-row gap-3">
+            <AdminTextField
+              containerClassName="flex-1"
+              keyboardType="number-pad"
+              label="Start"
+              onChangeText={(value) => setAvailableStartTime(normalizeRewardTimeInput(value))}
+              value={availableStartTime}
+            />
+            <AdminTextField
+              containerClassName="flex-1"
+              keyboardType="number-pad"
+              label="End"
+              onChangeText={(value) => setAvailableEndTime(normalizeRewardTimeInput(value))}
+              value={availableEndTime}
+            />
+          </View>
+          <Text className="text-[12px] font-semibold leading-4 text-primary">
+            {formatRewardAvailability({
+              ...reward,
+              availableDays,
+              availableEndTime,
+              availableFrom,
+              availableStartTime,
+              availableUntil: availableUntil || null,
+            })}
+          </Text>
+        </View>
 
         <View className="mb-4 rounded-3xl border border-primary/10 bg-primary/5 p-4">
           <InfoRow icon={<Gift size={16} color={Colors.light.primary} />} text={title} />

@@ -22,6 +22,7 @@ import { textLimits } from '@/constants/text-limits';
 import { type CityId, getCultureCityData } from '@/data/culture';
 import { useCardSwipeBack } from '@/hooks/use-card-swipe-back';
 import { hasGooglePlacesApiKey, type PlaceSuggestion } from '@/lib/place-search';
+import { rewardWeekdays, type RewardAvailabilityInput } from '@/lib/reward-availability';
 
 type CreateRewardModalProps = {
   createRewardError: string | null;
@@ -30,9 +31,15 @@ type CreateRewardModalProps = {
   onChangeRewardPlaceQuery: (value: string) => void;
   onChangeRewardTitle: (value: string) => void;
   onChangeRewardXp: (value: string) => void;
+  onChangeRewardAvailableEndTime: (value: string) => void;
+  onChangeRewardAvailableFrom: (value: string) => void;
+  onChangeRewardAvailableStartTime: (value: string) => void;
+  onChangeRewardAvailableUntil: (value: string) => void;
   onClose: () => void;
   onSelectRewardPlace: (place: PlaceSuggestion) => void;
   onSubmit: () => void;
+  onToggleRewardAvailableDay: (day: number) => void;
+  rewardAvailability: RewardAvailabilityInput;
   rewardDescription: string;
   rewardPlaceQuery: string;
   rewardPlaceSuggestions: PlaceSuggestion[];
@@ -53,16 +60,22 @@ export function CreateRewardModal({
   createRewardError,
   creatingReward,
   onChangeRewardDescription,
+  onChangeRewardAvailableEndTime,
+  onChangeRewardAvailableFrom,
+  onChangeRewardAvailableStartTime,
+  onChangeRewardAvailableUntil,
   onChangeRewardPlaceQuery,
   onChangeRewardTitle,
   onChangeRewardXp,
   onClose,
   onSelectRewardPlace,
   onSubmit,
+  onToggleRewardAvailableDay,
   organizerAvatarUrl,
   organizerInitials,
   organizerName,
   rewardDescription,
+  rewardAvailability,
   rewardPlaceQuery,
   rewardPlaceSuggestions,
   rewardTitle,
@@ -271,6 +284,91 @@ export function CreateRewardModal({
                   maxLength={textLimits.rewardXp}
                   className="mb-4 rounded-xl border border-gray-300 px-4 py-3 text-[15px] text-ink"
                 />
+
+                <View className="mb-4 rounded-[22px] border border-primary/10 bg-canvas p-4">
+                  <Text className="mb-1 text-[13px] font-extrabold text-ink">
+                    Redeem availability
+                  </Text>
+                  <Text className="mb-3 text-[11px] leading-4 text-muted">
+                    Students can only redeem during these days and hours.
+                  </Text>
+
+                  <View className="mb-3 flex-row flex-wrap gap-2">
+                    {rewardWeekdays.map((day) => {
+                      const active = rewardAvailability.availableDays.includes(day.key);
+
+                      return (
+                        <Pressable
+                          key={day.key}
+                          onPress={() => onToggleRewardAvailableDay(day.key)}
+                          className={`h-9 min-w-[48px] items-center justify-center rounded-full px-3 ${
+                            active ? 'bg-primary' : 'border border-gray-200 bg-white'
+                          }`}
+                        >
+                          <Text
+                            className={`text-[12px] font-extrabold ${
+                              active ? 'text-white' : 'text-muted'
+                            }`}
+                          >
+                            {day.label}
+                          </Text>
+                        </Pressable>
+                      );
+                    })}
+                  </View>
+
+                  <View className="mb-3 flex-row gap-3">
+                    <View className="min-w-0 flex-1">
+                      <Text className="mb-1 text-[11px] font-semibold text-muted">From</Text>
+                      <TextInput
+                        value={rewardAvailability.availableFrom}
+                        onChangeText={onChangeRewardAvailableFrom}
+                        onFocus={() => focusFormArea(500)}
+                        placeholder="YYYY-MM-DD"
+                        placeholderTextColor="#8B909A"
+                        className="rounded-xl border border-gray-300 bg-white px-3 py-3 text-[14px] text-ink"
+                      />
+                    </View>
+                    <View className="min-w-0 flex-1">
+                      <Text className="mb-1 text-[11px] font-semibold text-muted">Until</Text>
+                      <TextInput
+                        value={rewardAvailability.availableUntil}
+                        onChangeText={onChangeRewardAvailableUntil}
+                        onFocus={() => focusFormArea(500)}
+                        placeholder="Optional"
+                        placeholderTextColor="#8B909A"
+                        className="rounded-xl border border-gray-300 bg-white px-3 py-3 text-[14px] text-ink"
+                      />
+                    </View>
+                  </View>
+
+                  <View className="flex-row gap-3">
+                    <View className="min-w-0 flex-1">
+                      <Text className="mb-1 text-[11px] font-semibold text-muted">Start</Text>
+                      <TextInput
+                        value={rewardAvailability.availableStartTime}
+                        onChangeText={onChangeRewardAvailableStartTime}
+                        onFocus={() => focusFormArea(560)}
+                        placeholder="09:00"
+                        placeholderTextColor="#8B909A"
+                        keyboardType="number-pad"
+                        className="rounded-xl border border-gray-300 bg-white px-3 py-3 text-[14px] text-ink"
+                      />
+                    </View>
+                    <View className="min-w-0 flex-1">
+                      <Text className="mb-1 text-[11px] font-semibold text-muted">End</Text>
+                      <TextInput
+                        value={rewardAvailability.availableEndTime}
+                        onChangeText={onChangeRewardAvailableEndTime}
+                        onFocus={() => focusFormArea(560)}
+                        placeholder="18:00"
+                        placeholderTextColor="#8B909A"
+                        keyboardType="number-pad"
+                        className="rounded-xl border border-gray-300 bg-white px-3 py-3 text-[14px] text-ink"
+                      />
+                    </View>
+                  </View>
+                </View>
 
                 <Text className="mb-2 text-[13px] font-semibold text-ink">Description</Text>
                 <TextInput

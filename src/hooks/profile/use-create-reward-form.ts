@@ -6,6 +6,13 @@ import { type CityId } from '@/data/culture';
 import { OFFLINE_ERROR_MESSAGE } from '@/lib/network-errors';
 import { createOrganizerReward } from '@/lib/organizer-rewards';
 import { type PlaceSuggestion, searchPlaces } from '@/lib/place-search';
+import {
+  getDefaultRewardAvailability,
+  normalizeRewardDateInput,
+  normalizeRewardTimeInput,
+  toggleRewardAvailabilityDay,
+  validateRewardAvailability,
+} from '@/lib/reward-availability';
 import { useNetworkStatus } from '@/providers/network-provider';
 
 type UseCreateRewardFormInput = {
@@ -27,6 +34,7 @@ export function useCreateRewardForm({
   const [searchingRewardPlaces, setSearchingRewardPlaces] = useState(false);
   const [rewardDescription, setRewardDescription] = useState('');
   const [rewardXp, setRewardXp] = useState('100');
+  const [rewardAvailability, setRewardAvailability] = useState(getDefaultRewardAvailability);
   const [createRewardError, setCreateRewardError] = useState<string | null>(null);
   const [creatingReward, setCreatingReward] = useState(false);
   const { isOffline } = useNetworkStatus();
@@ -76,6 +84,7 @@ export function useCreateRewardForm({
     setSearchingRewardPlaces(false);
     setRewardDescription('');
     setRewardXp('100');
+    setRewardAvailability(getDefaultRewardAvailability());
     setCreateRewardError(null);
   }
 
@@ -106,6 +115,41 @@ export function useCreateRewardForm({
     setRewardXp(limitText(value.replace(/\D/g, ''), textLimits.rewardXp));
   }
 
+  function setRewardAvailableFrom(value: string) {
+    setRewardAvailability((current) => ({
+      ...current,
+      availableFrom: normalizeRewardDateInput(value),
+    }));
+  }
+
+  function setRewardAvailableUntil(value: string) {
+    setRewardAvailability((current) => ({
+      ...current,
+      availableUntil: normalizeRewardDateInput(value),
+    }));
+  }
+
+  function setRewardAvailableStartTime(value: string) {
+    setRewardAvailability((current) => ({
+      ...current,
+      availableStartTime: normalizeRewardTimeInput(value),
+    }));
+  }
+
+  function setRewardAvailableEndTime(value: string) {
+    setRewardAvailability((current) => ({
+      ...current,
+      availableEndTime: normalizeRewardTimeInput(value),
+    }));
+  }
+
+  function toggleRewardAvailableDay(day: number) {
+    setRewardAvailability((current) => ({
+      ...current,
+      availableDays: toggleRewardAvailabilityDay(current.availableDays, day),
+    }));
+  }
+
   async function submitReward() {
     const normalizedTitle = limitText(rewardTitle.trim(), textLimits.rewardTitle);
     const normalizedDescription = limitText(rewardDescription.trim(), textLimits.rewardDescription);
@@ -131,11 +175,21 @@ export function useCreateRewardForm({
       setCreateRewardError('Enter a valid XP amount.');
       return;
     }
+    const availabilityError = validateRewardAvailability(rewardAvailability);
+    if (availabilityError) {
+      setCreateRewardError(availabilityError);
+      return;
+    }
 
     setCreateRewardError(null);
     setCreatingReward(true);
     const result = await createOrganizerReward(userId, {
       cityId: savedCityId,
+      availableDays: rewardAvailability.availableDays,
+      availableEndTime: rewardAvailability.availableEndTime,
+      availableFrom: rewardAvailability.availableFrom,
+      availableStartTime: rewardAvailability.availableStartTime,
+      availableUntil: rewardAvailability.availableUntil || null,
       description: normalizedDescription,
       place: selectedRewardPlace,
       title: normalizedTitle,
@@ -161,6 +215,7 @@ export function useCreateRewardForm({
     openCreateReward,
     resetRewardForm,
     rewardDescription,
+    rewardAvailability,
     rewardPlaceQuery,
     rewardPlaceSuggestions,
     rewardTitle,
@@ -175,5 +230,10 @@ export function useCreateRewardForm({
     setRewardXp: changeRewardXp,
     setSelectedRewardPlace,
     submitReward,
+    setRewardAvailableEndTime,
+    setRewardAvailableFrom,
+    setRewardAvailableStartTime,
+    setRewardAvailableUntil,
+    toggleRewardAvailableDay,
   };
 }
