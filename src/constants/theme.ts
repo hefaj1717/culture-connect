@@ -90,6 +90,12 @@ export const GamificationColors = {
   },
 } as const;
 
+export const EngagementColors = {
+  interested: '#D99B00',
+  going: Colors.light.accent,
+  attended: Colors.light.accentDeep,
+} as const;
+
 export const CardStyles = {
   elevated: {
     boxShadow: '0 12px 28px rgba(36, 28, 46, 0.09)',
