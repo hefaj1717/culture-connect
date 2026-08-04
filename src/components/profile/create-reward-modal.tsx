@@ -1,6 +1,6 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { ArrowLeft, MapPin, Search } from 'lucide-react-native';
-import { useEffect, useRef } from 'react';
+import { useRef } from 'react';
 import {
   ActivityIndicator,
   Keyboard,
@@ -11,21 +11,16 @@ import {
   ScrollView,
   Text,
   TextInput,
-  useWindowDimensions,
   View,
 } from 'react-native';
-import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import Animated, {
-  runOnJS,
-  useAnimatedStyle,
-  useSharedValue,
-  withTiming,
-} from 'react-native-reanimated';
+import { GestureDetector } from 'react-native-gesture-handler';
+import Animated from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BrandImage } from '@/components/brand-image';
 import { textLimits } from '@/constants/text-limits';
 import { type CityId, getCultureCityData } from '@/data/culture';
+import { useCardSwipeBack } from '@/hooks/use-card-swipe-back';
 import { hasGooglePlacesApiKey, type PlaceSuggestion } from '@/lib/place-search';
 
 type CreateRewardModalProps = {
@@ -79,53 +74,19 @@ export function CreateRewardModal({
   stableModalTopInset,
   visible,
 }: CreateRewardModalProps) {
-  const { width } = useWindowDimensions();
   const cityData = getCultureCityData(savedCityId);
   const scrollViewRef = useRef<ScrollView>(null);
-  const translateX = useSharedValue(0);
-
-  useEffect(() => {
-    if (visible) {
-      translateX.value = 0;
-    }
-  }, [translateX, visible]);
-
-  const swipeGesture = Gesture.Pan()
-    .activeOffsetX([-999, 18])
-    .failOffsetY([-35, 35])
-    .onUpdate((event) => {
-      translateX.value = Math.max(0, event.translationX);
-    })
-    .onEnd((event) => {
-      const shouldClose = translateX.value > width * 0.28 || event.velocityX > 700;
-
-      if (shouldClose) {
-        translateX.value = withTiming(width, { duration: 180 }, (finished) => {
-          if (finished) {
-            translateX.value = 0;
-            runOnJS(Keyboard.dismiss)();
-            runOnJS(onClose)();
-          }
-        });
-        return;
-      }
-
-      translateX.value = withTiming(0, { duration: 180 });
-    });
-
-  const swipeStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: translateX.value }],
-  }));
-
-  function closeWithAnimation() {
-    translateX.value = withTiming(width, { duration: 180 }, (finished) => {
-      if (finished) {
-        translateX.value = 0;
-        runOnJS(Keyboard.dismiss)();
-        runOnJS(onClose)();
-      }
-    });
-  }
+  const {
+    closeWithAnimation,
+    gesture: swipeGesture,
+    swipeStyle,
+  } = useCardSwipeBack({
+    onSwipeBack: () => {
+      Keyboard.dismiss();
+      onClose();
+    },
+    visible,
+  });
 
   function focusFormArea(y: number) {
     setTimeout(() => {

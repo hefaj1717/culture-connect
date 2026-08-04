@@ -1,5 +1,5 @@
 import { Camera, Check, GraduationCap, MapPin, Search, X } from 'lucide-react-native';
-import { useEffect, useRef } from 'react';
+import { useRef } from 'react';
 import {
   ActivityIndicator,
   Keyboard,
@@ -10,16 +10,10 @@ import {
   ScrollView,
   Text,
   TextInput,
-  useWindowDimensions,
   View,
 } from 'react-native';
-import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import Animated, {
-  runOnJS,
-  useAnimatedStyle,
-  useSharedValue,
-  withTiming,
-} from 'react-native-reanimated';
+import { GestureDetector } from 'react-native-gesture-handler';
+import Animated from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { CitySelector } from '@/components/city-selector';
@@ -27,6 +21,7 @@ import { Avatar } from '@/components/profile/profile-avatar';
 import { textLimits } from '@/constants/text-limits';
 import type { CityId } from '@/data/culture';
 import { getUniversitiesForCity } from '@/data/universities';
+import { useCardSwipeBack } from '@/hooks/use-card-swipe-back';
 import { useStableTopInset } from '@/hooks/use-stable-safe-area';
 import type { PlaceSuggestion } from '@/lib/place-search';
 
@@ -93,54 +88,20 @@ export function EditProfileModal({
   universityId,
   visible,
 }: EditProfileModalProps) {
-  const { width } = useWindowDimensions();
   const stableTopInset = useStableTopInset();
   const scrollViewRef = useRef<ScrollView>(null);
-  const translateX = useSharedValue(0);
   const universityOptions = getUniversitiesForCity(cityId);
-
-  useEffect(() => {
-    if (visible) {
-      translateX.value = 0;
-    }
-  }, [translateX, visible]);
-
-  const swipeGesture = Gesture.Pan()
-    .activeOffsetX([-999, 18])
-    .failOffsetY([-35, 35])
-    .onUpdate((event) => {
-      translateX.value = Math.max(0, event.translationX);
-    })
-    .onEnd((event) => {
-      const shouldClose = translateX.value > width * 0.28 || event.velocityX > 700;
-
-      if (shouldClose) {
-        translateX.value = withTiming(width, { duration: 180 }, (finished) => {
-          if (finished) {
-            translateX.value = 0;
-            runOnJS(Keyboard.dismiss)();
-            runOnJS(onClose)();
-          }
-        });
-        return;
-      }
-
-      translateX.value = withTiming(0, { duration: 180 });
-    });
-
-  const swipeStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: translateX.value }],
-  }));
-
-  function closeWithAnimation() {
-    translateX.value = withTiming(width, { duration: 180 }, (finished) => {
-      if (finished) {
-        translateX.value = 0;
-        runOnJS(Keyboard.dismiss)();
-        runOnJS(onClose)();
-      }
-    });
-  }
+  const {
+    closeWithAnimation,
+    gesture: swipeGesture,
+    swipeStyle,
+  } = useCardSwipeBack({
+    onSwipeBack: () => {
+      Keyboard.dismiss();
+      onClose();
+    },
+    visible,
+  });
 
   function focusFormArea(y: number) {
     setTimeout(() => {
