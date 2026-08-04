@@ -36,7 +36,7 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { EmptyState, ErrorState, LoadingState } from '@/components/async-state';
 import { BrandImage } from '@/components/brand-image';
 import { OrganizerAvatar, OrganizerProfileModal } from '@/components/organizer-profile-modal';
-import { CardStyles } from '@/constants/theme';
+import { CardStyles, EngagementColors } from '@/constants/theme';
 import {
   type CultureEvent,
   type CultureCityData,
@@ -1148,20 +1148,38 @@ function EventEngagementPills({
   going: number;
   interested: number;
 }) {
+  const metrics = [
+    {
+      color: EngagementColors.interested,
+      icon: <Users size={12} color={EngagementColors.interested} strokeWidth={2.4} />,
+      value: interested,
+    },
+    {
+      color: EngagementColors.going,
+      icon: <Clock size={12} color={EngagementColors.going} strokeWidth={2.4} />,
+      value: going,
+    },
+    {
+      color: EngagementColors.attended,
+      icon: <CheckCircle2 size={12} color={EngagementColors.attended} strokeWidth={2.4} />,
+      value: attended,
+    },
+  ];
+
   return (
     <View className="flex-row items-center gap-1.5">
-      <View className="flex-row items-center gap-1 rounded-full bg-primary/5 px-2 py-1">
-        <Users size={12} color="#7C3AED" strokeWidth={2.4} />
-        <Text className="text-[11px] font-bold text-primary">{interested.toLocaleString()}</Text>
-      </View>
-      <View className="flex-row items-center gap-1 rounded-full bg-primary/5 px-2 py-1">
-        <CheckCircle2 size={12} color="#7C3AED" strokeWidth={2.4} />
-        <Text className="text-[11px] font-bold text-primary">{going.toLocaleString()}</Text>
-      </View>
-      <View className="flex-row items-center gap-1 rounded-full bg-primary/5 px-2 py-1">
-        <CheckCircle2 size={12} color="#7C3AED" strokeWidth={2.4} />
-        <Text className="text-[11px] font-bold text-primary">{attended.toLocaleString()}</Text>
-      </View>
+      {metrics.map((metric, index) => (
+        <View
+          className="flex-row items-center gap-1 rounded-full px-2 py-1"
+          key={index}
+          style={{ backgroundColor: `${metric.color}16` }}
+        >
+          {metric.icon}
+          <Text className="text-[11px] font-bold" style={{ color: metric.color }}>
+            {metric.value.toLocaleString()}
+          </Text>
+        </View>
+      ))}
     </View>
   );
 }
