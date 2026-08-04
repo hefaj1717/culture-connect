@@ -1,5 +1,4 @@
-import { LinearGradient } from 'expo-linear-gradient';
-import { ArrowLeft, BadgeCheck, Clock3, LockKeyhole, MapPin, Route } from 'lucide-react-native';
+import { ArrowLeft, BadgeCheck, Clock3, LockKeyhole, MapPin } from 'lucide-react-native';
 import { useEffect, useMemo, useState } from 'react';
 import {
   Modal,
@@ -80,26 +79,6 @@ export default function QuestsScreen({
         showsVerticalScrollIndicator={false}
       >
         <View className="px-5" style={{ paddingTop: stableTopInset + 24 }}>
-          <View className="mb-5 overflow-hidden rounded-3xl bg-ink">
-            <LinearGradient
-              colors={['rgba(124,58,237,0.72)', 'rgba(36,28,46,0.98)']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={{ padding: 20 }}
-            >
-              <View className="mb-4 h-12 w-12 items-center justify-center rounded-2xl bg-white/15">
-                <Route size={25} color="white" strokeWidth={2.4} />
-              </View>
-              <Text className="font-heading text-[26px] font-extrabold leading-[30px] text-white">
-                Build a city story, one stop at a time.
-              </Text>
-              <Text className="mt-2 max-w-[280px] text-[13px] leading-5 text-white/80">
-                Follow curated paths, check in at each location, and unlock XP when the trail is
-                complete.
-              </Text>
-            </LinearGradient>
-          </View>
-
           <Text className="mb-3 text-[11px] font-semibold uppercase tracking-wide text-muted">
             Active paths
           </Text>

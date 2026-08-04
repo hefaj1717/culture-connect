@@ -12,7 +12,6 @@ type RewardPartnerRowProps = {
   redemption?: RedeemedRewardState;
   reward: RewardPartner;
   userXp: number;
-  variantIndex: number;
 };
 
 export function RewardPartnerRow({
@@ -20,7 +19,6 @@ export function RewardPartnerRow({
   redemption,
   reward,
   userXp,
-  variantIndex,
 }: RewardPartnerRowProps) {
   const isUsed = !!redemption?.used;
   const isActive = !!redemption && !isUsed;
@@ -55,7 +53,7 @@ export function RewardPartnerRow({
         <View className="h-[94px] w-[94px] overflow-hidden rounded-[22px] bg-gray-100">
           <BrandImage
             className="h-full w-full"
-            source={getRewardImageSource(reward, variantIndex)}
+            source={getRewardImageSource(reward)}
             withTextGradient={false}
           />
         </View>
@@ -178,7 +176,7 @@ function formatLocation(value: string) {
   return value.replace(/\s+/g, ' ').trim();
 }
 
-function getRewardImageSource(reward: RewardPartner, variantIndex: number) {
+function getRewardImageSource(reward: RewardPartner) {
   if (reward.organizerAvatarUrl) {
     return { uri: reward.organizerAvatarUrl };
   }
@@ -186,17 +184,5 @@ function getRewardImageSource(reward: RewardPartner, variantIndex: number) {
     return { uri: reward.imageUrl };
   }
 
-  if (reward.category === 'cafe') {
-    return require('@/assets/images/culture/venue-cafe.jpg');
-  }
-  if (reward.name.toLowerCase().includes('browar') || reward.name.toLowerCase().includes('brew')) {
-    return require('@/assets/images/culture/venue-theater.jpg');
-  }
-  if (reward.category === 'bookstore' || reward.name.toLowerCase().includes('book')) {
-    return require('@/assets/images/culture/venue-museum.jpg');
-  }
-
-  return variantIndex % 2 === 0
-    ? require('@/assets/images/culture/venue-cafe.jpg')
-    : require('@/assets/images/culture/venue-museum.jpg');
+  return require('@/assets/images/culture/default-coffee.jpg');
 }
