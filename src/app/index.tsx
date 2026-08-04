@@ -616,7 +616,7 @@ export default function HomeScreen({
         <GestureDetector gesture={notificationsGesture}>
           <Animated.View className="flex-1 bg-white" style={notificationsSwipeStyle}>
             <View
-              className="flex-row items-center justify-between bg-white px-5 pb-3"
+              className="flex-row items-center bg-white px-5 pb-3"
               style={{ paddingTop: stableTopInset + 6 }}
             >
               <Pressable
@@ -627,95 +627,72 @@ export default function HomeScreen({
               >
                 <ArrowLeft size={22} color="#756F7B" strokeWidth={2.6} />
               </Pressable>
-
-              <View className="relative h-11 w-11 items-center justify-center rounded-full bg-primary/10">
-                <Bell size={21} color={Colors.light.primary} strokeWidth={2.4} />
-                {visibleNotifications.some((notification) => notification.unread) && (
-                  <View className="absolute -right-1 -top-1 min-w-5 items-center justify-center rounded-full bg-destructive px-1 py-0.5">
-                    <Text className="text-[10px] font-extrabold leading-3 text-white">
-                      {visibleNotifications.filter((notification) => notification.unread).length}
-                    </Text>
-                  </View>
-                )}
-              </View>
             </View>
 
             <ScrollView
               className="flex-1 bg-white"
               contentContainerStyle={{
-                gap: 14,
+                gap: 18,
                 paddingHorizontal: 20,
-                paddingTop: 8,
+                paddingTop: 10,
                 paddingBottom: 40,
               }}
               showsVerticalScrollIndicator={false}
             >
-              <View className="overflow-hidden rounded-[30px] bg-ink" style={CardStyles.compact}>
-                <LinearGradient
-                  colors={['rgba(124,58,237,0.72)', 'rgba(36,28,46,0.98)']}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                  style={{ padding: 22 }}
-                >
-                  <Text className="text-[12px] font-semibold uppercase tracking-[3px] text-white/60">
-                    CultureQuest updates
-                  </Text>
-                  <Text className="mt-2 font-heading text-[34px] font-extrabold leading-[38px] text-white">
-                    Notifications
-                  </Text>
-                  <Text className="mt-2 max-w-[300px] text-[14px] leading-5 text-white/78">
-                    Account, organizer, reward, and event updates collected in one place.
-                  </Text>
-                </LinearGradient>
-              </View>
-
               {visibleNotifications.length === 0 ? (
-                <View
-                  className="rounded-[26px] border border-gray-200 bg-canvas px-5 py-6"
-                  style={CardStyles.soft}
-                >
+                <View className="pt-2">
+                  <Text className="mb-3 text-[13px] font-extrabold uppercase tracking-[2px] text-muted">
+                    Today
+                  </Text>
                   <Text className="font-heading text-[26px] leading-[31px] text-ink">
                     Quiet for now
                   </Text>
-                  <Text className="mt-2 text-[14px] leading-6 text-muted">
+                  <Text className="mt-2 max-w-[310px] text-[14px] leading-6 text-muted">
                     Important account and CultureQuest updates will appear here when there is
                     something new.
                   </Text>
                 </View>
               ) : (
-                visibleNotifications.map((notification) => (
-                  <Pressable
-                    key={notification.id}
-                    className="rounded-[24px] border border-primary/10 bg-primary/5 px-4 py-4 active:opacity-85"
-                    onPress={closeNotificationsWithAnimation}
-                    style={CardStyles.soft}
-                  >
-                    <View className="flex-row items-start gap-3">
-                      <View className="pt-1">
-                        <View
-                          className={`h-3 w-3 rounded-full ${
-                            notification.unread ? 'bg-destructive' : 'bg-primary/35'
-                          }`}
-                        />
-                      </View>
+                <View className="gap-1">
+                  <Text className="mb-2 text-[13px] font-extrabold uppercase tracking-[2px] text-muted">
+                    Today
+                  </Text>
+                  {visibleNotifications.map((notification) => (
+                    <Pressable
+                      key={notification.id}
+                      className="flex-row items-start gap-3 border-b border-gray-100 py-4 active:opacity-75"
+                      onPress={closeNotificationsWithAnimation}
+                    >
+                      <View className="mt-2 h-2.5 w-2.5 rounded-full bg-destructive" />
                       <View className="min-w-0 flex-1">
                         <View className="flex-row items-start justify-between gap-3">
-                          <Text className="min-w-0 flex-1 text-[16px] font-extrabold leading-5 text-ink">
-                            {notification.title}
+                          <Text className="min-w-0 flex-1 text-[15px] leading-6 text-ink">
+                            <Text className="font-extrabold">{notification.title}</Text>
+                            {'  '}
+                            <Text className="text-muted">{notification.message}</Text>
                           </Text>
-                          <View className="rounded-full bg-white px-3 py-1">
-                            <Text className="text-[11px] font-extrabold text-primary">
-                              {notification.time}
-                            </Text>
-                          </View>
+                          <Text className="pt-0.5 text-[12px] font-bold text-primary">
+                            {notification.time}
+                          </Text>
                         </View>
-                        <Text className="mt-2 text-[14px] leading-6 text-muted">
-                          {notification.message}
+                      </View>
+                    </Pressable>
+                  ))}
+
+                  <View className="pt-6">
+                    <Text className="mb-2 text-[13px] font-extrabold uppercase tracking-[2px] text-muted">
+                      Earlier
+                    </Text>
+                    <View className="flex-row items-start gap-3 py-4 opacity-80">
+                      <View className="mt-2 h-2.5 w-2.5 rounded-full bg-primary/25" />
+                      <View className="min-w-0 flex-1">
+                        <Text className="text-[15px] leading-6 text-muted">
+                          Older organizer, event, and reward updates will appear here.
                         </Text>
                       </View>
                     </View>
-                  </Pressable>
-                ))
+                  </View>
+                </View>
               )}
             </ScrollView>
           </Animated.View>
