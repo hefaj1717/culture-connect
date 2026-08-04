@@ -28,6 +28,13 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { EmptyState, ErrorState, LoadingState } from '@/components/async-state';
 import { BrandImage } from '@/components/brand-image';
+import {
+  DatePickerModal,
+  TimePickerModal,
+  formatEventDate,
+  formatTimeUnit,
+  startOfMonth,
+} from '@/components/profile/date-time-pickers';
 import { OrganizerProfileModal } from '@/components/organizer-profile-modal';
 import { CardStyles, Colors } from '@/constants/theme';
 import {
@@ -46,10 +53,9 @@ import type { OrganizerEventStatus } from '@/lib/organizer-events';
 import { organizerProfileFromEvent, type OrganizerProfile } from '@/lib/organizer-profiles';
 import {
   formatRewardAvailability,
+  getIsoDaysInDateRange,
   normalizeRewardDateInput,
   normalizeRewardTimeInput,
-  rewardWeekdays,
-  toggleRewardAvailabilityDay,
   validateRewardAvailability,
 } from '@/lib/reward-availability';
 
@@ -999,6 +1005,15 @@ function AdminRewardEditor({
   const [status, setStatus] = useState<RewardPartnerStatus>(reward.reviewStatus);
   const [title, setTitle] = useState(reward.title);
   const [xpCost, setXpCost] = useState(String(reward.xpCost));
+  const [datePickerOpen, setDatePickerOpen] = useState(false);
+  const [datePickerTarget, setDatePickerTarget] = useState<'from' | 'until'>('from');
+  const [calendarMonth, setCalendarMonth] = useState(
+    startOfMonth(parseAdminRewardDate(reward.availableFrom ?? '') ?? new Date()),
+  );
+  const [timePickerOpen, setTimePickerOpen] = useState(false);
+  const [timePickerTarget, setTimePickerTarget] = useState<'end' | 'start'>('start');
+  const [selectedHour, setSelectedHour] = useState(9);
+  const [selectedMinute, setSelectedMinute] = useState(0);
 
   useEffect(() => {
     setCategory(reward.category);
@@ -1014,6 +1029,42 @@ function AdminRewardEditor({
     setTitle(reward.title);
     setXpCost(String(reward.xpCost));
   }, [reward]);
+
+  function updateAvailableFrom(value: string) {
+    const normalized = normalizeRewardDateInput(value);
+    const nextUntil = availableUntil && availableUntil >= normalized ? availableUntil : normalized;
+
+    setAvailableFrom(normalized);
+    setAvailableUntil(nextUntil);
+    setAvailableDays(getIsoDaysInDateRange(normalized, nextUntil));
+  }
+
+  function updateAvailableUntil(value: string) {
+    const normalized = normalizeRewardDateInput(value);
+
+    setAvailableUntil(normalized);
+    setAvailableDays(getIsoDaysInDateRange(availableFrom, normalized));
+  }
+
+  function openDatePicker(target: 'from' | 'until') {
+    const selectedDate =
+      parseAdminRewardDate(target === 'from' ? availableFrom : availableUntil) ?? new Date();
+
+    setCalendarMonth(startOfMonth(selectedDate));
+    setDatePickerTarget(target);
+    setDatePickerOpen(true);
+  }
+
+  function openTimePicker(target: 'end' | 'start') {
+    const [hour, minute] = parseAdminRewardTime(
+      target === 'start' ? availableStartTime : availableEndTime,
+    );
+
+    setSelectedHour(hour);
+    setSelectedMinute(minute);
+    setTimePickerTarget(target);
+    setTimePickerOpen(true);
+  }
 
   async function save() {
     const parsedXp = Number.parseInt(xpCost, 10);
@@ -1166,53 +1217,61 @@ function AdminRewardEditor({
           <Text className="mb-3 text-[12px] leading-4 text-muted">
             Controls when students can redeem this reward.
           </Text>
-          <View className="mb-3 flex-row flex-wrap gap-2">
-            {rewardWeekdays.map((day) => {
-              const active = availableDays.includes(day.key);
-
-              return (
-                <ChoiceChip
-                  active={active}
-                  key={day.key}
-                  label={day.label}
-                  onPress={() =>
-                    setAvailableDays((currentDays) =>
-                      toggleRewardAvailabilityDay(currentDays, day.key),
-                    )
-                  }
-                />
-              );
-            })}
+          <View className="mb-3 flex-row gap-3">
+            <View className="flex-1">
+              <Text className="mb-1.5 text-[12px] font-semibold text-muted">From date</Text>
+              <Pressable
+                accessibilityLabel="Choose reward start date"
+                accessibilityRole="button"
+                className="h-12 flex-row items-center justify-between rounded-2xl border border-gray-200 bg-white px-4 active:border-primary"
+                onPress={() => openDatePicker('from')}
+              >
+                <Text className="text-[14px] font-semibold text-ink">
+                  {formatAdminRewardDateLabel(availableFrom)}
+                </Text>
+                <CalendarDays size={17} color={Colors.light.primary} strokeWidth={2.4} />
+              </Pressable>
+            </View>
+            <View className="flex-1">
+              <Text className="mb-1.5 text-[12px] font-semibold text-muted">Until date</Text>
+              <Pressable
+                accessibilityLabel="Choose reward end date"
+                accessibilityRole="button"
+                className="h-12 flex-row items-center justify-between rounded-2xl border border-gray-200 bg-white px-4 active:border-primary"
+                onPress={() => openDatePicker('until')}
+              >
+                <Text className="text-[14px] font-semibold text-ink">
+                  {formatAdminRewardDateLabel(availableUntil)}
+                </Text>
+                <CalendarDays size={17} color={Colors.light.primary} strokeWidth={2.4} />
+              </Pressable>
+            </View>
           </View>
-          <View className="flex-row gap-3">
-            <AdminTextField
-              containerClassName="flex-1"
-              label="From date"
-              onChangeText={(value) => setAvailableFrom(normalizeRewardDateInput(value))}
-              value={availableFrom}
-            />
-            <AdminTextField
-              containerClassName="flex-1"
-              label="Until date"
-              onChangeText={(value) => setAvailableUntil(normalizeRewardDateInput(value))}
-              value={availableUntil}
-            />
-          </View>
-          <View className="flex-row gap-3">
-            <AdminTextField
-              containerClassName="flex-1"
-              keyboardType="number-pad"
-              label="Start"
-              onChangeText={(value) => setAvailableStartTime(normalizeRewardTimeInput(value))}
-              value={availableStartTime}
-            />
-            <AdminTextField
-              containerClassName="flex-1"
-              keyboardType="number-pad"
-              label="End"
-              onChangeText={(value) => setAvailableEndTime(normalizeRewardTimeInput(value))}
-              value={availableEndTime}
-            />
+          <View className="mb-3 flex-row gap-3">
+            <View className="flex-1">
+              <Text className="mb-1.5 text-[12px] font-semibold text-muted">Starts</Text>
+              <Pressable
+                accessibilityLabel="Choose reward start time"
+                accessibilityRole="button"
+                className="h-12 flex-row items-center justify-between rounded-2xl border border-gray-200 bg-white px-4 active:border-primary"
+                onPress={() => openTimePicker('start')}
+              >
+                <Text className="text-[14px] font-semibold text-ink">{availableStartTime}</Text>
+                <Clock size={17} color={Colors.light.primary} strokeWidth={2.4} />
+              </Pressable>
+            </View>
+            <View className="flex-1">
+              <Text className="mb-1.5 text-[12px] font-semibold text-muted">Ends</Text>
+              <Pressable
+                accessibilityLabel="Choose reward end time"
+                accessibilityRole="button"
+                className="h-12 flex-row items-center justify-between rounded-2xl border border-gray-200 bg-white px-4 active:border-primary"
+                onPress={() => openTimePicker('end')}
+              >
+                <Text className="text-[14px] font-semibold text-ink">{availableEndTime}</Text>
+                <Clock size={17} color={Colors.light.primary} strokeWidth={2.4} />
+              </Pressable>
+            </View>
           </View>
           <Text className="text-[12px] font-semibold leading-4 text-primary">
             {formatRewardAvailability({
@@ -1268,6 +1327,40 @@ function AdminRewardEditor({
           <Text className="text-[15px] font-extrabold text-white">Archive reward</Text>
         </Pressable>
       </ScrollView>
+      <DatePickerModal
+        month={calendarMonth}
+        onChangeMonth={setCalendarMonth}
+        onClose={() => setDatePickerOpen(false)}
+        onSelectDate={(date) => {
+          const formattedDate = formatAdminRewardDateInput(date);
+
+          if (datePickerTarget === 'from') {
+            updateAvailableFrom(formattedDate);
+          } else {
+            updateAvailableUntil(formattedDate);
+          }
+          setDatePickerOpen(false);
+        }}
+        visible={datePickerOpen}
+      />
+      <TimePickerModal
+        hour={selectedHour}
+        minute={selectedMinute}
+        onChangeHour={setSelectedHour}
+        onChangeMinute={setSelectedMinute}
+        onClose={() => setTimePickerOpen(false)}
+        onConfirm={() => {
+          const formattedTime = `${formatTimeUnit(selectedHour)}:${formatTimeUnit(selectedMinute)}`;
+
+          if (timePickerTarget === 'start') {
+            setAvailableStartTime(normalizeRewardTimeInput(formattedTime));
+          } else {
+            setAvailableEndTime(normalizeRewardTimeInput(formattedTime));
+          }
+          setTimePickerOpen(false);
+        }}
+        visible={timePickerOpen}
+      />
     </View>
   );
 }
@@ -1301,6 +1394,33 @@ function AdminTextField({
       />
     </View>
   );
+}
+
+function parseAdminRewardDate(value: string) {
+  const date = new Date(`${value}T12:00:00`);
+
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function formatAdminRewardDateInput(date: Date) {
+  return date.toISOString().slice(0, 10);
+}
+
+function formatAdminRewardDateLabel(value: string) {
+  const date = parseAdminRewardDate(value);
+
+  return date ? formatEventDate(date) : 'Choose date';
+}
+
+function parseAdminRewardTime(value: string) {
+  const [hourValue, minuteValue] = value.split(':');
+  const hour = Number.parseInt(hourValue ?? '', 10);
+  const minute = Number.parseInt(minuteValue ?? '', 10);
+
+  return [
+    Number.isFinite(hour) ? Math.max(0, Math.min(23, hour)) : 9,
+    Number.isFinite(minute) ? Math.max(0, Math.min(59, minute)) : 0,
+  ] as const;
 }
 
 function ChoiceSection({ children, label }: { children: ReactNode; label: string }) {

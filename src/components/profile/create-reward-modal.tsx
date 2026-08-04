@@ -1,6 +1,6 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { ArrowLeft, MapPin, Search } from 'lucide-react-native';
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Keyboard,
@@ -18,11 +18,18 @@ import Animated from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BrandImage } from '@/components/brand-image';
+import {
+  DatePickerModal,
+  TimePickerModal,
+  formatEventDate,
+  formatTimeUnit,
+  startOfMonth,
+} from '@/components/profile/date-time-pickers';
 import { textLimits } from '@/constants/text-limits';
 import { type CityId, getCultureCityData } from '@/data/culture';
 import { useCardSwipeBack } from '@/hooks/use-card-swipe-back';
 import { hasGooglePlacesApiKey, type PlaceSuggestion } from '@/lib/place-search';
-import { rewardWeekdays, type RewardAvailabilityInput } from '@/lib/reward-availability';
+import { type RewardAvailabilityInput } from '@/lib/reward-availability';
 
 type CreateRewardModalProps = {
   createRewardError: string | null;
@@ -38,7 +45,6 @@ type CreateRewardModalProps = {
   onClose: () => void;
   onSelectRewardPlace: (place: PlaceSuggestion) => void;
   onSubmit: () => void;
-  onToggleRewardAvailableDay: (day: number) => void;
   rewardAvailability: RewardAvailabilityInput;
   rewardDescription: string;
   rewardPlaceQuery: string;
@@ -70,7 +76,6 @@ export function CreateRewardModal({
   onClose,
   onSelectRewardPlace,
   onSubmit,
-  onToggleRewardAvailableDay,
   organizerAvatarUrl,
   organizerInitials,
   organizerName,
@@ -89,6 +94,13 @@ export function CreateRewardModal({
 }: CreateRewardModalProps) {
   const cityData = getCultureCityData(savedCityId);
   const scrollViewRef = useRef<ScrollView>(null);
+  const [datePickerOpen, setDatePickerOpen] = useState(false);
+  const [datePickerTarget, setDatePickerTarget] = useState<'from' | 'until'>('from');
+  const [calendarMonth, setCalendarMonth] = useState(startOfMonth(new Date()));
+  const [timePickerOpen, setTimePickerOpen] = useState(false);
+  const [timePickerTarget, setTimePickerTarget] = useState<'end' | 'start'>('start');
+  const [selectedHour, setSelectedHour] = useState(9);
+  const [selectedMinute, setSelectedMinute] = useState(0);
   const {
     closeWithAnimation,
     gesture: swipeGesture,
@@ -105,6 +117,29 @@ export function CreateRewardModal({
     setTimeout(() => {
       scrollViewRef.current?.scrollTo({ animated: true, y });
     }, 90);
+  }
+
+  function openDatePicker(target: 'from' | 'until') {
+    Keyboard.dismiss();
+    const selectedDate =
+      parseRewardDate(target === 'from' ? rewardAvailability.availableFrom : rewardAvailability.availableUntil) ??
+      new Date();
+    setCalendarMonth(startOfMonth(selectedDate));
+    setDatePickerTarget(target);
+    setDatePickerOpen(true);
+  }
+
+  function openTimePicker(target: 'end' | 'start') {
+    Keyboard.dismiss();
+    const selectedTime =
+      target === 'start'
+        ? rewardAvailability.availableStartTime
+        : rewardAvailability.availableEndTime;
+    const [hour, minute] = parseRewardTime(selectedTime);
+    setSelectedHour(hour);
+    setSelectedMinute(minute);
+    setTimePickerTarget(target);
+    setTimePickerOpen(true);
   }
 
   return (
@@ -285,88 +320,64 @@ export function CreateRewardModal({
                   className="mb-4 rounded-xl border border-gray-300 px-4 py-3 text-[15px] text-ink"
                 />
 
-                <View className="mb-4 rounded-[22px] border border-primary/10 bg-canvas p-4">
-                  <Text className="mb-1 text-[13px] font-extrabold text-ink">
-                    Redeem availability
-                  </Text>
-                  <Text className="mb-3 text-[11px] leading-4 text-muted">
-                    Students can only redeem during these days and hours.
-                  </Text>
-
-                  <View className="mb-3 flex-row flex-wrap gap-2">
-                    {rewardWeekdays.map((day) => {
-                      const active = rewardAvailability.availableDays.includes(day.key);
-
-                      return (
-                        <Pressable
-                          key={day.key}
-                          onPress={() => onToggleRewardAvailableDay(day.key)}
-                          className={`h-9 min-w-[48px] items-center justify-center rounded-full px-3 ${
-                            active ? 'bg-primary' : 'border border-gray-200 bg-white'
-                          }`}
-                        >
-                          <Text
-                            className={`text-[12px] font-extrabold ${
-                              active ? 'text-white' : 'text-muted'
-                            }`}
-                          >
-                            {day.label}
-                          </Text>
-                        </Pressable>
-                      );
-                    })}
-                  </View>
-
-                  <View className="mb-3 flex-row gap-3">
-                    <View className="min-w-0 flex-1">
-                      <Text className="mb-1 text-[11px] font-semibold text-muted">From</Text>
-                      <TextInput
-                        value={rewardAvailability.availableFrom}
-                        onChangeText={onChangeRewardAvailableFrom}
-                        onFocus={() => focusFormArea(500)}
-                        placeholder="YYYY-MM-DD"
-                        placeholderTextColor="#8B909A"
-                        className="rounded-xl border border-gray-300 bg-white px-3 py-3 text-[14px] text-ink"
-                      />
-                    </View>
-                    <View className="min-w-0 flex-1">
-                      <Text className="mb-1 text-[11px] font-semibold text-muted">Until</Text>
-                      <TextInput
-                        value={rewardAvailability.availableUntil}
-                        onChangeText={onChangeRewardAvailableUntil}
-                        onFocus={() => focusFormArea(500)}
-                        placeholder="Optional"
-                        placeholderTextColor="#8B909A"
-                        className="rounded-xl border border-gray-300 bg-white px-3 py-3 text-[14px] text-ink"
-                      />
-                    </View>
-                  </View>
-
+                <Text className="mb-2 text-[13px] font-semibold text-ink">
+                  Redeem availability
+                </Text>
+                <View className="mb-4 gap-3">
                   <View className="flex-row gap-3">
-                    <View className="min-w-0 flex-1">
-                      <Text className="mb-1 text-[11px] font-semibold text-muted">Start</Text>
-                      <TextInput
-                        value={rewardAvailability.availableStartTime}
-                        onChangeText={onChangeRewardAvailableStartTime}
-                        onFocus={() => focusFormArea(560)}
-                        placeholder="09:00"
-                        placeholderTextColor="#8B909A"
-                        keyboardType="number-pad"
-                        className="rounded-xl border border-gray-300 bg-white px-3 py-3 text-[14px] text-ink"
-                      />
+                    <View className="flex-1">
+                      <Text className="mb-2 text-[13px] font-semibold text-ink">From date</Text>
+                      <Pressable
+                        onPress={() => openDatePicker('from')}
+                        className="h-12 justify-center rounded-xl border border-gray-300 px-4 active:opacity-80"
+                      >
+                        <Text className="text-[15px] text-ink">
+                          {formatRewardDateLabel(rewardAvailability.availableFrom)}
+                        </Text>
+                      </Pressable>
                     </View>
-                    <View className="min-w-0 flex-1">
-                      <Text className="mb-1 text-[11px] font-semibold text-muted">End</Text>
-                      <TextInput
-                        value={rewardAvailability.availableEndTime}
-                        onChangeText={onChangeRewardAvailableEndTime}
-                        onFocus={() => focusFormArea(560)}
-                        placeholder="18:00"
-                        placeholderTextColor="#8B909A"
-                        keyboardType="number-pad"
-                        className="rounded-xl border border-gray-300 bg-white px-3 py-3 text-[14px] text-ink"
-                      />
+                    <View className="flex-1">
+                      <Text className="mb-2 text-[13px] font-semibold text-ink">Until date</Text>
+                      <Pressable
+                        onPress={() => openDatePicker('until')}
+                        className="h-12 justify-center rounded-xl border border-gray-300 px-4 active:opacity-80"
+                      >
+                        <Text className="text-[15px] text-ink">
+                          {formatRewardDateLabel(rewardAvailability.availableUntil)}
+                        </Text>
+                      </Pressable>
                     </View>
+                  </View>
+                  <View className="flex-row gap-3">
+                    <View className="flex-1">
+                      <Text className="mb-2 text-[13px] font-semibold text-ink">Starts</Text>
+                      <Pressable
+                        onPress={() => openTimePicker('start')}
+                        className="h-12 justify-center rounded-xl border border-gray-300 px-4 active:opacity-80"
+                      >
+                        <Text className="text-[15px] text-ink">
+                          {rewardAvailability.availableStartTime}
+                        </Text>
+                      </Pressable>
+                    </View>
+                    <View className="flex-1">
+                      <Text className="mb-2 text-[13px] font-semibold text-ink">Ends</Text>
+                      <Pressable
+                        onPress={() => openTimePicker('end')}
+                        className="h-12 justify-center rounded-xl border border-gray-300 px-4 active:opacity-80"
+                      >
+                        <Text className="text-[15px] text-ink">
+                          {rewardAvailability.availableEndTime}
+                        </Text>
+                      </Pressable>
+                    </View>
+                  </View>
+                  <View className="rounded-2xl bg-canvas px-3 py-2.5">
+                    <Text className="text-[12px] font-semibold leading-4 text-muted">
+                      Reward can be redeemed from {formatRewardDateLabel(rewardAvailability.availableFrom)} to{' '}
+                      {formatRewardDateLabel(rewardAvailability.availableUntil)}, from{' '}
+                      {rewardAvailability.availableStartTime} to {rewardAvailability.availableEndTime}.
+                    </Text>
                   </View>
                 </View>
 
@@ -409,8 +420,66 @@ export function CreateRewardModal({
               </ScrollView>
             </KeyboardAvoidingView>
           </SafeAreaView>
+
+          <DatePickerModal
+            month={calendarMonth}
+            onChangeMonth={setCalendarMonth}
+            onClose={() => setDatePickerOpen(false)}
+            onSelectDate={(date) => {
+              const nextDate = formatRewardDateInput(date);
+              if (datePickerTarget === 'from') {
+                onChangeRewardAvailableFrom(nextDate);
+              } else {
+                onChangeRewardAvailableUntil(nextDate);
+              }
+              setDatePickerOpen(false);
+            }}
+            visible={datePickerOpen}
+          />
+
+          <TimePickerModal
+            hour={selectedHour}
+            minute={selectedMinute}
+            onChangeHour={setSelectedHour}
+            onChangeMinute={setSelectedMinute}
+            onClose={() => setTimePickerOpen(false)}
+            onConfirm={() => {
+              const nextTime = `${formatTimeUnit(selectedHour)}:${formatTimeUnit(selectedMinute)}`;
+              if (timePickerTarget === 'start') {
+                onChangeRewardAvailableStartTime(nextTime);
+              } else {
+                onChangeRewardAvailableEndTime(nextTime);
+              }
+              setTimePickerOpen(false);
+            }}
+            visible={timePickerOpen}
+          />
         </Animated.View>
       </GestureDetector>
     </Modal>
   );
+}
+
+function parseRewardDate(value: string) {
+  const date = new Date(`${value}T12:00:00`);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function formatRewardDateInput(date: Date) {
+  return date.toISOString().slice(0, 10);
+}
+
+function formatRewardDateLabel(value: string) {
+  const date = parseRewardDate(value);
+  return date ? formatEventDate(date) : 'Choose date';
+}
+
+function parseRewardTime(value: string) {
+  const [hourValue, minuteValue] = value.split(':');
+  const hour = Number.parseInt(hourValue ?? '', 10);
+  const minute = Number.parseInt(minuteValue ?? '', 10);
+  return [
+    Number.isFinite(hour) ? Math.max(0, Math.min(23, hour)) : 9,
+    Number.isFinite(minute) ? Math.max(0, Math.min(59, minute)) : 0,
+  ] as const;
 }

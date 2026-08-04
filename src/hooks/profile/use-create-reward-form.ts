@@ -7,10 +7,10 @@ import { OFFLINE_ERROR_MESSAGE } from '@/lib/network-errors';
 import { createOrganizerReward } from '@/lib/organizer-rewards';
 import { type PlaceSuggestion, searchPlaces } from '@/lib/place-search';
 import {
+  getIsoDaysInDateRange,
   getDefaultRewardAvailability,
   normalizeRewardDateInput,
   normalizeRewardTimeInput,
-  toggleRewardAvailabilityDay,
   validateRewardAvailability,
 } from '@/lib/reward-availability';
 import { useNetworkStatus } from '@/providers/network-provider';
@@ -118,13 +118,22 @@ export function useCreateRewardForm({
   function setRewardAvailableFrom(value: string) {
     setRewardAvailability((current) => ({
       ...current,
+      availableDays: getIsoDaysInDateRange(
+        normalizeRewardDateInput(value),
+        current.availableUntil || normalizeRewardDateInput(value),
+      ),
       availableFrom: normalizeRewardDateInput(value),
+      availableUntil:
+        current.availableUntil && current.availableUntil >= normalizeRewardDateInput(value)
+          ? current.availableUntil
+          : normalizeRewardDateInput(value),
     }));
   }
 
   function setRewardAvailableUntil(value: string) {
     setRewardAvailability((current) => ({
       ...current,
+      availableDays: getIsoDaysInDateRange(current.availableFrom, normalizeRewardDateInput(value)),
       availableUntil: normalizeRewardDateInput(value),
     }));
   }
@@ -140,13 +149,6 @@ export function useCreateRewardForm({
     setRewardAvailability((current) => ({
       ...current,
       availableEndTime: normalizeRewardTimeInput(value),
-    }));
-  }
-
-  function toggleRewardAvailableDay(day: number) {
-    setRewardAvailability((current) => ({
-      ...current,
-      availableDays: toggleRewardAvailabilityDay(current.availableDays, day),
     }));
   }
 
@@ -234,6 +236,5 @@ export function useCreateRewardForm({
     setRewardAvailableFrom,
     setRewardAvailableStartTime,
     setRewardAvailableUntil,
-    toggleRewardAvailableDay,
   };
 }

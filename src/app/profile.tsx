@@ -284,7 +284,6 @@ export default function ProfileScreen({
     setRewardAvailableStartTime,
     setRewardAvailableUntil,
     submitReward,
-    toggleRewardAvailableDay,
   } = createRewardForm;
   const {
     addQuestStop,
@@ -769,7 +768,6 @@ export default function ProfileScreen({
         onClose={() => setCreateRewardOpen(false)}
         onSelectRewardPlace={selectRewardPlace}
         onSubmit={submitReward}
-        onToggleRewardAvailableDay={toggleRewardAvailableDay}
         organizerAvatarUrl={savedAvatarUrl}
         organizerInitials={avatarInitials || 'CQ'}
         organizerName={fullName || 'CultureQuest organiser'}
