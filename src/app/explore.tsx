@@ -12,7 +12,7 @@ import {
   Users,
   X,
 } from 'lucide-react-native';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Modal,
   Keyboard,
@@ -121,6 +121,7 @@ export default function ExploreScreen({
   const [selectedOrganizerProfile, setSelectedOrganizerProfile] = useState<OrganizerProfile | null>(
     null,
   );
+  const handledOpenEventNonceRef = useRef<number | null>(null);
   const hasApprovedEventsProp = approvedEventsProp !== undefined;
   const allEvents = approvedEventsProp ?? organizerEvents;
   const eventsError = hasApprovedEventsProp ? approvedEventsError : organizerEventsError;
@@ -281,11 +282,19 @@ export default function ExploreScreen({
   const featuredEvent = allEvents.find((event) => event.isFlashQuest);
 
   useEffect(() => {
+    setSelectedEvent(null);
+    setSelectedOrganizerProfile(null);
+    handledOpenEventNonceRef.current = null;
+  }, [cityData.id]);
+
+  useEffect(() => {
     if (!openEventId) return;
+    if (openEventNonce && handledOpenEventNonceRef.current === openEventNonce) return;
 
     const eventToOpen = allEvents.find((event) => event.id === openEventId);
     if (!eventToOpen) return;
 
+    handledOpenEventNonceRef.current = openEventNonce ?? null;
     setTab('events');
     setSelectedEvent(eventToOpen);
   }, [allEvents, openEventId, openEventNonce]);

@@ -115,6 +115,10 @@ function AuthenticatedTabs() {
   );
 
   useEffect(() => {
+    setEventOpenRequest(null);
+  }, [cityData.id]);
+
+  useEffect(() => {
     let active = true;
 
     async function loadApprovedEvents() {
