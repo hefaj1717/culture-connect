@@ -4,7 +4,7 @@ import * as Location from 'expo-location';
 import { ArrowLeft, ArrowRight, Bell, CheckCircle2, Globe, User, Users } from 'lucide-react-native';
 import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
-import MapView, { Circle as MapCircle, Marker } from 'react-native-maps';
+import MapView, { Marker } from 'react-native-maps';
 import { GestureDetector } from 'react-native-gesture-handler';
 import Animated from 'react-native-reanimated';
 
@@ -117,32 +117,21 @@ export default function HomeScreen({
 
     if (mapSpots.length === 0) return [];
 
-    const maxActivity = Math.max(
-      ...mapSpots.map(
-        (spot) =>
-          spot.interestedCount * 8 +
-          spot.goingCount * 16 +
-          spot.attendedCount * 24 +
-          spot.eventCount * 35,
-      ),
-      1,
+    const activityScores = mapSpots.map(
+      (spot) => spot.interestedCount + spot.goingCount + spot.attendedCount,
     );
+    const maxActivity = Math.max(...activityScores, 0);
 
     return mapSpots
       .map((spot) => {
-        const activityScore =
-          spot.interestedCount * 8 +
-          spot.goingCount * 16 +
-          spot.attendedCount * 24 +
-          spot.eventCount * 35;
-        const intensity = activityScore / maxActivity;
+        const activityScore = spot.interestedCount + spot.goingCount + spot.attendedCount;
+        const intensity = maxActivity > 0 ? activityScore / maxActivity : 0;
 
         return {
           ...spot,
           activityScore,
           intensity,
           color: getActivityColor(intensity),
-          radius: 170 + intensity * 300,
         };
       })
       .sort((a, b) => b.activityScore - a.activityScore);
@@ -429,17 +418,6 @@ export default function HomeScreen({
                 toolbarEnabled={false}
               >
                 {activitySpots.map((spot) => (
-                  <MapCircle
-                    center={spot.coordinates}
-                    fillColor={`${spot.color}45`}
-                    key={`${spot.id}-heat`}
-                    radius={spot.radius}
-                    strokeColor={`${spot.color}88`}
-                    strokeWidth={1}
-                  />
-                ))}
-
-                {activitySpots.map((spot) => (
                   <Marker
                     coordinate={spot.coordinates}
                     anchor={{ x: 0.5, y: 0.5 }}
@@ -448,19 +426,17 @@ export default function HomeScreen({
                     tracksViewChanges={false}
                   >
                     <View
-                      className="h-7 w-7 items-center justify-center rounded-full border-2 border-white"
+                      className="items-center justify-center rounded-full border-[3px] border-white"
                       style={{
-                        backgroundColor:
-                          selectedActivitySpot?.id === spot.id ? spot.color : `${spot.color}22`,
+                        backgroundColor: spot.color,
+                        height: selectedActivitySpot?.id === spot.id ? 28 : 23,
+                        shadowColor: '#7F1D1D',
+                        shadowOffset: { height: 2, width: 0 },
+                        shadowOpacity: selectedActivitySpot?.id === spot.id ? 0.28 : 0.18,
+                        shadowRadius: selectedActivitySpot?.id === spot.id ? 8 : 5,
+                        width: selectedActivitySpot?.id === spot.id ? 28 : 23,
                       }}
-                    >
-                      <View
-                        className={`rounded-full border-2 border-white ${
-                          selectedActivitySpot?.id === spot.id ? 'h-4 w-4' : 'h-3.5 w-3.5'
-                        }`}
-                        style={{ backgroundColor: spot.color }}
-                      />
-                    </View>
+                    />
                   </Marker>
                 ))}
               </MapView>
@@ -790,9 +766,21 @@ function getEventDate(event: CultureEvent) {
 }
 
 function getActivityColor(intensity: number) {
-  if (intensity >= 0.78) return '#EF4444';
-  if (intensity >= 0.52) return '#F97316';
-  return '#F59E0B';
+  const redScale = [
+    '#FEE2E2',
+    '#FECACA',
+    '#FCA5A5',
+    '#F87171',
+    '#EF4444',
+    '#DC2626',
+    '#B91C1C',
+    '#991B1B',
+    '#7F1D1D',
+    '#5F1111',
+  ];
+  const shadeIndex = Math.max(0, Math.min(redScale.length - 1, Math.ceil(intensity * 10) - 1));
+
+  return redScale[shadeIndex];
 }
 
 function MiniEngagementStat({ icon, value }: { icon: ReactNode; value: number }) {
