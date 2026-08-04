@@ -94,6 +94,7 @@ function AuthenticatedTabs() {
   const [eventOpenRequest, setEventOpenRequest] = useState<{
     eventId: string;
     nonce: number;
+    returnTabIndex: number;
   } | null>(null);
   const translateX = useSharedValue(-activeIndex * width);
   const startX = useSharedValue(0);
@@ -210,8 +211,16 @@ function AuthenticatedTabs() {
   }
 
   function openDiscoverEvent(eventId: string) {
-    setEventOpenRequest({ eventId, nonce: Date.now() });
+    setEventOpenRequest({ eventId, nonce: Date.now(), returnTabIndex: activeIndex });
     goToTab(1);
+  }
+
+  function closeExternalDiscoverEvent() {
+    const returnTabIndex = eventOpenRequest?.returnTabIndex;
+    setEventOpenRequest(null);
+    if (returnTabIndex !== undefined && returnTabIndex !== 1) {
+      goToTab(returnTabIndex);
+    }
   }
 
   async function awardEventCheckInXp(
@@ -393,6 +402,7 @@ function AuthenticatedTabs() {
               eventsRefreshKey={organizerEventsVersion}
               eventStatuses={eventStatuses}
               onEventCheckIn={awardEventCheckInXp}
+              onExternalEventClose={closeExternalDiscoverEvent}
               onEventStatusChange={updateEventStatus}
               openEventId={eventOpenRequest?.eventId}
               openEventNonce={eventOpenRequest?.nonce}

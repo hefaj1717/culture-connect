@@ -87,6 +87,7 @@ type ExploreScreenProps = {
     location: { latitude: number; longitude: number },
   ) => Promise<EventCheckInResult>;
   onEventStatusChange?: (eventId: string, status: UserEventStatus | null) => void;
+  onExternalEventClose?: () => void;
   openEventId?: string;
   openEventNonce?: number;
 };
@@ -101,6 +102,7 @@ export default function ExploreScreen({
   eventStatuses = {},
   onEventCheckIn,
   onEventStatusChange,
+  onExternalEventClose,
   openEventId,
   openEventNonce,
 }: ExploreScreenProps) {
@@ -122,6 +124,7 @@ export default function ExploreScreen({
     null,
   );
   const handledOpenEventNonceRef = useRef<number | null>(null);
+  const externalSelectedEventIdRef = useRef<string | null>(null);
   const hasApprovedEventsProp = approvedEventsProp !== undefined;
   const allEvents = approvedEventsProp ?? organizerEvents;
   const eventsError = hasApprovedEventsProp ? approvedEventsError : organizerEventsError;
@@ -285,6 +288,7 @@ export default function ExploreScreen({
     setSelectedEvent(null);
     setSelectedOrganizerProfile(null);
     handledOpenEventNonceRef.current = null;
+    externalSelectedEventIdRef.current = null;
   }, [cityData.id]);
 
   useEffect(() => {
@@ -295,9 +299,22 @@ export default function ExploreScreen({
     if (!eventToOpen) return;
 
     handledOpenEventNonceRef.current = openEventNonce ?? null;
+    externalSelectedEventIdRef.current = eventToOpen.id;
     setTab('events');
     setSelectedEvent(eventToOpen);
   }, [allEvents, openEventId, openEventNonce]);
+
+  function closeSelectedEvent() {
+    const shouldReturnToSource =
+      !!selectedEvent && externalSelectedEventIdRef.current === selectedEvent.id;
+
+    externalSelectedEventIdRef.current = null;
+    setSelectedEvent(null);
+
+    if (shouldReturnToSource) {
+      onExternalEventClose?.();
+    }
+  }
 
   const selectedEventStatus = selectedEvent ? eventStatuses[selectedEvent.id] : undefined;
   const selectedDetailStatus =
@@ -652,8 +669,9 @@ export default function ExploreScreen({
 
           return checkInResult;
         }}
-        onClose={() => setSelectedEvent(null)}
+        onClose={closeSelectedEvent}
         onOpenOrganizer={(profile) => {
+          externalSelectedEventIdRef.current = null;
           setSelectedEvent(null);
           setSelectedOrganizerProfile(profile);
         }}
