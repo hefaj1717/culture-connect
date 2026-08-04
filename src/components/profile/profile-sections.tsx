@@ -15,25 +15,11 @@ import {
   Users,
   UserRound,
 } from 'lucide-react-native';
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import {
-  Alert,
-  Modal,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  useWindowDimensions,
-  View,
-} from 'react-native';
+import { useMemo, useRef, useState, type ReactNode } from 'react';
+import { Alert, Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import * as Sharing from 'expo-sharing';
-import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import Animated, {
-  runOnJS,
-  useAnimatedStyle,
-  useSharedValue,
-  withTiming,
-} from 'react-native-reanimated';
+import { GestureDetector } from 'react-native-gesture-handler';
+import Animated from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import QRCode from 'react-native-qrcode-svg';
@@ -54,6 +40,7 @@ import type { ManagedOrganizerEvent, OrganizerEventStatus } from '@/lib/organize
 import type { ManagedOrganizerReward, OrganizerRewardStatus } from '@/lib/organizer-rewards';
 import type { UserUniversityMembership } from '@/lib/university-leaderboard';
 import type { XpTransaction } from '@/lib/xp-transactions';
+import { useCardSwipeBack } from '@/hooks/use-card-swipe-back';
 import { useResponsiveLayout } from '@/hooks/use-responsive-layout';
 
 type OrganizerStatus = 'none' | 'pending' | 'approved' | 'rejected';
@@ -579,7 +566,7 @@ export function AdminXpAuditModal({
   transactions: XpTransaction[];
   visible: boolean;
 }) {
-  const { closeWithAnimation, gesture, swipeStyle } = useHistorySwipeBack({
+  const { closeWithAnimation, gesture, swipeStyle } = useCardSwipeBack({
     onSwipeBack: onClose,
     visible,
   });
@@ -842,67 +829,6 @@ export function OrganizerRewardHistorySection({
   );
 }
 
-function useHistorySwipeBack({
-  enabled = true,
-  onSwipeBack,
-  visible,
-}: {
-  enabled?: boolean;
-  onSwipeBack: () => void;
-  visible: boolean;
-}) {
-  const { width } = useWindowDimensions();
-  const translateX = useSharedValue(0);
-
-  useEffect(() => {
-    if (visible) {
-      translateX.value = 0;
-    }
-  }, [translateX, visible]);
-
-  const gesture = useMemo(
-    () =>
-      Gesture.Pan()
-        .enabled(enabled)
-        .activeOffsetX([-999, 18])
-        .failOffsetY([-35, 35])
-        .onUpdate((event) => {
-          translateX.value = Math.max(0, event.translationX);
-        })
-        .onEnd((event) => {
-          const shouldClose = translateX.value > width * 0.28 || event.velocityX > 700;
-
-          if (shouldClose) {
-            translateX.value = withTiming(width, { duration: 180 }, (finished) => {
-              if (finished) {
-                translateX.value = 0;
-                runOnJS(onSwipeBack)();
-              }
-            });
-            return;
-          }
-
-          translateX.value = withTiming(0, { duration: 180 });
-        }),
-    [enabled, onSwipeBack, translateX, width],
-  );
-
-  const swipeStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: translateX.value }],
-  }));
-
-  const closeWithAnimation = useCallback(() => {
-    translateX.value = withTiming(width, { duration: 180 }, (finished) => {
-      if (finished) {
-        translateX.value = 0;
-        runOnJS(onSwipeBack)();
-      }
-    });
-  }, [onSwipeBack, translateX, width]);
-
-  return { closeWithAnimation, gesture, swipeStyle };
-}
-
 export function UserActivityHistoryModal({
   error,
   history,
@@ -937,7 +863,7 @@ export function UserActivityHistoryModal({
     activityFilter === 'all' ? history : history.filter((item) => item.status === activityFilter);
   const showXpTransactions = activityFilter === 'all';
   const hasAnyActivity = history.length > 0 || visibleXpTransactions.length > 0;
-  const { closeWithAnimation, gesture, swipeStyle } = useHistorySwipeBack({
+  const { closeWithAnimation, gesture, swipeStyle } = useCardSwipeBack({
     enabled: !selectedEvent,
     onSwipeBack: onClose,
     visible,
@@ -946,8 +872,9 @@ export function UserActivityHistoryModal({
     closeWithAnimation: closeDetailWithAnimation,
     gesture: detailGesture,
     swipeStyle: detailSwipeStyle,
-  } = useHistorySwipeBack({
+  } = useCardSwipeBack({
     onSwipeBack: () => setSelectedEvent(null),
+    resetKey: selectedEvent?.id ?? null,
     visible: visible && !!selectedEvent,
   });
 
@@ -1062,7 +989,7 @@ export function OrganizerEventHistoryModal({
             ? event.reviewStatus === 'approved' && isPastEventDateLabel(event.date)
             : event.reviewStatus === organizerFilter,
         );
-  const { closeWithAnimation, gesture, swipeStyle } = useHistorySwipeBack({
+  const { closeWithAnimation, gesture, swipeStyle } = useCardSwipeBack({
     enabled: !selectedEvent,
     onSwipeBack: onClose,
     visible,
@@ -1071,8 +998,9 @@ export function OrganizerEventHistoryModal({
     closeWithAnimation: closeDetailWithAnimation,
     gesture: detailGesture,
     swipeStyle: detailSwipeStyle,
-  } = useHistorySwipeBack({
+  } = useCardSwipeBack({
     onSwipeBack: () => setSelectedEvent(null),
+    resetKey: selectedEvent?.id ?? null,
     visible: visible && !!selectedEvent,
   });
 
@@ -1162,7 +1090,7 @@ export function OrganizerRewardHistoryModal({
     rewardFilter === 'all'
       ? rewards
       : rewards.filter((reward) => reward.reviewStatus === rewardFilter);
-  const { closeWithAnimation, gesture, swipeStyle } = useHistorySwipeBack({
+  const { closeWithAnimation, gesture, swipeStyle } = useCardSwipeBack({
     onSwipeBack: onClose,
     visible,
   });
@@ -1659,7 +1587,7 @@ function OrganizerEventQrModal({
 }) {
   const qrCardRef = useRef<View>(null);
   const [sharing, setSharing] = useState(false);
-  const { closeWithAnimation, gesture, swipeStyle } = useHistorySwipeBack({
+  const { closeWithAnimation, gesture, swipeStyle } = useCardSwipeBack({
     onSwipeBack: onClose,
     visible,
   });
@@ -2055,7 +1983,7 @@ export function RewardsListModal({
   userXp: number;
   visible: boolean;
 }) {
-  const { closeWithAnimation, gesture, swipeStyle } = useHistorySwipeBack({
+  const { closeWithAnimation, gesture, swipeStyle } = useCardSwipeBack({
     onSwipeBack: onClose,
     visible,
   });

@@ -9,7 +9,7 @@ import {
   Search,
   Trash2,
 } from 'lucide-react-native';
-import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -19,16 +19,10 @@ import {
   StyleSheet,
   Text,
   TextInput,
-  useWindowDimensions,
   View,
 } from 'react-native';
-import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import Animated, {
-  runOnJS,
-  useAnimatedStyle,
-  useSharedValue,
-  withTiming,
-} from 'react-native-reanimated';
+import { GestureDetector } from 'react-native-gesture-handler';
+import Animated from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { EmptyState, ErrorState, LoadingState } from '@/components/async-state';
@@ -36,6 +30,7 @@ import { BrandImage } from '@/components/brand-image';
 import { OrganizerProfileModal } from '@/components/organizer-profile-modal';
 import { CardStyles, Colors } from '@/constants/theme';
 import { eventCategoryLabels, getCultureCityData, type EventCategory } from '@/data/culture';
+import { useCardSwipeBack } from '@/hooks/use-card-swipe-back';
 import type { AdminManagedEvent } from '@/lib/admin-moderation';
 import type { OrganizerEventStatus } from '@/lib/organizer-events';
 import { organizerProfileFromEvent, type OrganizerProfile } from '@/lib/organizer-profiles';
@@ -94,8 +89,6 @@ export function AdminManageEventsModal({
   stableModalTopInset,
   visible,
 }: AdminManageEventsModalProps) {
-  const { width } = useWindowDimensions();
-  const translateX = useSharedValue(0);
   const [activeFilter, setActiveFilter] = useState<AdminEventFilter>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedEvent, setSelectedEvent] = useState<AdminManagedEvent | null>(null);
@@ -126,55 +119,24 @@ export function AdminManageEventsModal({
 
   useEffect(() => {
     if (visible) {
-      translateX.value = 0;
       setSelectedEvent(null);
       setSelectedOrganizerProfile(null);
     }
-  }, [translateX, visible]);
+  }, [visible]);
 
-  const closeOrBack = () => {
+  const closeOrBack = useCallback(() => {
     if (selectedEvent) {
       setSelectedEvent(null);
       return;
     }
 
     onClose();
-  };
-
-  const gesture = Gesture.Pan()
-    .activeOffsetX([-999, 18])
-    .failOffsetY([-35, 35])
-    .onUpdate((event) => {
-      translateX.value = Math.max(0, event.translationX);
-    })
-    .onEnd((event) => {
-      const shouldClose = translateX.value > width * 0.28 || event.velocityX > 700;
-
-      if (shouldClose) {
-        translateX.value = withTiming(width, { duration: 180 }, (finished) => {
-          if (finished) {
-            translateX.value = 0;
-            runOnJS(closeOrBack)();
-          }
-        });
-        return;
-      }
-
-      translateX.value = withTiming(0, { duration: 180 });
-    });
-
-  const swipeStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: translateX.value }],
-  }));
-
-  function closeWithAnimation() {
-    translateX.value = withTiming(width, { duration: 180 }, (finished) => {
-      if (finished) {
-        translateX.value = 0;
-        runOnJS(closeOrBack)();
-      }
-    });
-  }
+  }, [onClose, selectedEvent]);
+  const { closeWithAnimation, gesture, swipeStyle } = useCardSwipeBack({
+    onSwipeBack: closeOrBack,
+    resetKey: selectedEvent?.databaseId ?? 'event-list',
+    visible,
+  });
 
   function openOrganizerProfile(event: AdminManagedEvent) {
     const profile = organizerProfileFromEvent(event);

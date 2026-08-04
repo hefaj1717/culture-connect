@@ -1,7 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
 import { ScrollView, Text, useWindowDimensions, View } from 'react-native';
-import { Gesture } from 'react-native-gesture-handler';
-import { runOnJS, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 
 import { AdminReviewModal } from '@/components/profile/admin-review-modal';
 import { AdminManageEventsModal } from '@/components/profile/admin-manage-events-modal';
@@ -36,6 +34,7 @@ import { useCreateQuestForm } from '@/hooks/profile/use-create-quest-form';
 import { useCreateRewardForm } from '@/hooks/profile/use-create-reward-form';
 import { useEditProfileForm } from '@/hooks/profile/use-edit-profile-form';
 import { useRewardRedemption } from '@/hooks/profile/use-reward-redemption';
+import { useCardSwipeBack } from '@/hooks/use-card-swipe-back';
 import { useStableTopInset } from '@/hooks/use-stable-safe-area';
 import type { UserEventHistoryItem } from '@/lib/event-history';
 import { fetchMyOrganizerEvents, type ManagedOrganizerEvent } from '@/lib/organizer-events';
@@ -366,156 +365,52 @@ export default function ProfileScreen({
     [],
   );
   const unlockedBadgeCount = achievementBadges.filter((badge) => badge.unlocked).length;
-  const createEventTranslateX = useSharedValue(0);
-  const createQuestTranslateX = useSharedValue(0);
-  const adminReviewTranslateX = useSharedValue(0);
-  const badgesTranslateX = useSharedValue(0);
-  const rewardTranslateX = useSharedValue(0);
-
-  const createEventSwipeGesture = useMemo(
-    () =>
-      Gesture.Pan()
-        .activeOffsetX([-999, 18])
-        .failOffsetY([-35, 35])
-        .onUpdate((event) => {
-          createEventTranslateX.value = Math.max(0, event.translationX);
-        })
-        .onEnd((event) => {
-          const shouldClose = createEventTranslateX.value > width * 0.28 || event.velocityX > 700;
-
-          if (shouldClose) {
-            createEventTranslateX.value = withTiming(width, { duration: 180 }, (finished) => {
-              if (finished) {
-                runOnJS(setCreateEventOpen)(false);
-              }
-            });
-            return;
-          }
-
-          createEventTranslateX.value = withTiming(0, { duration: 180 });
-        }),
-    [createEventTranslateX, setCreateEventOpen, width],
-  );
-
-  const createEventSwipeStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: createEventTranslateX.value }],
-  }));
-
-  const createQuestSwipeGesture = useMemo(
-    () =>
-      Gesture.Pan()
-        .activeOffsetX([-999, 18])
-        .failOffsetY([-35, 35])
-        .onUpdate((event) => {
-          createQuestTranslateX.value = Math.max(0, event.translationX);
-        })
-        .onEnd((event) => {
-          const shouldClose = createQuestTranslateX.value > width * 0.28 || event.velocityX > 700;
-
-          if (shouldClose) {
-            createQuestTranslateX.value = withTiming(width, { duration: 180 }, (finished) => {
-              if (finished) {
-                runOnJS(setCreateQuestOpen)(false);
-              }
-            });
-            return;
-          }
-
-          createQuestTranslateX.value = withTiming(0, { duration: 180 });
-        }),
-    [createQuestTranslateX, setCreateQuestOpen, width],
-  );
-
-  const createQuestSwipeStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: createQuestTranslateX.value }],
-  }));
-
-  const adminReviewSwipeGesture = useMemo(
-    () =>
-      Gesture.Pan()
-        .activeOffsetX([-999, 18])
-        .failOffsetY([-35, 35])
-        .onUpdate((event) => {
-          adminReviewTranslateX.value = Math.max(0, event.translationX);
-        })
-        .onEnd((event) => {
-          const shouldClose = adminReviewTranslateX.value > width * 0.28 || event.velocityX > 700;
-
-          if (shouldClose) {
-            adminReviewTranslateX.value = withTiming(width, { duration: 180 }, (finished) => {
-              if (finished) {
-                runOnJS(setAdminReviewOpen)(false);
-              }
-            });
-            return;
-          }
-
-          adminReviewTranslateX.value = withTiming(0, { duration: 180 });
-        }),
-    [adminReviewTranslateX, setAdminReviewOpen, width],
-  );
-
-  const adminReviewSwipeStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: adminReviewTranslateX.value }],
-  }));
-
-  const badgesSwipeGesture = useMemo(
-    () =>
-      Gesture.Pan()
-        .activeOffsetX([-999, 18])
-        .failOffsetY([-35, 35])
-        .onUpdate((event) => {
-          badgesTranslateX.value = Math.max(0, event.translationX);
-        })
-        .onEnd((event) => {
-          const shouldClose = badgesTranslateX.value > width * 0.28 || event.velocityX > 700;
-
-          if (shouldClose) {
-            badgesTranslateX.value = withTiming(width, { duration: 180 }, (finished) => {
-              if (finished) {
-                runOnJS(setBadgesOpen)(false);
-              }
-            });
-            return;
-          }
-
-          badgesTranslateX.value = withTiming(0, { duration: 180 });
-        }),
-    [badgesTranslateX, width],
-  );
-
-  const badgesSwipeStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: badgesTranslateX.value }],
-  }));
-
-  const rewardSwipeGesture = useMemo(
-    () =>
-      Gesture.Pan()
-        .activeOffsetX([-999, 18])
-        .failOffsetY([-35, 35])
-        .onUpdate((event) => {
-          rewardTranslateX.value = Math.max(0, event.translationX);
-        })
-        .onEnd((event) => {
-          const shouldClose = rewardTranslateX.value > width * 0.28 || event.velocityX > 700;
-
-          if (shouldClose) {
-            rewardTranslateX.value = withTiming(width, { duration: 180 }, (finished) => {
-              if (finished) {
-                runOnJS(setSelectedReward)(null);
-              }
-            });
-            return;
-          }
-
-          rewardTranslateX.value = withTiming(0, { duration: 180 });
-        }),
-    [rewardTranslateX, setSelectedReward, width],
-  );
-
-  const rewardSwipeStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: rewardTranslateX.value }],
-  }));
+  const {
+    closeWithAnimation: closeCreateEventWithAnimation,
+    gesture: createEventSwipeGesture,
+    swipeStyle: createEventSwipeStyle,
+  } = useCardSwipeBack({
+    onSwipeBack: () => setCreateEventOpen(false),
+    visible: createEventOpen,
+  });
+  const {
+    closeWithAnimation: closeCreateQuestWithAnimation,
+    gesture: createQuestSwipeGesture,
+    swipeStyle: createQuestSwipeStyle,
+  } = useCardSwipeBack({
+    onSwipeBack: () => setCreateQuestOpen(false),
+    visible: createQuestOpen,
+  });
+  const {
+    closeWithAnimation: closeAdminReviewWithAnimation,
+    gesture: adminReviewSwipeGesture,
+    swipeStyle: adminReviewSwipeStyle,
+  } = useCardSwipeBack({
+    onSwipeBack: () => setAdminReviewOpen(false),
+    visible: adminReviewOpen,
+  });
+  const {
+    closeWithAnimation: closeBadgesWithAnimation,
+    gesture: badgesSwipeGesture,
+    swipeStyle: badgesSwipeStyle,
+  } = useCardSwipeBack({
+    onSwipeBack: () => {
+      setSelectedBadge(null);
+      setBadgesOpen(false);
+    },
+    visible: badgesOpen,
+  });
+  const {
+    closeWithAnimation: closeRewardWithAnimation,
+    gesture: rewardSwipeGesture,
+    swipeStyle: rewardSwipeStyle,
+  } = useCardSwipeBack({
+    onSwipeBack: () => {
+      resetRewardDetailState();
+      setSelectedReward(null);
+    },
+    visible: !!selectedReward,
+  });
 
   useEffect(() => {
     if (session?.user.id) {
@@ -641,36 +536,6 @@ export default function ProfileScreen({
     session?.user.id,
   ]);
 
-  useEffect(() => {
-    if (createEventOpen) {
-      createEventTranslateX.value = 0;
-    }
-  }, [createEventOpen, createEventTranslateX]);
-
-  useEffect(() => {
-    if (createQuestOpen) {
-      createQuestTranslateX.value = 0;
-    }
-  }, [createQuestOpen, createQuestTranslateX]);
-
-  useEffect(() => {
-    if (adminReviewOpen) {
-      adminReviewTranslateX.value = 0;
-    }
-  }, [adminReviewOpen, adminReviewTranslateX]);
-
-  useEffect(() => {
-    if (badgesOpen) {
-      badgesTranslateX.value = 0;
-    }
-  }, [badgesOpen, badgesTranslateX]);
-
-  useEffect(() => {
-    if (selectedReward) {
-      rewardTranslateX.value = 0;
-    }
-  }, [rewardTranslateX, selectedReward]);
-
   if (!session) {
     return (
       <View className="flex-1 items-center justify-center bg-white px-6">
@@ -679,48 +544,6 @@ export default function ProfileScreen({
         </Text>
       </View>
     );
-  }
-
-  function closeCreateEventWithAnimation() {
-    createEventTranslateX.value = withTiming(width, { duration: 180 }, (finished) => {
-      if (finished) {
-        runOnJS(setCreateEventOpen)(false);
-      }
-    });
-  }
-
-  function closeCreateQuestWithAnimation() {
-    createQuestTranslateX.value = withTiming(width, { duration: 180 }, (finished) => {
-      if (finished) {
-        runOnJS(setCreateQuestOpen)(false);
-      }
-    });
-  }
-
-  function closeAdminReviewWithAnimation() {
-    adminReviewTranslateX.value = withTiming(width, { duration: 180 }, (finished) => {
-      if (finished) {
-        runOnJS(setAdminReviewOpen)(false);
-      }
-    });
-  }
-
-  function closeBadgesWithAnimation() {
-    setSelectedBadge(null);
-    badgesTranslateX.value = withTiming(width, { duration: 180 }, (finished) => {
-      if (finished) {
-        runOnJS(setBadgesOpen)(false);
-      }
-    });
-  }
-
-  function closeRewardWithAnimation() {
-    resetRewardDetailState();
-    rewardTranslateX.value = withTiming(width, { duration: 180 }, (finished) => {
-      if (finished) {
-        runOnJS(setSelectedReward)(null);
-      }
-    });
   }
 
   async function openAdminXpAudit() {
