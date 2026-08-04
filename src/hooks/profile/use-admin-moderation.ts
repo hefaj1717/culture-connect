@@ -3,16 +3,21 @@ import { Alert } from 'react-native';
 
 import {
   type AdminManagedEvent,
+  type AdminManagedReward,
+  archiveOrganizerReward,
   deleteOrganizerEvent,
   fetchAdminManagedEvents,
+  fetchAdminManagedRewards,
   fetchPendingAdminContent,
   reviewOrganizerEvent,
   reviewOrganizerReward,
   updateAdminManagedEvent,
+  updateAdminManagedReward,
   type PendingAdminEvent,
   type PendingAdminReward,
+  type RewardPartnerStatus,
 } from '@/lib/admin-moderation';
-import type { EventCategory } from '@/data/culture';
+import type { EventCategory, RewardPartner } from '@/data/culture';
 import { OFFLINE_ERROR_MESSAGE } from '@/lib/network-errors';
 import type { OrganizerEventStatus } from '@/lib/organizer-events';
 import { useNetworkStatus } from '@/providers/network-provider';
@@ -35,6 +40,7 @@ export function useAdminModeration({
   const [adminReviewError, setAdminReviewError] = useState<string | null>(null);
   const [adminReviewLoading, setAdminReviewLoading] = useState(false);
   const [adminManageEvents, setAdminManageEvents] = useState<AdminManagedEvent[]>([]);
+  const [adminManageRewards, setAdminManageRewards] = useState<AdminManagedReward[]>([]);
   const [adminManageEventsError, setAdminManageEventsError] = useState<string | null>(null);
   const [adminManageEventsLoading, setAdminManageEventsLoading] = useState(false);
   const [adminManageEventsOpen, setAdminManageEventsOpen] = useState(false);
@@ -42,6 +48,7 @@ export function useAdminModeration({
   const [pendingRewards, setPendingRewards] = useState<PendingAdminReward[]>([]);
   const [reviewingContentId, setReviewingContentId] = useState<string | null>(null);
   const [savingManagedEventId, setSavingManagedEventId] = useState<string | null>(null);
+  const [savingManagedRewardId, setSavingManagedRewardId] = useState<string | null>(null);
   const { isOffline } = useNetworkStatus();
 
   const loadPendingContent = useCallback(async () => {
@@ -72,11 +79,15 @@ export function useAdminModeration({
     if (!isAdmin) return;
 
     setAdminManageEventsLoading(true);
-    const result = await fetchAdminManagedEvents();
+    const [eventsResult, rewardsResult] = await Promise.all([
+      fetchAdminManagedEvents(),
+      fetchAdminManagedRewards(),
+    ]);
     setAdminManageEventsLoading(false);
 
-    setAdminManageEvents(result.events);
-    setAdminManageEventsError(result.error);
+    setAdminManageEvents(eventsResult.events);
+    setAdminManageRewards(rewardsResult.rewards);
+    setAdminManageEventsError(eventsResult.error ?? rewardsResult.error);
   }, [isAdmin]);
 
   useEffect(() => {
@@ -122,6 +133,7 @@ export function useAdminModeration({
       void loadManagedEvents();
     } else {
       setPendingRewards((current) => current.filter((reward) => reward.id !== id));
+      void loadManagedEvents();
     }
 
     onContentReviewed?.();
@@ -178,6 +190,55 @@ export function useAdminModeration({
     Alert.alert('Event deleted', 'The event has been removed from CultureQuest.');
   }
 
+  async function deleteReward(id: string) {
+    if (!userId) {
+      setAdminReviewError('Log in again before deleting rewards.');
+      setAdminManageEventsError('Log in again before deleting rewards.');
+      return;
+    }
+    if (isOffline) {
+      setAdminReviewError(OFFLINE_ERROR_MESSAGE);
+      setAdminManageEventsError(OFFLINE_ERROR_MESSAGE);
+      return;
+    }
+
+    Alert.alert(
+      'Archive reward?',
+      'This removes the reward from students while keeping redemption history intact.',
+      [
+        { style: 'cancel', text: 'Cancel' },
+        {
+          style: 'destructive',
+          text: 'Archive',
+          onPress: () => {
+            void deleteRewardAfterConfirmation(id);
+          },
+        },
+      ],
+    );
+  }
+
+  async function deleteRewardAfterConfirmation(id: string) {
+    setReviewingContentId(`reward-delete-${id}`);
+    const result = await archiveOrganizerReward({ rewardId: id });
+    setReviewingContentId(null);
+
+    if (result.error) {
+      setAdminReviewError(result.error);
+      setAdminManageEventsError(result.error);
+      return;
+    }
+
+    setPendingRewards((current) => current.filter((reward) => reward.id !== id));
+    setAdminManageRewards((current) =>
+      current.map((reward) =>
+        reward.databaseId === id ? { ...reward, reviewStatus: 'archived' } : reward,
+      ),
+    );
+    onContentReviewed?.();
+    Alert.alert('Reward archived', 'The reward is no longer visible to students.');
+  }
+
   async function saveManagedEvent(
     eventId: string,
     input: {
@@ -218,11 +279,49 @@ export function useAdminModeration({
     return { success: true };
   }
 
+  async function saveManagedReward(
+    rewardId: string,
+    input: {
+      category: RewardPartner['category'];
+      description: string;
+      placeAddress: string;
+      placeName: string;
+      status: RewardPartnerStatus;
+      title: string;
+      xpCost: number;
+    },
+  ) {
+    if (!userId) {
+      setAdminManageEventsError('Log in again before editing rewards.');
+      return { success: false };
+    }
+    if (isOffline) {
+      setAdminManageEventsError(OFFLINE_ERROR_MESSAGE);
+      return { success: false };
+    }
+
+    setSavingManagedRewardId(rewardId);
+    const result = await updateAdminManagedReward({ adminUserId: userId, rewardId, input });
+    setSavingManagedRewardId(null);
+
+    if (result.error) {
+      setAdminManageEventsError(result.error);
+      return { success: false };
+    }
+
+    await loadManagedEvents();
+    await loadPendingContent();
+    onContentReviewed?.();
+    Alert.alert('Reward updated', 'The reward changes have been saved.');
+    return { success: true };
+  }
+
   return {
     adminManageEvents,
     adminManageEventsError,
     adminManageEventsLoading,
     adminManageEventsOpen,
+    adminManageRewards,
     adminReviewError,
     adminReviewLoading,
     adminReviewOpen,
@@ -231,12 +330,15 @@ export function useAdminModeration({
     pendingEvents,
     pendingRewards,
     deleteEvent,
+    deleteReward,
     refreshManagedEvents: loadManagedEvents,
     refreshPendingContent: loadPendingContent,
     reviewContent,
     reviewingContentId,
     saveManagedEvent,
+    saveManagedReward,
     savingManagedEventId,
+    savingManagedRewardId,
     setAdminManageEventsOpen,
     setAdminReviewOpen,
   };
