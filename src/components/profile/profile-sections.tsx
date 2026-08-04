@@ -31,7 +31,7 @@ import { PassportBadge, type AchievementBadge } from '@/components/profile/badge
 import { OrganizerStatusCard, OrganizerVerifiedBadge } from '@/components/profile/organizer-status';
 import { RankAvatar } from '@/components/profile/profile-avatar';
 import { RewardPartnerRow } from '@/components/profile/reward-partner-row';
-import { CardStyles, Colors, EngagementColors, GamificationColors } from '@/constants/theme';
+import { CardStyles, Colors, GamificationColors } from '@/constants/theme';
 import { eventCategoryLabels, type CultureEvent, type RewardPartner } from '@/data/culture';
 import type { RedeemedRewardState } from '@/data/profile';
 import { getEventEngagement } from '@/lib/event-engagement';
@@ -1517,20 +1517,17 @@ function HistoryEventDetail({
             />
             <View className="flex-row gap-2">
               <HistoryStatPill
-                color={EngagementColors.interested}
-                icon={<Users size={15} color={EngagementColors.interested} strokeWidth={2.4} />}
+                icon={<Users size={15} color="#7C3AED" strokeWidth={2.4} />}
                 label="Interested"
                 value={getEventEngagement(event, status).interested}
               />
               <HistoryStatPill
-                color={EngagementColors.going}
-                icon={<Clock size={15} color={EngagementColors.going} strokeWidth={2.4} />}
+                icon={<Clock size={15} color="#7C3AED" strokeWidth={2.4} />}
                 label="Going"
                 value={getEventEngagement(event, status).going}
               />
               <HistoryStatPill
-                color={EngagementColors.attended}
-                icon={<CheckCircle2 size={15} color={EngagementColors.attended} strokeWidth={2.4} />}
+                icon={<CheckCircle2 size={15} color="#7C3AED" strokeWidth={2.4} />}
                 label="Attended"
                 value={getEventEngagement(event, status).attended}
               />
@@ -1748,20 +1745,17 @@ function HistoryEngagementStats({
   return (
     <View className="mt-3 flex-row gap-2">
       <HistoryStatPill
-        color={EngagementColors.interested}
-        icon={<Users size={14} color={EngagementColors.interested} strokeWidth={2.4} />}
+        icon={<Users size={14} color="#7C3AED" strokeWidth={2.4} />}
         label="Interested"
         value={engagement.interested}
       />
       <HistoryStatPill
-        color={EngagementColors.going}
-        icon={<Clock size={14} color={EngagementColors.going} strokeWidth={2.4} />}
+        icon={<Clock size={14} color="#7C3AED" strokeWidth={2.4} />}
         label="Going"
         value={engagement.going}
       />
       <HistoryStatPill
-        color={EngagementColors.attended}
-        icon={<CheckCircle2 size={14} color={EngagementColors.attended} strokeWidth={2.4} />}
+        icon={<CheckCircle2 size={14} color="#7C3AED" strokeWidth={2.4} />}
         label="Attended"
         value={engagement.attended}
       />
@@ -1770,27 +1764,18 @@ function HistoryEngagementStats({
 }
 
 function HistoryStatPill({
-  color,
   icon,
   label,
   value,
 }: {
-  color: string;
   icon: ReactNode;
   label: string;
   value: number;
 }) {
   return (
-    <View
-      className="min-w-0 flex-1 flex-row items-center gap-1.5 rounded-2xl px-2.5 py-2"
-      style={{ backgroundColor: `${color}16` }}
-    >
+    <View className="min-w-0 flex-1 flex-row items-center gap-1.5 rounded-2xl bg-primary/5 px-2.5 py-2">
       {icon}
-      <Text
-        className="min-w-0 flex-1 text-[11px] font-semibold"
-        numberOfLines={1}
-        style={{ color }}
-      >
+      <Text className="min-w-0 flex-1 text-[11px] font-semibold text-ink/70" numberOfLines={1}>
         {value.toLocaleString()} {label}
       </Text>
     </View>

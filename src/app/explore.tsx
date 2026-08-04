@@ -36,7 +36,7 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { EmptyState, ErrorState, LoadingState } from '@/components/async-state';
 import { BrandImage } from '@/components/brand-image';
 import { OrganizerAvatar, OrganizerProfileModal } from '@/components/organizer-profile-modal';
-import { CardStyles, EngagementColors } from '@/constants/theme';
+import { CardStyles } from '@/constants/theme';
 import {
   type CultureEvent,
   type CultureCityData,
@@ -1150,18 +1150,15 @@ function EventEngagementPills({
 }) {
   const metrics = [
     {
-      color: EngagementColors.interested,
-      icon: <Users size={12} color={EngagementColors.interested} strokeWidth={2.4} />,
+      icon: <Users size={12} color="#7C3AED" strokeWidth={2.4} />,
       value: interested,
     },
     {
-      color: EngagementColors.going,
-      icon: <Clock size={12} color={EngagementColors.going} strokeWidth={2.4} />,
+      icon: <Clock size={12} color="#7C3AED" strokeWidth={2.4} />,
       value: going,
     },
     {
-      color: EngagementColors.attended,
-      icon: <CheckCircle2 size={12} color={EngagementColors.attended} strokeWidth={2.4} />,
+      icon: <CheckCircle2 size={12} color="#7C3AED" strokeWidth={2.4} />,
       value: attended,
     },
   ];
@@ -1170,14 +1167,11 @@ function EventEngagementPills({
     <View className="flex-row items-center gap-1.5">
       {metrics.map((metric, index) => (
         <View
-          className="flex-row items-center gap-1 rounded-full px-2 py-1"
+          className="flex-row items-center gap-1 rounded-full bg-primary/5 px-2 py-1"
           key={index}
-          style={{ backgroundColor: `${metric.color}16` }}
         >
           {metric.icon}
-          <Text className="text-[11px] font-bold" style={{ color: metric.color }}>
-            {metric.value.toLocaleString()}
-          </Text>
+          <Text className="text-[11px] font-bold text-primary">{metric.value.toLocaleString()}</Text>
         </View>
       ))}
     </View>
