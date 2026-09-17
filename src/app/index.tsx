@@ -1,8 +1,8 @@
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Location from 'expo-location';
-import { ArrowRight, CheckCircle2, Globe, User, Users } from 'lucide-react-native';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ArrowRight, Bell, CheckCircle2, Globe, User, Users, X } from 'lucide-react-native';
+import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import MapView, { Marker } from 'react-native-maps';
 
@@ -57,6 +57,7 @@ export default function HomeScreen({
   const layout = useResponsiveLayout();
   const [canShowUserLocation, setCanShowUserLocation] = useState(false);
   const [isMapInteractive, setIsMapInteractive] = useState(true);
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
   const happeningNow = useMemo(
     () =>
       events
@@ -193,6 +194,9 @@ export default function HomeScreen({
                 CultureQuest
               </Text>
               <View className="flex-row items-center gap-3">
+                <Pressable onPress={() => setNotificationsOpen(true)} className="h-11 w-11 items-center justify-center rounded-full bg-white/15 active:opacity-80" accessibilityLabel="Open notifications">
+                  <Bell size={22} color="white" strokeWidth={2.2} />
+                </Pressable>
                 <Pressable
                   onPress={onOpenProfile}
                   className="h-11 w-11 items-center justify-center overflow-hidden rounded-full bg-primary active:opacity-85"
@@ -327,8 +331,11 @@ export default function HomeScreen({
                 </Pressable>
               ))
             )}
-          </ScrollView>
-        </View>
+      </ScrollView>
+      <Modal animationType="slide" transparent visible={notificationsOpen} onRequestClose={() => setNotificationsOpen(false)}>
+        <View className="flex-1 justify-end bg-black/30"><View className="rounded-t-3xl bg-white px-5 pb-10 pt-5"><View className="flex-row items-center justify-between"><Text className="font-heading text-[24px] font-extrabold text-ink">Notifications</Text><Pressable onPress={() => setNotificationsOpen(false)} accessibilityLabel="Close notifications"><X size={22} color={Colors.light.textSecondary} /></Pressable></View><Text className="mt-5 text-[14px] leading-5 text-muted">Updates about events, rewards, and your account will appear here.</Text></View></View>
+      </Modal>
+    </View>
 
         <View className="bg-white px-5 pb-8">
           <View className="mb-3 flex-row items-center justify-between">
