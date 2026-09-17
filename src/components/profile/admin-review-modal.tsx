@@ -20,14 +20,13 @@ import {
   StyleSheet,
   Text,
   View,
-  type StyleProp,
   type ViewStyle,
 } from 'react-native';
 import { GestureDetector, type GestureType } from 'react-native-gesture-handler';
-import Animated from 'react-native-reanimated';
+import Animated, { type AnimatedStyle } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { EmptyState, ErrorState, LoadingState } from '@/components/async-state';
+import { CardListSkeleton, EmptyState, ErrorState } from '@/components/async-state';
 import { BrandImage } from '@/components/brand-image';
 import { getCultureCityData } from '@/data/culture';
 import { type PendingAdminEvent, type PendingAdminReward } from '@/lib/admin-moderation';
@@ -48,7 +47,7 @@ type AdminReviewModalProps = {
   rewards: PendingAdminReward[];
   reviewingContentId: string | null;
   stableModalTopInset: number;
-  swipeStyle: StyleProp<ViewStyle>;
+  swipeStyle: AnimatedStyle<ViewStyle>;
   visible: boolean;
 };
 
@@ -150,7 +149,7 @@ export function AdminReviewModal({
               )}
 
               {loading ? (
-                <LoadingState body={`Loading pending ${activeTab}.`} title="Loading review queue" />
+                <CardListSkeleton count={3} />
               ) : activeItemsCount === 0 ? (
                 <EmptyState
                   body={`Pending ${activeTab} will appear here as soon as organizers submit them.`}
@@ -243,7 +242,7 @@ function PendingEventCard({
                 : require('@/assets/images/culture/venue-theater.jpg')
           }
           contentFit="cover"
-          style={StyleSheet.absoluteFillObject}
+          style={StyleSheet.absoluteFill}
           withTextGradient
         >
           <View

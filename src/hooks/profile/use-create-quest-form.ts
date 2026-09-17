@@ -1,11 +1,11 @@
 import * as ImagePicker from 'expo-image-picker';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Alert } from 'react-native';
 
 import { limitText, textLimits } from '@/constants/text-limits';
 import { type CityId } from '@/data/culture';
 import { OFFLINE_ERROR_MESSAGE } from '@/lib/network-errors';
-import { createQuest, type QuestImageKind } from '@/lib/quests';
+import { createQuest, fetchQuestCompletionCode, type QuestImageKind } from '@/lib/quests';
 import { useNetworkStatus } from '@/providers/network-provider';
 
 type QuestDraftStop = {
@@ -45,6 +45,7 @@ export function useCreateQuestForm({
   const [questXp, setQuestXp] = useState('150');
   const [createQuestError, setCreateQuestError] = useState<string | null>(null);
   const [creatingQuest, setCreatingQuest] = useState(false);
+  const questSubmissionInFlight = useRef(false);
   const { isOffline } = useNetworkStatus();
 
   function resetQuestForm() {
@@ -133,6 +134,8 @@ export function useCreateQuestForm({
   }
 
   async function submitQuest() {
+    if (questSubmissionInFlight.current) return;
+
     const normalizedTitle = limitText(questTitle.trim(), textLimits.questTitle);
     const normalizedTheme = limitText(questTheme.trim(), textLimits.questTheme);
     const normalizedDescription = limitText(questDescription.trim(), textLimits.questDescription);
@@ -171,25 +174,35 @@ export function useCreateQuestForm({
     }
 
     setCreateQuestError(null);
+    questSubmissionInFlight.current = true;
     setCreatingQuest(true);
-    const result = await createQuest({
-      cityId: questCityId,
-      createdBy: userId,
-      description: normalizedDescription,
-      image: questImage,
-      imageUri: questImageUri,
-      status: questStatus,
-      stops: completeStops,
-      theme: normalizedTheme,
-      title: normalizedTitle,
-      totalXp: normalizedXp,
-    });
-    setCreatingQuest(false);
+    let result;
+    try {
+      result = await createQuest({
+        cityId: questCityId,
+        createdBy: userId,
+        description: normalizedDescription,
+        image: questImage,
+        imageUri: questImageUri,
+        status: questStatus,
+        stops: completeStops,
+        theme: normalizedTheme,
+        title: normalizedTitle,
+        totalXp: normalizedXp,
+      });
+    } finally {
+      questSubmissionInFlight.current = false;
+      setCreatingQuest(false);
+    }
 
     if (result.error) {
       setCreateQuestError(result.error);
       return;
     }
+
+    const completionCodeResult = result.questId
+      ? await fetchQuestCompletionCode(result.questId)
+      : { completionCode: null, error: 'Completion code is unavailable.' };
 
     onQuestCreated?.();
     setCreateQuestOpen(false);
@@ -197,7 +210,9 @@ export function useCreateQuestForm({
     Alert.alert(
       questStatus === 'approved' ? 'Quest published' : 'Quest saved',
       questStatus === 'approved'
-        ? 'Students can now see this quest in the selected city.'
+        ? completionCodeResult.completionCode
+          ? `Create and place a QR code with this value at the final trail stop before sharing the quest:\n\n${completionCodeResult.completionCode}`
+          : 'Students can now see this quest in the selected city. Open it again as an admin to retrieve its finish QR code.'
         : 'This quest is saved as a draft and hidden from students.',
     );
   }

@@ -5,11 +5,10 @@ import {
   ScrollView,
   Text,
   View,
-  type StyleProp,
   type ViewStyle,
 } from 'react-native';
 import { GestureDetector, type GestureType } from 'react-native-gesture-handler';
-import Animated from 'react-native-reanimated';
+import Animated, { type AnimatedStyle } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import {
@@ -26,7 +25,7 @@ type BadgesModalProps = {
   onSelectBadge: (badge: AchievementBadge | null) => void;
   selectedBadge: AchievementBadge | null;
   stableModalTopInset: number;
-  swipeStyle: StyleProp<ViewStyle>;
+  swipeStyle: AnimatedStyle<ViewStyle>;
   unlockedBadgeCount: number;
   visible: boolean;
 };

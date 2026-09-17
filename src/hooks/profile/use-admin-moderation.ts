@@ -28,12 +28,14 @@ type ReviewStatus = 'approved' | 'rejected';
 type UseAdminModerationInput = {
   isAdmin: boolean;
   onContentReviewed?: () => void;
+  onNotice?: (message: string) => void;
   userId?: string;
 };
 
 export function useAdminModeration({
   isAdmin,
   onContentReviewed,
+  onNotice,
   userId,
 }: UseAdminModerationInput) {
   const [adminReviewOpen, setAdminReviewOpen] = useState(false);
@@ -137,12 +139,7 @@ export function useAdminModeration({
     }
 
     onContentReviewed?.();
-    Alert.alert(
-      status === 'approved' ? 'Content approved' : 'Content rejected',
-      status === 'approved'
-        ? 'Students can now see it in the app.'
-        : 'The submission has been rejected.',
-    );
+    onNotice?.(status === 'approved' ? 'Content approved and published.' : 'Content rejected.');
   }
 
   async function deleteEvent(id: string) {
@@ -187,7 +184,7 @@ export function useAdminModeration({
     setPendingEvents((current) => current.filter((event) => event.id !== id));
     setAdminManageEvents((current) => current.filter((event) => event.databaseId !== id));
     onContentReviewed?.();
-    Alert.alert('Event deleted', 'The event has been removed from CultureQuest.');
+    onNotice?.('Event deleted.');
   }
 
   async function deleteReward(id: string) {
@@ -236,7 +233,7 @@ export function useAdminModeration({
       ),
     );
     onContentReviewed?.();
-    Alert.alert('Reward archived', 'The reward is no longer visible to students.');
+    onNotice?.('Reward archived.');
   }
 
   async function saveManagedEvent(
@@ -275,7 +272,7 @@ export function useAdminModeration({
     await loadManagedEvents();
     await loadPendingContent();
     onContentReviewed?.();
-    Alert.alert('Event updated', 'The event changes have been saved.');
+    onNotice?.('Event updated.');
     return { success: true };
   }
 
@@ -317,7 +314,7 @@ export function useAdminModeration({
     await loadManagedEvents();
     await loadPendingContent();
     onContentReviewed?.();
-    Alert.alert('Reward updated', 'The reward changes have been saved.');
+    onNotice?.('Reward updated.');
     return { success: true };
   }
 

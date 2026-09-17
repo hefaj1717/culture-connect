@@ -40,7 +40,7 @@ import { useResponsiveLayout } from '@/hooks/use-responsive-layout';
 import { useNetworkStatus } from '@/providers/network-provider';
 
 const ACTIVE = Colors.light.primary;
-const INACTIVE = '#7D8594';
+const INACTIVE = Colors.light.iconInactive;
 const TAB_COUNT = 4;
 
 export default function AppTabs() {
@@ -49,7 +49,7 @@ export default function AppTabs() {
   if (loading) {
     return (
       <View className="flex-1 items-center justify-center bg-ink">
-        <StatusBar backgroundColor="transparent" style="light" />
+        <StatusBar style="light" />
         <ActivityIndicator accessibilityLabel="Loading CultureQuest" color="white" />
       </View>
     );
@@ -58,7 +58,7 @@ export default function AppTabs() {
   if (!session) {
     return (
       <View className="flex-1 bg-white">
-        <StatusBar backgroundColor="transparent" style="light" />
+        <StatusBar style="light" />
         <AuthScreen />
       </View>
     );
@@ -72,7 +72,7 @@ function AuthenticatedTabs() {
   const insets = useSafeAreaInsets();
   const layout = useResponsiveLayout();
   const { isOffline } = useNetworkStatus();
-  const { organizerApplicationStatus, user } = useAuth();
+  const { user } = useAuth();
   const [activeIndex, setActiveIndex] = useState(0);
   const [organizerEventsVersion, setOrganizerEventsVersion] = useState(0);
   const [questsRefreshKey, setQuestsRefreshKey] = useState(0);
@@ -89,6 +89,9 @@ function AuthenticatedTabs() {
   const [checkedInEventIds, setCheckedInEventIds] = useState<string[]>([]);
   const [eventStatuses, setEventStatuses] = useState<Record<string, UserEventStatus>>({});
   const [completedQuestIds, setCompletedQuestIds] = useState<string[]>([]);
+  const [userStateError, setUserStateError] = useState<string | null>(null);
+  const [userStateLoading, setUserStateLoading] = useState(false);
+  const [userStateReloadNonce, setUserStateReloadNonce] = useState(0);
   const checkedInEventIdsRef = useRef(new Set<string>());
   const completedQuestIdsRef = useRef(new Set<string>());
   const [eventOpenRequest, setEventOpenRequest] = useState<{
@@ -165,6 +168,8 @@ function AuthenticatedTabs() {
     if (!userId) {
       setEventStatuses({});
       setUserXp(0);
+      setUserStateError(null);
+      setUserStateLoading(false);
       return;
     }
 
@@ -172,12 +177,19 @@ function AuthenticatedTabs() {
     let active = true;
 
     async function loadUserState() {
+      setUserStateLoading(true);
       const [responsesResult, xpResult, questsResult] = await Promise.all([
         fetchUserEventResponses(userIdForLoad),
         fetchUserXp(userIdForLoad),
         fetchCompletedQuestIds(),
       ]);
       if (!active) return;
+
+      const errors = [responsesResult.error, xpResult.error, questsResult.error].filter(
+        (error): error is string => !!error,
+      );
+      setUserStateError(errors[0] ?? null);
+      setUserStateLoading(false);
 
       if (!responsesResult.error) {
         setEventStatuses(responsesResult.responses);
@@ -203,7 +215,7 @@ function AuthenticatedTabs() {
     return () => {
       active = false;
     };
-  }, [user?.id]);
+  }, [user?.id, userStateReloadNonce]);
 
   function goToTab(index: number) {
     setActiveIndex(index);
@@ -225,6 +237,7 @@ function AuthenticatedTabs() {
 
   async function awardEventCheckInXp(
     event: CultureEvent,
+    checkInCode: string,
     location: { latitude: number; longitude: number },
   ): Promise<EventCheckInResult> {
     if (isOffline) {
@@ -242,7 +255,7 @@ function AuthenticatedTabs() {
     }
 
     const result = await confirmOrganizerEventAttendance({
-      checkInCode: event.checkInCode,
+      checkInCode,
       eventId: databaseEventId,
       userLatitude: location.latitude,
       userLongitude: location.longitude,
@@ -276,11 +289,18 @@ function AuthenticatedTabs() {
     };
   }
 
-  function updateEventStatus(eventId: string, status: UserEventStatus | null) {
+  async function updateEventStatus(eventId: string, status: UserEventStatus | null) {
     if (isOffline) {
-      Alert.alert('Offline', OFFLINE_ERROR_MESSAGE);
-      return;
+      return { error: OFFLINE_ERROR_MESSAGE };
     }
+
+    if (!user?.id) return { error: 'Log in again before changing your RSVP.' };
+
+    const result = status
+      ? await setUserEventResponse(user.id, eventId, status)
+      : await removeUserEventResponse(user.id, eventId);
+
+    if (result.error) return result;
 
     const previousStatus = eventStatuses[eventId] ?? null;
     setApprovedEvents((current) =>
@@ -299,34 +319,31 @@ function AuthenticatedTabs() {
       return nextStatuses;
     });
 
-    if (!user?.id) return;
-
-    if (!status) {
-      void removeUserEventResponse(user.id, eventId);
-      return;
-    }
-
-    void setUserEventResponse(user.id, eventId, status);
+    return { error: null };
   }
 
-  function awardQuestCompletionXp(questId: string, totalXp: number) {
+  async function awardQuestCompletionXp(questId: string, completionCode: string) {
     if (isOffline) {
       Alert.alert('Offline', OFFLINE_ERROR_MESSAGE);
-      return false;
+      return { error: OFFLINE_ERROR_MESSAGE, success: false };
     }
 
     if (completedQuestIdsRef.current.has(questId)) {
-      return false;
+      return { error: 'This quest is already completed.', success: false };
+    }
+
+    const result = await completeQuest(questId, completionCode);
+    if (result.error) {
+      return { error: result.error, success: false };
     }
 
     completedQuestIdsRef.current.add(questId);
     setCompletedQuestIds([...completedQuestIdsRef.current]);
-    void completeQuest(questId).then((result) => {
-      if (result.totalXp !== null) {
-        setUserXp(result.totalXp);
-      }
-    });
-    return true;
+    if (result.totalXp !== null) {
+      setUserXp(result.totalXp);
+    }
+
+    return { success: true };
   }
 
   const gesture = useMemo(
@@ -362,7 +379,22 @@ function AuthenticatedTabs() {
 
   return (
     <View className="flex-1 bg-white">
-      <StatusBar backgroundColor="transparent" style={activeIndex === 0 ? 'light' : 'dark'} />
+      <StatusBar style={activeIndex === 0 ? 'light' : 'dark'} />
+      {userStateError && (
+        <View className="absolute left-4 right-4 z-20 flex-row items-center gap-3 rounded-2xl border border-destructive/20 bg-white p-3 shadow-sm" style={{ top: insets.top + 8 }}>
+          <WifiOff size={18} color="#DC2626" />
+          <Text className="min-w-0 flex-1 text-[12px] leading-4 text-ink">
+            Some account data could not refresh. Showing saved information where available.
+          </Text>
+          <Pressable
+            disabled={userStateLoading}
+            onPress={() => setUserStateReloadNonce((current) => current + 1)}
+            className="rounded-lg bg-primary px-3 py-2 active:opacity-85 disabled:opacity-50"
+          >
+            <Text className="text-[12px] font-bold text-white">Retry</Text>
+          </Pressable>
+        </View>
+      )}
       <GestureDetector gesture={gesture}>
         <Animated.View
           style={[
@@ -386,7 +418,6 @@ function AuthenticatedTabs() {
               leaderboard={universityLeaderboard}
               leaderboardError={universityLeaderboardError}
               leaderboardLoading={universityLeaderboardLoading}
-              organizerApplicationStatus={organizerApplicationStatus}
               onOpenDiscover={() => goToTab(1)}
               onOpenEvent={openDiscoverEvent}
               onOpenProfile={() => goToTab(3)}
@@ -452,8 +483,8 @@ function AuthenticatedTabs() {
           paddingTop: 8,
           paddingBottom: Math.max(14, insets.bottom),
           borderTopWidth: 1,
-          borderTopColor: '#E5E7EB',
-          backgroundColor: '#FFFFFF',
+          borderTopColor: Colors.light.borderSubtle,
+          backgroundColor: Colors.light.onPrimary,
           flexDirection: 'row',
           alignItems: 'center',
           justifyContent: 'space-around',

@@ -26,7 +26,7 @@ import { GestureDetector } from 'react-native-gesture-handler';
 import Animated from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { EmptyState, ErrorState, LoadingState } from '@/components/async-state';
+import { CardListSkeleton, EmptyState, ErrorState } from '@/components/async-state';
 import { BrandImage } from '@/components/brand-image';
 import {
   DatePickerModal,
@@ -363,7 +363,7 @@ export function AdminManageEventsModal({
               {error && <ErrorState body={error} compact title="Content could not load" />}
 
               {loading ? (
-                <LoadingState body="Loading organizer submissions." title="Loading content" />
+                <CardListSkeleton count={3} />
               ) : activeTab === 'events' ? (
                 events.length === 0 ? (
                   <AdminEventEmptyState
@@ -620,7 +620,7 @@ function AdminManagedEventCard({
         <BrandImage
           contentFit="cover"
           source={getEventImageSource(event)}
-          style={StyleSheet.absoluteFillObject}
+          style={StyleSheet.absoluteFill}
         />
       </View>
       <View className="p-4">
@@ -691,7 +691,7 @@ function AdminManagedRewardCard({
         <BrandImage
           contentFit="cover"
           source={getRewardImageSource(reward)}
-          style={StyleSheet.absoluteFillObject}
+          style={StyleSheet.absoluteFill}
         />
       </View>
       <View className="p-4">
@@ -830,7 +830,7 @@ function AdminEventEditor({
           <BrandImage
             contentFit="cover"
             source={getEventImageSource(event)}
-            style={StyleSheet.absoluteFillObject}
+            style={StyleSheet.absoluteFill}
             withTextGradient
           />
           <View className="min-h-[190px] justify-end p-5">
@@ -940,7 +940,6 @@ function AdminEventEditor({
           <AuditRow label="Database ID" value={event.databaseId} />
           <AuditRow label="Organizer" onPress={onOpenOrganizer} value={event.organizerName} />
           <AuditRow label="Status" value={getStatusLabel(status)} />
-          <AuditRow label="Check-in code" value={event.checkInCode} />
           <AuditRow label="Created" value={formatAuditDate(event.createdAt)} />
           <View className="mt-3 flex-row gap-2">
             <MiniStat label="City" valueText={event.cityId} />
@@ -1137,7 +1136,7 @@ function AdminRewardEditor({
           <BrandImage
             contentFit="cover"
             source={getRewardImageSource(reward)}
-            style={StyleSheet.absoluteFillObject}
+            style={StyleSheet.absoluteFill}
             withTextGradient
           />
           <View className="min-h-[190px] justify-end p-5">

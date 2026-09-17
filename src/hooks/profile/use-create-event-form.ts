@@ -1,5 +1,5 @@
 import * as ImagePicker from 'expo-image-picker';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Alert } from 'react-native';
 
 import { startOfMonth } from '@/components/profile/date-time-pickers';
@@ -42,6 +42,7 @@ export function useCreateEventForm({
   const [eventIsFree, setEventIsFree] = useState(true);
   const [createEventError, setCreateEventError] = useState<string | null>(null);
   const [creatingEvent, setCreatingEvent] = useState(false);
+  const eventSubmissionInFlight = useRef(false);
   const [datePickerOpen, setDatePickerOpen] = useState(false);
   const [timePickerOpen, setTimePickerOpen] = useState(false);
   const [timePickerTarget, setTimePickerTarget] = useState<'end' | 'start'>('start');
@@ -173,6 +174,8 @@ export function useCreateEventForm({
   }
 
   async function submitEvent() {
+    if (eventSubmissionInFlight.current) return;
+
     const normalizedTitle = limitText(eventTitle.trim(), textLimits.eventTitle);
     const normalizedDate = eventDate.trim();
     const normalizedEndTime = eventEndTime.trim();
@@ -211,6 +214,7 @@ export function useCreateEventForm({
     }
 
     setCreateEventError(null);
+    eventSubmissionInFlight.current = true;
     setCreatingEvent(true);
     const input = {
       cityId: savedCityId,
@@ -227,14 +231,19 @@ export function useCreateEventForm({
       isFree: eventIsFree,
       imageUri: eventImageUri,
     };
-    const result = editingEvent
-      ? await updateOrganizerEvent(userId, {
-          ...input,
-          currentImageUrl: editingEvent.imageUrl ?? null,
-          eventId: editingEvent.id,
-        })
-      : await createOrganizerEvent(userId, input);
-    setCreatingEvent(false);
+    let result;
+    try {
+      result = editingEvent
+        ? await updateOrganizerEvent(userId, {
+            ...input,
+            currentImageUrl: editingEvent.imageUrl ?? null,
+            eventId: editingEvent.id,
+          })
+        : await createOrganizerEvent(userId, input);
+    } finally {
+      eventSubmissionInFlight.current = false;
+      setCreatingEvent(false);
+    }
 
     if (result.error) {
       setCreateEventError(result.error);

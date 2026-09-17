@@ -1,4 +1,5 @@
-import { ArrowLeft, BadgeCheck, Clock3, LockKeyhole, MapPin } from 'lucide-react-native';
+import { ArrowLeft, BadgeCheck, Clock3, LockKeyhole, MapPin, X } from 'lucide-react-native';
+import { CameraView, type BarcodeScanningResult, useCameraPermissions } from 'expo-camera';
 import { useEffect, useMemo, useState } from 'react';
 import {
   Modal,
@@ -9,6 +10,7 @@ import {
   useWindowDimensions,
   View,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
   runOnJS,
@@ -17,9 +19,9 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 
-import { EmptyState, ErrorState, LoadingState } from '@/components/async-state';
+import { CardListSkeleton, EmptyState, ErrorState } from '@/components/async-state';
 import { BrandImage } from '@/components/brand-image';
-import { CardStyles } from '@/constants/theme';
+import { CardStyles, Colors } from '@/constants/theme';
 import { type CultureCityData, getCultureCityData } from '@/data/culture';
 import { useResponsiveLayout } from '@/hooks/use-responsive-layout';
 import { useStableTopInset } from '@/hooks/use-stable-safe-area';
@@ -29,7 +31,10 @@ type QuestsScreenProps = {
   cityData?: CultureCityData;
   completedQuestIds?: string[];
   questsRefreshKey?: number;
-  onQuestCompleted?: (questId: string, totalXp: number) => boolean;
+  onQuestCompleted?: (
+    questId: string,
+    completionCode: string,
+  ) => Promise<{ error?: string; success: boolean }>;
 };
 
 export default function QuestsScreen({
@@ -84,14 +89,10 @@ export default function QuestsScreen({
           </Text>
 
           {questsLoading ? (
-            <LoadingState
-              body={`Loading curated paths for ${cityData.name}.`}
-              style={{ marginBottom: 16 }}
-              title="Loading quests"
-            />
+            <CardListSkeleton count={3} style={{ marginBottom: 16 }} />
           ) : questsError ? (
             <ErrorState
-              body="Apply the latest Supabase migration if you have not done it."
+              body="We could not load quests right now. Check your connection and try again."
               style={{ marginBottom: 16 }}
               title="Quests could not load"
             />
@@ -113,7 +114,10 @@ export default function QuestsScreen({
       <QuestDetailModal
         quest={selectedQuestView}
         onClose={() => setSelectedQuest(null)}
-        onCompleteQuest={(quest) => onQuestCompleted?.(quest.id, quest.totalXp) ?? false}
+        onCompleteQuest={(quest, completionCode) =>
+          onQuestCompleted?.(quest.id, completionCode) ??
+          Promise.resolve({ error: 'Quest completion is not available right now.', success: false })
+        }
       />
     </View>
   );
@@ -135,7 +139,7 @@ function QuestCard({ onPress, quest }: { onPress: () => void; quest: Quest }) {
         <BrandImage
           source={getQuestImageSource(quest.image, quest.imageUrl)}
           contentFit="cover"
-          style={StyleSheet.absoluteFillObject}
+          style={StyleSheet.absoluteFill}
           withTextGradient
         >
           <View className="absolute left-4 top-4 rounded-full bg-white/90 px-3 py-1">
@@ -178,12 +182,20 @@ function QuestDetailModal({
   quest,
 }: {
   onClose: () => void;
-  onCompleteQuest: (quest: Quest) => boolean;
+  onCompleteQuest: (
+    quest: Quest,
+    completionCode: string,
+  ) => Promise<{ error?: string; success: boolean }>;
   quest: Quest | null;
 }) {
   const { width } = useWindowDimensions();
   const stableTopInset = useStableTopInset();
   const translateX = useSharedValue(0);
+  const [permission, requestPermission] = useCameraPermissions();
+  const [scannerOpen, setScannerOpen] = useState(false);
+  const [scanLocked, setScanLocked] = useState(false);
+  const [scanMessage, setScanMessage] = useState<string | null>(null);
+  const [completing, setCompleting] = useState(false);
 
   useEffect(() => {
     if (quest) {
@@ -224,6 +236,35 @@ function QuestDetailModal({
     });
   }
 
+  function openCompletionScanner() {
+    setScanLocked(false);
+    setScanMessage(null);
+    setScannerOpen(true);
+  }
+
+  async function handleBarcodeScanned(result: BarcodeScanningResult) {
+    if (scanLocked || !quest) return;
+
+    const completionCode = result.data.trim();
+    if (!completionCode) {
+      setScanMessage('This QR code could not be read. Try again.');
+      return;
+    }
+
+    setScanLocked(true);
+    setCompleting(true);
+    const completionResult = await onCompleteQuest(quest, completionCode);
+    setCompleting(false);
+    if (completionResult.success) {
+      setScannerOpen(false);
+      setScanMessage(null);
+      return;
+    }
+
+    setScanMessage(completionResult.error ?? 'This QR code does not complete this quest.');
+    setTimeout(() => setScanLocked(false), 1400);
+  }
+
   if (!quest) return null;
   const questCompleted = quest.stops.length > 0 && quest.completedStops >= quest.stops.length;
   const questHasStops = quest.stops.length > 0;
@@ -241,7 +282,7 @@ function QuestDetailModal({
               <BrandImage
                 source={getQuestImageSource(quest.image, quest.imageUrl)}
                 contentFit="cover"
-                style={StyleSheet.absoluteFillObject}
+                style={StyleSheet.absoluteFill}
                 withTextGradient
               />
               <View
@@ -291,12 +332,14 @@ function QuestDetailModal({
 
               <Pressable
                 disabled={questCompleted || !questHasStops}
-                onPress={() => onCompleteQuest(quest)}
+                onPress={openCompletionScanner}
                 className={`mt-2 h-[52px] flex-row items-center justify-center gap-2 rounded-2xl ${
                   questCompleted || !questHasStops ? 'bg-gray-200' : 'bg-primary active:opacity-85'
                 }`}
               >
-                {questCompleted && <BadgeCheck size={19} color="#756F7B" strokeWidth={2.4} />}
+                {questCompleted && (
+                  <BadgeCheck size={19} color={Colors.light.textSecondary} strokeWidth={2.4} />
+                )}
                 <Text
                   className={`font-ui text-[15px] font-extrabold ${
                     questCompleted ? 'text-muted' : 'text-white'
@@ -305,12 +348,68 @@ function QuestDetailModal({
                   {questCompleted
                     ? 'Quest completed'
                     : questHasStops
-                      ? `Complete quest +${quest.totalXp} XP`
+                      ? `Scan finish QR +${quest.totalXp} XP`
                       : 'Stops coming soon'}
                 </Text>
               </Pressable>
             </View>
           </ScrollView>
+
+          <Modal
+            animationType="slide"
+            onRequestClose={() => setScannerOpen(false)}
+            visible={scannerOpen}
+          >
+            <SafeAreaView className="flex-1 bg-black" edges={['top', 'bottom']}>
+              <View className="flex-row items-center justify-between px-5 py-4">
+                <Text className="text-[18px] font-extrabold text-white">Scan finish QR</Text>
+                <Pressable
+                  onPress={() => setScannerOpen(false)}
+                  className="h-10 w-10 items-center justify-center rounded-full bg-white/15"
+                >
+                  <X size={20} color="white" />
+                </Pressable>
+              </View>
+
+              {!permission ? (
+                <View className="flex-1 items-center justify-center px-6">
+                  <Text className="text-center text-[14px] text-white/80">Loading camera...</Text>
+                </View>
+              ) : !permission.granted ? (
+                <View className="flex-1 items-center justify-center px-6">
+                  <Text className="mb-4 text-center text-[15px] leading-5 text-white">
+                    Camera access is needed to scan the finish QR code.
+                  </Text>
+                  <Pressable
+                    onPress={requestPermission}
+                    className="h-12 items-center justify-center rounded-xl bg-white px-5"
+                  >
+                    <Text className="text-[14px] font-bold text-ink">Allow camera access</Text>
+                  </Pressable>
+                </View>
+              ) : (
+                <View className="flex-1">
+                  <CameraView
+                    barcodeScannerSettings={{ barcodeTypes: ['qr'] }}
+                    onBarcodeScanned={scanLocked ? undefined : handleBarcodeScanned}
+                    style={{ flex: 1 }}
+                  />
+                  <View className="absolute bottom-0 left-0 right-0 bg-black/60 px-5 py-5">
+                    <Text className="text-center text-[14px] font-semibold text-white">
+                      {completing
+                        ? 'Completing your quest...'
+                        : 'Scan the official QR code at the final trail stop.'}
+                    </Text>
+                    {scanMessage && (
+                      <Text className="mt-3 text-center text-[13px] font-semibold text-destructive">
+                        {scanMessage}
+                      </Text>
+                    )}
+                  </View>
+                </View>
+              )}
+            </SafeAreaView>
+          </Modal>
         </Animated.View>
       </GestureDetector>
     </Modal>
@@ -329,7 +428,7 @@ function QuestStopRow({ isLast, stop }: { isLast: boolean; stop: QuestStop }) {
           {stop.completed ? (
             <BadgeCheck size={22} color="white" fill="rgba(255,255,255,0.18)" strokeWidth={2.4} />
           ) : (
-            <LockKeyhole size={20} color="#9CA3AF" strokeWidth={2.4} />
+            <LockKeyhole size={20} color={Colors.light.disabledIcon} strokeWidth={2.4} />
           )}
         </View>
         {!isLast && <View className="my-1 h-10 w-px bg-gray-200" />}
@@ -344,11 +443,11 @@ function QuestStopRow({ isLast, stop }: { isLast: boolean; stop: QuestStop }) {
         <Text className="mt-1 text-[13px] leading-5 text-muted">{stop.description}</Text>
         <View className="mt-2 flex-row items-center gap-4">
           <View className="flex-row items-center gap-1">
-            <Clock3 size={13} color="#756F7B" />
+            <Clock3 size={13} color={Colors.light.textSecondary} />
             <Text className="text-[12px] font-medium text-muted">{stop.eta}</Text>
           </View>
           <View className="flex-row items-center gap-1">
-            <MapPin size={13} color="#756F7B" />
+            <MapPin size={13} color={Colors.light.textSecondary} />
             <Text className="text-[12px] font-medium text-muted">
               {stop.completed ? 'Completed' : 'Upcoming'}
             </Text>

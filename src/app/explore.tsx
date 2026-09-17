@@ -33,10 +33,10 @@ import Animated, {
 } from 'react-native-reanimated';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { EmptyState, ErrorState, LoadingState } from '@/components/async-state';
+import { CardListSkeleton, EmptyState, ErrorState, LoadingState } from '@/components/async-state';
 import { BrandImage } from '@/components/brand-image';
 import { OrganizerAvatar, OrganizerProfileModal } from '@/components/organizer-profile-modal';
-import { CardStyles } from '@/constants/theme';
+import { CardStyles, Colors } from '@/constants/theme';
 import {
   type CultureEvent,
   type CultureCityData,
@@ -86,9 +86,13 @@ type ExploreScreenProps = {
   eventStatuses?: Record<string, UserEventStatus>;
   onEventCheckIn?: (
     event: CultureEvent,
+    checkInCode: string,
     location: { latitude: number; longitude: number },
   ) => Promise<EventCheckInResult>;
-  onEventStatusChange?: (eventId: string, status: UserEventStatus | null) => void;
+  onEventStatusChange?: (
+    eventId: string,
+    status: UserEventStatus | null,
+  ) => Promise<{ error: string | null }>;
   onExternalEventClose?: () => void;
   openEventId?: string;
   openEventNonce?: number;
@@ -358,12 +362,12 @@ export default function ExploreScreen({
       >
         <View className="mb-5 px-5" style={{ paddingTop: stableTopInset + 16 }}>
           <View className="h-14 flex-row items-center gap-3.5 rounded-2xl border border-primary/10 bg-gray-100 px-4">
-            <Search size={20} color="#7C3AED" strokeWidth={2.4} />
+            <Search size={20} color={Colors.light.primary} strokeWidth={2.4} />
             <TextInput
               value={search}
               onChangeText={setSearch}
               placeholder="Search events, organizers..."
-              placeholderTextColor="#756F7B"
+              placeholderTextColor={Colors.light.textSecondary}
               autoCapitalize="none"
               className="flex-1 text-[15px] font-medium text-ink"
             />
@@ -443,7 +447,7 @@ export default function ExploreScreen({
                     <BrandImage
                       source={getEventImageSource(featuredEvent)}
                       contentFit="cover"
-                      style={StyleSheet.absoluteFillObject}
+                      style={StyleSheet.absoluteFill}
                       withTextGradient
                     >
                       <View className="absolute left-3 top-3 rounded-full bg-ink/70 px-2.5 py-1">
@@ -487,13 +491,13 @@ export default function ExploreScreen({
                     </Text>
                     <View className="flex-row flex-wrap items-center gap-3">
                       <View className="flex-row items-center gap-1">
-                        <Clock size={13} color="#756F7B" />
+                        <Clock size={13} color={Colors.light.textSecondary} />
                         <Text className="text-[12px] text-muted">
                           {featuredEvent.date}, {formatEventTimeRange(featuredEvent)}
                         </Text>
                       </View>
                       <View className="flex-row items-center gap-1">
-                        <MapPin size={13} color="#756F7B" />
+                        <MapPin size={13} color={Colors.light.textSecondary} />
                         <Text className="text-[12px] text-muted" numberOfLines={1}>
                           {featuredEvent.venueName}
                         </Text>
@@ -507,7 +511,7 @@ export default function ExploreScreen({
             <View className="px-5">
               {eventsError && (
                 <ErrorState
-                  body="Apply the latest migration or check your Supabase connection."
+                  body="We could not load events right now. Check your connection and try again."
                   compact
                   style={{ marginBottom: 12 }}
                   title="Approved events could not load"
@@ -529,10 +533,7 @@ export default function ExploreScreen({
               </Text>
 
               {eventsLoading ? (
-                <LoadingState
-                  body={`Finding approved events for ${cityData.name}.`}
-                  title="Loading approved events"
-                />
+                <CardListSkeleton count={4} />
               ) : filteredEvents.length === 0 ? (
                 <EmptyState
                   body={
@@ -567,7 +568,7 @@ export default function ExploreScreen({
                           <BrandImage
                             source={getEventImageSource(event)}
                             contentFit="cover"
-                            style={StyleSheet.absoluteFillObject}
+                            style={StyleSheet.absoluteFill}
                           />
                         </View>
                         <View className="min-w-0 flex-1">
@@ -599,7 +600,7 @@ export default function ExploreScreen({
                           </Text>
                           <View className="flex-row flex-wrap items-center gap-2.5">
                             <View className="flex-row items-center gap-1">
-                              <Clock size={12} color="#756F7B" />
+                              <Clock size={12} color={Colors.light.textSecondary} />
                               <Text className="text-[12px] text-muted">
                                 {formatEventTimeRange(event)}
                               </Text>
@@ -613,7 +614,7 @@ export default function ExploreScreen({
                             />
                           </View>
                         </View>
-                        <ChevronRight size={18} color="#8B909A" />
+                        <ChevronRight size={18} color={Colors.light.inputPlaceholder} />
                       </Pressable>
                     );
                   })}
@@ -625,7 +626,7 @@ export default function ExploreScreen({
           <View className="gap-3 px-5">
             {organizerProfilesError && (
               <ErrorState
-                body="Apply the latest migration or check your Supabase connection."
+                body="We could not load organizers right now. Check your connection and try again."
                 compact
                 title="Organizer profiles could not load"
               />
@@ -671,7 +672,7 @@ export default function ExploreScreen({
                       {profile.bio}
                     </Text>
                   </View>
-                  <ChevronRight size={18} color="#756F7B" />
+                  <ChevronRight size={18} color={Colors.light.textSecondary} />
                 </Pressable>
               ))
             )}
@@ -688,8 +689,8 @@ export default function ExploreScreen({
         }
         event={selectedEvent}
         venue={null}
-        onCheckIn={async (event, location) => {
-          const checkInResult = (await onEventCheckIn?.(event, location)) ?? {
+        onCheckIn={async (event, checkInCode, location) => {
+          const checkInResult = (await onEventCheckIn?.(event, checkInCode, location)) ?? {
             error: 'Check-in is not available right now.',
             success: false,
           };
@@ -710,9 +711,11 @@ export default function ExploreScreen({
           setSelectedOrganizerProfile(profile);
         }}
         organizerProfile={selectedEventOrganizerProfile}
-        onToggleStatus={(eventId, status) => {
-          onEventStatusChange?.(eventId, eventStatuses[eventId] === status ? null : status);
-        }}
+        onToggleStatus={async (eventId, status) =>
+          (await onEventStatusChange?.(eventId, eventStatuses[eventId] === status ? null : status)) ?? {
+            error: 'RSVP is not available right now.',
+          }
+        }
         status={selectedDetailStatus}
       />
       <OrganizerProfileModal
@@ -753,12 +756,16 @@ function EventDetailModal({
   venue?: Venue | null;
   onCheckIn: (
     event: CultureEvent,
+    checkInCode: string,
     location: { latitude: number; longitude: number },
   ) => Promise<EventCheckInResult>;
   onClose: () => void;
   onOpenOrganizer: (profile: OrganizerProfile) => void;
   organizerProfile?: OrganizerProfile | null;
-  onToggleStatus: (eventId: string, status: 'interested' | 'going') => void;
+  onToggleStatus: (
+    eventId: string,
+    status: 'interested' | 'going',
+  ) => Promise<{ error: string | null }>;
   status?: 'interested' | 'going';
 }) {
   const { width } = useWindowDimensions();
@@ -767,6 +774,9 @@ function EventDetailModal({
   const [scannerOpen, setScannerOpen] = useState(false);
   const [scanLocked, setScanLocked] = useState(false);
   const [scanMessage, setScanMessage] = useState<string | null>(null);
+  const [statusActionError, setStatusActionError] = useState<string | null>(null);
+  const [statusActionPending, setStatusActionPending] = useState(false);
+  const [statusActionToRetry, setStatusActionToRetry] = useState<'interested' | 'going' | null>(null);
   const [locationMessage, setLocationMessage] = useState<string | null>(null);
   const [checkingLocation, setCheckingLocation] = useState(false);
   const [permission, requestPermission] = useCameraPermissions();
@@ -920,22 +930,40 @@ function EventDetailModal({
       return;
     }
 
-    if (result.data === event.checkInCode) {
-      if (!locationResult.location) {
-        setScanMessage('Location could not be verified. Try scanning again.');
-        setTimeout(() => setScanLocked(false), 1400);
-        return;
-      }
+    const checkInCode = result.data.trim();
+    if (!checkInCode || !locationResult.location) {
+      setScanMessage('This QR code could not be verified. Try scanning again.');
+      setTimeout(() => setScanLocked(false), 1400);
+      return;
+    }
 
-      const checkInResult = await onCheckIn(event, locationResult.location);
+    const checkInResult = await onCheckIn(event, checkInCode, locationResult.location);
+    if (checkInResult.success) {
       setScannerOpen(false);
       setScanMessage(null);
       setLocationMessage(getCheckInResultMessage(event, checkInResult));
       return;
     }
 
-    setScanMessage('This QR code does not match this event.');
-    setTimeout(() => setScanLocked(false), 1200);
+    setScanMessage(checkInResult.error ?? 'This QR code does not match this event.');
+    setTimeout(() => setScanLocked(false), 1400);
+  }
+
+  async function handleStatusToggle(nextStatus: 'interested' | 'going') {
+    if (!event || statusActionPending) return;
+
+    setStatusActionPending(true);
+    setStatusActionError(null);
+    setStatusActionToRetry(nextStatus);
+    const result = await onToggleStatus(event.id, nextStatus);
+    setStatusActionPending(false);
+
+    if (result.error) {
+      setStatusActionError(result.error);
+      return;
+    }
+
+    setStatusActionToRetry(null);
   }
 
   return (
@@ -952,7 +980,7 @@ function EventDetailModal({
                 <BrandImage
                   source={getEventImageSource(event)}
                   contentFit="cover"
-                  style={StyleSheet.absoluteFillObject}
+                  style={StyleSheet.absoluteFill}
                   withTextGradient
                 />
                 <Pressable
@@ -990,21 +1018,46 @@ function EventDetailModal({
                 <View className="mb-5 flex-row gap-2">
                   <StatusButton
                     active={status === 'interested'}
+                    disabled={statusActionPending}
                     icon={
-                      <BellRing size={17} color={status === 'interested' ? 'white' : '#7C3AED'} />
+                      <BellRing
+                        size={17}
+                        color={status === 'interested' ? Colors.light.onPrimary : Colors.light.primary}
+                      />
                     }
                     label="Interested"
-                    onPress={() => onToggleStatus(event.id, 'interested')}
+                    onPress={() => handleStatusToggle('interested')}
                   />
                   <StatusButton
                     active={status === 'going'}
+                    disabled={statusActionPending}
                     icon={
-                      <CheckCircle2 size={17} color={status === 'going' ? 'white' : '#7C3AED'} />
+                      <CheckCircle2
+                        size={17}
+                        color={status === 'going' ? Colors.light.onPrimary : Colors.light.primary}
+                      />
                     }
                     label="Going"
-                    onPress={() => onToggleStatus(event.id, 'going')}
+                    onPress={() => handleStatusToggle('going')}
                   />
                 </View>
+
+                {statusActionError && (
+                  <View className="mb-4 flex-row items-center justify-between rounded-xl border border-destructive/20 bg-destructive/5 p-3">
+                    <Text className="mr-3 flex-1 text-[13px] leading-5 text-destructive">
+                      {statusActionError}
+                    </Text>
+                    {statusActionToRetry && (
+                      <Pressable
+                        disabled={statusActionPending}
+                        onPress={() => handleStatusToggle(statusActionToRetry)}
+                        className="rounded-lg bg-destructive px-3 py-2 active:opacity-85"
+                      >
+                        <Text className="text-[12px] font-bold text-white">Retry</Text>
+                      </Pressable>
+                    )}
+                  </View>
+                )}
 
                 {!!status && (
                   <View className="mb-5 rounded-xl border border-primary/10 bg-primary/5 p-3">
@@ -1184,21 +1237,24 @@ function EventDetailModal({
 
 function StatusButton({
   active,
+  disabled = false,
   icon,
   label,
   onPress,
 }: {
   active: boolean;
+  disabled?: boolean;
   icon: React.ReactNode;
   label: string;
   onPress: () => void;
 }) {
   return (
     <Pressable
+      disabled={disabled}
       onPress={onPress}
       className={`h-11 flex-1 flex-row items-center justify-center gap-2 rounded-xl ${
         active ? 'bg-primary' : 'border border-primary/20 bg-primary/5'
-      }`}
+      } ${disabled ? 'opacity-55' : ''}`}
     >
       {icon}
       <Text className={`text-[14px] font-semibold ${active ? 'text-white' : 'text-primary'}`}>

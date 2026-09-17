@@ -198,6 +198,21 @@ export async function createQuest(input: CreateQuestInput) {
   return { error: null, questId };
 }
 
+export async function fetchQuestCompletionCode(questId: string) {
+  const { data, error } = await supabase.rpc('get_quest_completion_code', {
+    _quest_id: questId,
+  });
+
+  if (error || typeof data !== 'string' || !data) {
+    return {
+      completionCode: null,
+      error: getNetworkAwareErrorMessage(error?.message ?? 'Completion code is unavailable.'),
+    };
+  }
+
+  return { completionCode: data, error: null };
+}
+
 async function uploadQuestImage(userId: string, imageUri: string) {
   try {
     const response = await fetch(imageUri);

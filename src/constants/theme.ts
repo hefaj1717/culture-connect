@@ -6,43 +6,10 @@
 import '@/global.css';
 
 import { Platform } from 'react-native';
+import themeTokens from './theme-tokens.json';
 
-export const Colors = {
-  light: {
-    text: '#241C2E',
-    background: '#FAF8F5',
-    backgroundElement: '#F1ECE6',
-    backgroundSelected: '#E7DDF4',
-    textSecondary: '#756F7B',
-    primary: '#7C3AED',
-    ink: '#241C2E',
-    accent: '#F4A261',
-    accentDeep: '#E76F51',
-    badgeQuest: '#7C3AED',
-    badgeSocial: '#F4A261',
-    badgeExplore: '#14B8A6',
-    badgeCulture: '#E76F51',
-    progressTrack: '#D8CDD4',
-    success: '#2F9E73',
-  },
-  dark: {
-    text: '#ffffff',
-    background: '#241C2E',
-    backgroundElement: '#33283F',
-    backgroundSelected: '#443354',
-    textSecondary: '#D9D0E3',
-    primary: '#A78BFA',
-    ink: '#241C2E',
-    accent: '#F4A261',
-    accentDeep: '#E76F51',
-    badgeQuest: '#A78BFA',
-    badgeSocial: '#F4A261',
-    badgeExplore: '#2DD4BF',
-    badgeCulture: '#FB8B71',
-    progressTrack: '#5B5066',
-    success: '#4CC38D',
-  },
-} as const;
+/** The single palette authority for React Native styles and Tailwind. */
+export const Colors = themeTokens.themes;
 
 export type ThemeColor = keyof typeof Colors.light & keyof typeof Colors.dark;
 

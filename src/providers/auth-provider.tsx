@@ -29,6 +29,8 @@ type AuthContextValue = {
   session: Session | null;
   user: User | null;
   loading: boolean;
+  authError: string | null;
+  clearAuthError: () => void;
   roles: AppRole[];
   hasRole: (role: AppRole) => boolean;
   organizerApplicationStatus: OrganizerApplicationStatus;
@@ -102,6 +104,7 @@ function isProfileSchemaCacheError(message: string) {
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [authError, setAuthError] = useState<string | null>(null);
   const [roles, setRoles] = useState<AppRole[]>(['guest']);
   const [organizerApplicationStatus, setOrganizerApplicationStatus] =
     useState<OrganizerApplicationStatus>('none');
@@ -117,32 +120,43 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const refreshToken = getUrlParam(url, 'refresh_token');
 
       if (tokenHash) {
-        await supabase.auth.verifyOtp({
+        const { error } = await supabase.auth.verifyOtp({
           token_hash: tokenHash,
           type,
         });
+        setAuthError(error ? getNetworkAwareErrorMessage(error.message) : null);
         return;
       }
 
       if (code) {
-        await supabase.auth.exchangeCodeForSession(code);
+        const { error } = await supabase.auth.exchangeCodeForSession(code);
+        setAuthError(error ? getNetworkAwareErrorMessage(error.message) : null);
         return;
       }
 
       if (accessToken && refreshToken) {
-        await supabase.auth.setSession({
+        const { error } = await supabase.auth.setSession({
           access_token: accessToken,
           refresh_token: refreshToken,
         });
+        setAuthError(error ? getNetworkAwareErrorMessage(error.message) : null);
       }
     }
 
-    supabase.auth.getSession().then(({ data }) => {
+    supabase.auth.getSession().then(({ data, error }) => {
       setSession(data.session);
+      if (error) {
+        setAuthError(getNetworkAwareErrorMessage(error.message));
+      }
+      setLoading(false);
+    }).catch(() => {
+      setAuthError(OFFLINE_ERROR_MESSAGE);
       setLoading(false);
     });
 
-    Linking.getInitialURL().then(handleAuthUrl);
+    Linking.getInitialURL().then(handleAuthUrl).catch(() => {
+      setAuthError('Could not finish the sign-in link. Please try again.');
+    });
     const linkingSubscription = Linking.addEventListener('url', ({ url }) => {
       handleAuthUrl(url);
     });
@@ -441,8 +455,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (profileError) {
         if (!isProfileSchemaCacheError(profileError.message)) {
-          console.warn('Profile metadata saved, but profiles sync failed:', profileError.message);
-          return { error: null };
+          return {
+            error:
+              'Your account profile was saved, but the public profile could not sync. Please try saving again.',
+          };
         }
 
         const { error: fallbackProfileError } = await supabase.from('profiles').upsert(
@@ -455,10 +471,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         );
 
         if (fallbackProfileError) {
-          console.warn(
-            'Profile metadata saved, but legacy profiles sync failed:',
-            fallbackProfileError.message,
-          );
+          return {
+            error:
+              'Your account profile was saved, but the public profile could not sync. Please try saving again.',
+          };
         }
       }
     } catch {
@@ -478,6 +494,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         session,
         user: session?.user ?? null,
         loading,
+        authError,
+        clearAuthError: () => setAuthError(null),
         roles,
         hasRole: (role) => roles.includes(role),
         organizerApplicationStatus,

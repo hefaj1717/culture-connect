@@ -24,18 +24,18 @@ export function BrandImage({
 }: BrandImageProps) {
   return (
     <View className={`overflow-hidden bg-ink ${className ?? ''}`} style={style}>
-      <Image source={source} contentFit={contentFit} style={StyleSheet.absoluteFillObject} />
+      <Image source={source} contentFit={contentFit} style={StyleSheet.absoluteFill} />
       <View
         pointerEvents="none"
         style={[
-          StyleSheet.absoluteFillObject,
+          StyleSheet.absoluteFill,
           { backgroundColor: Colors.light.primary, opacity: 0.1 },
         ]}
       />
       <View
         pointerEvents="none"
         style={[
-          StyleSheet.absoluteFillObject,
+          StyleSheet.absoluteFill,
           { backgroundColor: Colors.light.ink, opacity: 0.08 },
         ]}
       />
@@ -44,7 +44,7 @@ export function BrandImage({
           pointerEvents="none"
           colors={['rgba(36, 28, 46, 0.05)', 'rgba(36, 28, 46, 0.34)', 'rgba(36, 28, 46, 0.88)']}
           locations={[0, 0.48, 1]}
-          style={StyleSheet.absoluteFillObject}
+          style={StyleSheet.absoluteFill}
         />
       )}
       {children}

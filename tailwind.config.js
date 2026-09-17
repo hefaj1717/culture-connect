@@ -1,24 +1,27 @@
 /** @type {import('tailwindcss').Config} */
+const { themes } = require('./src/constants/theme-tokens.json');
+const colors = themes.light;
+
 module.exports = {
   content: ['./src/**/*.{js,jsx,ts,tsx}'],
   presets: [require('nativewind/preset')],
   theme: {
     extend: {
       colors: {
-        primary: '#7C3AED',
-        accent: '#F4A261',
-        accentDeep: '#E76F51',
-        secondary: '#F4A261',
-        ink: '#241C2E',
-        success: '#2F9E73',
-        destructive: '#EF4444',
-        muted: '#756F7B',
-        canvas: '#FAF8F5',
-        progressTrack: '#D8CDD4',
-        badgeQuest: '#7C3AED',
-        badgeSocial: '#F4A261',
-        badgeExplore: '#14B8A6',
-        badgeCulture: '#E76F51',
+        primary: colors.primary,
+        accent: colors.accent,
+        accentDeep: colors.accentDeep,
+        secondary: colors.accent,
+        ink: colors.ink,
+        success: colors.success,
+        destructive: colors.destructive,
+        muted: colors.textSecondary,
+        canvas: colors.background,
+        progressTrack: colors.progressTrack,
+        badgeQuest: colors.badgeQuest,
+        badgeSocial: colors.badgeSocial,
+        badgeExplore: colors.badgeExplore,
+        badgeCulture: colors.badgeCulture,
       },
       fontFamily: {
         sans: ['Inter_400Regular'],

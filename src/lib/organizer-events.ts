@@ -58,17 +58,16 @@ type OrganizerEventRow = {
   attendee_count: number;
   image_kind: CultureEvent['organizerImage'];
   image_url: string | null;
-  check_in_code: string;
   status?: OrganizerEventStatus;
 };
 
 const EVENT_IMAGES_BUCKET = 'event-images';
 const ORGANIZER_EVENT_SELECT =
-  'id, organizer_user_id, city_key, venue_key, venue_name, venue_address, venue_latitude, venue_longitude, title, description, category, date_label, time_label, end_time_label, starts_at, ends_at, xp_bonus, language, is_free, is_international, interested_count, going_count, attendee_count, image_kind, image_url, check_in_code';
+  'id, organizer_user_id, city_key, venue_key, venue_name, venue_address, venue_latitude, venue_longitude, title, description, category, date_label, time_label, end_time_label, starts_at, ends_at, xp_bonus, language, is_free, is_international, interested_count, going_count, attendee_count, image_kind, image_url';
 const LEGACY_ORGANIZER_EVENT_SELECT_WITH_INTERESTED =
-  'id, organizer_user_id, city_key, venue_key, venue_name, venue_address, venue_latitude, venue_longitude, title, description, category, date_label, time_label, end_time_label, starts_at, ends_at, xp_bonus, language, is_free, is_international, interested_count, attendee_count, image_kind, image_url, check_in_code';
+  'id, organizer_user_id, city_key, venue_key, venue_name, venue_address, venue_latitude, venue_longitude, title, description, category, date_label, time_label, end_time_label, starts_at, ends_at, xp_bonus, language, is_free, is_international, interested_count, attendee_count, image_kind, image_url';
 const LEGACY_ORGANIZER_EVENT_SELECT =
-  'id, organizer_user_id, city_key, venue_key, venue_name, venue_address, venue_latitude, venue_longitude, title, description, category, date_label, time_label, xp_bonus, language, is_free, is_international, attendee_count, image_kind, image_url, check_in_code';
+  'id, organizer_user_id, city_key, venue_key, venue_name, venue_address, venue_latitude, venue_longitude, title, description, category, date_label, time_label, xp_bonus, language, is_free, is_international, attendee_count, image_kind, image_url';
 const ORGANIZER_EVENT_WITH_STATUS_SELECT = `${ORGANIZER_EVENT_SELECT}, status`;
 const LEGACY_ORGANIZER_EVENT_WITH_STATUS_SELECT_WITH_INTERESTED = `${LEGACY_ORGANIZER_EVENT_SELECT_WITH_INTERESTED}, status`;
 const LEGACY_ORGANIZER_EVENT_WITH_STATUS_SELECT = `${LEGACY_ORGANIZER_EVENT_SELECT}, status`;
@@ -77,6 +76,21 @@ export type OrganizerEventStatus = 'draft' | 'pending' | 'approved' | 'rejected'
 export type ManagedOrganizerEvent = CultureEvent & {
   reviewStatus: OrganizerEventStatus;
 };
+
+export async function fetchOrganizerEventCheckInCode(eventId: string) {
+  const { data, error } = await supabase.rpc('get_organizer_event_checkin_code', {
+    _event_id: eventId,
+  });
+
+  if (error || typeof data !== 'string' || !data) {
+    return {
+      checkInCode: null,
+      error: getNetworkAwareErrorMessage(error?.message ?? 'Check-in code is unavailable.'),
+    };
+  }
+
+  return { checkInCode: data, error: null };
+}
 
 export async function fetchOrganizerEvents(cityId: CityId) {
   const queryApprovedEvents = (selectColumns: string) =>
@@ -252,7 +266,7 @@ export async function updateOrganizerEvent(userId: string, input: UpdateOrganize
   if (!updatedEvent || updatedEvent.status !== 'pending') {
     return {
       error:
-        'Event changes were not submitted for review. Apply the latest Supabase migration and try again.',
+        'Event changes could not be submitted right now. Please try again.',
     };
   }
 
@@ -303,7 +317,6 @@ function mapOrganizerEventRow(
     organizerLocationCoordinates: organizerProfile?.locationCoordinates ?? null,
     organizerLocationName: organizerProfile?.locationName ?? null,
     imageUrl: row.image_url ?? undefined,
-    checkInCode: row.check_in_code,
     venueAddress: row.venue_address ?? undefined,
     venueCoordinates:
       typeof row.venue_latitude === 'number' && typeof row.venue_longitude === 'number'
@@ -332,7 +345,7 @@ function getOrganizerEventUpdateErrorMessage(message: string) {
     message.includes('Results contain 0 rows') ||
     message.includes('row')
   ) {
-    return 'Event changes were not submitted for review. Apply the latest Supabase migration and try again.';
+    return 'Event changes could not be submitted right now. Please try again.';
   }
 
   return message;

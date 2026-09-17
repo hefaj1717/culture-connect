@@ -15,7 +15,7 @@ import {
   Users,
   UserRound,
 } from 'lucide-react-native';
-import { useMemo, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Alert, Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import * as Sharing from 'expo-sharing';
 import { GestureDetector } from 'react-native-gesture-handler';
@@ -36,7 +36,11 @@ import { eventCategoryLabels, type CultureEvent, type RewardPartner } from '@/da
 import type { RedeemedRewardState } from '@/data/profile';
 import { getEventEngagement } from '@/lib/event-engagement';
 import type { UserEventHistoryItem, UserEventStatus } from '@/lib/event-history';
-import type { ManagedOrganizerEvent, OrganizerEventStatus } from '@/lib/organizer-events';
+import {
+  fetchOrganizerEventCheckInCode,
+  type ManagedOrganizerEvent,
+  type OrganizerEventStatus,
+} from '@/lib/organizer-events';
 import type { ManagedOrganizerReward, OrganizerRewardStatus } from '@/lib/organizer-rewards';
 import { formatRewardAvailability } from '@/lib/reward-availability';
 import type { UserUniversityMembership } from '@/lib/university-leaderboard';
@@ -178,10 +182,36 @@ export function ProfileRankCard({
 }
 
 type UniversityAffiliationSectionProps = {
+  error?: string | null;
   membership: UserUniversityMembership | null;
+  onRetry?: () => void;
 };
 
-export function UniversityAffiliationSection({ membership }: UniversityAffiliationSectionProps) {
+export function UniversityAffiliationSection({
+  error = null,
+  membership,
+  onRetry,
+}: UniversityAffiliationSectionProps) {
+  if (error) {
+    return (
+      <View
+        className="mx-5 mb-7 flex-row items-center gap-3 rounded-3xl border border-destructive/20 bg-destructive/5 px-4 py-4"
+        style={CardStyles.compact}
+      >
+        <GraduationCap size={20} color="#DC2626" strokeWidth={2.4} />
+        <View className="min-w-0 flex-1">
+          <Text className="text-[13px] font-bold text-ink">University affiliation could not load</Text>
+          <Text className="mt-1 text-[12px] leading-4 text-muted">{error}</Text>
+        </View>
+        {onRetry && (
+          <Pressable onPress={onRetry} className="rounded-lg bg-destructive px-3 py-2 active:opacity-85">
+            <Text className="text-[12px] font-bold text-white">Retry</Text>
+          </Pressable>
+        )}
+      </View>
+    );
+  }
+
   if (!membership) {
     return null;
   }
@@ -630,7 +660,7 @@ export function AdminXpAuditModal({
                 <LoadingState title="Loading XP audit" />
               ) : error ? (
                 <ErrorState
-                  body="Make sure the latest XP transaction migration is applied, then refresh."
+                  body="We could not load your XP history right now. Check your connection and try again."
                   title="XP audit could not load"
                 />
               ) : transactions.length === 0 ? (
@@ -756,7 +786,7 @@ export function OrganizerEventHistorySection({
         <LoadingState compact title="Loading your event history" />
       ) : error ? (
         <ErrorState
-          body="Apply the latest Supabase migration if needed, then refresh the app."
+          body="We could not load your event history right now. Check your connection and try again."
           compact
           title="Your event history could not load"
         />
@@ -802,7 +832,7 @@ export function OrganizerRewardHistorySection({
         <LoadingState compact title="Loading your reward history" />
       ) : error ? (
         <ErrorState
-          body="Apply the latest Supabase migration if needed, then refresh the app."
+          body="We could not load your reward history right now. Check your connection and try again."
           compact
           title="Your reward history could not load"
         />
@@ -1325,7 +1355,7 @@ function EventHistoryRow({
         <BrandImage
           source={getEventImageSource(event)}
           contentFit="cover"
-          style={StyleSheet.absoluteFillObject}
+          style={StyleSheet.absoluteFill}
         />
       </View>
       <View className="p-4">
@@ -1367,7 +1397,7 @@ function OrganizerEventRow({
         <BrandImage
           source={getEventImageSource(event)}
           contentFit="cover"
-          style={StyleSheet.absoluteFillObject}
+          style={StyleSheet.absoluteFill}
         />
       </View>
       <View className="p-4">
@@ -1400,7 +1430,7 @@ function OrganizerRewardRow({ reward }: { reward: ManagedOrganizerReward }) {
           <BrandImage
             contentFit="cover"
             source={getRewardHistoryImageSource(reward)}
-            style={StyleSheet.absoluteFillObject}
+            style={StyleSheet.absoluteFill}
             withTextGradient={false}
           />
         </View>
@@ -1480,7 +1510,7 @@ function HistoryEventDetail({
           <BrandImage
             source={getEventImageSource(event)}
             contentFit="cover"
-            style={StyleSheet.absoluteFillObject}
+            style={StyleSheet.absoluteFill}
             withTextGradient
           >
             <View className="absolute bottom-5 left-5 right-5">
@@ -1589,14 +1619,37 @@ function OrganizerEventQrModal({
   visible: boolean;
 }) {
   const qrCardRef = useRef<View>(null);
+  const [checkInCode, setCheckInCode] = useState<string | null>(null);
+  const [checkInCodeError, setCheckInCodeError] = useState<string | null>(null);
+  const [checkInCodeLoading, setCheckInCodeLoading] = useState(false);
   const [sharing, setSharing] = useState(false);
   const { closeWithAnimation, gesture, swipeStyle } = useCardSwipeBack({
     onSwipeBack: onClose,
     visible,
   });
 
+  useEffect(() => {
+    if (!visible) return;
+
+    const eventId = event.id.replace(/^organizer-/, '');
+    let active = true;
+    setCheckInCodeLoading(true);
+    setCheckInCodeError(null);
+
+    void fetchOrganizerEventCheckInCode(eventId).then((result) => {
+      if (!active) return;
+      setCheckInCode(result.checkInCode);
+      setCheckInCodeError(result.error);
+      setCheckInCodeLoading(false);
+    });
+
+    return () => {
+      active = false;
+    };
+  }, [event.id, visible]);
+
   async function shareQrPass() {
-    if (!qrCardRef.current || sharing) return;
+    if (!qrCardRef.current || sharing || !checkInCode) return;
 
     setSharing(true);
     try {
@@ -1643,6 +1696,14 @@ function OrganizerEventQrModal({
               contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 36, paddingTop: 12 }}
               showsVerticalScrollIndicator={false}
             >
+              {checkInCodeLoading ? (
+                <LoadingState body="Retrieving your private event code." title="Loading QR" />
+              ) : checkInCodeError || !checkInCode ? (
+                <ErrorState
+                  body={checkInCodeError ?? 'The private check-in code is unavailable.'}
+                  title="QR could not load"
+                />
+              ) : (
               <View
                 ref={qrCardRef}
                 collapsable={false}
@@ -1668,13 +1729,13 @@ function OrganizerEventQrModal({
                       backgroundColor="#FFFFFF"
                       color={Colors.light.ink}
                       size={220}
-                      value={event.checkInCode}
+                      value={checkInCode}
                     />
-                    <Text className="mt-5 text-center text-[11px] font-extrabold uppercase tracking-[1.8px] text-muted">
-                      Backup code
+                  <Text className="mt-5 text-center text-[11px] font-extrabold uppercase tracking-[1.8px] text-muted">
+                      Valid for 15 minutes
                     </Text>
                     <Text className="mt-1 text-center font-ui text-[22px] font-extrabold tracking-[2px] text-ink">
-                      {event.checkInCode}
+                      {checkInCode}
                     </Text>
                   </View>
 
@@ -1682,27 +1743,28 @@ function OrganizerEventQrModal({
                     className="mt-5 text-center text-[12px] leading-5"
                     style={{ color: 'rgba(255,255,255,0.72)' }}
                   >
-                    Place this card at the venue entrance. Students must scan it in CultureQuest
-                    while they are within 500m of the venue.
+                    This QR expires after 15 minutes. Keep this card open at the venue entrance
+                    while students scan it in CultureQuest.
                   </Text>
                 </View>
               </View>
+              )}
 
               <View className="mt-4 rounded-2xl border border-gray-200 bg-white p-4">
                 <Text className="font-ui text-[15px] font-extrabold text-ink">Organizer note</Text>
                 <Text className="mt-1 text-[13px] leading-5 text-muted">
-                  Share this PNG with the venue, save it to Files, or print it from the iOS share
-                  sheet. The QR code contains only the event check-in code.
+                  This QR is intentionally short-lived. Show it at the venue instead of printing
+                  or sharing it in advance.
                 </Text>
               </View>
 
               <Pressable
-                disabled={sharing}
+                disabled={sharing || !checkInCode}
                 onPress={shareQrPass}
                 className="mt-4 h-[52px] flex-row items-center justify-center rounded-2xl bg-primary active:opacity-85 disabled:opacity-60"
               >
                 <Text className="text-[15px] font-extrabold text-white">
-                  {sharing ? 'Preparing PNG...' : 'Share / save PNG'}
+                  {sharing ? 'Preparing PNG...' : 'Share QR image'}
                 </Text>
               </Pressable>
             </ScrollView>
@@ -1933,7 +1995,7 @@ export function RewardsSection({
         />
       ) : error ? (
         <ErrorState
-          body="Apply the latest Supabase migration if you have not done it."
+          body="We could not load rewards right now. Check your connection and try again."
           compact
           style={{ marginBottom: 12 }}
           title="Rewards could not load"
