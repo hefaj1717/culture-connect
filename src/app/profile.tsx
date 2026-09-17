@@ -12,6 +12,7 @@ import {
   AccountActionsModal,
   AdminXpAuditModal,
   AdminToolsSection,
+  DigitalPassportSection,
   OrganizerEventHistoryModal,
   OrganizerToolsSection,
   OrganizerEventHistorySection,
@@ -586,6 +587,8 @@ export default function ProfileScreen({
           rewards={approvedRewards}
           userXp={userXp}
         />
+
+        <DigitalPassportSection badges={[]} />
 
         <OrganizerToolsSection
           cityName={cityData.name}

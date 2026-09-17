@@ -411,13 +411,13 @@ export function UserActivitySection({
 }
 
 type DigitalPassportSectionProps = {
-  badges: AchievementBadge[];
-  onOpenAll: () => void;
-  onOpenBadge: (badge: AchievementBadge) => void;
+  badges?: AchievementBadge[];
+  onOpenAll?: () => void;
+  onOpenBadge?: (badge: AchievementBadge) => void;
 };
 
 export function DigitalPassportSection({
-  badges,
+  badges = [],
   onOpenAll,
   onOpenBadge,
 }: DigitalPassportSectionProps) {
@@ -428,11 +428,14 @@ export function DigitalPassportSection({
     <View className="mb-8 mt-2">
       <View className="mb-4 flex-row items-center justify-between px-5">
         <Text className="font-heading text-[22px] font-extrabold text-ink">Digital Passport</Text>
-        <Pressable onPress={onOpenAll} className="active:opacity-75">
-          <Text className="text-[12px] font-semibold text-primary">View all</Text>
-        </Pressable>
+        {badges.length > 0 && onOpenAll ? <Pressable onPress={onOpenAll} className="active:opacity-75"><Text className="text-[12px] font-semibold text-primary">View all</Text></Pressable> : null}
       </View>
-      <ScrollView
+      {badges.length === 0 ? (
+        <View className="mx-5 rounded-2xl bg-canvas p-4">
+          <Text className="font-ui text-[14px] font-extrabold text-ink">Your passport is waiting</Text>
+          <Text className="mt-1 text-[12px] leading-4 text-muted">Complete events and quests to collect badges when the passport launches.</Text>
+        </View>
+      ) : <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={{ paddingHorizontal: 20, gap: 10 }}
@@ -443,11 +446,11 @@ export function DigitalPassportSection({
             itemWidth={badgeWidth}
             key={badge.id}
             onPress={() => {
-              onOpenBadge(badge);
+              onOpenBadge?.(badge);
             }}
           />
         ))}
-      </ScrollView>
+      </ScrollView>}
     </View>
   );
 }
