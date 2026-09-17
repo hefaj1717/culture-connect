@@ -79,7 +79,6 @@ export type CultureEvent = {
   } | null;
   organizerLocationName?: string | null;
   imageUrl?: string;
-  checkInCode: string;
   venueAddress?: string;
   venueCoordinates?: {
     latitude: number;

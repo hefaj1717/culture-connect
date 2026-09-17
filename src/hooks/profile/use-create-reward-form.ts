@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Alert } from 'react-native';
 
 import { limitText, textLimits } from '@/constants/text-limits';
@@ -37,6 +37,7 @@ export function useCreateRewardForm({
   const [rewardAvailability, setRewardAvailability] = useState(getDefaultRewardAvailability);
   const [createRewardError, setCreateRewardError] = useState<string | null>(null);
   const [creatingReward, setCreatingReward] = useState(false);
+  const rewardSubmissionInFlight = useRef(false);
   const { isOffline } = useNetworkStatus();
 
   useEffect(() => {
@@ -153,6 +154,8 @@ export function useCreateRewardForm({
   }
 
   async function submitReward() {
+    if (rewardSubmissionInFlight.current) return;
+
     const normalizedTitle = limitText(rewardTitle.trim(), textLimits.rewardTitle);
     const normalizedDescription = limitText(rewardDescription.trim(), textLimits.rewardDescription);
     const normalizedXp = Number.parseInt(rewardXp.trim(), 10);
@@ -184,20 +187,26 @@ export function useCreateRewardForm({
     }
 
     setCreateRewardError(null);
+    rewardSubmissionInFlight.current = true;
     setCreatingReward(true);
-    const result = await createOrganizerReward(userId, {
-      cityId: savedCityId,
-      availableDays: rewardAvailability.availableDays,
-      availableEndTime: rewardAvailability.availableEndTime,
-      availableFrom: rewardAvailability.availableFrom,
-      availableStartTime: rewardAvailability.availableStartTime,
-      availableUntil: rewardAvailability.availableUntil || null,
-      description: normalizedDescription,
-      place: selectedRewardPlace,
-      title: normalizedTitle,
-      xpCost: normalizedXp,
-    });
-    setCreatingReward(false);
+    let result;
+    try {
+      result = await createOrganizerReward(userId, {
+        cityId: savedCityId,
+        availableDays: rewardAvailability.availableDays,
+        availableEndTime: rewardAvailability.availableEndTime,
+        availableFrom: rewardAvailability.availableFrom,
+        availableStartTime: rewardAvailability.availableStartTime,
+        availableUntil: rewardAvailability.availableUntil || null,
+        description: normalizedDescription,
+        place: selectedRewardPlace,
+        title: normalizedTitle,
+        xpCost: normalizedXp,
+      });
+    } finally {
+      rewardSubmissionInFlight.current = false;
+      setCreatingReward(false);
+    }
 
     if (result.error) {
       setCreateRewardError(result.error);

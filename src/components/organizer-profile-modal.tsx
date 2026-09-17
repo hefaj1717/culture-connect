@@ -237,7 +237,7 @@ export function OrganizerAvatar({
       style={{ height: size, width: size }}
     >
       {profile.avatarUrl ? (
-        <Image source={{ uri: profile.avatarUrl }} style={StyleSheet.absoluteFillObject} />
+        <Image source={{ uri: profile.avatarUrl }} style={StyleSheet.absoluteFill} />
       ) : (
         <View className="flex-1 items-center justify-center">
           <Text
@@ -298,7 +298,7 @@ function OrganizerProfileEventRow({
         <BrandImage
           source={getEventImageSource(event)}
           contentFit="cover"
-          style={StyleSheet.absoluteFillObject}
+          style={StyleSheet.absoluteFill}
         />
       </View>
       <View className="min-w-0 flex-1">

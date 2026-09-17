@@ -75,7 +75,7 @@ function AuthInput({ inputRef, inputClassName, className, ...props }: AuthInputP
 }
 
 export function AuthScreen() {
-  const { signIn, signUp, verifySignUpCode, resendSignUpCode } = useAuth();
+  const { authError, clearAuthError, signIn, signUp, verifySignUpCode, resendSignUpCode } = useAuth();
   const { isOffline } = useNetworkStatus();
   const scrollViewRef = useRef<ScrollView>(null);
   const confirmationCodeRef = useRef<TextInput>(null);
@@ -109,6 +109,10 @@ export function AuthScreen() {
   const [fieldErrors, setFieldErrors] = useState<AuthFieldErrors>({});
   const [notice, setNotice] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (authError) setError(authError);
+  }, [authError]);
 
   const validationInput: AuthValidationInput = {
     applyAsOrganizer,
@@ -171,6 +175,7 @@ export function AuthScreen() {
   }, [mode]);
 
   async function handleSubmit() {
+    clearAuthError();
     setError(null);
     setNotice(null);
 
@@ -249,6 +254,7 @@ export function AuthScreen() {
   }
 
   async function handleConfirmCode() {
+    clearAuthError();
     setError(null);
     setNotice(null);
 

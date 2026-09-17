@@ -22,6 +22,32 @@ type AsyncStateProps = {
   tone?: AsyncStateTone;
 };
 
+export function CardListSkeleton({
+  count = 3,
+  style,
+}: {
+  count?: number;
+  style?: StyleProp<ViewStyle>;
+}) {
+  return (
+    <View className="gap-3" style={style} accessibilityLabel="Loading content">
+      {Array.from({ length: count }, (_, index) => (
+        <View
+          key={index}
+          className="overflow-hidden rounded-2xl border border-primary/10 bg-white"
+          style={{ height: 132 }}
+        >
+          <View className="h-16 bg-canvas" />
+          <View className="gap-2 p-3">
+            <View className="h-3 w-4/5 rounded-full bg-gray-200" />
+            <View className="h-3 w-2/5 rounded-full bg-gray-100" />
+          </View>
+        </View>
+      ))}
+    </View>
+  );
+}
+
 function getContainerClass(tone: AsyncStateTone, compact?: boolean) {
   const padding = compact ? 'p-3' : 'p-5';
 

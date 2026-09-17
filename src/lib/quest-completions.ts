@@ -25,8 +25,9 @@ export async function fetchCompletedQuestIds() {
   };
 }
 
-export async function completeQuest(questId: string) {
+export async function completeQuest(questId: string, completionCode: string) {
   const { data, error } = await supabase.rpc('complete_quest', {
+    _completion_code: completionCode,
     _quest_id: questId,
   });
 
@@ -54,6 +55,8 @@ export async function completeQuest(questId: string) {
 function getQuestCompletionError(error?: string) {
   if (error === 'not_authenticated') return 'Log in again to complete this quest.';
   if (error === 'quest_unavailable') return 'This quest is not available anymore.';
+  if (error === 'quest_not_ready') return 'This quest is not ready for completion yet.';
+  if (error === 'wrong_completion_code') return 'This QR code does not complete this quest.';
 
   return 'Could not complete this quest. Try again.';
 }

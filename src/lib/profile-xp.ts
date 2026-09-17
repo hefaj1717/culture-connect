@@ -116,7 +116,9 @@ function getAttendanceErrorMessage(error?: string, distance?: number) {
     return 'Check-in is not open yet. Try again when the event starts.';
   if (error === 'event_finished') return 'Check-in for this event has already closed.';
   if (error === 'wrong_code') return 'This QR code does not match this event.';
+  if (error === 'qr_expired') return 'This QR code has expired. Ask the organiser to open a new one.';
   if (error === 'missing_location') return 'This event is missing venue location data.';
+  if (error === 'invalid_location') return 'Your location could not be verified. Try again at the venue.';
   if (error === 'too_far') {
     const distanceLabel =
       typeof distance === 'number' ? ` You are about ${Math.round(distance)}m away.` : '';

@@ -1,4 +1,4 @@
-import { DefaultTheme, ThemeProvider } from '@react-navigation/native';
+import { DefaultTheme, ThemeProvider } from 'expo-router';
 import '@/global.css';
 import {
   Inter_400Regular,

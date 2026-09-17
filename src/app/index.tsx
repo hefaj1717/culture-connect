@@ -1,14 +1,12 @@
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Location from 'expo-location';
-import { ArrowLeft, ArrowRight, Bell, CheckCircle2, Globe, User, Users } from 'lucide-react-native';
-import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ArrowRight, CheckCircle2, Globe, User, Users } from 'lucide-react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import MapView, { Marker } from 'react-native-maps';
-import { GestureDetector } from 'react-native-gesture-handler';
-import Animated from 'react-native-reanimated';
 
-import { EmptyState, ErrorState, LoadingState } from '@/components/async-state';
+import { CardListSkeleton, EmptyState, ErrorState, LoadingState } from '@/components/async-state';
 import { BrandImage } from '@/components/brand-image';
 import { CardStyles, Colors } from '@/constants/theme';
 import { cultureMapStyle } from '@/constants/map-style';
@@ -22,9 +20,7 @@ import { getEventEngagement } from '@/lib/event-engagement';
 import type { UserEventStatus } from '@/lib/event-history';
 import { useResponsiveLayout } from '@/hooks/use-responsive-layout';
 import { useStableTopInset } from '@/hooks/use-stable-safe-area';
-import { useCardSwipeBack } from '@/hooks/use-card-swipe-back';
 import type { UniversityLeaderboardRow } from '@/lib/university-leaderboard';
-import type { OrganizerApplicationStatus } from '@/providers/auth-provider';
 
 type HomeScreenProps = {
   avatarInitials?: string | null;
@@ -37,7 +33,6 @@ type HomeScreenProps = {
   leaderboard?: UniversityLeaderboardRow[];
   leaderboardError?: string | null;
   leaderboardLoading?: boolean;
-  organizerApplicationStatus?: OrganizerApplicationStatus;
   onOpenDiscover?: () => void;
   onOpenEvent?: (eventId: string) => void;
   onOpenProfile?: () => void;
@@ -54,7 +49,6 @@ export default function HomeScreen({
   leaderboard = [],
   leaderboardError = null,
   leaderboardLoading = false,
-  organizerApplicationStatus = 'none',
   onOpenDiscover,
   onOpenEvent,
   onOpenProfile,
@@ -148,29 +142,6 @@ export default function HomeScreen({
   const selectedActivitySpot =
     activitySpots.find((spot) => spot.id === selectedActivityId) ?? activitySpots[0];
   const activityMapRegion = useMemo(() => getCityMapRegion(cityData), [cityData]);
-  const visibleNotifications = useMemo(() => {
-    const organizerNotification =
-      organizerApplicationStatus === 'approved'
-        ? {
-            id: 'organizer-approved',
-            title: 'Organizer approved',
-            message: 'Your institution has been approved. Event creation tools are next.',
-            time: 'Now',
-            unread: true,
-          }
-        : organizerApplicationStatus === 'rejected'
-          ? {
-              id: 'organizer-rejected',
-              title: 'Organizer application rejected',
-              message: 'Your organizer request was not approved. Check your profile for details.',
-              time: 'Now',
-              unread: true,
-            }
-          : null;
-
-    return organizerNotification ? [organizerNotification] : [];
-  }, [organizerApplicationStatus]);
-
   useEffect(() => {
     let mounted = true;
 
@@ -192,33 +163,11 @@ export default function HomeScreen({
       mounted = false;
     };
   }, []);
-  const [notificationsOpen, setNotificationsOpen] = useState(false);
-  const [hasUnreadNotifications, setHasUnreadNotifications] = useState(
-    visibleNotifications.some((notification) => notification.unread),
-  );
-  const {
-    closeWithAnimation: closeNotificationsWithAnimation,
-    gesture: notificationsGesture,
-    swipeStyle: notificationsSwipeStyle,
-  } = useCardSwipeBack({
-    onSwipeBack: () => setNotificationsOpen(false),
-    resetKey: visibleNotifications.map((notification) => notification.id).join('-'),
-    visible: notificationsOpen,
-  });
 
   useEffect(() => {
     setSelectedActivityId(null);
     setIsMapInteractive(true);
   }, [cityData.id]);
-
-  useEffect(() => {
-    setHasUnreadNotifications(visibleNotifications.some((notification) => notification.unread));
-  }, [visibleNotifications]);
-
-  function openNotifications() {
-    setNotificationsOpen(true);
-    setHasUnreadNotifications(false);
-  }
 
   return (
     <View className="flex-1 bg-white">
@@ -231,7 +180,7 @@ export default function HomeScreen({
           <BrandImage
             source={getHeroImageSource(cityData.heroImage)}
             contentFit="cover"
-            style={StyleSheet.absoluteFillObject}
+            style={StyleSheet.absoluteFill}
             withTextGradient
           />
 
@@ -244,17 +193,6 @@ export default function HomeScreen({
                 CultureQuest
               </Text>
               <View className="flex-row items-center gap-3">
-                <Pressable
-                  onPress={openNotifications}
-                  className="relative h-11 w-11 items-center justify-center rounded-full bg-white/15 active:opacity-80"
-                  accessibilityRole="button"
-                  accessibilityLabel="Open notifications"
-                >
-                  <Bell size={24} color="rgba(255,255,255,0.96)" strokeWidth={2.1} />
-                  {hasUnreadNotifications && (
-                    <View className="absolute right-2.5 top-2.5 h-2.5 w-2.5 rounded-full bg-destructive" />
-                  )}
-                </Pressable>
                 <Pressable
                   onPress={onOpenProfile}
                   className="h-11 w-11 items-center justify-center overflow-hidden rounded-full bg-primary active:opacity-85"
@@ -322,15 +260,10 @@ export default function HomeScreen({
             contentContainerStyle={{ paddingHorizontal: 20, gap: 12 }}
           >
             {eventsLoading ? (
-              <LoadingState
-                body={`Checking approved events for ${cityData.name}.`}
-                compact
-                style={{ width: layout.stateCardWidth }}
-                title="Loading events"
-              />
+              <CardListSkeleton count={1} style={{ width: layout.stateCardWidth }} />
             ) : eventsError ? (
               <ErrorState
-                body="Check your Supabase connection or apply the latest migrations, then refresh the app."
+                body="We could not load events right now. Check your connection and try again."
                 compact
                 style={{ width: layout.stateCardWidth }}
                 title="Events could not load"
@@ -354,7 +287,7 @@ export default function HomeScreen({
                     <BrandImage
                       source={getEventImageSource(event)}
                       contentFit="cover"
-                      style={StyleSheet.absoluteFillObject}
+                      style={StyleSheet.absoluteFill}
                     />
                   </View>
                   <View className="p-3">
@@ -422,10 +355,10 @@ export default function HomeScreen({
                 showsBuildings
                 showsCompass={false}
                 showsMyLocationButton={canShowUserLocation}
-                showsPointsOfInterest
+                showsPointsOfInterests
                 showsScale={false}
                 showsUserLocation={canShowUserLocation}
-                style={StyleSheet.absoluteFillObject}
+                style={StyleSheet.absoluteFill}
                 toolbarEnabled={false}
                 zoomEnabled={isMapInteractive}
               >
@@ -582,7 +515,7 @@ export default function HomeScreen({
                 />
               ) : leaderboard.length === 0 ? (
                 <EmptyState
-                  body={`Universities for ${cityData.name} will appear here after the setup migration.`}
+                  body={`Universities for ${cityData.name} will appear here when the first members join.`}
                   compact
                   title="No universities linked yet"
                   tone="inline"
@@ -615,97 +548,6 @@ export default function HomeScreen({
         </View>
       </ScrollView>
 
-      <Modal
-        animationType="none"
-        onRequestClose={closeNotificationsWithAnimation}
-        transparent
-        visible={notificationsOpen}
-      >
-        <GestureDetector gesture={notificationsGesture}>
-          <Animated.View className="flex-1 bg-white" style={notificationsSwipeStyle}>
-            <View
-              className="flex-row items-center bg-white px-5 pb-3"
-              style={{ paddingTop: stableTopInset + 6 }}
-            >
-              <Pressable
-                onPress={closeNotificationsWithAnimation}
-                className="h-11 w-11 items-center justify-center rounded-full bg-gray-100 active:opacity-80"
-                accessibilityRole="button"
-                accessibilityLabel="Close notifications"
-              >
-                <ArrowLeft size={22} color="#756F7B" strokeWidth={2.6} />
-              </Pressable>
-            </View>
-
-            <ScrollView
-              className="flex-1 bg-white"
-              contentContainerStyle={{
-                gap: 18,
-                paddingHorizontal: 20,
-                paddingTop: 10,
-                paddingBottom: 40,
-              }}
-              showsVerticalScrollIndicator={false}
-            >
-              {visibleNotifications.length === 0 ? (
-                <View className="pt-2">
-                  <Text className="mb-3 text-[13px] font-extrabold uppercase tracking-[2px] text-muted">
-                    Today
-                  </Text>
-                  <Text className="font-heading text-[26px] leading-[31px] text-ink">
-                    Quiet for now
-                  </Text>
-                  <Text className="mt-2 max-w-[310px] text-[14px] leading-6 text-muted">
-                    Important account and CultureQuest updates will appear here when there is
-                    something new.
-                  </Text>
-                </View>
-              ) : (
-                <View className="gap-1">
-                  <Text className="mb-2 text-[13px] font-extrabold uppercase tracking-[2px] text-muted">
-                    Today
-                  </Text>
-                  {visibleNotifications.map((notification) => (
-                    <Pressable
-                      key={notification.id}
-                      className="flex-row items-start gap-3 border-b border-gray-100 py-4 active:opacity-75"
-                      onPress={closeNotificationsWithAnimation}
-                    >
-                      <View className="mt-2 h-2.5 w-2.5 rounded-full bg-destructive" />
-                      <View className="min-w-0 flex-1">
-                        <View className="flex-row items-start justify-between gap-3">
-                          <Text className="min-w-0 flex-1 text-[15px] leading-6 text-ink">
-                            <Text className="font-extrabold">{notification.title}</Text>
-                            {'  '}
-                            <Text className="text-muted">{notification.message}</Text>
-                          </Text>
-                          <Text className="pt-0.5 text-[12px] font-bold text-primary">
-                            {notification.time}
-                          </Text>
-                        </View>
-                      </View>
-                    </Pressable>
-                  ))}
-
-                  <View className="pt-6">
-                    <Text className="mb-2 text-[13px] font-extrabold uppercase tracking-[2px] text-muted">
-                      Earlier
-                    </Text>
-                    <View className="flex-row items-start gap-3 py-4 opacity-80">
-                      <View className="mt-2 h-2.5 w-2.5 rounded-full bg-primary/25" />
-                      <View className="min-w-0 flex-1">
-                        <Text className="text-[15px] leading-6 text-muted">
-                          Older organizer, event, and reward updates will appear here.
-                        </Text>
-                      </View>
-                    </View>
-                  </View>
-                </View>
-              )}
-            </ScrollView>
-          </Animated.View>
-        </GestureDetector>
-      </Modal>
     </View>
   );
 }

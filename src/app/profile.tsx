@@ -1,9 +1,9 @@
-import { useEffect, useMemo, useState } from 'react';
-import { ScrollView, Text, useWindowDimensions, View } from 'react-native';
+import { useEffect, useState } from 'react';
+import { ScrollView, Text, View } from 'react-native';
 
 import { AdminReviewModal } from '@/components/profile/admin-review-modal';
+import { InlineToast } from '@/components/inline-toast';
 import { AdminManageEventsModal } from '@/components/profile/admin-manage-events-modal';
-import { BadgesModal } from '@/components/profile/badges-modal';
 import { CreateEventModal } from '@/components/profile/create-event-modal';
 import { CreateQuestModal } from '@/components/profile/create-quest-modal';
 import { CreateRewardModal } from '@/components/profile/create-reward-modal';
@@ -12,7 +12,6 @@ import {
   AccountActionsModal,
   AdminXpAuditModal,
   AdminToolsSection,
-  DigitalPassportSection,
   OrganizerEventHistoryModal,
   OrganizerToolsSection,
   OrganizerEventHistorySection,
@@ -27,7 +26,7 @@ import {
 } from '@/components/profile/profile-sections';
 import { RewardDetailModal } from '@/components/profile/reward-detail-modal';
 import { type CityId, type RewardPartner, defaultCityId, getCultureCityData } from '@/data/culture';
-import { achievementBadges, getXpLevelProgress } from '@/data/profile';
+import { getXpLevelProgress } from '@/data/profile';
 import { useAdminModeration } from '@/hooks/profile/use-admin-moderation';
 import { useCreateEventForm } from '@/hooks/profile/use-create-event-form';
 import { useCreateQuestForm } from '@/hooks/profile/use-create-quest-form';
@@ -71,6 +70,7 @@ export default function ProfileScreen({
   userEventHistory = [],
   userXp = 0,
 }: ProfileScreenProps = {}) {
+  const [notice, setNotice] = useState<string | null>(null);
   const stableModalTopInset = useStableTopInset();
   const {
     organizerApplicationStatus,
@@ -80,7 +80,6 @@ export default function ProfileScreen({
     signOut,
     updateProfile,
   } = useAuth();
-  const { width } = useWindowDimensions();
   const email = session?.user.email ?? 'Student';
   const metadataName = [
     session?.user.user_metadata?.first_name,
@@ -122,6 +121,8 @@ export default function ProfileScreen({
   const [universityMembership, setUniversityMembership] = useState<UserUniversityMembership | null>(
     null,
   );
+  const [universityMembershipError, setUniversityMembershipError] = useState<string | null>(null);
+  const [universityMembershipReloadNonce, setUniversityMembershipReloadNonce] = useState(0);
   const [xpTransactions, setXpTransactions] = useState<XpTransaction[]>([]);
   const [xpTransactionsError, setXpTransactionsError] = useState<string | null>(null);
   const [xpTransactionsLoading, setXpTransactionsLoading] = useState(false);
@@ -169,6 +170,7 @@ export default function ProfileScreen({
       onEventCreated?.();
       onRewardCreated?.();
     },
+    onNotice: setNotice,
     userId: session?.user.id,
   });
   const rewardRedemption = useRewardRedemption({
@@ -358,23 +360,11 @@ export default function ProfileScreen({
     setRewardDetailsExpanded,
     setSelectedReward,
   } = rewardRedemption;
-  const [badgesOpen, setBadgesOpen] = useState(false);
   const [activityHistoryOpen, setActivityHistoryOpen] = useState(false);
   const [accountActionsOpen, setAccountActionsOpen] = useState(false);
   const [organizerHistoryOpen, setOrganizerHistoryOpen] = useState(false);
   const [organizerRewardsHistoryOpen, setOrganizerRewardsHistoryOpen] = useState(false);
   const [rewardsListOpen, setRewardsListOpen] = useState(false);
-  const [selectedBadge, setSelectedBadge] = useState<(typeof achievementBadges)[number] | null>(
-    null,
-  );
-  const sortedAchievementBadges = useMemo(
-    () =>
-      [...achievementBadges].sort(
-        (first, second) => Number(second.unlocked) - Number(first.unlocked),
-      ),
-    [],
-  );
-  const unlockedBadgeCount = achievementBadges.filter((badge) => badge.unlocked).length;
   const {
     closeWithAnimation: closeCreateEventWithAnimation,
     gesture: createEventSwipeGesture,
@@ -400,17 +390,6 @@ export default function ProfileScreen({
     visible: adminReviewOpen,
   });
   const {
-    closeWithAnimation: closeBadgesWithAnimation,
-    gesture: badgesSwipeGesture,
-    swipeStyle: badgesSwipeStyle,
-  } = useCardSwipeBack({
-    onSwipeBack: () => {
-      setSelectedBadge(null);
-      setBadgesOpen(false);
-    },
-    visible: badgesOpen,
-  });
-  const {
     closeWithAnimation: closeRewardWithAnimation,
     gesture: rewardSwipeGesture,
     swipeStyle: rewardSwipeStyle,
@@ -434,6 +413,7 @@ export default function ProfileScreen({
     async function loadUniversityMembership() {
       if (!session?.user.id) {
         setUniversityMembership(null);
+        setUniversityMembershipError(null);
         return;
       }
 
@@ -441,6 +421,7 @@ export default function ProfileScreen({
       if (!active) return;
 
       setUniversityMembership(result.membership);
+      setUniversityMembershipError(result.error);
     }
 
     loadUniversityMembership();
@@ -448,7 +429,7 @@ export default function ProfileScreen({
     return () => {
       active = false;
     };
-  }, [session?.user.id]);
+  }, [session?.user.id, universityMembershipReloadNonce]);
 
   useEffect(() => {
     const userId = session?.user.id;
@@ -589,7 +570,11 @@ export default function ProfileScreen({
           userXp={userXp}
         />
 
-        <UniversityAffiliationSection membership={universityMembership} />
+        <UniversityAffiliationSection
+          error={universityMembershipError}
+          membership={universityMembership}
+          onRetry={() => setUniversityMembershipReloadNonce((current) => current + 1)}
+        />
 
         <RewardsSection
           cityName={cityData.name}
@@ -600,15 +585,6 @@ export default function ProfileScreen({
           redeemedRewards={redeemedRewards}
           rewards={approvedRewards}
           userXp={userXp}
-        />
-
-        <DigitalPassportSection
-          badges={sortedAchievementBadges}
-          onOpenAll={() => setBadgesOpen(true)}
-          onOpenBadge={(badge) => {
-            setSelectedBadge(badge);
-            setBadgesOpen(true);
-          }}
         />
 
         <OrganizerToolsSection
@@ -858,19 +834,7 @@ export default function ProfileScreen({
         visible={adminXpAuditOpen}
       />
 
-      <BadgesModal
-        badges={sortedAchievementBadges}
-        gesture={badgesSwipeGesture}
-        itemWidth={(width - 64) / 3}
-        onClose={closeBadgesWithAnimation}
-        onSelectBadge={setSelectedBadge}
-        selectedBadge={selectedBadge}
-        stableModalTopInset={stableModalTopInset}
-        swipeStyle={badgesSwipeStyle}
-        unlockedBadgeCount={unlockedBadgeCount}
-        visible={badgesOpen}
-      />
-
+      <InlineToast message={notice} onDismiss={() => setNotice(null)} />
       <UserActivityHistoryModal
         error={xpTransactionsError}
         history={userEventHistory}

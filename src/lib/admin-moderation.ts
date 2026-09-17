@@ -133,7 +133,6 @@ type PendingEventPreviousSnapshot = {
 
 type AdminManagedEventRow = PendingEventRow & {
   attendee_count: number | null;
-  check_in_code: string | null;
   ends_at?: string | null;
   going_count?: number | null;
   image_kind: CultureEvent['organizerImage'];
@@ -187,13 +186,13 @@ type ProfileSummaryRow = {
 };
 
 const ADMIN_EVENT_SELECT =
-  'id, organizer_user_id, city_key, venue_key, venue_name, venue_address, venue_latitude, venue_longitude, title, description, category, date_label, time_label, end_time_label, starts_at, ends_at, xp_bonus, language, is_free, is_international, interested_count, going_count, attendee_count, image_kind, image_url, check_in_code, status, created_at, updated_at, review_requested_at, review_previous_snapshot';
+  'id, organizer_user_id, city_key, venue_key, venue_name, venue_address, venue_latitude, venue_longitude, title, description, category, date_label, time_label, end_time_label, starts_at, ends_at, xp_bonus, language, is_free, is_international, interested_count, going_count, attendee_count, image_kind, image_url, status, created_at, updated_at, review_requested_at, review_previous_snapshot';
 const ADMIN_EVENT_LEGACY_GOING_SELECT =
-  'id, organizer_user_id, city_key, venue_key, venue_name, venue_address, venue_latitude, venue_longitude, title, description, category, date_label, time_label, end_time_label, starts_at, ends_at, xp_bonus, language, is_free, is_international, interested_count, attendee_count, image_kind, image_url, check_in_code, status, created_at';
+  'id, organizer_user_id, city_key, venue_key, venue_name, venue_address, venue_latitude, venue_longitude, title, description, category, date_label, time_label, end_time_label, starts_at, ends_at, xp_bonus, language, is_free, is_international, interested_count, attendee_count, image_kind, image_url, status, created_at';
 const ADMIN_EVENT_LEGACY_COUNTER_SELECT =
-  'id, organizer_user_id, city_key, venue_key, venue_name, venue_address, venue_latitude, venue_longitude, title, description, category, date_label, time_label, end_time_label, starts_at, ends_at, xp_bonus, language, is_free, is_international, attendee_count, image_kind, image_url, check_in_code, status, created_at';
+  'id, organizer_user_id, city_key, venue_key, venue_name, venue_address, venue_latitude, venue_longitude, title, description, category, date_label, time_label, end_time_label, starts_at, ends_at, xp_bonus, language, is_free, is_international, attendee_count, image_kind, image_url, status, created_at';
 const ADMIN_EVENT_LEGACY_TIME_SELECT =
-  'id, organizer_user_id, city_key, venue_key, venue_name, venue_address, venue_latitude, venue_longitude, title, description, category, date_label, time_label, xp_bonus, language, is_free, is_international, attendee_count, image_kind, image_url, check_in_code, status, created_at';
+  'id, organizer_user_id, city_key, venue_key, venue_name, venue_address, venue_latitude, venue_longitude, title, description, category, date_label, time_label, xp_bonus, language, is_free, is_international, attendee_count, image_kind, image_url, status, created_at';
 const PENDING_EVENT_SELECT =
   'id, organizer_user_id, city_key, venue_name, venue_address, title, description, category, date_label, time_label, end_time_label, image_url, created_at, updated_at, review_requested_at, review_previous_snapshot';
 const PENDING_EVENT_LEGACY_SELECT =
@@ -648,7 +647,6 @@ function mapAdminManagedEvent(
     attendeeCount: row.attendee_count ?? 0,
     category: row.category,
     changes: buildPendingEventChanges(row),
-    checkInCode: row.check_in_code ?? `culturequest:event:${row.id}`,
     cityId: row.city_key,
     createdAt: row.created_at,
     databaseId: row.id,
