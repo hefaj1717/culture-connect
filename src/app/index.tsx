@@ -383,20 +383,22 @@ export default function HomeScreen({
       </ScrollView>
       <Modal animationType="slide" visible={notificationsOpen} onRequestClose={() => setNotificationsOpen(false)}>
         <View className="flex-1 bg-canvas" style={{ paddingTop: stableTopInset }}>
-          <View className="flex-row items-center justify-between px-5 pb-4 pt-3">
-            <View>
+          <View className="px-5 pb-4 pt-3">
+            <View className="flex-row items-center">
               <Text className="font-heading text-[30px] font-extrabold text-ink">Notifications</Text>
-              <Text className="mt-1 text-[14px] leading-5 text-muted">
-                Important updates about your account and content.
-              </Text>
+              <View className="flex-1" />
+              <Pressable
+                onPress={() => setNotificationsOpen(false)}
+                className="ml-4 h-11 w-11 items-center justify-center rounded-full bg-surface active:opacity-75"
+                accessibilityLabel="Close notifications"
+                hitSlop={8}
+              >
+                <X size={22} color={Colors.light.textSecondary} strokeWidth={2.2} />
+              </Pressable>
             </View>
-            <Pressable
-              onPress={() => setNotificationsOpen(false)}
-              className="h-10 w-10 items-center justify-center rounded-full bg-surface active:opacity-75"
-              accessibilityLabel="Close notifications"
-            >
-              <X size={21} color={Colors.light.textSecondary} />
-            </Pressable>
+            <Text className="mt-1 pr-14 text-[14px] leading-5 text-muted">
+              Important updates about your account and content.
+            </Text>
           </View>
 
           <ScrollView
