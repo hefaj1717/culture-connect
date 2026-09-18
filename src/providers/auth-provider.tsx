@@ -18,8 +18,8 @@ export type OrganizerApplicationInput = {
 
 export type StudentUniversityInput = {
   isStudent: boolean;
-  studentEmail: string;
-  universityId: string;
+  studentEmail?: string;
+  universityId?: string;
 };
 
 export type OrganizerApplicationStatus = 'none' | 'pending' | 'approved' | 'rejected';
@@ -286,18 +286,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           note: limitText(organizerApplication.note?.trim() ?? '', textLimits.organizerNote),
         }
       : null;
-    const normalizedStudentUniversity =
-      studentUniversity?.isStudent &&
-      studentUniversity.universityId &&
-      studentUniversity.studentEmail
-        ? {
-            is_student: true,
-            student_email: limitText(
-              studentUniversity.studentEmail.trim().toLowerCase(),
-              textLimits.email,
-            ),
-            university_id: studentUniversity.universityId,
-          }
+    const normalizedStudentUniversity = studentUniversity?.isStudent
+      ? {
+          is_student: true,
+          student_email: limitText(
+            studentUniversity.studentEmail?.trim().toLowerCase() ?? '',
+            textLimits.email,
+          ),
+          university_id: studentUniversity.universityId?.trim() ?? '',
+        }
+      : null;
+    const normalizedStudentMembership =
+      normalizedStudentUniversity?.university_id && normalizedStudentUniversity.student_email
+        ? normalizedStudentUniversity
         : null;
 
     try {
@@ -318,10 +319,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         },
       });
 
-      if (!error && data.session && normalizedStudentUniversity) {
+      if (!error && data.session && normalizedStudentMembership) {
         await supabase.rpc('upsert_my_university_membership', {
-          _student_email: normalizedStudentUniversity.student_email,
-          _university_id: normalizedStudentUniversity.university_id,
+          _student_email: normalizedStudentMembership.student_email,
+          _university_id: normalizedStudentMembership.university_id,
         });
       }
 

@@ -98,11 +98,12 @@ export function validateAuthField(
     return `Institution name must be ${textLimits.organizerInstitutionName} characters or fewer.`;
   }
 
-  if (input.mode === 'signUp' && input.isStudent && field === 'universityId') {
-    if (!input.universityId) return 'Choose your university.';
-  }
-
-  if (input.mode === 'signUp' && input.isStudent && field === 'studentEmail') {
+  if (
+    input.mode === 'signUp' &&
+    input.isStudent &&
+    input.universityId &&
+    field === 'studentEmail'
+  ) {
     const normalizedStudentEmail = input.studentEmail.trim().toLowerCase();
     if (!normalizedStudentEmail) return 'Student email is required.';
     if (!emailPattern.test(normalizedStudentEmail)) {
@@ -131,7 +132,7 @@ export function validateAuthForm(input: AuthValidationInput) {
             'email',
             'password',
             ...(input.applyAsOrganizer ? (['institutionName'] as const) : []),
-            ...(input.isStudent ? (['universityId', 'studentEmail'] as const) : []),
+            ...(input.isStudent && input.universityId ? (['studentEmail'] as const) : []),
           ] as const)
         : (['email', 'password'] as const);
 
