@@ -21,7 +21,6 @@ import * as Sharing from 'expo-sharing';
 import { GestureDetector } from 'react-native-gesture-handler';
 import Animated from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
 import QRCode from 'react-native-qrcode-svg';
 import { captureRef } from 'react-native-view-shot';
 
@@ -261,15 +260,9 @@ function XpProgressBar({ progressPercent }: { progressPercent: number }) {
       className="relative h-4 overflow-hidden rounded-full"
       style={{ backgroundColor: GamificationColors.progressTrack }}
     >
-      <LinearGradient
-        colors={[Colors.light.accent, Colors.light.accentDeep]}
-        start={{ x: 0, y: 0.5 }}
-        end={{ x: 1, y: 0.5 }}
-        style={{
-          height: '100%',
-          width: `${safeProgress}%`,
-          borderRadius: 999,
-        }}
+      <View
+        className="h-full rounded-full bg-success"
+        style={{ width: `${safeProgress}%` }}
       />
       {[25, 50, 75].map((tick) => (
         <View
@@ -534,49 +527,72 @@ export function AdminToolsSection({
   onOpenReview,
   pendingCount,
 }: AdminToolsSectionProps) {
+  const actions = [
+    {
+      Icon: CheckCircle2,
+      accent: Colors.light.primary,
+      label: 'Review content',
+      onPress: onOpenReview,
+      subtitle: 'Approve or return submissions',
+    },
+    {
+      Icon: MapPin,
+      accent: Colors.light.primary,
+      label: 'Create quest',
+      onPress: onCreateQuest,
+      subtitle: 'Build an official city route',
+    },
+    {
+      Icon: Settings,
+      accent: Colors.light.primary,
+      label: 'Manage events',
+      onPress: onManageEvents,
+      subtitle: 'Edit events and rewards',
+    },
+    {
+      Icon: ReceiptText,
+      accent: Colors.light.success,
+      label: 'XP audit',
+      onPress: onOpenXpAudit,
+      subtitle: 'Review XP activity',
+    },
+  ];
+
   return (
     <View className="mb-6 px-5">
       <View className="mb-3 flex-row items-center justify-between">
         <Text className="font-heading text-[22px] font-extrabold text-ink">Admin Tools</Text>
       </View>
-      <View className="rounded-3xl border border-primary/10 bg-ink p-4">
-        <View className="mb-1 flex-row items-start justify-between gap-3">
-          <Text className="min-w-0 flex-1 font-heading text-[20px] font-extrabold text-white">
+      <View className="rounded-3xl border border-primary/25 bg-white p-4">
+        <View className="flex-row items-start justify-between gap-3">
+          <Text className="min-w-0 flex-1 font-heading text-[20px] font-extrabold text-ink">
             CultureQuest control room
           </Text>
-          <View className="rounded-full bg-white/10 px-3 py-1">
-            <Text className="text-[11px] font-extrabold text-white">{pendingCount} pending</Text>
+          <View className="rounded-full border border-primary/35 bg-canvas px-3 py-1">
+            <Text className="text-[11px] font-extrabold text-primary">{pendingCount} pending</Text>
           </View>
         </View>
-        <Text className="mt-1 text-[13px] leading-5 text-white/70">
+        <Text className="mt-1 text-[13px] leading-5 text-muted">
           Review organizer submissions and create official city trails.
         </Text>
-        <View className="mt-4 gap-2">
+      </View>
+      <View className="mt-3 gap-3">
+        {actions.map(({ Icon, accent, label, onPress, subtitle }) => (
           <Pressable
-            onPress={onOpenReview}
-            className="h-11 flex-row items-center justify-center rounded-xl bg-primary active:opacity-85"
+            className="flex-row items-center gap-3 rounded-2xl border border-primary/25 bg-white p-4 active:opacity-80"
+            key={label}
+            onPress={onPress}
           >
-            <Text className="text-[14px] font-semibold text-white">Review content</Text>
+            <View className="h-10 w-10 items-center justify-center rounded-xl bg-canvas">
+              <Icon color={accent} size={19} strokeWidth={2.4} />
+            </View>
+            <View className="min-w-0 flex-1">
+              <Text className="text-[14px] font-extrabold text-ink">{label}</Text>
+              <Text className="mt-0.5 text-[12px] text-muted">{subtitle}</Text>
+            </View>
+            <ChevronRight color={Colors.light.primary} size={19} strokeWidth={2.5} />
           </Pressable>
-          <Pressable
-            onPress={onCreateQuest}
-            className="h-11 flex-row items-center justify-center rounded-xl border border-white/15 bg-white/10 active:opacity-85"
-          >
-            <Text className="text-[14px] font-semibold text-white">Create quest</Text>
-          </Pressable>
-          <Pressable
-            onPress={onManageEvents}
-            className="h-11 flex-row items-center justify-center rounded-xl border border-white/15 bg-white/10 active:opacity-85"
-          >
-            <Text className="text-[14px] font-semibold text-white">Manage events</Text>
-          </Pressable>
-          <Pressable
-            onPress={onOpenXpAudit}
-            className="h-11 flex-row items-center justify-center rounded-xl border border-white/15 bg-white/10 active:opacity-85"
-          >
-            <Text className="text-[14px] font-semibold text-white">XP audit</Text>
-          </Pressable>
-        </View>
+        ))}
       </View>
     </View>
   );

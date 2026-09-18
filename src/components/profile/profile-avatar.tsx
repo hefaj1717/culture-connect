@@ -1,9 +1,9 @@
 import { Image } from 'expo-image';
 import { User } from 'lucide-react-native';
-import { Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import Svg, { Circle } from 'react-native-svg';
 
-import { GamificationColors } from '@/constants/theme';
+import { Colors, GamificationColors } from '@/constants/theme';
 
 type AvatarProps = {
   iconSize: number;
@@ -69,13 +69,13 @@ function ProgressRing({
   const strokeDashoffset = circumference - (clampedProgress / 100) * circumference;
 
   return (
-    <Svg height={size} style={{ position: 'absolute' }} width={size}>
+    <Svg height={size} style={styles.progressRing} width={size}>
       <Circle
         cx={size / 2}
         cy={size / 2}
         fill="transparent"
         r={radius}
-        stroke="rgba(244,162,97,0.22)"
+        stroke={Colors.light.progressTrack}
         strokeWidth={strokeWidth}
       />
       <Circle
@@ -93,3 +93,9 @@ function ProgressRing({
     </Svg>
   );
 }
+
+const styles = StyleSheet.create({
+  progressRing: {
+    position: 'absolute',
+  },
+});

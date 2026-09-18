@@ -1,4 +1,3 @@
-import { LinearGradient } from 'expo-linear-gradient';
 import { ArrowLeft, MapPin, Search } from 'lucide-react-native';
 import { useRef, useState } from 'react';
 import {
@@ -172,20 +171,13 @@ export function CreateRewardModal({
                   <ArrowLeft size={21} color="#6B818C" strokeWidth={2.6} />
                 </Pressable>
 
-                <View className="mb-5 overflow-hidden rounded-3xl bg-ink">
-                  <LinearGradient
-                    colors={['rgba(124,58,237,0.74)', 'rgba(36,28,46,0.98)']}
-                    end={{ x: 1, y: 1 }}
-                    start={{ x: 0, y: 0 }}
-                    style={{ padding: 20 }}
-                  >
-                    <Text className="font-heading text-[29px] font-extrabold leading-[33px] text-white">
-                      Create reward
-                    </Text>
-                    <Text className="mt-2 max-w-[290px] text-[13px] leading-5 text-white/80">
-                      Add a partner reward students can unlock with CultureQuest XP.
-                    </Text>
-                  </LinearGradient>
+                <View className="mb-6">
+                  <Text className="font-heading text-[29px] font-extrabold leading-[33px] text-ink">
+                    Create reward
+                  </Text>
+                  <Text className="mt-2 max-w-[290px] text-[13px] leading-5 text-muted">
+                    Add a partner reward students can unlock with CultureQuest XP.
+                  </Text>
                 </View>
 
                 <View className="mb-5 rounded-[26px] border border-primary/10 bg-canvas p-4">

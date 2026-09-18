@@ -1,4 +1,3 @@
-import { LinearGradient } from 'expo-linear-gradient';
 import {
   ArrowLeft,
   CalendarDays,
@@ -72,8 +71,8 @@ export function AdminReviewModal({
   return (
     <Modal animationType="slide" transparent onRequestClose={onClose} visible={visible}>
       <GestureDetector gesture={gesture}>
-        <Animated.View className="flex-1 bg-white" style={swipeStyle}>
-          <SafeAreaView className="flex-1 bg-white" edges={['bottom']}>
+        <Animated.View className="flex-1 bg-canvas" style={swipeStyle}>
+          <SafeAreaView className="flex-1 bg-canvas" edges={['bottom']}>
             <ScrollView
               className="flex-1"
               contentContainerStyle={{
@@ -102,26 +101,13 @@ export function AdminReviewModal({
                 </Pressable>
               </View>
 
-              <View className="mb-5 overflow-hidden rounded-3xl bg-ink">
-                <LinearGradient
-                  colors={['rgba(124,58,237,0.72)', 'rgba(36,28,46,0.98)']}
-                  end={{ x: 1, y: 1 }}
-                  start={{ x: 0, y: 0 }}
-                  style={{ padding: 20 }}
-                >
-                  <Text className="text-[12px] font-semibold uppercase tracking-wide text-white/70">
-                    Admin review
-                  </Text>
-                  <Text className="mt-1 font-heading text-[29px] font-extrabold leading-[33px] text-white">
-                    Approve what goes live.
-                  </Text>
-                  <Text
-                    className="mt-2 max-w-[300px] text-[13px] leading-5 text-white/80"
-                    style={{ color: 'rgba(255,255,255,0.82)' }}
-                  >
-                    Review organizer submissions before students see them in CultureQuest.
-                  </Text>
-                </LinearGradient>
+              <View className="mb-6">
+                <Text className="font-heading text-[29px] font-extrabold leading-[33px] text-ink">
+                  Approve what goes live
+                </Text>
+                <Text className="mt-2 max-w-[300px] text-[13px] leading-5 text-muted">
+                  Review organizer submissions before students see them in CultureQuest.
+                </Text>
               </View>
 
               <View className="mb-4 flex-row gap-2 rounded-2xl bg-gray-100 p-1">
