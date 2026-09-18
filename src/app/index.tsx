@@ -303,11 +303,11 @@ export default function HomeScreen({
                     </Text>
                     <View className="mb-2 flex-row gap-1.5">
                       <MiniEngagementStat
-                        icon={<Users size={12} color="#7C3AED" strokeWidth={2.4} />}
+                        icon={<Users size={12} color={Colors.light.primary} strokeWidth={2.4} />}
                         value={getEventEngagement(event, eventStatuses[event.id]).interested}
                       />
                       <MiniEngagementStat
-                        icon={<CheckCircle2 size={12} color="#7C3AED" strokeWidth={2.4} />}
+                        icon={<CheckCircle2 size={12} color={Colors.light.primary} strokeWidth={2.4} />}
                         value={getEventEngagement(event, eventStatuses[event.id]).attended}
                       />
                     </View>
@@ -321,7 +321,7 @@ export default function HomeScreen({
                         </View>
                       )}
                       <View className="flex-row items-center gap-1">
-                        <Globe size={12} color="#756F7B" />
+                        <Globe size={12} color={Colors.light.textSecondary} />
                         <Text className="text-[11px] font-medium text-muted">
                           {languageLabels[event.language]}
                         </Text>
@@ -497,7 +497,7 @@ export default function HomeScreen({
             style={CardStyles.elevated}
           >
             <LinearGradient
-              colors={['#241C2E', '#4C1D95']}
+              colors={[Colors.light.ink, Colors.light.primary]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
               style={{ paddingHorizontal: 16, paddingVertical: 16 }}

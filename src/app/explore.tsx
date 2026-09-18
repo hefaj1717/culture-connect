@@ -1072,21 +1072,21 @@ function EventDetailModal({
                 )}
 
                 <View className="mb-5 gap-3 rounded-2xl border border-gray-200 bg-white p-4">
-                  <InfoRow icon={<MapPin size={17} color="#7C3AED" />} label={event.venueName} />
+                  <InfoRow icon={<MapPin size={17} color={Colors.light.primary} />} label={event.venueName} />
                   <InfoRow
-                    icon={<Clock size={17} color="#7C3AED" />}
+                    icon={<Clock size={17} color={Colors.light.primary} />}
                     label={`${event.date}, ${formatEventTimeRange(event)}`}
                   />
                   <InfoRow
-                    icon={<Users size={17} color="#7C3AED" />}
+                    icon={<Users size={17} color={Colors.light.primary} />}
                     label={`${detailEngagement.interested.toLocaleString()} interested`}
                   />
                   <InfoRow
-                    icon={<CheckCircle2 size={17} color="#7C3AED" />}
+                    icon={<CheckCircle2 size={17} color={Colors.light.primary} />}
                     label={`${detailEngagement.going.toLocaleString()} going`}
                   />
                   <InfoRow
-                    icon={<CheckCircle2 size={17} color="#7C3AED" />}
+                    icon={<CheckCircle2 size={17} color={Colors.light.primary} />}
                     label={`${detailEngagement.attended.toLocaleString()} attended`}
                   />
                   <View className="rounded-2xl bg-primary/5 px-3 py-2.5">
@@ -1119,7 +1119,7 @@ function EventDetailModal({
                           'Tap to view this organizer profile and events.'}
                       </Text>
                     </View>
-                    <ChevronRight size={18} color="#7C3AED" />
+                    <ChevronRight size={18} color={Colors.light.primary} />
                   </Pressable>
                 ) : (
                   <View className="mb-5 rounded-2xl border border-gray-200 bg-gray-50 p-4">
@@ -1275,15 +1275,15 @@ function EventEngagementPills({
 }) {
   const metrics = [
     {
-      icon: <Users size={12} color="#7C3AED" strokeWidth={2.4} />,
+      icon: <Users size={12} color={Colors.light.primary} strokeWidth={2.4} />,
       value: interested,
     },
     {
-      icon: <Clock size={12} color="#7C3AED" strokeWidth={2.4} />,
+      icon: <Clock size={12} color={Colors.light.primary} strokeWidth={2.4} />,
       value: going,
     },
     {
-      icon: <CheckCircle2 size={12} color="#7C3AED" strokeWidth={2.4} />,
+      icon: <CheckCircle2 size={12} color={Colors.light.primary} strokeWidth={2.4} />,
       value: attended,
     },
   ];
@@ -1356,7 +1356,7 @@ function getEventLocationVenue(event: CultureEvent): Venue | null {
     xpReward: event.xpBonus,
     isPartner: true,
     tags: [],
-    color: '#7C3AED',
+    color: Colors.light.primary,
     coordinates: event.venueCoordinates,
   };
 }

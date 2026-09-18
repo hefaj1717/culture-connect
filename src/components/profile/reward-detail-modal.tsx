@@ -103,7 +103,7 @@ export function RewardDetailModal({
                   accessibilityRole="button"
                   accessibilityLabel="Close reward"
                 >
-                  <ArrowLeft size={21} color="#756F7B" strokeWidth={2.6} />
+                  <ArrowLeft size={21} color="#6B818C" strokeWidth={2.6} />
                 </Pressable>
               </View>
               <ScrollView

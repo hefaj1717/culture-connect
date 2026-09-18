@@ -140,7 +140,7 @@ export function OrganizerProfileModal({
                 onPress={closeWithAnimation}
                 className="mb-6 h-12 w-12 items-center justify-center rounded-full bg-gray-100 active:opacity-80"
               >
-                <ArrowLeft size={22} color="#756F7B" strokeWidth={2.6} />
+                <ArrowLeft size={22} color="#6B818C" strokeWidth={2.6} />
               </Pressable>
 
               <View
@@ -312,7 +312,7 @@ function OrganizerProfileEventRow({
           {event.venueName}
         </Text>
       </View>
-      <ChevronRight size={18} color="#756F7B" />
+      <ChevronRight size={18} color="#6B818C" />
     </Pressable>
   );
 }

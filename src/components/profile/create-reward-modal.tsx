@@ -169,7 +169,7 @@ export function CreateRewardModal({
                   accessibilityRole="button"
                   accessibilityLabel="Close create reward"
                 >
-                  <ArrowLeft size={21} color="#756F7B" strokeWidth={2.6} />
+                  <ArrowLeft size={21} color="#6B818C" strokeWidth={2.6} />
                 </Pressable>
 
                 <View className="mb-5 overflow-hidden rounded-3xl bg-ink">
@@ -240,7 +240,7 @@ export function CreateRewardModal({
                 <Text className="mb-2 text-[13px] font-semibold text-ink">Reward place</Text>
                 <View className="mb-4">
                   <View className="h-12 flex-row items-center gap-3 rounded-xl border border-gray-300 px-4">
-                    <Search size={16} color="#756F7B" strokeWidth={2.4} />
+                    <Search size={16} color="#6B818C" strokeWidth={2.4} />
                     <TextInput
                       value={rewardPlaceQuery}
                       onChangeText={(value) => {
@@ -253,7 +253,7 @@ export function CreateRewardModal({
                       maxLength={textLimits.placeSearch}
                       className="flex-1 text-[15px] text-ink"
                     />
-                    {searchingRewardPlaces && <ActivityIndicator color="#7C3AED" size="small" />}
+                    {searchingRewardPlaces && <ActivityIndicator color="#6B818C" size="small" />}
                   </View>
                   <Text className="mt-2 text-[11px] leading-4 text-muted">
                     {hasGooglePlacesApiKey
@@ -264,7 +264,7 @@ export function CreateRewardModal({
                   {selectedRewardPlace && (
                     <View className="mt-2 flex-row gap-3 rounded-xl border border-primary/25 bg-primary/10 p-3">
                       <View className="h-9 w-9 items-center justify-center rounded-full bg-primary/15">
-                        <MapPin size={16} color="#7C3AED" strokeWidth={2.4} />
+                        <MapPin size={16} color="#6B818C" strokeWidth={2.4} />
                       </View>
                       <View className="min-w-0 flex-1">
                         <Text className="font-ui text-[13px] font-bold text-ink" numberOfLines={1}>
@@ -289,7 +289,7 @@ export function CreateRewardModal({
                           className="flex-row items-start gap-3 border-b border-gray-100 p-3 active:bg-gray-50"
                         >
                           <View className="h-9 w-9 items-center justify-center rounded-full bg-primary/10">
-                            <MapPin size={16} color="#7C3AED" strokeWidth={2.4} />
+                            <MapPin size={16} color="#6B818C" strokeWidth={2.4} />
                           </View>
                           <View className="min-w-0 flex-1">
                             <Text
