@@ -3,7 +3,6 @@ import * as Location from 'expo-location';
 import {
   ArrowLeft,
   BellRing,
-  CalendarCheck,
   CheckCircle2,
   ChevronRight,
   Clock,
@@ -866,6 +865,7 @@ function EventDetailModal({
   const verifiedVenue = venue ?? getEventLocationVenue(activeEvent);
   const detailEngagement = getEventEngagement(activeEvent, checkedIn ? 'attended' : status);
   const checkInWindowState = getCheckInWindowState(activeEvent);
+  const isLiveNow = checkInWindowState === 'open';
 
   async function verifyVenueDistance() {
     const currentWindowState = getCheckInWindowState(activeEvent);
@@ -996,14 +996,14 @@ function EventDetailModal({
   return (
     <Modal animationType="slide" transparent onRequestClose={closeWithAnimation} visible>
       <GestureDetector gesture={swipeGesture}>
-        <Animated.View className="flex-1 bg-white" style={swipeStyle}>
-          <View className="flex-1 bg-white">
+        <Animated.View className="flex-1 bg-canvas" style={swipeStyle}>
+          <View className="flex-1 bg-canvas">
             <ScrollView
               className="flex-1"
               contentContainerStyle={{ paddingBottom: insets.bottom + 30 }}
               showsVerticalScrollIndicator={false}
             >
-              <View className="relative h-[260px] bg-gray-200">
+              <View className="relative h-[280px] bg-ink">
                 <BrandImage
                   source={getEventImageSource(event)}
                   contentFit="cover"
@@ -1033,7 +1033,7 @@ function EventDetailModal({
                     )}
                   </View>
                   <Text
-                    className="text-[28px] font-extrabold leading-8 text-white"
+                    className="font-heading text-[30px] leading-9 text-white"
                     numberOfLines={3}
                   >
                     {event.title}
@@ -1086,40 +1086,43 @@ function EventDetailModal({
                   </View>
                 )}
 
-                {!!status && (
-                  <View className="mb-5 rounded-xl border border-primary/10 bg-primary/5 p-3">
-                    <Text className="text-[13px] font-semibold text-primary">
-                      Event notifications enabled
-                    </Text>
-                    <Text className="mt-1 text-[12px] leading-4 text-muted">
-                      You will be notified when the organiser changes time, location, or important
-                      details.
-                    </Text>
-                  </View>
-                )}
-
-                <View className="mb-5 gap-3 rounded-2xl border border-gray-200 bg-white p-4">
+                <View
+                  className="mb-6 rounded-feature p-4"
+                  style={{ backgroundColor: Colors.light.backgroundElement }}
+                >
                   <InfoRow icon={<MapPin size={17} color={Colors.light.primary} />} label={event.venueName} />
+                  <View className="my-3 h-px bg-primary/10" />
                   <InfoRow
                     icon={<Clock size={17} color={Colors.light.primary} />}
                     label={`${event.date}, ${formatEventTimeRange(event)}`}
                   />
-                  <InfoRow
-                    icon={<Users size={17} color={Colors.light.primary} />}
-                    label={`${detailEngagement.interested.toLocaleString()} interested`}
-                  />
-                  <InfoRow
-                    icon={<CheckCircle2 size={17} color={Colors.light.primary} />}
-                    label={`${detailEngagement.going.toLocaleString()} going`}
-                  />
-                  <InfoRow
-                    icon={<CheckCircle2 size={17} color={Colors.light.primary} />}
-                    label={`${detailEngagement.attended.toLocaleString()} attended`}
-                  />
-                  <View className="rounded-2xl bg-primary/5 px-3 py-2.5">
-                    <Text className="text-[13px] font-semibold text-primary">
-                      +{event.xpBonus} XP after confirmed attendance
-                    </Text>
+                  <View className="my-3 h-px bg-primary/10" />
+                  <View className="flex-row items-center justify-between gap-3">
+                    <View className="flex-row items-center gap-2">
+                      {isLiveNow ? (
+                        <>
+                          <CheckCircle2 size={17} color={Colors.light.accent} />
+                          <Text className="text-[13px] font-semibold text-ink">
+                            {detailEngagement.attended.toLocaleString()} checked in
+                          </Text>
+                          <Text className="text-[13px] text-muted">·</Text>
+                          <Text className="text-[13px] text-muted">
+                            {detailEngagement.interested.toLocaleString()} interested
+                          </Text>
+                        </>
+                      ) : (
+                        <>
+                          <Users size={17} color={Colors.light.primary} />
+                          <Text className="text-[13px] font-semibold text-ink">
+                            {(detailEngagement.interested + detailEngagement.going).toLocaleString()}{' '}
+                            planning to attend
+                          </Text>
+                        </>
+                      )}
+                    </View>
+                    <View className="rounded-full bg-success/10 px-3 py-1.5">
+                      <Text className="text-[12px] font-semibold text-success">+{event.xpBonus} XP</Text>
+                    </View>
                   </View>
                 </View>
 
@@ -1131,7 +1134,8 @@ function EventDetailModal({
                 {organizerProfile ? (
                   <Pressable
                     onPress={openOrganizerProfile}
-                    className="mb-5 flex-row items-center gap-3 rounded-2xl border border-primary/10 bg-primary/5 p-4 active:opacity-85"
+                    className="mb-5 flex-row items-center gap-3 rounded-feature p-4 active:opacity-85"
+                    style={{ backgroundColor: Colors.light.backgroundElement }}
                   >
                     <OrganizerAvatar profile={organizerProfile} size={46} />
                     <View className="min-w-0 flex-1">
@@ -1149,7 +1153,10 @@ function EventDetailModal({
                     <ChevronRight size={18} color={Colors.light.primary} />
                   </Pressable>
                 ) : (
-                  <View className="mb-5 rounded-2xl border border-gray-200 bg-gray-50 p-4">
+                  <View
+                    className="mb-5 rounded-feature p-4"
+                    style={{ backgroundColor: Colors.light.backgroundElement }}
+                  >
                     <Text className="text-[12px] font-semibold uppercase tracking-wide text-muted">
                       Organizer
                     </Text>
@@ -1174,7 +1181,10 @@ function EventDetailModal({
                 ) : (
                   <>
                     {locationMessage && (
-                      <View className="mb-3 rounded-xl bg-gray-100 p-3">
+                      <View
+                        className="mb-3 rounded-xl p-3"
+                        style={{ backgroundColor: Colors.light.backgroundElement }}
+                      >
                         <Text className="text-[12px] leading-4 text-muted">{locationMessage}</Text>
                       </View>
                     )}
@@ -1280,8 +1290,9 @@ function StatusButton({
       disabled={disabled}
       onPress={onPress}
       className={`h-11 flex-1 flex-row items-center justify-center gap-2 rounded-xl ${
-        active ? 'bg-primary' : 'border border-primary/20 bg-primary/5'
+        active ? 'bg-primary' : ''
       } ${disabled ? 'opacity-55' : ''}`}
+      style={active ? undefined : { backgroundColor: Colors.light.backgroundElement }}
     >
       {icon}
       <Text className={`text-[14px] font-semibold ${active ? 'text-white' : 'text-primary'}`}>
@@ -1316,12 +1327,8 @@ function EventEngagementPills({
         ]
       : [
           {
-            icon: <CalendarCheck size={12} color={Colors.light.success} strokeWidth={2.4} />,
-            value: going,
-          },
-          {
             icon: <Users size={12} color={Colors.light.primary} strokeWidth={2.4} />,
-            value: interested,
+            value: interested + going,
           },
         ];
 
