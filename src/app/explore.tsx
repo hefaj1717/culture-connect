@@ -1127,7 +1127,7 @@ function EventDetailModal({
                 </View>
 
                 <View className="mb-2 flex-row items-center gap-3">
-                  <Text className="font-heading text-[22px] leading-7 text-ink">About</Text>
+                  <Text className="font-serifRegular text-[22px] leading-7 text-primary">About</Text>
                   <View className="h-px flex-1 bg-primary/15" />
                 </View>
                 <Text className="mb-6 text-[14px] leading-6 text-muted">{event.description}</Text>
