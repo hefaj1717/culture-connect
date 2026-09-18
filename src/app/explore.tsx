@@ -305,9 +305,6 @@ export default function ExploreScreen({
   );
 
   const featuredEvent = allEvents.find((event) => event.isFlashQuest);
-  const featuredEventIsLive = featuredEvent
-    ? getCheckInWindowState(featuredEvent) === 'open'
-    : false;
 
   useEffect(() => {
     setSelectedEvent(null);
@@ -451,16 +448,8 @@ export default function ExploreScreen({
                     Keyboard.dismiss();
                     setSelectedEvent(featuredEvent);
                   }}
-                  className="overflow-hidden rounded-3xl border border-primary/10 active:opacity-90"
-                  style={[
-                    CardStyles.elevated,
-                    {
-                      backgroundColor: featuredEventIsLive
-                        ? Colors.light.liveSurface
-                        : Colors.light.backgroundElement,
-                      borderColor: featuredEventIsLive ? `${Colors.light.accent}38` : undefined,
-                    },
-                  ]}
+                  className="overflow-hidden rounded-3xl active:opacity-90"
+                  style={[CardStyles.elevated, { backgroundColor: Colors.light.backgroundElement }]}
                 >
                   <View className="bg-gray-200" style={{ height: layout.isSmallPhone ? 150 : 170 }}>
                     <BrandImage
@@ -575,17 +564,20 @@ export default function ExploreScreen({
                           Keyboard.dismiss();
                           setSelectedEvent(event);
                         }}
-                        className="flex-row items-start gap-3 rounded-2xl border border-primary/10 p-3 active:opacity-90"
+                        className="flex-row items-start gap-3 rounded-2xl p-3 active:opacity-90"
                         style={[
                           CardStyles.compact,
                           {
-                            backgroundColor: isLiveNow
-                              ? Colors.light.liveSurface
-                              : Colors.light.backgroundElement,
-                            borderColor: isLiveNow ? `${Colors.light.accent}38` : undefined,
+                            backgroundColor: Colors.light.backgroundElement,
                           },
                         ]}
                       >
+                        {isLiveNow ? (
+                          <View
+                            pointerEvents="none"
+                            className="absolute bottom-0 left-0 top-0 w-1.5 rounded-l-2xl bg-accent"
+                          />
+                        ) : null}
                         <View
                           className="shrink-0 overflow-hidden rounded-xl bg-gray-200"
                           style={{
