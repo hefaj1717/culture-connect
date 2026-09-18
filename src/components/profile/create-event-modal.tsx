@@ -189,8 +189,8 @@ export function CreateEventModal({
   return (
     <Modal animationType="slide" transparent onRequestClose={onClose} visible={visible}>
       <GestureDetector gesture={gesture}>
-        <Animated.View className="flex-1 bg-white" style={swipeStyle}>
-          <SafeAreaView className="flex-1 bg-white" edges={['bottom']}>
+        <Animated.View className="flex-1 bg-canvas" style={swipeStyle}>
+          <SafeAreaView className="flex-1 bg-canvas" edges={['bottom']}>
             <KeyboardAvoidingView
               behavior={Platform.OS === 'ios' ? 'padding' : undefined}
               className="flex-1"
