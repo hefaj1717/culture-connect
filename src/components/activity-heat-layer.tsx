@@ -35,34 +35,42 @@ export function ActivityHeatLayer({ points }: { points: ActivityHeatPoint[] }) {
   return (
     <>
       {points.map((point) => (
-        <Fragment key={point.id}>
-          <Circle
-            center={point.coordinate}
-            fillColor={`rgba(166, 52, 70, ${roundOpacity(point.weight * 0.035)})`}
-            radius={480}
-            strokeColor="transparent"
-            strokeWidth={0}
-          />
-          <Circle
-            center={point.coordinate}
-            fillColor={`rgba(216, 86, 87, ${roundOpacity(point.weight * 0.055)})`}
-            radius={300}
-            strokeColor="transparent"
-            strokeWidth={0}
-          />
-          <Circle
-            center={point.coordinate}
-            fillColor={`rgba(235, 126, 110, ${roundOpacity(point.weight * 0.09)})`}
-            radius={155}
-            strokeColor="transparent"
-            strokeWidth={0}
-          />
-        </Fragment>
+        <ActivityHeatGlow key={point.id} point={point} />
       ))}
     </>
   );
 }
 
+function ActivityHeatGlow({ point }: { point: ActivityHeatPoint }) {
+  const visualWeight = Math.min(1, 0.15 + 0.85 * Math.pow(point.weight, 0.6));
+
+  return (
+    <Fragment>
+      <Circle
+        center={point.coordinate}
+        fillColor={`rgba(166, 52, 70, ${roundOpacity(visualWeight * 0.07)})`}
+        radius={480}
+        strokeColor="transparent"
+        strokeWidth={0}
+      />
+      <Circle
+        center={point.coordinate}
+        fillColor={`rgba(216, 86, 87, ${roundOpacity(visualWeight * 0.1)})`}
+        radius={300}
+        strokeColor="transparent"
+        strokeWidth={0}
+      />
+      <Circle
+        center={point.coordinate}
+        fillColor={`rgba(235, 126, 110, ${roundOpacity(visualWeight * 0.16)})`}
+        radius={155}
+        strokeColor="transparent"
+        strokeWidth={0}
+      />
+    </Fragment>
+  );
+}
+
 function roundOpacity(value: number) {
-  return Math.max(0, Math.min(0.18, Number(value.toFixed(3))));
+  return Math.max(0, Math.min(0.2, Number(value.toFixed(3))));
 }
