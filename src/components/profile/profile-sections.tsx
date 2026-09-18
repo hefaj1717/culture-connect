@@ -1018,12 +1018,12 @@ export function UserActivityHistoryModal({
                   title="Some activity could not load"
                 />
               ) : !hasAnyActivity ? (
-                <HistoryEmptyState
+                <EmptyState
                   body="Events you mark as Interested, Going, or Attended, plus reward spends and quest awards, will appear here."
                   title="No activity yet"
                 />
               ) : filteredHistory.length === 0 && !showXpTransactions ? (
-                <HistoryEmptyState
+                <EmptyState
                   body={`No ${getActivityFilterEmptyLabel(activityFilter)} events in your history yet.`}
                   title="Nothing here yet"
                 />
@@ -1137,12 +1137,12 @@ export function OrganizerEventHistoryModal({
               showsVerticalScrollIndicator={false}
             >
               {events.length === 0 ? (
-                <HistoryEmptyState
+                <EmptyState
                   body="Events you submit for review will appear here with their approval status."
                   title="No organizer events yet"
                 />
               ) : filteredEvents.length === 0 ? (
-                <HistoryEmptyState
+                <EmptyState
                   body={`No ${getOrganizerFilterEmptyLabel(organizerFilter)} events in your organizer history.`}
                   title="Nothing here yet"
                 />
@@ -1229,12 +1229,12 @@ export function OrganizerRewardHistoryModal({
               showsVerticalScrollIndicator={false}
             >
               {rewards.length === 0 ? (
-                <HistoryEmptyState
+                <EmptyState
                   body="Rewards you submit for review will appear here with their approval status."
                   title="No organizer rewards yet"
                 />
               ) : filteredRewards.length === 0 ? (
-                <HistoryEmptyState
+                <EmptyState
                   body={`No ${getOrganizerRewardFilterEmptyLabel(rewardFilter)} rewards in your history.`}
                   title="Nothing here yet"
                 />
@@ -1249,10 +1249,6 @@ export function OrganizerRewardHistoryModal({
       </GestureDetector>
     </Modal>
   );
-}
-
-function HistoryEmptyState({ body, title }: { body: string; title: string }) {
-  return <EmptyState body={body} title={title} />;
 }
 
 function HistoryFilterBar<T extends string>({

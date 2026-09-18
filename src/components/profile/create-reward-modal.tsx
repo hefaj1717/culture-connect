@@ -17,6 +17,7 @@ import Animated from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BrandImage } from '@/components/brand-image';
+import { ScreenHeader } from '@/components/screen-header';
 import {
   DatePickerModal,
   TimePickerModal,
@@ -171,14 +172,10 @@ export function CreateRewardModal({
                   <ArrowLeft size={21} color="#6B818C" strokeWidth={2.6} />
                 </Pressable>
 
-                <View className="mb-6">
-                  <Text className="font-heading text-[29px] font-extrabold leading-[33px] text-ink">
-                    Create reward
-                  </Text>
-                  <Text className="mt-2 max-w-[290px] text-[13px] leading-5 text-muted">
-                    Add a partner reward students can unlock with CultureQuest XP.
-                  </Text>
-                </View>
+                <ScreenHeader
+                  subtitle="Add a partner reward students can unlock with CultureQuest XP."
+                  title="Create reward"
+                />
 
                 <View className="mb-5 rounded-[26px] border border-primary/10 bg-canvas p-4">
                   <View className="flex-row items-center gap-3">

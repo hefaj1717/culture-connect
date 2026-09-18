@@ -36,6 +36,7 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { CardListSkeleton, EmptyState, ErrorState, LoadingState } from '@/components/async-state';
 import { BrandImage } from '@/components/brand-image';
 import { OrganizerAvatar, OrganizerProfileModal } from '@/components/organizer-profile-modal';
+import { ScreenHeader } from '@/components/screen-header';
 import { CardStyles, Colors } from '@/constants/theme';
 import {
   type CultureEvent,
@@ -361,9 +362,7 @@ export default function ExploreScreen({
         keyboardShouldPersistTaps="handled"
       >
         <View className="mb-5 px-5" style={{ paddingTop: stableTopInset + 16 }}>
-          <Text className="mb-4 font-heading text-[30px] font-extrabold leading-[35px] text-ink">
-            Discover
-          </Text>
+          <ScreenHeader title="Discover" />
           <View className="h-14 flex-row items-center gap-3.5 rounded-2xl border border-primary/10 bg-gray-100 px-4">
             <Search size={20} color={Colors.light.primary} strokeWidth={2.4} />
             <TextInput

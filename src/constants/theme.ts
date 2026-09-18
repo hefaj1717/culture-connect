@@ -5,7 +5,7 @@
 
 import '@/global.css';
 
-import { Platform } from 'react-native';
+import { Platform, type TextStyle, type ViewStyle } from 'react-native';
 import themeTokens from './theme-tokens.json';
 
 /** The single palette authority for React Native styles and Tailwind. */
@@ -35,6 +35,7 @@ export const Fonts = Platform.select({
 });
 
 export const FontTokens = {
+  serifRegular: 'PlayfairDisplay_400Regular',
   heading: 'PlayfairDisplay_800ExtraBold',
   display: 'PlayfairDisplay_900Black',
   body: 'Inter_400Regular',
@@ -57,19 +58,88 @@ export const GamificationColors = {
   },
 } as const;
 
-export const CardStyles = {
-  elevated: {
-    boxShadow: '0 12px 28px rgba(36, 28, 46, 0.09)',
+export const Typography = {
+  screenTitle: {
+    color: Colors.light.ink,
+    fontFamily: FontTokens.heading,
+    fontSize: 30,
+    lineHeight: 35,
   },
-  compact: {
-    boxShadow: '0 8px 18px rgba(36, 28, 46, 0.07)',
+  sectionTitle: {
+    color: Colors.light.ink,
+    fontFamily: FontTokens.heading,
+    fontSize: 22,
+    lineHeight: 28,
   },
-  soft: {
-    boxShadow: '0 6px 16px rgba(36, 28, 46, 0.05)',
+  cardTitle: {
+    color: Colors.light.ink,
+    fontFamily: FontTokens.heading,
+    fontSize: 20,
+    lineHeight: 27,
   },
+  body: {
+    color: Colors.light.text,
+    fontFamily: FontTokens.body,
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  bodyMuted: {
+    color: Colors.light.textSecondary,
+    fontFamily: FontTokens.body,
+    fontSize: 13,
+    lineHeight: 20,
+  },
+  label: {
+    color: Colors.light.ink,
+    fontFamily: FontTokens.ui,
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  caption: {
+    color: Colors.light.textSecondary,
+    fontFamily: FontTokens.caption,
+    fontSize: 12,
+    lineHeight: 16,
+  },
+} as const satisfies Record<string, TextStyle>;
+
+export const Radius = {
+  small: 8,
+  control: 12,
+  card: 16,
+  feature: 24,
+  full: 9999,
 } as const;
 
+export const Shadows = {
+  elevated: '0 12px 28px rgba(30, 30, 36, 0.09)',
+  compact: '0 8px 18px rgba(30, 30, 36, 0.07)',
+  soft: '0 6px 16px rgba(30, 30, 36, 0.05)',
+} as const;
+
+export const CardStyles = {
+  elevated: {
+    boxShadow: Shadows.elevated,
+  },
+  compact: {
+    boxShadow: Shadows.compact,
+  },
+  soft: {
+    boxShadow: Shadows.soft,
+  },
+} as const satisfies Record<string, ViewStyle>;
+
 export const Spacing = {
+  hairline: 2,
+  xs: 4,
+  sm: 8,
+  md: 12,
+  lg: 16,
+  xl: 20,
+  xxl: 24,
+  xxxl: 32,
+  screen: 20,
+  section: 24,
   half: 2,
   one: 4,
   two: 8,
@@ -77,6 +147,12 @@ export const Spacing = {
   four: 24,
   five: 32,
   six: 64,
+} as const;
+
+export const Motion = {
+  fast: 150,
+  standard: 250,
+  slow: 400,
 } as const;
 
 export const BottomTabInset = Platform.select({ ios: 50, android: 80 }) ?? 0;

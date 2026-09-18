@@ -26,6 +26,7 @@ import Animated, { type AnimatedStyle } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { CardListSkeleton, EmptyState, ErrorState } from '@/components/async-state';
+import { ScreenHeader } from '@/components/screen-header';
 import { BrandImage } from '@/components/brand-image';
 import { getCultureCityData } from '@/data/culture';
 import { type PendingAdminEvent, type PendingAdminReward } from '@/lib/admin-moderation';
@@ -101,14 +102,10 @@ export function AdminReviewModal({
                 </Pressable>
               </View>
 
-              <View className="mb-6">
-                <Text className="font-heading text-[29px] font-extrabold leading-[33px] text-ink">
-                  Approve what goes live
-                </Text>
-                <Text className="mt-2 max-w-[300px] text-[13px] leading-5 text-muted">
-                  Review organizer submissions before students see them in CultureQuest.
-                </Text>
-              </View>
+              <ScreenHeader
+                subtitle="Review organizer submissions before students see them in CultureQuest."
+                title="Approve what goes live"
+              />
 
               <View className="mb-4 flex-row gap-2 rounded-2xl bg-gray-100 p-1">
                 <ReviewTabButton
