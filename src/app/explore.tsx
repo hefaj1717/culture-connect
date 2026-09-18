@@ -3,6 +3,7 @@ import * as Location from 'expo-location';
 import {
   ArrowLeft,
   BellRing,
+  CalendarCheck,
   CheckCircle2,
   ChevronRight,
   Clock,
@@ -37,7 +38,7 @@ import { CardListSkeleton, EmptyState, ErrorState, LoadingState } from '@/compon
 import { BrandImage } from '@/components/brand-image';
 import { OrganizerAvatar, OrganizerProfileModal } from '@/components/organizer-profile-modal';
 import { ScreenHeader } from '@/components/screen-header';
-import { CardStyles, Colors } from '@/constants/theme';
+import { CardStyles, Colors, Spacing } from '@/constants/theme';
 import {
   type CultureEvent,
   type CultureCityData,
@@ -59,7 +60,7 @@ import type { UserEventStatus } from '@/lib/event-history';
 import { useAuth } from '@/providers/auth-provider';
 
 const audienceFilters = [
-  { key: 'all', label: 'All Events' },
+  { key: 'all', label: 'All' },
   { key: 'live', label: 'Live now' },
   { key: 'upcoming', label: 'Coming up' },
   { key: 'international', label: 'International' },
@@ -361,9 +362,12 @@ export default function ExploreScreen({
         contentContainerStyle={{ paddingBottom: 112 }}
         keyboardShouldPersistTaps="handled"
       >
-        <View className="mb-5 px-5" style={{ paddingTop: stableTopInset + 16 }}>
-          <ScreenHeader title="Discover" />
-          <View className="h-14 flex-row items-center gap-3.5 rounded-2xl border border-primary/10 bg-gray-100 px-4">
+        <View className="mb-4 px-5" style={{ paddingTop: stableTopInset + Spacing.sm }}>
+          <ScreenHeader title="Discover" style={{ marginBottom: Spacing.md }} />
+          <View
+            className="h-13 flex-row items-center gap-3 rounded-2xl border border-primary/10 px-4"
+            style={{ backgroundColor: Colors.light.backgroundElement }}
+          >
             <Search size={20} color={Colors.light.primary} strokeWidth={2.4} />
             <TextInput
               value={search}
@@ -376,7 +380,10 @@ export default function ExploreScreen({
           </View>
         </View>
 
-        <View className="mb-4 flex-row gap-2 px-5">
+        <View
+          className="mb-4 mx-5 flex-row rounded-2xl p-1"
+          style={{ backgroundColor: Colors.light.backgroundElement }}
+        >
           {(['events', 'venues'] as const).map((nextTab) => {
             const active = tab === nextTab;
             const tabLabel = nextTab === 'events' ? 'Events' : 'Organizers';
@@ -387,11 +394,9 @@ export default function ExploreScreen({
                   Keyboard.dismiss();
                   setTab(nextTab);
                 }}
-                className={`rounded-full px-5 py-2.5 ${active ? 'bg-primary' : 'border border-gray-200 bg-gray-100'}`}
+                className={`h-10 flex-1 items-center justify-center rounded-xl ${active ? 'bg-primary' : ''}`}
               >
-                <Text
-                  className={`text-[13px] font-semibold capitalize ${active ? 'text-white' : 'text-muted'}`}
-                >
+                <Text className={`text-[13px] font-semibold ${active ? 'text-white' : 'text-muted'}`}>
                   {tabLabel}
                 </Text>
               </Pressable>
@@ -404,7 +409,7 @@ export default function ExploreScreen({
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
-              className="mb-3"
+              className="mb-4"
               contentContainerStyle={{ paddingHorizontal: 20, gap: 8 }}
             >
               {audienceFilters.map((filter) => {
@@ -416,7 +421,8 @@ export default function ExploreScreen({
                       Keyboard.dismiss();
                       setAudienceFilter(filter.key);
                     }}
-                    className={`rounded-full px-4 py-2 ${active ? 'bg-primary' : 'border border-primary/10 bg-canvas'}`}
+                    className={`h-9 items-center justify-center rounded-full px-4 ${active ? 'bg-primary' : 'border border-primary/10'}`}
+                    style={active ? undefined : { backgroundColor: Colors.light.backgroundElement }}
                   >
                     <Text
                       className={`text-[13px] font-medium ${active ? 'text-white' : 'text-muted'}`}
@@ -442,8 +448,8 @@ export default function ExploreScreen({
                     Keyboard.dismiss();
                     setSelectedEvent(featuredEvent);
                   }}
-                  className="overflow-hidden rounded-3xl border border-primary/10 bg-surface active:opacity-90"
-                  style={CardStyles.elevated}
+                  className="overflow-hidden rounded-3xl border border-primary/10 active:opacity-90"
+                  style={[CardStyles.elevated, { backgroundColor: Colors.light.backgroundElement }]}
                 >
                   <View className="bg-gray-200" style={{ height: layout.isSmallPhone ? 150 : 170 }}>
                     <BrandImage
@@ -482,6 +488,7 @@ export default function ExploreScreen({
                           getEventEngagement(featuredEvent, eventStatuses[featuredEvent.id])
                             .interested
                         }
+                        mode={getCheckInWindowState(featuredEvent) === 'open' ? 'live' : 'upcoming'}
                       />
                     </View>
 
@@ -557,8 +564,15 @@ export default function ExploreScreen({
                           Keyboard.dismiss();
                           setSelectedEvent(event);
                         }}
-                        className="flex-row items-start gap-3 rounded-3xl border border-primary/10 bg-surface p-3 active:opacity-90"
-                        style={CardStyles.compact}
+                        className="flex-row items-start gap-3 rounded-2xl border border-primary/10 p-3 active:opacity-90"
+                        style={[
+                          CardStyles.compact,
+                          {
+                            backgroundColor: Colors.light.backgroundElement,
+                            borderLeftColor: isLiveNow ? Colors.light.accent : Colors.light.primary,
+                            borderLeftWidth: isLiveNow ? 4 : 1,
+                          },
+                        ]}
                       >
                         <View
                           className="shrink-0 overflow-hidden rounded-xl bg-gray-200"
@@ -574,25 +588,27 @@ export default function ExploreScreen({
                           />
                         </View>
                         <View className="min-w-0 flex-1">
-                          <View className="mb-1 flex-row items-center gap-2">
+                          <View className="mb-1.5 flex-row items-center gap-2">
                             {isLiveNow ? (
                               <View className="flex-row items-center gap-1.5">
-                                <View className="h-2 w-2 rounded-full bg-red-500" />
-                                <Text className="text-[11px] font-bold uppercase text-red-500">
+                                <View className="h-2 w-2 rounded-full bg-accent" />
+                                <Text className="text-[11px] font-bold uppercase text-accent">
                                   Live now
                                 </Text>
                               </View>
                             ) : (
-                              <Text className="text-[11px] font-semibold uppercase text-muted">
-                                {event.date}
-                              </Text>
+                              <View className="rounded-full bg-primary/10 px-2 py-0.5">
+                                <Text className="text-[10px] font-semibold uppercase text-primary">
+                                  {event.date}
+                                </Text>
+                              </View>
                             )}
                             {event.isFree && (
                               <Text className="text-[11px] font-bold text-success">Free</Text>
                             )}
                           </View>
                           <Text
-                            className="mb-1 font-ui text-[15px] font-bold text-ink"
+                            className="mb-1 font-ui text-[16px] font-bold text-ink"
                             numberOfLines={2}
                           >
                             {event.title}
@@ -613,10 +629,15 @@ export default function ExploreScreen({
                               interested={
                                 getEventEngagement(event, eventStatuses[event.id]).interested
                               }
+                              mode={isLiveNow ? 'live' : 'upcoming'}
                             />
                           </View>
                         </View>
-                        <ChevronRight size={18} color={Colors.light.inputPlaceholder} />
+                        <ChevronRight
+                          size={18}
+                          color={Colors.light.inputPlaceholder}
+                          style={{ alignSelf: 'center' }}
+                        />
                       </Pressable>
                     );
                   })}
@@ -1270,25 +1291,35 @@ function EventEngagementPills({
   attended,
   going,
   interested,
+  mode = 'upcoming',
 }: {
   attended: number;
   going: number;
   interested: number;
+  mode?: 'live' | 'upcoming';
 }) {
-  const metrics = [
-    {
-      icon: <Users size={12} color={Colors.light.primary} strokeWidth={2.4} />,
-      value: interested,
-    },
-    {
-      icon: <Clock size={12} color={Colors.light.primary} strokeWidth={2.4} />,
-      value: going,
-    },
-    {
-      icon: <CheckCircle2 size={12} color={Colors.light.primary} strokeWidth={2.4} />,
-      value: attended,
-    },
-  ];
+  const metrics =
+    mode === 'live'
+      ? [
+          {
+            icon: <CheckCircle2 size={12} color={Colors.light.accent} strokeWidth={2.4} />,
+            value: attended,
+          },
+          {
+            icon: <Users size={12} color={Colors.light.primary} strokeWidth={2.4} />,
+            value: interested,
+          },
+        ]
+      : [
+          {
+            icon: <CalendarCheck size={12} color={Colors.light.success} strokeWidth={2.4} />,
+            value: going,
+          },
+          {
+            icon: <Users size={12} color={Colors.light.primary} strokeWidth={2.4} />,
+            value: interested,
+          },
+        ];
 
   return (
     <View className="flex-row items-center gap-1.5">
@@ -1298,7 +1329,9 @@ function EventEngagementPills({
           key={index}
         >
           {metric.icon}
-          <Text className="text-[11px] font-bold text-primary">{metric.value.toLocaleString()}</Text>
+          <Text className="text-[11px] font-bold text-primary">
+            {metric.value.toLocaleString()}
+          </Text>
         </View>
       ))}
     </View>
