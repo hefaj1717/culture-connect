@@ -365,7 +365,7 @@ export default function ExploreScreen({
         <View className="mb-4 px-5" style={{ paddingTop: stableTopInset + Spacing.sm }}>
           <ScreenHeader title="Discover" style={{ marginBottom: Spacing.md }} />
           <View
-            className="h-13 flex-row items-center gap-3 rounded-2xl border border-primary/10 px-4"
+            className="h-14 flex-row items-center gap-3.5 rounded-2xl border border-primary/10 px-4"
             style={{ backgroundColor: Colors.light.backgroundElement }}
           >
             <Search size={20} color={Colors.light.primary} strokeWidth={2.4} />
@@ -569,8 +569,6 @@ export default function ExploreScreen({
                           CardStyles.compact,
                           {
                             backgroundColor: Colors.light.backgroundElement,
-                            borderLeftColor: isLiveNow ? Colors.light.accent : Colors.light.primary,
-                            borderLeftWidth: isLiveNow ? 4 : 1,
                           },
                         ]}
                       >
