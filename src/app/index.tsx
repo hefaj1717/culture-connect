@@ -411,7 +411,7 @@ export default function HomeScreen({
                 userInterfaceStyle="light"
                 zoomEnabled={isMapInteractive}
               >
-                <ActivityHeatLayer points={activityHeatPoints} />
+                <ActivityHeatLayer points={activityHeatPoints} region={activityMapRegion} />
                 {activitySpots.map((spot) => (
                   <Marker
                     coordinate={spot.coordinates}
@@ -760,12 +760,15 @@ function getEventActivityForecast(
 }
 
 function getExpectedEventCrowd({ activeUsers, registeredUsers }: CityActivityBaseline) {
-  // Actual recent participation is the strongest signal. Only 3% of dormant
-  // accounts are included as a conservative reactivation allowance.
-  const estimatedActiveUsers =
-    activeUsers + Math.max(0, registeredUsers - activeUsers) * 0.03;
+  // Actual recent participation is the strongest signal. In a small city,
+  // one or two people committing to the same imminent event is significant;
+  // the old minimum of eight made that real signal almost invisible.
+  const estimatedActiveUsers = Math.max(
+    2,
+    activeUsers + Math.max(0, registeredUsers - activeUsers) * 0.03,
+  );
 
-  return Math.max(8, Math.min(75, Math.round(estimatedActiveUsers * 0.12)));
+  return Math.max(2, Math.min(75, Math.ceil(estimatedActiveUsers * 0.35)));
 }
 
 function getTimingWeight(hoursUntilStart: number, endTimestamp: number, now: number) {
