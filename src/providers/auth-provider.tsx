@@ -206,13 +206,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const metadataFallback =
       session.user.user_metadata?.requested_role === 'organizer_pending' ? 'pending' : 'none';
 
-    const { data, error } = await supabase
-      .from('organizer_applications')
-      .select('status')
-      .eq('user_id', session.user.id)
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .maybeSingle();
+    const [applicationResult, roleResult] = await Promise.all([
+      supabase
+        .from('organizer_applications')
+        .select('status')
+        .eq('user_id', session.user.id)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle(),
+      supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', session.user.id)
+        .eq('role', 'organizer')
+        .maybeSingle(),
+    ]);
+
+    if (roleResult.data?.role === 'organizer') {
+      setOrganizerApplicationStatus('approved');
+      return;
+    }
+
+    const { data, error } = applicationResult;
 
     if (error) {
       setOrganizerApplicationStatus(metadataFallback);
