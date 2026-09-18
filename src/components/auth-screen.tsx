@@ -481,7 +481,7 @@ export function AuthScreen() {
                     {isStudent ? (
                       <Check size={16} color="white" strokeWidth={2.7} />
                     ) : (
-                      <GraduationCap size={15} color="#756F7B" strokeWidth={2.4} />
+                      <GraduationCap size={15} color="#6B818C" strokeWidth={2.4} />
                     )}
                   </View>
                   <View className="flex-1">
@@ -580,7 +580,7 @@ export function AuthScreen() {
                     {applyAsOrganizer ? (
                       <Check size={16} color="white" strokeWidth={2.7} />
                     ) : (
-                      <Building2 size={15} color="#756F7B" strokeWidth={2.4} />
+                      <Building2 size={15} color="#6B818C" strokeWidth={2.4} />
                     )}
                   </View>
                   <View className="flex-1">

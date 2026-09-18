@@ -277,7 +277,7 @@ export function AdminManageEventsModal({
                 accessibilityLabel="Close manage events"
                 accessibilityRole="button"
               >
-                <ArrowLeft size={21} color="#756F7B" strokeWidth={2.6} />
+                <ArrowLeft size={21} color="#6B818C" strokeWidth={2.6} />
               </Pressable>
               <Pressable
                 onPress={onRefresh}
@@ -333,7 +333,7 @@ export function AdminManageEventsModal({
 
             <View className="px-5 pb-2">
               <View className="h-12 flex-row items-center gap-2 rounded-2xl border border-gray-200 bg-white px-4">
-                <Search size={17} color="#756F7B" strokeWidth={2.4} />
+                <Search size={17} color="#6B818C" strokeWidth={2.4} />
                 <TextInput
                   autoCorrect={false}
                   className="min-w-0 flex-1 text-[14px] font-semibold text-ink"
@@ -815,7 +815,7 @@ function AdminEventEditor({
           accessibilityLabel="Back to event list"
           accessibilityRole="button"
         >
-          <ArrowLeft size={21} color="#756F7B" strokeWidth={2.6} />
+          <ArrowLeft size={21} color="#6B818C" strokeWidth={2.6} />
         </Pressable>
         <View className="h-10 w-10" />
       </View>
@@ -1121,7 +1121,7 @@ function AdminRewardEditor({
           accessibilityLabel="Back to reward list"
           accessibilityRole="button"
         >
-          <ArrowLeft size={21} color="#756F7B" strokeWidth={2.6} />
+          <ArrowLeft size={21} color="#6B818C" strokeWidth={2.6} />
         </Pressable>
         <View className="h-10 w-10" />
       </View>

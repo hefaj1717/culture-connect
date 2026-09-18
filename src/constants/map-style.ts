@@ -3,7 +3,7 @@ import { Colors } from '@/constants/theme';
 export const cultureMapStyle = [
   {
     elementType: 'geometry',
-    stylers: [{ color: '#EFEAE4' }],
+    stylers: [{ color: Colors.light.backgroundElement }],
   },
   {
     elementType: 'labels.icon',
@@ -15,56 +15,56 @@ export const cultureMapStyle = [
   },
   {
     elementType: 'labels.text.stroke',
-    stylers: [{ color: '#FAF8F5' }],
+    stylers: [{ color: Colors.light.background }],
   },
   {
     featureType: 'administrative',
     elementType: 'geometry.stroke',
-    stylers: [{ color: '#D8D0C7' }],
+    stylers: [{ color: Colors.light.progressTrack }],
   },
   {
     featureType: 'landscape.man_made',
     elementType: 'geometry',
-    stylers: [{ color: '#F3EEE8' }],
+    stylers: [{ color: Colors.light.backgroundElement }],
   },
   {
     featureType: 'poi',
     elementType: 'geometry',
-    stylers: [{ color: '#E7E0D8' }],
+    stylers: [{ color: Colors.light.backgroundSelected }],
   },
   {
     featureType: 'poi',
     elementType: 'labels.text.fill',
-    stylers: [{ color: '#8C8490' }],
+    stylers: [{ color: Colors.light.textSecondary }],
   },
   {
     featureType: 'road',
     elementType: 'geometry',
-    stylers: [{ color: '#FFFFFF' }],
+    stylers: [{ color: Colors.light.onPrimary }],
   },
   {
     featureType: 'road',
     elementType: 'geometry.stroke',
-    stylers: [{ color: '#E2DAD2' }],
+    stylers: [{ color: Colors.light.progressTrack }],
   },
   {
     featureType: 'road',
     elementType: 'labels.text.fill',
-    stylers: [{ color: '#8A838D' }],
+    stylers: [{ color: Colors.light.textSecondary }],
   },
   {
     featureType: 'transit',
     elementType: 'geometry',
-    stylers: [{ color: '#DDD5CC' }],
+    stylers: [{ color: Colors.light.progressTrack }],
   },
   {
     featureType: 'water',
     elementType: 'geometry',
-    stylers: [{ color: '#D7D0E8' }],
+    stylers: [{ color: '#C8E0E0' }],
   },
   {
     featureType: 'water',
     elementType: 'labels.text.fill',
-    stylers: [{ color: '#756F7B' }],
+    stylers: [{ color: Colors.light.textSecondary }],
   },
 ];
