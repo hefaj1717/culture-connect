@@ -127,7 +127,7 @@ export function CreateQuestModal({
                   accessibilityRole="button"
                   accessibilityLabel="Close create quest"
                 >
-                  <ArrowLeft size={21} color="#756D54" strokeWidth={2.6} />
+                  <ArrowLeft size={21} color="#6B818C" strokeWidth={2.6} />
                 </Pressable>
 
                 <ScreenHeader
@@ -230,7 +230,7 @@ export function CreateQuestModal({
                   ) : (
                     <View className="flex-1 items-center justify-center px-6">
                       <View className="mb-3 h-11 w-11 items-center justify-center rounded-2xl bg-primary/10">
-                        <Camera size={21} color="#756D54" strokeWidth={2.5} />
+                        <Camera size={21} color="#6B818C" strokeWidth={2.5} />
                       </View>
                       <Text className="text-center text-[14px] font-extrabold text-primary">
                         Add quest photo
@@ -305,7 +305,7 @@ export function CreateQuestModal({
                             }}
                             className="h-8 w-8 items-center justify-center rounded-full bg-gray-100 active:opacity-80"
                           >
-                            <Minus size={16} color="#756D54" strokeWidth={2.5} />
+                            <Minus size={16} color="#6B818C" strokeWidth={2.5} />
                           </Pressable>
                         )}
                       </View>
