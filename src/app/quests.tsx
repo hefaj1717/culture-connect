@@ -84,6 +84,9 @@ export default function QuestsScreen({
         showsVerticalScrollIndicator={false}
       >
         <View className="px-5" style={{ paddingTop: stableTopInset + 24 }}>
+          <Text className="mb-4 font-heading text-[30px] font-extrabold leading-[35px] text-ink">
+            Quests
+          </Text>
           <Text className="mb-3 text-[11px] font-semibold uppercase tracking-wide text-muted">
             Active paths
           </Text>

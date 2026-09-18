@@ -361,6 +361,9 @@ export default function ExploreScreen({
         keyboardShouldPersistTaps="handled"
       >
         <View className="mb-5 px-5" style={{ paddingTop: stableTopInset + 16 }}>
+          <Text className="mb-4 font-heading text-[30px] font-extrabold leading-[35px] text-ink">
+            Discover
+          </Text>
           <View className="h-14 flex-row items-center gap-3.5 rounded-2xl border border-primary/10 bg-gray-100 px-4">
             <Search size={20} color={Colors.light.primary} strokeWidth={2.4} />
             <TextInput
