@@ -26,6 +26,7 @@ import Animated from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { CardListSkeleton, EmptyState, ErrorState } from '@/components/async-state';
+import { ScreenHeader } from '@/components/screen-header';
 import { BrandImage } from '@/components/brand-image';
 import {
   DatePickerModal,
@@ -289,14 +290,10 @@ export function AdminManageEventsModal({
             </View>
 
             <View className="px-5">
-              <View className="mb-5">
-                <Text className="font-heading text-[29px] font-extrabold leading-[33px] text-ink">
-                  Manage content
-                </Text>
-                <Text className="mt-2 max-w-[300px] text-[13px] leading-5 text-muted">
-                  Edit events and rewards, change status, update XP, or archive content.
-                </Text>
-              </View>
+              <ScreenHeader
+                subtitle="Edit events and rewards, change status, update XP, or archive content."
+                title="Manage content"
+              />
             </View>
 
             <AdminContentTabBar
@@ -355,12 +352,12 @@ export function AdminManageEventsModal({
                 <CardListSkeleton count={3} />
               ) : activeTab === 'events' ? (
                 events.length === 0 ? (
-                  <AdminEventEmptyState
+                  <EmptyState
                     body="Organizer events will appear here after they are submitted."
                     title="No events yet"
                   />
                 ) : filteredEvents.length === 0 ? (
-                  <AdminEventEmptyState
+                  <EmptyState
                     body="No events match this status filter."
                     title="Nothing here"
                   />
@@ -375,12 +372,12 @@ export function AdminManageEventsModal({
                   ))
                 )
               ) : rewards.length === 0 ? (
-                <AdminEventEmptyState
+                <EmptyState
                   body="Organizer rewards will appear here after they are submitted."
                   title="No rewards yet"
                 />
               ) : filteredRewards.length === 0 ? (
-                <AdminEventEmptyState
+                <EmptyState
                   body="No rewards match this status filter."
                   title="Nothing here"
                 />
@@ -1552,10 +1549,6 @@ function MiniStat({
       </Text>
     </View>
   );
-}
-
-function AdminEventEmptyState({ body, title }: { body: string; title: string }) {
-  return <EmptyState body={body} title={title} />;
 }
 
 function AdminEventStatusPill({ status }: { status: OrganizerEventStatus }) {

@@ -20,6 +20,7 @@ import Animated, { type AnimatedStyle } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { textLimits } from '@/constants/text-limits';
+import { ScreenHeader } from '@/components/screen-header';
 import { cultureCities, type CityId } from '@/data/culture';
 
 type QuestDraftStop = {
@@ -129,14 +130,10 @@ export function CreateQuestModal({
                   <ArrowLeft size={21} color="#6B818C" strokeWidth={2.6} />
                 </Pressable>
 
-                <View className="mb-6">
-                  <Text className="font-heading text-[29px] font-extrabold leading-[33px] text-ink">
-                    Create quest
-                  </Text>
-                  <Text className="mt-2 max-w-[300px] text-[13px] leading-5 text-muted">
-                    Build a curated city trail that appears in the Quests tab.
-                  </Text>
-                </View>
+                <ScreenHeader
+                  subtitle="Build a curated city trail that appears in the Quests tab."
+                  title="Create quest"
+                />
 
                 <Text className="mb-2 text-[13px] font-semibold text-ink">City</Text>
                 <View className="mb-4 flex-row gap-2">

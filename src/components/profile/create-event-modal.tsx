@@ -29,6 +29,7 @@ import Animated, { type AnimatedStyle } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BrandImage } from '@/components/brand-image';
+import { ScreenHeader } from '@/components/screen-header';
 import { ChoicePill, type ChoiceIcon } from '@/components/profile/choice-pill';
 import {
   DatePickerModal,
@@ -219,14 +220,10 @@ export function CreateEventModal({
                 </Pressable>
 
                 {!isEditingEvent && (
-                  <View className="mb-6">
-                    <Text className="font-heading text-[29px] font-extrabold leading-[33px] text-ink">
-                      Create event
-                    </Text>
-                    <Text className="mt-2 max-w-[290px] text-[13px] leading-5 text-muted">
-                      Submit a verified city experience for CultureQuest review.
-                    </Text>
-                  </View>
+                  <ScreenHeader
+                    subtitle="Submit a verified city experience for CultureQuest review."
+                    title="Create event"
+                  />
                 )}
 
                 <Text className="mb-2 text-[13px] font-semibold text-ink">Event title</Text>

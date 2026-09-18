@@ -8,7 +8,8 @@ import {
 } from 'react-native';
 import { AlertCircle, Inbox, RefreshCcw } from 'lucide-react-native';
 
-import { CardStyles, Colors } from '@/constants/theme';
+import { Colors } from '@/constants/theme';
+import { AppSurface } from '@/components/app-surface';
 
 type AsyncStateTone = 'card' | 'inline';
 
@@ -48,16 +49,6 @@ export function CardListSkeleton({
   );
 }
 
-function getContainerClass(tone: AsyncStateTone, compact?: boolean) {
-  const padding = compact ? 'p-3' : 'p-5';
-
-  if (tone === 'inline') {
-    return `${padding} rounded-2xl bg-canvas`;
-  }
-
-  return `${padding} rounded-3xl border border-primary/10 bg-white`;
-}
-
 export function LoadingState({
   body,
   compact,
@@ -66,7 +57,7 @@ export function LoadingState({
   tone = 'card',
 }: Omit<AsyncStateProps, 'actionLabel' | 'onAction'>) {
   return (
-    <View className={getContainerClass(tone, compact)} style={[CardStyles.soft, style]}>
+    <AppSurface compact={compact} style={style} tone={tone === 'inline' ? 'inline' : 'default'}>
       <View className="flex-row items-center gap-3">
         <View className="h-9 w-9 items-center justify-center rounded-2xl bg-primary/10">
           <ActivityIndicator color={Colors.light.primary} size="small" />
@@ -76,7 +67,7 @@ export function LoadingState({
           {body ? <Text className="mt-0.5 text-[12px] leading-4 text-muted">{body}</Text> : null}
         </View>
       </View>
-    </View>
+    </AppSurface>
   );
 }
 
@@ -90,9 +81,10 @@ export function ErrorState({
   tone = 'card',
 }: AsyncStateProps) {
   return (
-    <View
-      className={`${getContainerClass(tone, compact)} border-destructive/15 bg-destructive/5`}
-      style={[CardStyles.soft, style]}
+    <AppSurface
+      compact={compact}
+      style={[{ backgroundColor: `${Colors.light.destructive}0D`, borderColor: `${Colors.light.destructive}26` }, style]}
+      tone={tone === 'inline' ? 'inline' : 'default'}
     >
       <View className="flex-row items-start gap-3">
         <View className="h-9 w-9 items-center justify-center rounded-2xl bg-destructive/10">
@@ -114,7 +106,7 @@ export function ErrorState({
           ) : null}
         </View>
       </View>
-    </View>
+    </AppSurface>
   );
 }
 
@@ -128,9 +120,10 @@ export function EmptyState({
   tone = 'card',
 }: AsyncStateProps) {
   return (
-    <View
-      className={`${getContainerClass(tone, compact)} border-primary/15 bg-primary/5`}
-      style={[CardStyles.soft, style]}
+    <AppSurface
+      compact={compact}
+      style={[{ backgroundColor: `${Colors.light.primary}0D`, borderColor: `${Colors.light.primary}26` }, style]}
+      tone={tone === 'inline' ? 'inline' : 'default'}
     >
       <View className="flex-row items-start gap-3">
         <View className="h-9 w-9 items-center justify-center rounded-2xl bg-white">
@@ -149,6 +142,6 @@ export function EmptyState({
           ) : null}
         </View>
       </View>
-    </View>
+    </AppSurface>
   );
 }

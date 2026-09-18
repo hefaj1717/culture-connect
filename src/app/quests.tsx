@@ -21,6 +21,7 @@ import Animated, {
 
 import { CardListSkeleton, EmptyState, ErrorState } from '@/components/async-state';
 import { BrandImage } from '@/components/brand-image';
+import { ScreenHeader } from '@/components/screen-header';
 import { CardStyles, Colors } from '@/constants/theme';
 import { type CultureCityData, getCultureCityData } from '@/data/culture';
 import { useResponsiveLayout } from '@/hooks/use-responsive-layout';
@@ -84,9 +85,7 @@ export default function QuestsScreen({
         showsVerticalScrollIndicator={false}
       >
         <View className="px-5" style={{ paddingTop: stableTopInset + 24 }}>
-          <Text className="mb-4 font-heading text-[30px] font-extrabold leading-[35px] text-ink">
-            Quests
-          </Text>
+          <ScreenHeader title="Quests" />
           <Text className="mb-3 text-[11px] font-semibold uppercase tracking-wide text-muted">
             Active paths
           </Text>
