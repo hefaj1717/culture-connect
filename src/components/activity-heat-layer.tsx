@@ -40,18 +40,21 @@ export function ActivityHeatLayer({ points }: { points: ActivityHeatPoint[] }) {
             center={point.coordinate}
             fillColor={`rgba(166, 52, 70, ${roundOpacity(point.weight * 0.035)})`}
             radius={480}
+            strokeColor="transparent"
             strokeWidth={0}
           />
           <Circle
             center={point.coordinate}
             fillColor={`rgba(216, 86, 87, ${roundOpacity(point.weight * 0.055)})`}
             radius={300}
+            strokeColor="transparent"
             strokeWidth={0}
           />
           <Circle
             center={point.coordinate}
             fillColor={`rgba(235, 126, 110, ${roundOpacity(point.weight * 0.09)})`}
             radius={155}
+            strokeColor="transparent"
             strokeWidth={0}
           />
         </Fragment>

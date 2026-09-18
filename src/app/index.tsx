@@ -385,6 +385,7 @@ export default function HomeScreen({
                 showsUserLocation={canShowUserLocation}
                 style={StyleSheet.absoluteFill}
                 toolbarEnabled={false}
+                userInterfaceStyle="light"
                 zoomEnabled={isMapInteractive}
               >
                 <ActivityHeatLayer points={activityHeatPoints} />
