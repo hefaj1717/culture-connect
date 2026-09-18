@@ -418,7 +418,7 @@ export default function ExploreScreen({
                     key={filter.key}
                     onPress={() => {
                       Keyboard.dismiss();
-                      setAudienceFilter(filter.key);
+                      setAudienceFilter(active ? 'all' : filter.key);
                     }}
                     className={`h-9 items-center justify-center rounded-full px-4 ${active ? 'bg-primary' : 'border border-primary/10'}`}
                     style={active ? undefined : { backgroundColor: Colors.light.backgroundElement }}
