@@ -1,6 +1,6 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { Image } from 'expo-image';
-import { ArrowLeft, Camera, Minus, Plus, Route, X } from 'lucide-react-native';
+import { ArrowLeft, Camera, Minus, Plus, X } from 'lucide-react-native';
 import { useRef } from 'react';
 import {
   ActivityIndicator,
@@ -129,23 +129,13 @@ export function CreateQuestModal({
                   <ArrowLeft size={21} color="#6B818C" strokeWidth={2.6} />
                 </Pressable>
 
-                <View className="mb-5 overflow-hidden rounded-3xl bg-ink">
-                  <LinearGradient
-                    colors={['rgba(124,58,237,0.74)', 'rgba(36,28,46,0.98)']}
-                    end={{ x: 1, y: 1 }}
-                    start={{ x: 0, y: 0 }}
-                    style={{ padding: 20 }}
-                  >
-                    <View className="mb-4 h-12 w-12 items-center justify-center rounded-2xl bg-white/15">
-                      <Route size={24} color="white" strokeWidth={2.4} />
-                    </View>
-                    <Text className="font-heading text-[29px] font-extrabold leading-[33px] text-white">
-                      Create quest
-                    </Text>
-                    <Text className="mt-2 max-w-[300px] text-[13px] leading-5 text-white/80">
-                      Build a curated city trail that appears in the Quests tab.
-                    </Text>
-                  </LinearGradient>
+                <View className="mb-6">
+                  <Text className="font-heading text-[29px] font-extrabold leading-[33px] text-ink">
+                    Create quest
+                  </Text>
+                  <Text className="mt-2 max-w-[300px] text-[13px] leading-5 text-muted">
+                    Build a curated city trail that appears in the Quests tab.
+                  </Text>
                 </View>
 
                 <Text className="mb-2 text-[13px] font-semibold text-ink">City</Text>

@@ -1,4 +1,3 @@
-import { LinearGradient } from 'expo-linear-gradient';
 import {
   ArrowLeft,
   CalendarPlus,
@@ -220,23 +219,13 @@ export function CreateEventModal({
                 </Pressable>
 
                 {!isEditingEvent && (
-                  <View className="mb-5 overflow-hidden rounded-3xl bg-ink">
-                    <LinearGradient
-                      colors={['rgba(124,58,237,0.74)', 'rgba(36,28,46,0.98)']}
-                      end={{ x: 1, y: 1 }}
-                      start={{ x: 0, y: 0 }}
-                      style={{ padding: 20 }}
-                    >
-                      <View className="mb-4 h-12 w-12 items-center justify-center rounded-2xl bg-white/15">
-                        <CalendarPlus size={24} color="white" strokeWidth={2.4} />
-                      </View>
-                      <Text className="font-heading text-[29px] font-extrabold leading-[33px] text-white">
-                        Create event
-                      </Text>
-                      <Text className="mt-2 max-w-[290px] text-[13px] leading-5 text-white/80">
-                        Submit a verified city experience for CultureQuest review.
-                      </Text>
-                    </LinearGradient>
+                  <View className="mb-6">
+                    <Text className="font-heading text-[29px] font-extrabold leading-[33px] text-ink">
+                      Create event
+                    </Text>
+                    <Text className="mt-2 max-w-[290px] text-[13px] leading-5 text-muted">
+                      Submit a verified city experience for CultureQuest review.
+                    </Text>
                   </View>
                 )}
 

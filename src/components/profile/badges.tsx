@@ -100,7 +100,7 @@ export function BadgeGridItem({
         <View className="mt-auto pt-3">
           <View className="h-2 overflow-hidden rounded-full bg-progressTrack">
             <View
-              className="h-full rounded-full bg-accent"
+              className="h-full rounded-full bg-success"
               style={{ width: `${progressPercent}%` }}
             />
           </View>
@@ -156,7 +156,7 @@ export function BadgeDetailSheet({
         {progress ? (
           <View className="h-3 overflow-hidden rounded-full bg-progressTrack">
             <View
-              className="h-full rounded-full bg-accent"
+              className="h-full rounded-full bg-success"
               style={{ width: `${progressPercent}%` }}
             />
           </View>

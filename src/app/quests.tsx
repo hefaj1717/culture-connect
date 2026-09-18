@@ -167,7 +167,7 @@ function QuestCard({ onPress, quest }: { onPress: () => void; quest: Quest }) {
 
         <View className="h-2 overflow-hidden rounded-full bg-primary/10">
           <View
-            className="h-full rounded-full bg-primary"
+            className="h-full rounded-full bg-success"
             style={{ width: `${progressPercent}%` }}
           />
         </View>

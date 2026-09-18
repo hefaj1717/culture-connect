@@ -1,5 +1,4 @@
-import { LinearGradient } from 'expo-linear-gradient';
-import { ArrowLeft } from 'lucide-react-native';
+import { ArrowLeft, LockKeyhole } from 'lucide-react-native';
 import {
   Modal,
   Pressable,
@@ -94,9 +93,9 @@ export function RewardDetailModal({
     <Modal animationType="slide" transparent onRequestClose={onClose} visible={!!reward}>
       {reward && (
         <GestureDetector gesture={gesture}>
-          <Animated.View className="flex-1 bg-white" style={swipeStyle}>
-            <SafeAreaView className="flex-1 bg-white" edges={['bottom']}>
-              <View className="bg-white px-5 pb-3" style={{ paddingTop: stableTopInset + 8 }}>
+          <Animated.View className="flex-1 bg-canvas" style={swipeStyle}>
+            <SafeAreaView className="flex-1 bg-canvas" edges={['bottom']}>
+              <View className="bg-canvas px-5 pb-3" style={{ paddingTop: stableTopInset + 8 }}>
                 <Pressable
                   onPress={onClose}
                   className="h-10 w-10 items-center justify-center rounded-full bg-gray-100 active:opacity-80"
@@ -135,7 +134,7 @@ export function RewardDetailModal({
                         {reward.location}
                       </Text>
                     </View>
-                    <View className="rounded-full bg-primary/10 px-3 py-1.5">
+                    <View className="rounded-full border border-primary/40 px-3 py-1.5">
                       <Text className="text-[10px] font-extrabold uppercase tracking-wide text-primary">
                         Partner
                       </Text>
@@ -190,121 +189,90 @@ export function RewardDetailModal({
                   </View>
                 </View>
 
-                <View className="overflow-hidden rounded-[30px] bg-ink">
-                  <LinearGradient
-                    colors={['rgba(36,28,46,0.99)', 'rgba(92,44,180,0.96)']}
-                    end={{ x: 1, y: 1 }}
-                    start={{ x: 0, y: 0 }}
-                    style={{ paddingBottom: 24, paddingHorizontal: 22, paddingTop: 26 }}
-                  >
-                    <View className="mb-5 flex-row items-start justify-between gap-3">
-                      <View className="min-w-0 flex-1">
-                        <Text
-                          className="text-[10px] font-bold uppercase leading-[16px] tracking-[1.6px]"
-                          style={{ color: 'rgba(255,255,255,0.68)' }}
-                        >
-                          Staff pickup
-                        </Text>
-                        <Text
-                          className="mt-1 font-heading text-[23px] font-extrabold leading-[29px]"
-                          style={{ color: '#FFFFFF' }}
-                          numberOfLines={2}
-                        >
-                          {pickupTitle}
-                        </Text>
-                      </View>
-                      <View
-                        className="rounded-full px-3 py-1.5"
-                        style={{
-                          backgroundColor: rewardIsActive
-                            ? 'rgba(244,162,97,0.22)'
-                            : 'rgba(255,255,255,0.12)',
-                        }}
+                <View className="rounded-[30px] border border-primary/25 bg-white p-[22px]">
+                  <View className="mb-5 flex-row items-start justify-between gap-3">
+                    <View className="min-w-0 flex-1">
+                      <Text className="text-[10px] font-bold uppercase leading-[16px] tracking-[1.6px] text-muted">
+                        Staff pickup
+                      </Text>
+                      <Text
+                        className="mt-1 font-heading text-[23px] font-extrabold leading-[29px] text-ink"
+                        numberOfLines={2}
                       >
-                        <Text
-                          className="text-[11px] font-bold"
-                          style={{
-                            color:
-                              rewardIsActive || rewardCanRedeem
-                                ? Colors.light.accent
-                                : 'rgba(255,255,255,0.78)',
-                          }}
-                        >
-                          {statusLabel}
-                        </Text>
-                      </View>
+                        {pickupTitle}
+                      </Text>
                     </View>
-
                     <View
-                      className="rounded-[24px] border border-dashed px-5 py-6"
+                      className="rounded-full px-3 py-1.5"
                       style={{
-                        backgroundColor: 'rgba(255,255,255,0.1)',
-                        borderColor: Colors.light.accent,
+                        backgroundColor: rewardIsUsed ? Colors.light.accent : Colors.light.backgroundSelected,
                       }}
                     >
                       <Text
-                        className="mb-3 text-center text-[10px] font-bold uppercase leading-[14px] tracking-[1.8px]"
-                        style={{ color: 'rgba(255,255,255,0.68)' }}
+                        className="text-[11px] font-bold"
+                        style={{ color: rewardIsUsed ? Colors.light.onPrimary : Colors.light.primary }}
                       >
-                        CultureQuest reward
-                      </Text>
-                      <Text
-                        className="text-center font-heading text-[20px] font-extrabold leading-[27px]"
-                        style={{ color: '#FFFFFF' }}
-                      >
-                        {reward.discount}
-                      </Text>
-                      {rewardIsActive && (
-                        <Text
-                          className="mt-5 text-center font-ui text-[34px] font-extrabold tracking-widest"
-                          selectable
-                          style={{ color: Colors.light.accent }}
-                        >
-                          {pickupCode}
-                        </Text>
-                      )}
-                      {!rewardStateExists && rewardCanRedeem && (
-                        <Text
-                          className="mt-5 text-center text-[16px] font-extrabold"
-                          style={{ color: 'rgba(255,255,255,0.84)' }}
-                        >
-                          Code hidden until redeem
-                        </Text>
-                      )}
-                      {!rewardStateExists && !rewardCanRedeem && (
-                        <Text
-                          className="mt-5 text-center text-[16px] font-extrabold"
-                          style={{ color: 'rgba(255,255,255,0.84)' }}
-                        >
-                          You need {rewardXpNeeded.toLocaleString()} more XP
-                        </Text>
-                      )}
-                      {rewardIsUsed && (
-                        <Text
-                          className="mt-5 text-center text-[16px] font-extrabold"
-                          style={{ color: 'rgba(255,255,255,0.84)' }}
-                        >
-                          This coupon has already been used.
-                        </Text>
-                      )}
-                      <Text
-                        className="mt-4 text-center text-[12px] leading-5"
-                        style={{ color: 'rgba(255,255,255,0.76)' }}
-                      >
-                        {rewardIsActive
-                          ? `Valid for ${formatRewardTime(
-                              remainingMs,
-                            )} at ${venueName}. Staff confirms before applying the reward.`
-                          : rewardIsUsed
-                            ? 'The reward code is no longer visible after use.'
-                            : rewardCanRedeem
-                              ? 'Tap Redeem only when you are ready to show this screen to staff.'
-                              : userXp >= reward.xpCost && !rewardIsAvailableNow
-                                ? `This reward can be redeemed ${formatRewardAvailability(reward)}.`
-                              : 'Attend events and complete quests to unlock this reward.'}
+                        {statusLabel}
                       </Text>
                     </View>
-                  </LinearGradient>
+                  </View>
+
+                  <View
+                    className="items-center rounded-[24px] border px-5 py-6"
+                    style={{
+                      backgroundColor: Colors.light.background,
+                      borderColor: Colors.light.primary,
+                      borderStyle: 'dashed',
+                    }}
+                  >
+                    {rewardIsUsed && (
+                      <View className="mb-3 h-10 w-10 items-center justify-center rounded-full bg-primary/10">
+                        <LockKeyhole size={19} color={Colors.light.ink} strokeWidth={2.4} />
+                      </View>
+                    )}
+                    <Text className="mb-3 text-center text-[10px] font-bold uppercase leading-[14px] tracking-[1.8px] text-muted">
+                      CultureQuest reward
+                    </Text>
+                    <Text className="text-center font-heading text-[20px] font-extrabold leading-[27px] text-ink">
+                      {reward.discount}
+                    </Text>
+                    {rewardIsActive && (
+                      <Text
+                        className="mt-5 text-center font-ui text-[34px] font-extrabold tracking-widest text-accent"
+                        selectable
+                      >
+                        {pickupCode}
+                      </Text>
+                    )}
+                    {!rewardStateExists && rewardCanRedeem && (
+                      <Text className="mt-5 text-center text-[16px] font-extrabold text-ink">
+                        Code hidden until redeem
+                      </Text>
+                    )}
+                    {!rewardStateExists && !rewardCanRedeem && (
+                      <Text className="mt-5 text-center text-[16px] font-extrabold text-ink">
+                        You need {rewardXpNeeded.toLocaleString()} more XP
+                      </Text>
+                    )}
+                    {rewardIsUsed && (
+                      <Text className="mt-5 text-center text-[16px] font-extrabold text-accent">
+                        This coupon has already been used.
+                      </Text>
+                    )}
+                    <Text className="mt-4 text-center text-[12px] leading-5 text-muted">
+                      {rewardIsActive
+                        ? `Valid for ${formatRewardTime(
+                            remainingMs,
+                          )} at ${venueName}. Staff confirms before applying the reward.`
+                        : rewardIsUsed
+                          ? 'The reward code is no longer visible after use.'
+                          : rewardCanRedeem
+                            ? 'Tap Redeem only when you are ready to show this screen to staff.'
+                            : userXp >= reward.xpCost && !rewardIsAvailableNow
+                              ? `This reward can be redeemed ${formatRewardAvailability(reward)}.`
+                              : 'Attend events and complete quests to unlock this reward.'}
+                    </Text>
+                  </View>
                 </View>
 
                 {rewardRedeemError && (

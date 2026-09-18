@@ -1,4 +1,3 @@
-import { LinearGradient } from 'expo-linear-gradient';
 import {
   ArrowLeft,
   CalendarDays,
@@ -265,10 +264,10 @@ export function AdminManageEventsModal({
       visible={visible}
     >
       <GestureDetector gesture={gesture}>
-        <Animated.View className="flex-1 bg-white" style={swipeStyle}>
-          <SafeAreaView className="flex-1 bg-white" edges={['bottom']}>
+        <Animated.View className="flex-1 bg-canvas" style={swipeStyle}>
+          <SafeAreaView className="flex-1 bg-canvas" edges={['bottom']}>
             <View
-              className="flex-row items-center justify-between bg-white px-5 pb-3"
+              className="flex-row items-center justify-between bg-canvas px-5 pb-3"
               style={{ paddingTop: stableModalTopInset + 6 }}
             >
               <Pressable
@@ -290,23 +289,13 @@ export function AdminManageEventsModal({
             </View>
 
             <View className="px-5">
-              <View className="mb-4 overflow-hidden rounded-3xl bg-ink">
-                <LinearGradient
-                  colors={['rgba(124,58,237,0.72)', 'rgba(36,28,46,0.98)']}
-                  end={{ x: 1, y: 1 }}
-                  start={{ x: 0, y: 0 }}
-                  style={{ padding: 20 }}
-                >
-                  <Text className="text-[12px] font-semibold uppercase tracking-wide text-white/70">
-                    Admin manage
-                  </Text>
-                  <Text className="mt-1 font-heading text-[29px] font-extrabold leading-[33px] text-white">
-                    Manage content.
-                  </Text>
-                  <Text className="mt-2 max-w-[300px] text-[13px] leading-5 text-white/80">
-                    Edit events and rewards, change status, update XP, or archive content.
-                  </Text>
-                </LinearGradient>
+              <View className="mb-5">
+                <Text className="font-heading text-[29px] font-extrabold leading-[33px] text-ink">
+                  Manage content
+                </Text>
+                <Text className="mt-2 max-w-[300px] text-[13px] leading-5 text-muted">
+                  Edit events and rewards, change status, update XP, or archive content.
+                </Text>
               </View>
             </View>
 
