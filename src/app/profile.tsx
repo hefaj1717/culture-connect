@@ -608,14 +608,12 @@ export default function ProfileScreen({
         <ProfileHistoryList
           events={myOrganizerEvents}
           eventsError={myOrganizerEventsError}
-          eventsLoading={myOrganizerEventsLoading}
           history={userEventHistory}
           onOpenActivity={() => setActivityHistoryOpen(true)}
           onOpenEvents={() => setOrganizerHistoryOpen(true)}
           onOpenRewards={() => setOrganizerRewardsHistoryOpen(true)}
           rewards={myOrganizerRewards}
           rewardsError={myOrganizerRewardsError}
-          rewardsLoading={myOrganizerRewardsLoading}
           transactions={xpTransactions}
         />
       </ScrollView>

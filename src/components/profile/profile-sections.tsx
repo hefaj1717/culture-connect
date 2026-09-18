@@ -374,57 +374,45 @@ type UserActivitySectionProps = {
 type ProfileHistoryListProps = {
   events: ManagedOrganizerEvent[];
   eventsError?: string | null;
-  eventsLoading?: boolean;
   history: UserEventHistoryItem[];
   onOpenActivity: () => void;
   onOpenEvents: () => void;
   onOpenRewards: () => void;
   rewards: ManagedOrganizerReward[];
   rewardsError?: string | null;
-  rewardsLoading?: boolean;
   transactions: XpTransaction[];
 };
 
 export function ProfileHistoryList({
   events,
   eventsError,
-  eventsLoading = false,
   history,
   onOpenActivity,
   onOpenEvents,
   onOpenRewards,
   rewards,
   rewardsError,
-  rewardsLoading = false,
   transactions,
 }: ProfileHistoryListProps) {
-  const activityCount = history.length + getUserVisibleXpTransactions(transactions).length;
-
   return (
-    <View className="mb-6 gap-3 px-5">
-      <ProfileHistoryTile
-          count={eventsLoading ? '–' : events.length.toString()}
+    <View className="mb-7 px-5">
+      <ProfileHistoryRow
           description="Submitted, pending, and past events"
-          icon={<CalendarDays color={Colors.light.primary} size={21} strokeWidth={2.25} />}
+          icon={<CalendarDays color={Colors.light.ink} size={18} strokeWidth={2.2} />}
           label="My events"
           onPress={onOpenEvents}
-          tone={Colors.light.primary}
         />
-      <ProfileHistoryTile
-          count={rewardsLoading ? '–' : rewards.length.toString()}
+      <ProfileHistoryRow
           description="Partner rewards you manage"
-          icon={<Gift color={Colors.light.accent} size={21} strokeWidth={2.25} />}
+          icon={<Gift color={Colors.light.ink} size={18} strokeWidth={2.2} />}
           label="My rewards"
           onPress={onOpenRewards}
-          tone={Colors.light.accent}
         />
-      <ProfileHistoryTile
-          count={activityCount.toString()}
+      <ProfileHistoryRow
           description="Events, reward spends, and XP changes"
-          icon={<Clock color={Colors.light.success} size={21} strokeWidth={2.25} />}
+          icon={<Clock color={Colors.light.ink} size={18} strokeWidth={2.2} />}
           label="My activity"
           onPress={onOpenActivity}
-          tone={Colors.light.success}
         />
       {(eventsError || rewardsError) && (
         <Text className="mt-1 text-[12px] leading-4 text-muted">
@@ -435,38 +423,27 @@ export function ProfileHistoryList({
   );
 }
 
-function ProfileHistoryTile({
-  count,
+function ProfileHistoryRow({
   description,
   icon,
   label,
   onPress,
-  tone,
 }: {
-  count: string;
   description: string;
   icon: ReactNode;
   label: string;
   onPress: () => void;
-  tone: string;
 }) {
   return (
     <Pressable
-      className="overflow-hidden rounded-[24px] border border-primary/15 bg-white px-5 py-5 active:opacity-80"
+      className="mb-6 flex-row items-start py-1 active:opacity-70"
       onPress={onPress}
     >
-      <View className="flex-row items-start">
-        <View className="mt-1 mr-3">{icon}</View>
-        <View className="min-w-0 flex-1 pr-3">
-          <Text className="font-serifRegular text-[21px] leading-[26px] text-ink">{label}</Text>
-          <Text className="mt-1.5 text-[13px] leading-5 text-muted">{description}</Text>
-        </View>
-        <View className="items-end">
-          <Text className="font-heading text-[36px] font-extrabold leading-[38px] text-ink">{count}</Text>
-          <ChevronRight color={Colors.light.primary} size={17} strokeWidth={2.4} />
-        </View>
+      <View className="mt-1 mr-4">{icon}</View>
+      <View className="min-w-0 flex-1">
+        <Text className="font-serifRegular text-[21px] leading-[26px] text-ink">{label}</Text>
+        <Text className="mt-1 text-[14px] leading-5 text-muted">{description}</Text>
       </View>
-      <View className="mt-5 h-1 rounded-full" style={{ backgroundColor: tone }} />
     </Pressable>
   );
 }
