@@ -1,5 +1,3 @@
-import * as Location from 'expo-location';
-
 import { type CityId } from '@/data/culture';
 
 export type PlaceSuggestion = {
@@ -48,10 +46,10 @@ export const hasGooglePlacesApiKey = !!GOOGLE_PLACES_API_KEY;
 
 const citySearchContext: Record<
   CityId,
-  { countryCode: string; latitude: number; longitude: number; searchLabel: string }
+  { countryCode: string; latitude: number; longitude: number }
 > = {
-  leuven: { countryCode: 'be', latitude: 50.8798, longitude: 4.7005, searchLabel: 'Leuven, Belgium' },
-  lublin: { countryCode: 'pl', latitude: 51.2465, longitude: 22.5684, searchLabel: 'Lublin, Poland' },
+  leuven: { countryCode: 'be', latitude: 50.8798, longitude: 4.7005 },
+  lublin: { countryCode: 'pl', latitude: 51.2465, longitude: 22.5684 },
 };
 
 export async function searchPlaces(query: string, cityId: CityId) {
@@ -61,14 +59,11 @@ export async function searchPlaces(query: string, cityId: CityId) {
     return [];
   }
 
-  if (GOOGLE_PLACES_API_KEY) {
-    const googleResults = await searchGooglePlaces(normalizedQuery, cityId);
-    if (googleResults.length > 0) {
-      return googleResults;
-    }
+  if (!GOOGLE_PLACES_API_KEY) {
+    return [];
   }
 
-  return searchLocalPlaces(normalizedQuery, cityId);
+  return searchGooglePlaces(normalizedQuery, cityId);
 }
 
 async function searchGooglePlaces(query: string, cityId: CityId): Promise<PlaceSuggestion[]> {
@@ -161,24 +156,5 @@ async function fetchGooglePlaceDetails(placeId: string): Promise<PlaceSuggestion
     };
   } catch {
     return null;
-  }
-}
-
-async function searchLocalPlaces(query: string, cityId: CityId): Promise<PlaceSuggestion[]> {
-  const cityContext = citySearchContext[cityId];
-
-  try {
-    const results = await Location.geocodeAsync(`${query}, ${cityContext.searchLabel}`);
-
-    return results.slice(0, 5).map((result, index) => ({
-      address: query,
-      id: `device-${result.latitude.toFixed(5)}-${result.longitude.toFixed(5)}-${index}`,
-      latitude: result.latitude,
-      longitude: result.longitude,
-      name: query,
-      source: 'local',
-    }));
-  } catch {
-    return [];
   }
 }
