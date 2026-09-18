@@ -853,8 +853,8 @@ function getCityMapRegion(cityData: CultureCityData) {
     return {
       latitude: 51.2479,
       longitude: 22.5662,
-      latitudeDelta: 0.075,
-      longitudeDelta: 0.075,
+      latitudeDelta: 0.06,
+      longitudeDelta: 0.06,
     };
   }
 
@@ -862,15 +862,15 @@ function getCityMapRegion(cityData: CultureCityData) {
     return {
       latitude: 50.8798,
       longitude: 4.7005,
-      latitudeDelta: 0.05,
-      longitudeDelta: 0.05,
+      latitudeDelta: 0.04,
+      longitudeDelta: 0.04,
     };
   }
 
   return {
     latitude: 50.8798,
     longitude: 4.7005,
-    latitudeDelta: 0.06,
-    longitudeDelta: 0.06,
+    latitudeDelta: 0.048,
+    longitudeDelta: 0.048,
   };
 }
