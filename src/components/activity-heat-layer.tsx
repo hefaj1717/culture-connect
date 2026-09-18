@@ -43,9 +43,9 @@ export function ActivityHeatLayer({ points, region }: ActivityHeatLayerProps) {
 function getActivityCells(points: ActivityHeatPoint[], region: Region) {
   if (points.length === 0) return [];
 
-  // Large, Bolt-like sectors: on the default city view this produces roughly
-  // 35–45 cells, which stays readable without turning the map into a grid.
-  const radiusMeters = Math.max(520, Math.min(780, region.latitudeDelta * 8_800));
+  // A 360 m radius (720 m point-to-point) gives central-city events enough
+  // local detail while still being legible in the compact home-screen map.
+  const radiusMeters = Math.max(320, Math.min(420, region.latitudeDelta * 4_800));
   const latitudeStep = (radiusMeters * 1.5) / METERS_PER_LATITUDE_DEGREE;
   const longitudeStep =
     (Math.sqrt(3) * radiusMeters) /
