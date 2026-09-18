@@ -1120,8 +1120,8 @@ function EventDetailModal({
                         </>
                       )}
                     </View>
-                    <View className="rounded-full bg-success/10 px-3 py-1.5">
-                      <Text className="text-[12px] font-semibold text-success">+{event.xpBonus} XP</Text>
+                    <View className="rounded-full bg-accent/10 px-3 py-1.5">
+                      <Text className="text-[12px] font-semibold text-accent">+{event.xpBonus} XP</Text>
                     </View>
                   </View>
                 </View>
