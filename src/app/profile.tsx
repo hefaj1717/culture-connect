@@ -110,10 +110,10 @@ export default function ProfileScreen({
   const [approvedRewards, setApprovedRewards] = useState<RewardPartner[]>([]);
   const [myOrganizerEvents, setMyOrganizerEvents] = useState<ManagedOrganizerEvent[]>([]);
   const [myOrganizerEventsError, setMyOrganizerEventsError] = useState<string | null>(null);
-  const [myOrganizerEventsLoading, setMyOrganizerEventsLoading] = useState(false);
+  const [, setMyOrganizerEventsLoading] = useState(false);
   const [myOrganizerRewards, setMyOrganizerRewards] = useState<ManagedOrganizerReward[]>([]);
   const [myOrganizerRewardsError, setMyOrganizerRewardsError] = useState<string | null>(null);
-  const [myOrganizerRewardsLoading, setMyOrganizerRewardsLoading] = useState(false);
+  const [, setMyOrganizerRewardsLoading] = useState(false);
   const [organizerContentRefreshNonce, setOrganizerContentRefreshNonce] = useState(0);
   const [rewardsError, setRewardsError] = useState<string | null>(null);
   const [rewardsLoading, setRewardsLoading] = useState(true);
