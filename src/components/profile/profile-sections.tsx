@@ -371,6 +371,92 @@ type UserActivitySectionProps = {
   transactions: XpTransaction[];
 };
 
+type ProfileHistoryListProps = {
+  events: ManagedOrganizerEvent[];
+  eventsError?: string | null;
+  eventsLoading?: boolean;
+  history: UserEventHistoryItem[];
+  onOpenActivity: () => void;
+  onOpenEvents: () => void;
+  onOpenRewards: () => void;
+  rewards: ManagedOrganizerReward[];
+  rewardsError?: string | null;
+  rewardsLoading?: boolean;
+  transactions: XpTransaction[];
+};
+
+export function ProfileHistoryList({
+  events,
+  eventsError,
+  eventsLoading = false,
+  history,
+  onOpenActivity,
+  onOpenEvents,
+  onOpenRewards,
+  rewards,
+  rewardsError,
+  rewardsLoading = false,
+  transactions,
+}: ProfileHistoryListProps) {
+  const activityCount = history.length + getUserVisibleXpTransactions(transactions).length;
+
+  return (
+    <View className="mb-4 px-5">
+      <View className="overflow-hidden rounded-xl border border-primary/20 bg-canvas">
+        <ProfileHistoryRow
+          count={eventsLoading ? '–' : events.length.toString()}
+          icon={<CalendarDays color={Colors.light.ink} size={18} strokeWidth={2.3} />}
+          label="My events"
+          onPress={onOpenEvents}
+        />
+        <View className="h-px bg-primary/20" />
+        <ProfileHistoryRow
+          count={rewardsLoading ? '–' : rewards.length.toString()}
+          icon={<Gift color={Colors.light.ink} size={18} strokeWidth={2.3} />}
+          label="My rewards"
+          onPress={onOpenRewards}
+        />
+        <View className="h-px bg-primary/20" />
+        <ProfileHistoryRow
+          count={activityCount.toString()}
+          icon={<Clock color={Colors.light.ink} size={18} strokeWidth={2.3} />}
+          label="My activity"
+          onPress={onOpenActivity}
+        />
+      </View>
+      {(eventsError || rewardsError) && (
+        <Text className="mt-2 text-[12px] leading-4 text-muted">
+          Some organiser history could not be loaded. Open a row to try again.
+        </Text>
+      )}
+    </View>
+  );
+}
+
+function ProfileHistoryRow({
+  count,
+  icon,
+  label,
+  onPress,
+}: {
+  count: string;
+  icon: ReactNode;
+  label: string;
+  onPress: () => void;
+}) {
+  return (
+    <Pressable
+      className="flex-row items-center py-4 pl-4 pr-3 active:opacity-75"
+      onPress={onPress}
+    >
+      {icon}
+      <Text className="ml-3 flex-1 font-serifRegular text-[18px] leading-6 text-ink">{label}</Text>
+      <Text className="mr-3 font-heading text-[28px] font-extrabold leading-8 text-ink">{count}</Text>
+      <ChevronRight color={Colors.light.primary} size={15} strokeWidth={2.5} />
+    </Pressable>
+  );
+}
+
 export function UserActivitySection({
   history,
   onOpenAll,

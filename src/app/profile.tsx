@@ -15,12 +15,10 @@ import {
   DigitalPassportSection,
   OrganizerEventHistoryModal,
   OrganizerToolsSection,
-  OrganizerEventHistorySection,
   OrganizerRewardHistoryModal,
-  OrganizerRewardHistorySection,
+  ProfileHistoryList,
   ProfileRankCard,
   UserActivityHistoryModal,
-  UserActivitySection,
   RewardsListModal,
   RewardsSection,
   UniversityAffiliationSection,
@@ -607,26 +605,17 @@ export default function ProfileScreen({
           />
         )}
 
-        {organizerApplicationStatus === 'approved' && (
-          <>
-            <OrganizerEventHistorySection
-              error={myOrganizerEventsError}
-              events={myOrganizerEvents}
-              loading={myOrganizerEventsLoading}
-              onOpenAll={() => setOrganizerHistoryOpen(true)}
-            />
-            <OrganizerRewardHistorySection
-              error={myOrganizerRewardsError}
-              loading={myOrganizerRewardsLoading}
-              onOpenAll={() => setOrganizerRewardsHistoryOpen(true)}
-              rewards={myOrganizerRewards}
-            />
-          </>
-        )}
-
-        <UserActivitySection
+        <ProfileHistoryList
+          events={myOrganizerEvents}
+          eventsError={myOrganizerEventsError}
+          eventsLoading={myOrganizerEventsLoading}
           history={userEventHistory}
-          onOpenAll={() => setActivityHistoryOpen(true)}
+          onOpenActivity={() => setActivityHistoryOpen(true)}
+          onOpenEvents={() => setOrganizerHistoryOpen(true)}
+          onOpenRewards={() => setOrganizerRewardsHistoryOpen(true)}
+          rewards={myOrganizerRewards}
+          rewardsError={myOrganizerRewardsError}
+          rewardsLoading={myOrganizerRewardsLoading}
           transactions={xpTransactions}
         />
       </ScrollView>

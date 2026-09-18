@@ -9,6 +9,7 @@ import {
   useFonts as useInterFonts,
 } from '@expo-google-fonts/inter';
 import {
+  PlayfairDisplay_400Regular,
   PlayfairDisplay_700Bold,
   PlayfairDisplay_800ExtraBold,
   PlayfairDisplay_900Black,
@@ -34,6 +35,7 @@ export default function TabLayout() {
     Inter_800ExtraBold,
   });
   const [playfairLoaded] = usePlayfairFonts({
+    PlayfairDisplay_400Regular,
     PlayfairDisplay_700Bold,
     PlayfairDisplay_800ExtraBold,
     PlayfairDisplay_900Black,
