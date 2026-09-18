@@ -149,9 +149,9 @@ function RewardStatusPill({ state }: { state: RewardRowState }) {
       }`}
     >
       {isReady || isActive ? (
-        <CheckCircle2 size={12} color="#A88FAC" strokeWidth={2.6} />
+        <CheckCircle2 size={12} color="#A63446" strokeWidth={2.6} />
       ) : (
-        <LockKeyhole size={12} color="#756D54" strokeWidth={2.5} />
+        <LockKeyhole size={12} color="#6B818C" strokeWidth={2.5} />
       )}
       <Text
         className={`text-[10px] font-extrabold ${isReady || isActive ? 'text-ink' : 'text-muted'}`}

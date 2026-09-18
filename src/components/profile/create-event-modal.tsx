@@ -216,7 +216,7 @@ export function CreateEventModal({
                   accessibilityRole="button"
                   accessibilityLabel="Close create event"
                 >
-                  <ArrowLeft size={21} color="#756D54" strokeWidth={2.6} />
+                  <ArrowLeft size={21} color="#6B818C" strokeWidth={2.6} />
                 </Pressable>
 
                 {!isEditingEvent && (
@@ -258,7 +258,7 @@ export function CreateEventModal({
                   ) : (
                     <View className="h-[150px] items-center justify-center px-5">
                       <View className="mb-3 h-11 w-11 items-center justify-center rounded-full bg-primary/15">
-                        <Camera size={20} color="#756D54" strokeWidth={2.4} />
+                        <Camera size={20} color="#6B818C" strokeWidth={2.4} />
                       </View>
                       <Text className="text-center font-ui text-[14px] font-bold text-primary">
                         Add event photo
@@ -285,7 +285,7 @@ export function CreateEventModal({
                 <Text className="mb-2 text-[13px] font-semibold text-ink">Place or address</Text>
                 <View className="mb-4">
                   <View className="h-12 flex-row items-center gap-3 rounded-xl border border-gray-300 px-4">
-                    <Search size={16} color="#756D54" strokeWidth={2.4} />
+                    <Search size={16} color="#6B818C" strokeWidth={2.4} />
                     <TextInput
                       value={placeQuery}
                       onChangeText={(value) => {
@@ -298,7 +298,7 @@ export function CreateEventModal({
                       maxLength={textLimits.placeSearch}
                       className="flex-1 text-[15px] text-ink"
                     />
-                    {searchingPlaces && <ActivityIndicator color="#756D54" size="small" />}
+                    {searchingPlaces && <ActivityIndicator color="#6B818C" size="small" />}
                   </View>
                   <Text className="mt-2 text-[11px] leading-4 text-muted">
                     {hasGooglePlacesApiKey
@@ -309,7 +309,7 @@ export function CreateEventModal({
                   {selectedPlace && (
                     <View className="mt-2 flex-row gap-3 rounded-xl border border-primary/25 bg-primary/10 p-3">
                       <View className="h-9 w-9 items-center justify-center rounded-full bg-primary/15">
-                        <MapPin size={16} color="#756D54" strokeWidth={2.4} />
+                        <MapPin size={16} color="#6B818C" strokeWidth={2.4} />
                       </View>
                       <View className="min-w-0 flex-1">
                         <Text className="font-ui text-[13px] font-bold text-ink" numberOfLines={1}>
@@ -334,7 +334,7 @@ export function CreateEventModal({
                           className="flex-row items-start gap-3 border-b border-gray-100 p-3 active:bg-gray-50"
                         >
                           <View className="h-9 w-9 items-center justify-center rounded-full bg-primary/10">
-                            <MapPin size={16} color="#756D54" strokeWidth={2.4} />
+                            <MapPin size={16} color="#6B818C" strokeWidth={2.4} />
                           </View>
                           <View className="min-w-0 flex-1">
                             <Text

@@ -304,13 +304,13 @@ export function AccountActionsModal({
             className="flex-row items-center gap-3 rounded-2xl px-3 py-4 active:bg-primary/5"
           >
             <View className="h-10 w-10 items-center justify-center rounded-full bg-primary/10">
-              <UserRound size={18} color="#756D54" strokeWidth={2.4} />
+              <UserRound size={18} color="#6B818C" strokeWidth={2.4} />
             </View>
             <View className="flex-1">
               <Text className="font-ui text-[15px] font-extrabold text-ink">Edit profile</Text>
               <Text className="mt-0.5 text-[12px] text-muted">Name, city, and profile photo</Text>
             </View>
-            <ChevronRight size={17} color="#756D54" strokeWidth={2.4} />
+            <ChevronRight size={17} color="#6B818C" strokeWidth={2.4} />
           </Pressable>
 
           <View className="mx-3 h-px bg-gray-100" />
@@ -323,7 +323,7 @@ export function AccountActionsModal({
             className="flex-row items-center gap-3 rounded-2xl px-3 py-4 active:bg-destructive/5"
           >
             <View className="h-10 w-10 items-center justify-center rounded-full bg-gray-100">
-              <LogOut size={18} color="#756D54" strokeWidth={2.4} />
+              <LogOut size={18} color="#6B818C" strokeWidth={2.4} />
             </View>
             <View className="flex-1">
               <Text className="font-ui text-[15px] font-extrabold text-ink">Log out</Text>
@@ -693,7 +693,7 @@ export function AdminXpAuditModal({
                 onPress={closeWithAnimation}
                 className="h-10 w-10 items-center justify-center rounded-full bg-gray-100 active:opacity-80"
               >
-                <ArrowLeft size={21} color="#756D54" strokeWidth={2.6} />
+                <ArrowLeft size={21} color="#6B818C" strokeWidth={2.6} />
               </Pressable>
               <Pressable
                 disabled={loading}
@@ -796,7 +796,7 @@ function XpTransactionRow({
         >
           <ReceiptText
             size={20}
-            color={isSpend ? '#756D54' : Colors.light.accentDeep}
+            color={isSpend ? '#6B818C' : Colors.light.accentDeep}
             strokeWidth={2.4}
           />
         </View>
@@ -991,7 +991,7 @@ export function UserActivityHistoryModal({
                 onPress={closeWithAnimation}
                 className="h-10 w-10 items-center justify-center rounded-full bg-gray-100 active:opacity-80"
               >
-                <ArrowLeft size={21} color="#756D54" strokeWidth={2.6} />
+                <ArrowLeft size={21} color="#6B818C" strokeWidth={2.6} />
               </Pressable>
             </View>
             <HistoryFilterBar
@@ -1117,7 +1117,7 @@ export function OrganizerEventHistoryModal({
                 onPress={closeWithAnimation}
                 className="h-10 w-10 items-center justify-center rounded-full bg-gray-100 active:opacity-80"
               >
-                <ArrowLeft size={21} color="#756D54" strokeWidth={2.6} />
+                <ArrowLeft size={21} color="#6B818C" strokeWidth={2.6} />
               </Pressable>
             </View>
             <HistoryFilterBar
@@ -1208,7 +1208,7 @@ export function OrganizerRewardHistoryModal({
                 onPress={closeWithAnimation}
                 className="h-10 w-10 items-center justify-center rounded-full bg-gray-100 active:opacity-80"
               >
-                <ArrowLeft size={21} color="#756D54" strokeWidth={2.6} />
+                <ArrowLeft size={21} color="#6B818C" strokeWidth={2.6} />
               </Pressable>
             </View>
 
@@ -1608,24 +1608,24 @@ function HistoryEventDetail({
 
         <View className="px-5 pt-5">
           <View className="mb-5 gap-3 rounded-2xl border border-gray-200 bg-white p-4">
-            <HistoryInfoRow icon={<MapPin size={17} color="#756D54" />} label={event.venueName} />
+            <HistoryInfoRow icon={<MapPin size={17} color="#6B818C" />} label={event.venueName} />
             <HistoryInfoRow
-              icon={<Clock size={17} color="#756D54" />}
+              icon={<Clock size={17} color="#6B818C" />}
               label={`${event.date}, ${formatEventTimeRange(event)}`}
             />
             <View className="flex-row gap-2">
               <HistoryStatPill
-                icon={<Users size={15} color="#756D54" strokeWidth={2.4} />}
+                icon={<Users size={15} color="#6B818C" strokeWidth={2.4} />}
                 label="Interested"
                 value={getEventEngagement(event, status).interested}
               />
               <HistoryStatPill
-                icon={<Clock size={15} color="#756D54" strokeWidth={2.4} />}
+                icon={<Clock size={15} color="#6B818C" strokeWidth={2.4} />}
                 label="Going"
                 value={getEventEngagement(event, status).going}
               />
               <HistoryStatPill
-                icon={<CheckCircle2 size={15} color="#756D54" strokeWidth={2.4} />}
+                icon={<CheckCircle2 size={15} color="#6B818C" strokeWidth={2.4} />}
                 label="Attended"
                 value={getEventEngagement(event, status).attended}
               />
@@ -1756,7 +1756,7 @@ function OrganizerEventQrModal({
                 onPress={closeWithAnimation}
                 className="h-10 w-10 items-center justify-center rounded-full bg-gray-100 active:opacity-80"
               >
-                <ArrowLeft size={21} color="#756D54" strokeWidth={2.6} />
+                <ArrowLeft size={21} color="#6B818C" strokeWidth={2.6} />
               </Pressable>
             </View>
 
@@ -1875,17 +1875,17 @@ function HistoryEngagementStats({
   return (
     <View className="mt-3 flex-row gap-2">
       <HistoryStatPill
-        icon={<Users size={14} color="#756D54" strokeWidth={2.4} />}
+        icon={<Users size={14} color="#6B818C" strokeWidth={2.4} />}
         label="Interested"
         value={engagement.interested}
       />
       <HistoryStatPill
-        icon={<Clock size={14} color="#756D54" strokeWidth={2.4} />}
+        icon={<Clock size={14} color="#6B818C" strokeWidth={2.4} />}
         label="Going"
         value={engagement.going}
       />
       <HistoryStatPill
-        icon={<CheckCircle2 size={14} color="#756D54" strokeWidth={2.4} />}
+        icon={<CheckCircle2 size={14} color="#6B818C" strokeWidth={2.4} />}
         label="Attended"
         value={engagement.attended}
       />
@@ -2126,7 +2126,7 @@ export function RewardsListModal({
                     onPress={closeWithAnimation}
                     className="h-10 w-10 items-center justify-center rounded-full bg-gray-100 active:opacity-80"
                   >
-                    <ArrowLeft size={21} color="#756D54" strokeWidth={2.6} />
+                    <ArrowLeft size={21} color="#6B818C" strokeWidth={2.6} />
                   </Pressable>
                   <View className="min-w-0 flex-1">
                     <Text className="font-heading text-[25px] font-extrabold text-ink">
