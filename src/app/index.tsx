@@ -6,6 +6,7 @@ import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import MapView, { Marker } from 'react-native-maps';
 
 import { CardListSkeleton, EmptyState, ErrorState, LoadingState } from '@/components/async-state';
+import { ActivityHeatLayer } from '@/components/activity-heat-layer';
 import { BrandImage } from '@/components/brand-image';
 import { CardStyles, Colors } from '@/constants/theme';
 import { cultureMapStyle } from '@/constants/map-style';
@@ -57,6 +58,7 @@ export default function HomeScreen({
   const [canShowUserLocation, setCanShowUserLocation] = useState(false);
   const [isMapInteractive, setIsMapInteractive] = useState(true);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [activityNow, setActivityNow] = useState(() => Date.now());
   const happeningNow = useMemo(
     () =>
       events
@@ -82,8 +84,10 @@ export default function HomeScreen({
         eventCount: number;
         attendedCount: number;
         goingCount: number;
+        heatWeight: number;
         nextEvent: CultureEvent;
         interestedCount: number;
+        predictedAttendance: number;
         coordinates: { latitude: number; longitude: number };
       }[]
     >((spots, event) => {
@@ -92,12 +96,18 @@ export default function HomeScreen({
       if (!coordinates) return spots;
 
       const engagement = getEventEngagement(event, eventStatuses[event.id]);
+      const forecast = getEventActivityForecast(event, engagement, activityNow);
       const existingSpot = spots.find((spot) => spot.id === event.venueId);
       if (existingSpot) {
         existingSpot.eventCount += 1;
         existingSpot.attendedCount += engagement.attended;
         existingSpot.goingCount += engagement.going;
         existingSpot.interestedCount += engagement.interested;
+        existingSpot.predictedAttendance += forecast.predictedAttendance;
+        existingSpot.heatWeight = Math.min(1, existingSpot.heatWeight + forecast.heatWeight);
+        if (getEventStartTimestamp(event) < getEventStartTimestamp(existingSpot.nextEvent)) {
+          existingSpot.nextEvent = event;
+        }
         return spots;
       }
 
@@ -110,8 +120,10 @@ export default function HomeScreen({
           attendedCount: engagement.attended,
           eventCount: 1,
           goingCount: engagement.going,
+          heatWeight: forecast.heatWeight,
           interestedCount: engagement.interested,
           nextEvent: event,
+          predictedAttendance: forecast.predictedAttendance,
           coordinates,
         },
       ];
@@ -119,25 +131,25 @@ export default function HomeScreen({
 
     if (mapSpots.length === 0) return [];
 
-    const activityScores = mapSpots.map(
-      (spot) => spot.interestedCount + spot.goingCount + spot.attendedCount,
-    );
-    const maxActivity = Math.max(...activityScores, 0);
-
     return mapSpots
       .map((spot) => {
         const activityScore = spot.interestedCount + spot.goingCount + spot.attendedCount;
-        const intensity = maxActivity > 0 ? activityScore / maxActivity : 0;
 
         return {
           ...spot,
           activityScore,
-          intensity,
-          color: getActivityColor(intensity),
+          color: getActivityMarkerColor(spot.heatWeight),
         };
       })
       .sort((a, b) => b.activityScore - a.activityScore);
-  }, [cityData.name, eventStatuses, events]);
+  }, [activityNow, cityData.name, eventStatuses, events]);
+  const activityHeatPoints = useMemo(
+    () =>
+      activitySpots
+        .filter((spot) => spot.heatWeight >= 0.06)
+        .map((spot) => ({ coordinate: spot.coordinates, id: spot.id, weight: spot.heatWeight })),
+    [activitySpots],
+  );
   const [selectedActivityId, setSelectedActivityId] = useState<string | null>(null);
   const selectedActivitySpot =
     activitySpots.find((spot) => spot.id === selectedActivityId) ?? activitySpots[0];
@@ -162,6 +174,13 @@ export default function HomeScreen({
     return () => {
       mounted = false;
     };
+  }, []);
+
+  useEffect(() => {
+    const refreshActivityForecast = () => setActivityNow(Date.now());
+    const interval = setInterval(refreshActivityForecast, 15 * 60 * 1000);
+
+    return () => clearInterval(interval);
   }, []);
 
   useEffect(() => {
@@ -345,7 +364,7 @@ export default function HomeScreen({
           </View>
 
           <View
-            className="overflow-hidden rounded-3xl border border-primary/10 bg-[#EAF0F7]"
+            className="overflow-hidden rounded-3xl border border-primary/10 bg-surface"
             style={CardStyles.elevated}
           >
             <View className="h-[210px]">
@@ -368,6 +387,7 @@ export default function HomeScreen({
                 toolbarEnabled={false}
                 zoomEnabled={isMapInteractive}
               >
+                <ActivityHeatLayer points={activityHeatPoints} />
                 {activitySpots.map((spot) => (
                   <Marker
                     coordinate={spot.coordinates}
@@ -379,9 +399,9 @@ export default function HomeScreen({
                     <View
                       className="h-8 w-8 items-center justify-center rounded-full"
                       style={{
-                        shadowColor: '#7F1D1D',
+                        shadowColor: Colors.light.accentDeep,
                         shadowOffset: { height: 2, width: 0 },
-                        shadowOpacity: selectedActivitySpot?.id === spot.id ? 0.28 : 0.18,
+                        shadowOpacity: selectedActivitySpot?.id === spot.id ? 0.24 : 0.12,
                         shadowRadius: selectedActivitySpot?.id === spot.id ? 8 : 5,
                       }}
                     >
@@ -389,8 +409,8 @@ export default function HomeScreen({
                         className="items-center justify-center rounded-full border-[3px] border-white"
                         style={{
                           backgroundColor: spot.color,
-                          height: selectedActivitySpot?.id === spot.id ? 24 : 22,
-                          width: selectedActivitySpot?.id === spot.id ? 24 : 22,
+                          height: selectedActivitySpot?.id === spot.id ? 21 : 18,
+                          width: selectedActivitySpot?.id === spot.id ? 21 : 18,
                         }}
                       />
                     </View>
@@ -402,8 +422,10 @@ export default function HomeScreen({
                 className="absolute inset-0 bg-ink/5"
                 style={{ backgroundColor: `${Colors.light.ink}08` }}
               />
-              <View className="absolute left-5 top-5 rounded-full bg-white/80 px-3 py-1">
-                <Text className="text-[11px] font-bold text-primary">{cityData.name}</Text>
+              <View className="absolute left-5 top-5 rounded-full bg-white/85 px-3 py-1">
+                <Text className="text-[10px] font-bold text-primary">
+                  {activityHeatPoints.length > 0 ? 'Predicted activity' : 'Venue locations'}
+                </Text>
               </View>
               <Pressable
                 disabled={eventsLoading || activitySpots.length === 0}
@@ -634,38 +656,101 @@ function getEventDate(event: CultureEvent) {
 
 function isEventLiveNow(event: CultureEvent) {
   const now = Date.now();
-  const startsAt = event.startsAt ? Date.parse(event.startsAt) : null;
-  const endsAt = event.endsAt ? Date.parse(event.endsAt) : null;
+  const startsAt = getEventStartTimestamp(event);
+  const endsAt = getEventEndTimestamp(event, startsAt);
 
-  if (!startsAt || Number.isNaN(startsAt) || now < startsAt) return false;
-  if (!endsAt || Number.isNaN(endsAt)) return true;
+  if (!Number.isFinite(startsAt) || now < startsAt) return false;
+  if (Number.isNaN(endsAt)) return true;
 
   return now <= endsAt;
 }
 
 function getEventStartTimestamp(event: CultureEvent) {
-  if (!event.startsAt) return Number.POSITIVE_INFINITY;
+  if (event.startsAt) {
+    const startsAt = Date.parse(event.startsAt);
+    if (!Number.isNaN(startsAt)) return startsAt;
+  }
 
-  const startsAt = Date.parse(event.startsAt);
-  return Number.isNaN(startsAt) ? Number.POSITIVE_INFINITY : startsAt;
+  const eventDate = getEventDate(event);
+  if (!eventDate) return Number.POSITIVE_INFINITY;
+
+  const startTime = getFirstTime(event.time);
+  if (!startTime) return eventDate.getTime();
+
+  eventDate.setHours(startTime.hours, startTime.minutes, 0, 0);
+  return eventDate.getTime();
 }
 
-function getActivityColor(intensity: number) {
-  const redScale = [
-    '#F87171',
-    '#F56565',
-    '#F05252',
-    '#EB4646',
-    '#E43A3A',
-    '#DB3232',
-    '#D12B2B',
-    '#C72525',
-    '#BD2020',
-    '#B91C1C',
-  ];
-  const shadeIndex = Math.max(0, Math.min(redScale.length - 1, Math.ceil(intensity * 10) - 1));
+function getEventEndTimestamp(event: CultureEvent, startTimestamp: number) {
+  if (event.endsAt) {
+    const endsAt = Date.parse(event.endsAt);
+    if (!Number.isNaN(endsAt)) return endsAt;
+  }
 
-  return redScale[shadeIndex];
+  const endTime = getLastTime(event.endTime ?? event.time);
+  if (!endTime) return Number.NaN;
+
+  const end = new Date(startTimestamp);
+  end.setHours(endTime.hours, endTime.minutes, 0, 0);
+  if (end.getTime() <= startTimestamp) end.setDate(end.getDate() + 1);
+  return end.getTime();
+}
+
+function getFirstTime(value?: string) {
+  const match = value?.match(/\b(\d{1,2}):(\d{2})\b/);
+  return match ? { hours: Number(match[1]), minutes: Number(match[2]) } : null;
+}
+
+function getLastTime(value?: string) {
+  const matches = [...(value?.matchAll(/\b(\d{1,2}):(\d{2})\b/g) ?? [])];
+  const match = matches.at(-1);
+  return match ? { hours: Number(match[1]), minutes: Number(match[2]) } : null;
+}
+
+function getEventActivityForecast(
+  event: CultureEvent,
+  engagement: { attended: number; going: number; interested: number },
+  now: number,
+) {
+  const startTimestamp = getEventStartTimestamp(event);
+  if (!Number.isFinite(startTimestamp)) {
+    return { heatWeight: 0, predictedAttendance: 0 };
+  }
+
+  const endTimestamp = getEventEndTimestamp(event, startTimestamp);
+  const hoursUntilStart = (startTimestamp - now) / (60 * 60 * 1000);
+  const timingWeight = getTimingWeight(hoursUntilStart, endTimestamp, now);
+  const predictedAttendance =
+    engagement.attended * 1.25 + engagement.going * 0.75 + engagement.interested * 0.15;
+  const crowdWeight = Math.min(1, Math.log1p(predictedAttendance) / Math.log1p(50));
+
+  return {
+    heatWeight: Number((timingWeight * crowdWeight).toFixed(3)),
+    predictedAttendance,
+  };
+}
+
+function getTimingWeight(hoursUntilStart: number, endTimestamp: number, now: number) {
+  if (hoursUntilStart > 24) return 0;
+
+  if (hoursUntilStart >= 0) {
+    const rampProgress = 1 - hoursUntilStart / 24;
+    return 0.12 + 0.88 * Math.pow(rampProgress, 1.45);
+  }
+
+  if (!Number.isNaN(endTimestamp) && now <= endTimestamp) return 1;
+
+  const hoursAfterEnd = Number.isNaN(endTimestamp)
+    ? Math.abs(hoursUntilStart)
+    : (now - endTimestamp) / (60 * 60 * 1000);
+
+  return hoursAfterEnd < 2 ? 0.45 * (1 - hoursAfterEnd / 2) : 0;
+}
+
+function getActivityMarkerColor(heatWeight: number) {
+  if (heatWeight >= 0.65) return Colors.light.accentDeep;
+  if (heatWeight >= 0.18) return Colors.light.accent;
+  return Colors.light.primary;
 }
 
 function MiniEngagementStat({ icon, value }: { icon: ReactNode; value: number }) {
