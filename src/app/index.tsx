@@ -17,6 +17,11 @@ import {
   languageLabels,
 } from '@/data/culture';
 import { getEventEngagement } from '@/lib/event-engagement';
+import {
+  EMPTY_CITY_ACTIVITY_BASELINE,
+  fetchCityActivityBaseline,
+  type CityActivityBaseline,
+} from '@/lib/city-activity';
 import type { UserEventStatus } from '@/lib/event-history';
 import { useResponsiveLayout } from '@/hooks/use-responsive-layout';
 import { useStableTopInset } from '@/hooks/use-stable-safe-area';
@@ -59,6 +64,9 @@ export default function HomeScreen({
   const [isMapInteractive, setIsMapInteractive] = useState(true);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [activityNow, setActivityNow] = useState(() => Date.now());
+  const [activityBaseline, setActivityBaseline] = useState<CityActivityBaseline>(
+    EMPTY_CITY_ACTIVITY_BASELINE,
+  );
   const happeningNow = useMemo(
     () =>
       events
@@ -96,7 +104,7 @@ export default function HomeScreen({
       if (!coordinates) return spots;
 
       const engagement = getEventEngagement(event, eventStatuses[event.id]);
-      const forecast = getEventActivityForecast(event, engagement, activityNow);
+      const forecast = getEventActivityForecast(event, engagement, activityNow, activityBaseline);
       const existingSpot = spots.find((spot) => spot.id === event.venueId);
       if (existingSpot) {
         existingSpot.eventCount += 1;
@@ -142,7 +150,7 @@ export default function HomeScreen({
         };
       })
       .sort((a, b) => b.activityScore - a.activityScore);
-  }, [activityNow, cityData.name, eventStatuses, events]);
+  }, [activityBaseline, activityNow, cityData.name, eventStatuses, events]);
   const activityHeatPoints = useMemo(
     () =>
       activitySpots
@@ -182,6 +190,21 @@ export default function HomeScreen({
 
     return () => clearInterval(interval);
   }, []);
+
+  useEffect(() => {
+    let active = true;
+
+    async function loadActivityBaseline() {
+      const { baseline } = await fetchCityActivityBaseline(cityData.id);
+      if (active) setActivityBaseline(baseline);
+    }
+
+    loadActivityBaseline();
+
+    return () => {
+      active = false;
+    };
+  }, [cityData.id]);
 
   useEffect(() => {
     setSelectedActivityId(null);
@@ -712,6 +735,7 @@ function getEventActivityForecast(
   event: CultureEvent,
   engagement: { attended: number; going: number; interested: number },
   now: number,
+  activityBaseline: CityActivityBaseline,
 ) {
   const startTimestamp = getEventStartTimestamp(event);
   if (!Number.isFinite(startTimestamp)) {
@@ -723,12 +747,25 @@ function getEventActivityForecast(
   const timingWeight = getTimingWeight(hoursUntilStart, endTimestamp, now);
   const predictedAttendance =
     engagement.attended * 1.25 + engagement.going * 0.75 + engagement.interested * 0.15;
-  const crowdWeight = Math.min(1, Math.log1p(predictedAttendance) / Math.log1p(50));
+  const crowdReference = getExpectedEventCrowd(activityBaseline);
+  const crowdWeight = Math.min(
+    1,
+    Math.log1p(predictedAttendance) / Math.log1p(crowdReference),
+  );
 
   return {
     heatWeight: Number((timingWeight * crowdWeight).toFixed(3)),
     predictedAttendance,
   };
+}
+
+function getExpectedEventCrowd({ activeUsers, registeredUsers }: CityActivityBaseline) {
+  // Actual recent participation is the strongest signal. Only 3% of dormant
+  // accounts are included as a conservative reactivation allowance.
+  const estimatedActiveUsers =
+    activeUsers + Math.max(0, registeredUsers - activeUsers) * 0.03;
+
+  return Math.max(8, Math.min(75, Math.round(estimatedActiveUsers * 0.12)));
 }
 
 function getTimingWeight(hoursUntilStart: number, endTimestamp: number, now: number) {
