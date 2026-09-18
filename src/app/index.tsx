@@ -170,9 +170,9 @@ export default function HomeScreen({
   }, [cityData.id]);
 
   return (
-    <View className="flex-1 bg-white">
+    <View className="flex-1 bg-canvas">
       <ScrollView
-        className="flex-1 bg-white"
+        className="flex-1 bg-canvas"
         contentContainerStyle={{ paddingBottom: 104 }}
         showsVerticalScrollIndicator={false}
       >
@@ -282,7 +282,7 @@ export default function HomeScreen({
               happeningNow.map((event) => (
                 <Pressable
                   onPress={() => onOpenEvent?.(event.id)}
-                  className="overflow-hidden rounded-2xl border border-primary/10 bg-white active:opacity-85"
+                  className="overflow-hidden rounded-2xl border border-primary/10 bg-surface active:opacity-85"
                   style={[CardStyles.compact, { width: layout.cardWidth }]}
                   key={event.id}
                 >
@@ -336,7 +336,7 @@ export default function HomeScreen({
       </Modal>
     </View>
 
-        <View className="bg-white px-5 pb-8">
+        <View className="bg-canvas px-5 pb-8">
           <View className="mb-3 flex-row items-center justify-between">
             <Text className="text-[11px] font-semibold uppercase tracking-wide text-muted">
               City activity
@@ -422,7 +422,7 @@ export default function HomeScreen({
               </Pressable>
             </View>
 
-            <View className="border-t border-primary/10 bg-white px-4 py-3">
+            <View className="border-t border-primary/10 bg-surface px-4 py-3">
               {eventsError ? (
                 <ErrorState
                   body="Approved events could not load from Supabase."
@@ -483,7 +483,7 @@ export default function HomeScreen({
           </View>
         </View>
 
-        <View className="bg-white px-5 pb-8">
+        <View className="bg-canvas px-5 pb-8">
           <View className="mb-3 flex-row items-center justify-between">
             <Text className="text-[11px] font-semibold uppercase tracking-wide text-muted">
               Campus ranking
@@ -492,7 +492,7 @@ export default function HomeScreen({
           </View>
 
           <View
-            className="overflow-hidden rounded-3xl border border-primary/10 bg-white"
+            className="overflow-hidden rounded-3xl border border-primary/10 bg-surface"
             style={CardStyles.elevated}
           >
             <View className="bg-primary px-4 py-4">

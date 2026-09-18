@@ -291,7 +291,7 @@ function OrganizerProfileEventRow({
   return (
     <Pressable
       onPress={onPress}
-      className="flex-row items-center gap-3 rounded-3xl border border-primary/10 bg-white p-3 active:opacity-85"
+      className="flex-row items-center gap-3 rounded-3xl border border-primary/10 bg-surface p-3 active:opacity-85"
       style={CardStyles.compact}
     >
       <View className="h-[72px] w-[72px] overflow-hidden rounded-2xl bg-gray-200">

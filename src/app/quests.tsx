@@ -78,7 +78,7 @@ export default function QuestsScreen({
   }, [cityData.id, questsRefreshKey]);
 
   return (
-    <View className="flex-1 bg-white">
+    <View className="flex-1 bg-canvas">
       <ScrollView
         className="flex-1"
         contentContainerStyle={{ paddingBottom: 112 }}
@@ -134,7 +134,7 @@ function QuestCard({ onPress, quest }: { onPress: () => void; quest: Quest }) {
   return (
     <Pressable
       onPress={onPress}
-      className="overflow-hidden rounded-3xl border border-primary/10 bg-white active:opacity-90"
+      className="overflow-hidden rounded-3xl border border-primary/10 bg-surface active:opacity-90"
       style={CardStyles.elevated}
     >
       <View className="bg-gray-200" style={{ height: layout.isSmallPhone ? 126 : 142 }}>

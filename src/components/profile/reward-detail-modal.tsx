@@ -153,7 +153,7 @@ export function RewardDetailModal({
                       'Unlock this reward with CultureQuest XP, then show the pickup screen to staff before ordering or paying.'}
                   </Text>
 
-                  <View className="mt-6 rounded-2xl border border-gray-200 bg-white p-4">
+                  <View className="mt-6 rounded-2xl border border-primary/15 bg-surface p-4">
                     <Pressable
                       onPress={onToggleDetails}
                       className="flex-row items-center justify-between gap-3 active:opacity-80"
@@ -189,7 +189,7 @@ export function RewardDetailModal({
                   </View>
                 </View>
 
-                <View className="rounded-[30px] border border-primary/25 bg-white p-[22px]">
+                <View className="rounded-[30px] border border-primary/25 bg-surface p-[22px]">
                   <View className="mb-5 flex-row items-start justify-between gap-3">
                     <View className="min-w-0 flex-1">
                       <Text className="text-[10px] font-bold uppercase leading-[16px] tracking-[1.6px] text-muted">
