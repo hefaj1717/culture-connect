@@ -26,6 +26,7 @@ module.exports = {
       fontFamily: {
         sans: ['Inter_400Regular'],
         serif: ['PlayfairDisplay_800ExtraBold'],
+        serifRegular: ['PlayfairDisplay_400Regular'],
         heading: ['PlayfairDisplay_800ExtraBold'],
         display: ['PlayfairDisplay_900Black'],
         body: ['Inter_400Regular'],
