@@ -17,6 +17,7 @@ module.exports = {
         destructive: colors.destructive,
         muted: colors.textSecondary,
         canvas: colors.background,
+        surface: colors.surface,
         progressTrack: colors.progressTrack,
         badgeQuest: colors.badgeQuest,
         badgeSocial: colors.badgeSocial,

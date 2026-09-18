@@ -355,7 +355,7 @@ export default function ExploreScreen({
   }, [displayedOrganizerProfiles, selectedEvent]);
 
   return (
-    <View className="flex-1 bg-white">
+    <View className="flex-1 bg-canvas">
       <ScrollView
         className="flex-1"
         contentContainerStyle={{ paddingBottom: 112 }}
@@ -442,7 +442,7 @@ export default function ExploreScreen({
                     Keyboard.dismiss();
                     setSelectedEvent(featuredEvent);
                   }}
-                  className="overflow-hidden rounded-3xl border border-primary/10 bg-white active:opacity-90"
+                  className="overflow-hidden rounded-3xl border border-primary/10 bg-surface active:opacity-90"
                   style={CardStyles.elevated}
                 >
                   <View className="bg-gray-200" style={{ height: layout.isSmallPhone ? 150 : 170 }}>
@@ -557,7 +557,7 @@ export default function ExploreScreen({
                           Keyboard.dismiss();
                           setSelectedEvent(event);
                         }}
-                        className="flex-row items-start gap-3 rounded-3xl border border-primary/10 bg-white p-3 active:opacity-90"
+                        className="flex-row items-start gap-3 rounded-3xl border border-primary/10 bg-surface p-3 active:opacity-90"
                         style={CardStyles.compact}
                       >
                         <View
@@ -652,7 +652,7 @@ export default function ExploreScreen({
                     Keyboard.dismiss();
                     setSelectedOrganizerProfile(profile);
                   }}
-                  className="flex-row items-center gap-3 rounded-3xl border border-primary/10 bg-white p-4 active:opacity-80"
+                  className="flex-row items-center gap-3 rounded-3xl border border-primary/10 bg-surface p-4 active:opacity-80"
                   style={CardStyles.compact}
                 >
                   <OrganizerAvatar profile={profile} size={58} />

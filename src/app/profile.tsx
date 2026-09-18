@@ -528,7 +528,7 @@ export default function ProfileScreen({
 
   if (!session) {
     return (
-      <View className="flex-1 items-center justify-center bg-white px-6">
+      <View className="flex-1 items-center justify-center bg-canvas px-6">
         <Text className="text-center font-body text-[15px] text-muted">
           Log in to view your profile.
         </Text>
@@ -552,7 +552,7 @@ export default function ProfileScreen({
   }
 
   return (
-    <View className="flex-1 bg-white">
+    <View className="flex-1 bg-canvas">
       <ScrollView
         className="flex-1"
         contentContainerStyle={{ paddingBottom: 112, paddingTop: stableModalTopInset + 8 }}

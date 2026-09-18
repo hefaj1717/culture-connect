@@ -45,7 +45,7 @@ export function RewardPartnerRow({
           ? 'border-accent/30 bg-accent/10'
           : rowState === 'active'
             ? 'border-primary/25 bg-primary/10'
-            : 'border-gray-200 bg-white'
+            : 'border-primary/15 bg-surface'
       }`}
       style={CardStyles.compact}
     >

@@ -109,7 +109,7 @@ export function ProfileRankCard({
 
   return (
     <View
-      className="mx-5 mb-5 rounded-[28px] border border-gray-200 bg-white p-4"
+      className="mx-5 mb-5 rounded-[28px] border border-primary/15 bg-surface p-4"
       style={{ boxShadow: '0 10px 24px rgba(36, 28, 46, 0.08)' }}
     >
       <View className="mb-5 flex-row items-center gap-4">
@@ -784,7 +784,7 @@ function XpTransactionRow({
   return (
     <View
       className={`rounded-3xl border p-4 ${
-        isSpend ? 'border-gray-200 bg-white' : 'border-accent/15 bg-accent/5'
+        isSpend ? 'border-primary/15 bg-surface' : 'border-accent/15 bg-accent/5'
       }`}
       style={CardStyles.compact}
     >
@@ -866,7 +866,7 @@ export function OrganizerEventHistorySection({
       ) : (
         <Pressable
           onPress={onOpenAll}
-          className="flex-row items-center gap-3 rounded-[26px] border border-gray-200 bg-white p-3.5 active:opacity-85"
+          className="flex-row items-center gap-3 rounded-[26px] border border-primary/15 bg-surface p-3.5 active:opacity-85"
         >
           <View className="h-11 w-11 items-center justify-center rounded-2xl bg-canvas">
             <CalendarDays size={20} color={Colors.light.primary} strokeWidth={2.4} />
@@ -912,7 +912,7 @@ export function OrganizerRewardHistorySection({
       ) : (
         <Pressable
           onPress={onOpenAll}
-          className="flex-row items-center gap-3 rounded-[26px] border border-gray-200 bg-white p-3.5 active:opacity-85"
+          className="flex-row items-center gap-3 rounded-[26px] border border-primary/15 bg-surface p-3.5 active:opacity-85"
         >
           <View className="h-11 w-11 items-center justify-center rounded-2xl bg-accent/10">
             <Gift size={20} color={Colors.light.accent} strokeWidth={2.4} />
@@ -1417,7 +1417,7 @@ function EventHistoryRow({
   return (
     <Pressable
       onPress={onPress}
-      className="overflow-hidden rounded-3xl border border-primary/10 bg-white active:opacity-85"
+      className="overflow-hidden rounded-3xl border border-primary/10 bg-surface active:opacity-85"
       style={CardStyles.compact}
     >
       <View className="h-[126px] bg-gray-200">
@@ -1459,7 +1459,7 @@ function OrganizerEventRow({
   return (
     <Pressable
       onPress={onPress}
-      className="overflow-hidden rounded-3xl border border-primary/10 bg-white active:opacity-85"
+      className="overflow-hidden rounded-3xl border border-primary/10 bg-surface active:opacity-85"
       style={CardStyles.compact}
     >
       <View className="h-[126px] bg-gray-200">
@@ -1491,7 +1491,7 @@ function OrganizerEventRow({
 function OrganizerRewardRow({ reward }: { reward: ManagedOrganizerReward }) {
   return (
     <View
-      className="overflow-hidden rounded-3xl border border-primary/10 bg-white"
+      className="overflow-hidden rounded-3xl border border-primary/10 bg-surface"
       style={CardStyles.compact}
     >
       <View className="flex-row gap-3 p-3">

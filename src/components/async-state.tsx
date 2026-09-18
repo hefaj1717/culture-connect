@@ -35,7 +35,7 @@ export function CardListSkeleton({
       {Array.from({ length: count }, (_, index) => (
         <View
           key={index}
-          className="overflow-hidden rounded-2xl border border-primary/10 bg-white"
+          className="overflow-hidden rounded-2xl border border-primary/10 bg-surface"
           style={{ height: 132 }}
         >
           <View className="h-16 bg-canvas" />

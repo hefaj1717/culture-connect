@@ -40,7 +40,7 @@ const styles = StyleSheet.create({
     padding: Spacing.md,
   },
   default: {
-    backgroundColor: Colors.light.onPrimary,
+    backgroundColor: Colors.light.surface,
     borderColor: `${Colors.light.primary}1A`,
     borderRadius: Radius.feature,
     borderWidth: 1,
