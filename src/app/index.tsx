@@ -3,11 +3,8 @@ import * as Location from 'expo-location';
 import {
   ArrowRight,
   Bell,
-  CalendarClock,
   CheckCircle2,
-  ChevronRight,
   Globe,
-  MapPin,
   User,
   Users,
   X,
@@ -94,10 +91,6 @@ export default function HomeScreen({
     if (eventsThisWeekCount === 1) return `1 event in ${cityData.name} this week`;
     return `${eventsThisWeekCount} events in ${cityData.name} this week`;
   }, [cityData.name, eventsError, eventsLoading, eventsThisWeekCount]);
-  const notificationItems = useMemo(
-    () => buildNotificationItems(events, eventStatuses, activityNow),
-    [activityNow, eventStatuses, events],
-  );
   const activitySpots = useMemo(() => {
     const mapSpots = events.reduce<
       {
@@ -394,7 +387,7 @@ export default function HomeScreen({
             <View>
               <Text className="font-heading text-[30px] font-extrabold text-ink">Notifications</Text>
               <Text className="mt-1 text-[14px] leading-5 text-muted">
-                Event and city updates, newest first.
+                Important updates about your account and content.
               </Text>
             </View>
             <Pressable
@@ -411,65 +404,17 @@ export default function HomeScreen({
             contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 44, paddingTop: 12 }}
             showsVerticalScrollIndicator={false}
           >
-            {notificationItems.length > 0 ? (
-              <>
-                <Text className="mb-3 text-[11px] font-semibold uppercase tracking-wide text-muted">
-                  Latest updates
-                </Text>
-                <View className="gap-3">
-                  {notificationItems.map((item) => {
-                    const Icon = item.kind === 'live' ? Bell : item.kind === 'going' ? CalendarClock : MapPin;
-
-                    return (
-                      <Pressable
-                        key={item.id}
-                        onPress={() => {
-                          setNotificationsOpen(false);
-                          onOpenEvent?.(item.event.id);
-                        }}
-                        className="flex-row items-center rounded-feature border border-primary/10 bg-surface px-4 py-4 active:opacity-80"
-                        accessibilityLabel={`Open ${item.event.title}`}
-                      >
-                        <View
-                          className="mr-3 h-11 w-11 items-center justify-center rounded-full"
-                          style={{ backgroundColor: item.kind === 'live' ? Colors.light.accent : `${Colors.light.primary}20` }}
-                        >
-                          <Icon
-                            size={20}
-                            color={item.kind === 'live' ? Colors.light.background : Colors.light.primary}
-                            strokeWidth={2.2}
-                          />
-                        </View>
-                        <View className="flex-1 pr-2">
-                          <View className="flex-row items-center justify-between gap-3">
-                            <Text className="flex-1 text-[15px] font-semibold text-ink" numberOfLines={1}>
-                              {item.title}
-                            </Text>
-                            <Text className="text-[12px] font-semibold text-primary">{item.timestamp}</Text>
-                          </View>
-                          <Text className="mt-1 text-[13px] leading-5 text-muted" numberOfLines={2}>
-                            {item.description}
-                          </Text>
-                        </View>
-                        <ChevronRight size={18} color={Colors.light.textSecondary} strokeWidth={2.2} />
-                      </Pressable>
-                    );
-                  })}
-                </View>
-              </>
-            ) : (
-              <View className="mt-10 items-center rounded-feature border border-primary/10 bg-surface px-7 py-10">
-                <View className="h-12 w-12 items-center justify-center rounded-full bg-primary/10">
-                  <Bell size={22} color={Colors.light.primary} strokeWidth={2.1} />
-                </View>
-                <Text className="mt-4 text-center font-heading text-[23px] font-extrabold text-ink">
-                  You’re up to date
-                </Text>
-                <Text className="mt-2 text-center text-[14px] leading-5 text-muted">
-                  Updates about events you follow and activity in {cityData.name} will appear here.
-                </Text>
+            <View className="mt-10 items-center rounded-feature border border-primary/10 bg-surface px-7 py-10">
+              <View className="h-12 w-12 items-center justify-center rounded-full bg-primary/10">
+                <Bell size={22} color={Colors.light.primary} strokeWidth={2.1} />
               </View>
-            )}
+              <Text className="mt-4 text-center font-heading text-[23px] font-extrabold text-ink">
+                No new notifications
+              </Text>
+              <Text className="mt-2 text-center text-[14px] leading-5 text-muted">
+                Decisions, changes to your events, and completed actions will appear here.
+              </Text>
+            </View>
           </ScrollView>
         </View>
       </Modal>
@@ -866,81 +811,6 @@ function getExpectedEventCrowd({ activeUsers, registeredUsers }: CityActivityBas
   );
 
   return Math.max(2, Math.min(75, Math.ceil(estimatedActiveUsers * 0.35)));
-}
-
-type NotificationItem = {
-  description: string;
-  event: CultureEvent;
-  id: string;
-  kind: 'live' | 'going' | 'upcoming';
-  priority: number;
-  timestamp: string;
-  title: string;
-};
-
-function buildNotificationItems(
-  events: CultureEvent[],
-  eventStatuses: Record<string, UserEventStatus>,
-  now: number,
-) {
-  return events
-    .map((event): NotificationItem | null => {
-      const startTimestamp = getEventStartTimestamp(event);
-      if (!Number.isFinite(startTimestamp)) return null;
-
-      if (isEventLiveNow(event)) {
-        return {
-          description: `${event.title} is happening now at ${event.venueName}.`,
-          event,
-          id: `live-${event.id}`,
-          kind: 'live',
-          priority: 0,
-          timestamp: 'Now',
-          title: 'Live in your city',
-        };
-      }
-
-      const hoursUntilStart = (startTimestamp - now) / (60 * 60 * 1000);
-      const status = eventStatuses[event.id];
-      if (status === 'going' && hoursUntilStart >= 0) {
-        return {
-          description: `${event.title} starts ${getRelativeEventTime(hoursUntilStart)} at ${event.venueName}.`,
-          event,
-          id: `going-${event.id}`,
-          kind: 'going',
-          priority: 1,
-          timestamp: getRelativeEventTime(hoursUntilStart),
-          title: 'You’re going',
-        };
-      }
-
-      if (hoursUntilStart >= 0 && hoursUntilStart <= 24) {
-        return {
-          description: `${event.title} starts ${getRelativeEventTime(hoursUntilStart)} at ${event.venueName}.`,
-          event,
-          id: `upcoming-${event.id}`,
-          kind: 'upcoming',
-          priority: 2,
-          timestamp: getRelativeEventTime(hoursUntilStart),
-          title: 'Coming up nearby',
-        };
-      }
-
-      return null;
-    })
-    .filter((item): item is NotificationItem => item !== null)
-    .sort((first, second) => {
-      if (first.priority !== second.priority) return first.priority - second.priority;
-      return getEventStartTimestamp(first.event) - getEventStartTimestamp(second.event);
-    })
-    .slice(0, 6);
-}
-
-function getRelativeEventTime(hoursUntilStart: number) {
-  if (hoursUntilStart < 1) return 'soon';
-  if (hoursUntilStart < 2) return 'in 1 hour';
-  if (hoursUntilStart < 24) return `in ${Math.ceil(hoursUntilStart)} hours`;
-  return 'tomorrow';
 }
 
 function getTimingWeight(hoursUntilStart: number, endTimestamp: number, now: number) {
