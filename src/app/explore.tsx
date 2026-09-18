@@ -1132,43 +1132,40 @@ function EventDetailModal({
                 </View>
                 <Text className="mb-6 text-[14px] leading-6 text-muted">{event.description}</Text>
 
-                {organizerProfile ? (
-                  <Pressable
-                    onPress={openOrganizerProfile}
-                    className="mb-5 flex-row items-center gap-3 rounded-feature p-4 active:opacity-85"
-                    style={{ backgroundColor: Colors.light.backgroundElement }}
-                  >
-                    <OrganizerAvatar profile={organizerProfile} size={46} />
-                    <View className="min-w-0 flex-1">
-                      <Text className="text-[12px] font-semibold uppercase tracking-wide text-muted">
-                        Organizer
-                      </Text>
-                      <Text className="mt-1 text-[15px] font-bold text-ink" numberOfLines={1}>
-                        {organizerProfile.name}
-                      </Text>
-                      <Text className="mt-1 text-[12px] leading-4 text-muted" numberOfLines={2}>
-                        {organizerProfile.locationName ??
-                          'Tap to view this organizer profile and events.'}
+                <View className="mb-6">
+                  <View className="mb-2 flex-row items-center gap-3">
+                    <Text className="font-serifRegular text-[22px] leading-7 text-primary">Hosted by</Text>
+                    <View className="h-px flex-1 bg-primary/15" />
+                  </View>
+                  {organizerProfile ? (
+                    <Pressable
+                      onPress={openOrganizerProfile}
+                      className="flex-row items-center gap-3 rounded-feature p-3 active:opacity-85"
+                      style={{ backgroundColor: Colors.light.backgroundElement }}
+                    >
+                      <OrganizerAvatar profile={organizerProfile} size={44} />
+                      <View className="min-w-0 flex-1">
+                        <Text className="text-[15px] font-bold text-ink" numberOfLines={1}>
+                          {organizerProfile.name}
+                        </Text>
+                        <Text className="mt-1 text-[12px] font-semibold text-primary" numberOfLines={1}>
+                          {organizerProfile.locationName ?? 'Verified CultureQuest organizer'}
+                        </Text>
+                      </View>
+                      <ChevronRight size={18} color={Colors.light.primary} />
+                    </Pressable>
+                  ) : (
+                    <View
+                      className="rounded-feature p-3"
+                      style={{ backgroundColor: Colors.light.backgroundElement }}
+                    >
+                      <Text className="text-[15px] font-bold text-ink">{event.organizerName}</Text>
+                      <Text className="mt-1 text-[12px] leading-4 text-muted">
+                        Organizer profile is not available yet.
                       </Text>
                     </View>
-                    <ChevronRight size={18} color={Colors.light.primary} />
-                  </Pressable>
-                ) : (
-                  <View
-                    className="mb-5 rounded-feature p-4"
-                    style={{ backgroundColor: Colors.light.backgroundElement }}
-                  >
-                    <Text className="text-[12px] font-semibold uppercase tracking-wide text-muted">
-                      Organizer
-                    </Text>
-                    <Text className="mt-1 text-[15px] font-bold text-ink">
-                      {event.organizerName}
-                    </Text>
-                    <Text className="mt-1 text-[12px] leading-4 text-muted">
-                      This organizer can post updates to everyone marked Interested or Going.
-                    </Text>
-                  </View>
-                )}
+                  )}
+                </View>
 
                 {checkedIn ? (
                   <View className="rounded-2xl bg-success/10 p-4">
