@@ -1,5 +1,4 @@
 import { Image } from 'expo-image';
-import { LinearGradient } from 'expo-linear-gradient';
 import * as Location from 'expo-location';
 import { ArrowRight, Bell, CheckCircle2, Globe, User, Users, X } from 'lucide-react-native';
 import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
@@ -496,19 +495,14 @@ export default function HomeScreen({
             className="overflow-hidden rounded-3xl border border-primary/10 bg-white"
             style={CardStyles.elevated}
           >
-            <LinearGradient
-              colors={[Colors.light.ink, Colors.light.primary]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              style={{ paddingHorizontal: 16, paddingVertical: 16 }}
-            >
+            <View className="bg-primary px-4 py-4">
               <Text className="font-heading text-[25px] leading-[29px] text-white">
                 University leaderboard
               </Text>
               <Text className="mt-1 text-[12px] leading-4 text-white/70">
                 XP counts only for students linked to a university.
               </Text>
-            </LinearGradient>
+            </View>
 
             <View className="gap-2 p-3">
               {leaderboardLoading ? (
