@@ -128,12 +128,6 @@ export function AuthScreen() {
     universityId: selectedUniversityId,
   };
   const cityUniversities = getUniversitiesForCity(cityId);
-  const selectedUniversity = cityUniversities.find(
-    (university) => university.id === selectedUniversityId,
-  );
-  const studentEmailExample = selectedUniversity?.domains[0]
-    ? `name.surname@${selectedUniversity.domains[0]}`
-    : 'name.surname@student.university.edu';
 
   function keepInputAboveKeyboard(inputRef: React.RefObject<TextInput | null>) {
     setTimeout(() => {
@@ -450,6 +444,7 @@ export function AuthScreen() {
                       Keyboard.dismiss();
                       setCityId(nextCityId);
                       setSelectedUniversityId('');
+                      setStudentEmail('');
                     }}
                   />
                 </View>
@@ -487,7 +482,7 @@ export function AuthScreen() {
                   <View className="flex-1">
                     <Text className="text-[14px] font-bold text-ink">I am a student</Text>
                     <Text className="mt-0.5 text-[12px] leading-4 text-muted">
-                      Choose your university to contribute XP to the campus ranking.
+                      Optional. Add a university only if you want to join its campus ranking.
                     </Text>
                   </View>
                 </Pressable>
@@ -495,9 +490,38 @@ export function AuthScreen() {
                 {isStudent && (
                   <View className="mb-4 rounded-2xl border border-primary/10 bg-primary/5 p-4">
                     <Text className="mb-3 text-[13px] font-semibold text-ink">
-                      Student affiliation
+                      University ranking (optional)
+                    </Text>
+                    <Text className="mb-3 text-[12px] leading-4 text-muted">
+                      You can use CultureQuest without a university. Choose one only to add your XP
+                      to its ranking.
                     </Text>
                     <View className="mb-3 gap-2">
+                      <Pressable
+                        accessibilityRole="radio"
+                        accessibilityState={{ checked: !selectedUniversityId }}
+                        accessibilityLabel="No university affiliation"
+                        onPress={() => {
+                          Keyboard.dismiss();
+                          setSelectedUniversityId('');
+                          setStudentEmail('');
+                          clearFieldError('studentEmail');
+                        }}
+                        className={`rounded-xl border px-3 py-2.5 active:opacity-85 ${
+                          !selectedUniversityId ? 'border-primary bg-white' : 'border-gray-200 bg-white/70'
+                        }`}
+                      >
+                        <Text
+                          className={`text-[13px] font-semibold ${
+                            !selectedUniversityId ? 'text-primary' : 'text-ink'
+                          }`}
+                        >
+                          No university affiliation
+                        </Text>
+                        <Text className="mt-0.5 text-[11px] leading-4 text-muted">
+                          Continue as a student without joining a ranking.
+                        </Text>
+                      </Pressable>
                       {cityUniversities.map((university) => {
                         const active = selectedUniversityId === university.id;
 
@@ -510,7 +534,7 @@ export function AuthScreen() {
                             onPress={() => {
                               Keyboard.dismiss();
                               setSelectedUniversityId(university.id);
-                              clearFieldError('universityId');
+                              clearFieldError('studentEmail');
                             }}
                             className={`rounded-xl border px-3 py-2.5 active:opacity-85 ${
                               active ? 'border-primary bg-white' : 'border-gray-200 bg-white/70'
@@ -530,33 +554,36 @@ export function AuthScreen() {
                         );
                       })}
                     </View>
-                    <FormFieldError message={fieldErrors.universityId} />
-                    <AuthInput
-                      inputRef={studentEmailRef}
-                      value={studentEmail}
-                      onChangeText={(value) => {
-                        setStudentEmail(limitText(value, textLimits.email));
-                        clearFieldError('studentEmail');
-                      }}
-                      maxLength={textLimits.email}
-                      placeholder="Student email"
-                      placeholderTextColor="#8B909A"
-                      autoCapitalize="none"
-                      keyboardType="email-address"
-                      textContentType="emailAddress"
-                      autoComplete="email"
-                      returnKeyType="next"
-                      blurOnSubmit={false}
-                      onFocus={() => keepInputAboveKeyboard(studentEmailRef)}
-                      onBlur={() => handleFieldBlur('studentEmail')}
-                      onSubmitEditing={() => emailRef.current?.focus()}
-                      className="mb-2 rounded-xl border border-gray-300 bg-white px-4 py-3 text-[15px] text-ink"
-                    />
-                    <FormFieldError message={fieldErrors.studentEmail} />
-                    <Text className="text-[11px] leading-4 text-muted">
-                      Example: {studentEmailExample}. Email verification will be enabled after
-                      CultureQuest has a domain and sending setup.
-                    </Text>
+                    {selectedUniversityId && (
+                      <>
+                        <AuthInput
+                          inputRef={studentEmailRef}
+                          value={studentEmail}
+                          onChangeText={(value) => {
+                            setStudentEmail(limitText(value, textLimits.email));
+                            clearFieldError('studentEmail');
+                          }}
+                          maxLength={textLimits.email}
+                          placeholder="Student email"
+                          placeholderTextColor="#8B909A"
+                          autoCapitalize="none"
+                          keyboardType="email-address"
+                          textContentType="emailAddress"
+                          autoComplete="email"
+                          returnKeyType="next"
+                          blurOnSubmit={false}
+                          onFocus={() => keepInputAboveKeyboard(studentEmailRef)}
+                          onBlur={() => handleFieldBlur('studentEmail')}
+                          onSubmitEditing={() => emailRef.current?.focus()}
+                          className="mb-2 rounded-xl border border-gray-300 bg-white px-4 py-3 text-[15px] text-ink"
+                        />
+                        <FormFieldError message={fieldErrors.studentEmail} />
+                        <Text className="text-[11px] leading-4 text-muted">
+                          Use your university email to join the ranking. Verification will be enabled
+                          after CultureQuest has a domain and sending setup.
+                        </Text>
+                      </>
+                    )}
                   </View>
                 )}
 
