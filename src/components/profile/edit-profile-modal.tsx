@@ -136,7 +136,7 @@ export function EditProfileModal({
                     hitSlop={16}
                     className="h-12 w-12 items-center justify-center rounded-full bg-gray-100 active:opacity-80"
                   >
-                    <X size={21} color="#6B818C" strokeWidth={2.4} />
+                    <X size={21} color="#756D54" strokeWidth={2.4} />
                   </Pressable>
                 </View>
 
@@ -223,7 +223,7 @@ export function EditProfileModal({
                       {isStudent ? (
                         <Check size={17} color="white" strokeWidth={2.7} />
                       ) : (
-                        <GraduationCap size={17} color="#6B818C" strokeWidth={2.4} />
+                        <GraduationCap size={17} color="#756D54" strokeWidth={2.4} />
                       )}
                     </View>
                     <View className="min-w-0 flex-1">
@@ -324,7 +324,7 @@ export function EditProfileModal({
                     </Text>
                     <View className="rounded-xl border border-primary/15 bg-white px-4 py-3">
                       <View className="flex-row items-center gap-2">
-                        <Search size={17} color="#6B818C" strokeWidth={2.4} />
+                        <Search size={17} color="#756D54" strokeWidth={2.4} />
                         <TextInput
                           value={organizerLocationQuery}
                           onChangeText={onChangeOrganizerLocationQuery}
@@ -362,7 +362,7 @@ export function EditProfileModal({
                                 index > 0 ? 'border-t border-gray-100' : ''
                               }`}
                             >
-                              <MapPin size={16} color="#6B818C" strokeWidth={2.4} />
+                              <MapPin size={16} color="#756D54" strokeWidth={2.4} />
                               <View className="min-w-0 flex-1">
                                 <Text
                                   className="text-[13px] font-semibold text-ink"
