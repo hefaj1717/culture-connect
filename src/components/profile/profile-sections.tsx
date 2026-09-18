@@ -401,31 +401,33 @@ export function ProfileHistoryList({
   const activityCount = history.length + getUserVisibleXpTransactions(transactions).length;
 
   return (
-    <View className="mb-4 px-5">
-      <View className="overflow-hidden rounded-xl border border-primary/20 bg-canvas">
-        <ProfileHistoryRow
+    <View className="mb-6 gap-3 px-5">
+      <ProfileHistoryTile
           count={eventsLoading ? '–' : events.length.toString()}
-          icon={<CalendarDays color={Colors.light.ink} size={18} strokeWidth={2.3} />}
+          description="Submitted, pending, and past events"
+          icon={<CalendarDays color={Colors.light.primary} size={21} strokeWidth={2.25} />}
           label="My events"
           onPress={onOpenEvents}
+          tone={Colors.light.primary}
         />
-        <View className="h-px bg-primary/20" />
-        <ProfileHistoryRow
+      <ProfileHistoryTile
           count={rewardsLoading ? '–' : rewards.length.toString()}
-          icon={<Gift color={Colors.light.ink} size={18} strokeWidth={2.3} />}
+          description="Partner rewards you manage"
+          icon={<Gift color={Colors.light.accent} size={21} strokeWidth={2.25} />}
           label="My rewards"
           onPress={onOpenRewards}
+          tone={Colors.light.accent}
         />
-        <View className="h-px bg-primary/20" />
-        <ProfileHistoryRow
+      <ProfileHistoryTile
           count={activityCount.toString()}
-          icon={<Clock color={Colors.light.ink} size={18} strokeWidth={2.3} />}
+          description="Events, reward spends, and XP changes"
+          icon={<Clock color={Colors.light.success} size={21} strokeWidth={2.25} />}
           label="My activity"
           onPress={onOpenActivity}
+          tone={Colors.light.success}
         />
-      </View>
       {(eventsError || rewardsError) && (
-        <Text className="mt-2 text-[12px] leading-4 text-muted">
+        <Text className="mt-1 text-[12px] leading-4 text-muted">
           Some organiser history could not be loaded. Open a row to try again.
         </Text>
       )}
@@ -433,26 +435,38 @@ export function ProfileHistoryList({
   );
 }
 
-function ProfileHistoryRow({
+function ProfileHistoryTile({
   count,
+  description,
   icon,
   label,
   onPress,
+  tone,
 }: {
   count: string;
+  description: string;
   icon: ReactNode;
   label: string;
   onPress: () => void;
+  tone: string;
 }) {
   return (
     <Pressable
-      className="flex-row items-center py-4 pl-4 pr-3 active:opacity-75"
+      className="overflow-hidden rounded-[24px] border border-primary/15 bg-white px-5 py-5 active:opacity-80"
       onPress={onPress}
     >
-      {icon}
-      <Text className="ml-3 flex-1 font-serifRegular text-[18px] leading-6 text-ink">{label}</Text>
-      <Text className="mr-3 font-heading text-[28px] font-extrabold leading-8 text-ink">{count}</Text>
-      <ChevronRight color={Colors.light.primary} size={15} strokeWidth={2.5} />
+      <View className="flex-row items-start">
+        <View className="mt-1 mr-3">{icon}</View>
+        <View className="min-w-0 flex-1 pr-3">
+          <Text className="font-serifRegular text-[21px] leading-[26px] text-ink">{label}</Text>
+          <Text className="mt-1.5 text-[13px] leading-5 text-muted">{description}</Text>
+        </View>
+        <View className="items-end">
+          <Text className="font-heading text-[36px] font-extrabold leading-[38px] text-ink">{count}</Text>
+          <ChevronRight color={Colors.light.primary} size={17} strokeWidth={2.4} />
+        </View>
+      </View>
+      <View className="mt-5 h-1 rounded-full" style={{ backgroundColor: tone }} />
     </Pressable>
   );
 }
