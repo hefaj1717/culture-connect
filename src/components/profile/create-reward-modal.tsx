@@ -145,8 +145,8 @@ export function CreateRewardModal({
   return (
     <Modal animationType="slide" transparent onRequestClose={closeWithAnimation} visible={visible}>
       <GestureDetector gesture={swipeGesture}>
-        <Animated.View className="flex-1 bg-white" style={swipeStyle}>
-          <SafeAreaView className="flex-1 bg-white" edges={['bottom']}>
+        <Animated.View className="flex-1 bg-canvas" style={swipeStyle}>
+          <SafeAreaView className="flex-1 bg-canvas" edges={['bottom']}>
             <KeyboardAvoidingView
               behavior={Platform.OS === 'ios' ? 'padding' : undefined}
               className="flex-1"
@@ -262,8 +262,8 @@ export function CreateRewardModal({
                   </Text>
 
                   {selectedRewardPlace && (
-                    <View className="mt-2 flex-row gap-3 rounded-xl border border-primary/25 bg-primary/10 p-3">
-                      <View className="h-9 w-9 items-center justify-center rounded-full bg-primary/15">
+                    <View className="mt-2 flex-row gap-3 rounded-xl border border-accent/25 bg-accent/10 p-3">
+                      <View className="h-9 w-9 items-center justify-center rounded-full bg-accent/15">
                         <MapPin size={16} color="#6B818C" strokeWidth={2.4} />
                       </View>
                       <View className="min-w-0 flex-1">
@@ -288,7 +288,7 @@ export function CreateRewardModal({
                           }}
                           className="flex-row items-start gap-3 border-b border-gray-100 p-3 active:bg-gray-50"
                         >
-                          <View className="h-9 w-9 items-center justify-center rounded-full bg-primary/10">
+                          <View className="h-9 w-9 items-center justify-center rounded-full bg-accent/10">
                             <MapPin size={16} color="#6B818C" strokeWidth={2.4} />
                           </View>
                           <View className="min-w-0 flex-1">
@@ -409,7 +409,7 @@ export function CreateRewardModal({
                     onSubmit();
                   }}
                   disabled={creatingReward}
-                  className="h-[52px] items-center justify-center rounded-xl bg-primary active:opacity-85"
+                  className="h-[52px] items-center justify-center rounded-xl bg-accent active:opacity-85"
                 >
                   {creatingReward ? (
                     <ActivityIndicator color="white" />
