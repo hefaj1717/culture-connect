@@ -1,3 +1,5 @@
+import * as Location from 'expo-location';
+
 import { type CityId } from '@/data/culture';
 
 export type PlaceSuggestion = {
@@ -46,10 +48,10 @@ export const hasGooglePlacesApiKey = !!GOOGLE_PLACES_API_KEY;
 
 const citySearchContext: Record<
   CityId,
-  { countryCode: string; latitude: number; longitude: number }
+  { countryCode: string; latitude: number; longitude: number; searchLabel: string }
 > = {
-  leuven: { countryCode: 'be', latitude: 50.8798, longitude: 4.7005 },
-  lublin: { countryCode: 'pl', latitude: 51.2465, longitude: 22.5684 },
+  leuven: { countryCode: 'be', latitude: 50.8798, longitude: 4.7005, searchLabel: 'Leuven, Belgium' },
+  lublin: { countryCode: 'pl', latitude: 51.2465, longitude: 22.5684, searchLabel: 'Lublin, Poland' },
 };
 
 export async function searchPlaces(query: string, cityId: CityId) {
@@ -162,8 +164,21 @@ async function fetchGooglePlaceDetails(placeId: string): Promise<PlaceSuggestion
   }
 }
 
-function searchLocalPlaces(query: string, cityId: CityId): PlaceSuggestion[] {
-  void query;
-  void cityId;
-  return [];
+async function searchLocalPlaces(query: string, cityId: CityId): Promise<PlaceSuggestion[]> {
+  const cityContext = citySearchContext[cityId];
+
+  try {
+    const results = await Location.geocodeAsync(`${query}, ${cityContext.searchLabel}`);
+
+    return results.slice(0, 5).map((result, index) => ({
+      address: query,
+      id: `device-${result.latitude.toFixed(5)}-${result.longitude.toFixed(5)}-${index}`,
+      latitude: result.latitude,
+      longitude: result.longitude,
+      name: query,
+      source: 'local',
+    }));
+  } catch {
+    return [];
+  }
 }
