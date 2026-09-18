@@ -305,6 +305,9 @@ export default function ExploreScreen({
   );
 
   const featuredEvent = allEvents.find((event) => event.isFlashQuest);
+  const featuredEventIsLive = featuredEvent
+    ? getCheckInWindowState(featuredEvent) === 'open'
+    : false;
 
   useEffect(() => {
     setSelectedEvent(null);
@@ -449,7 +452,15 @@ export default function ExploreScreen({
                     setSelectedEvent(featuredEvent);
                   }}
                   className="overflow-hidden rounded-3xl border border-primary/10 active:opacity-90"
-                  style={[CardStyles.elevated, { backgroundColor: Colors.light.backgroundElement }]}
+                  style={[
+                    CardStyles.elevated,
+                    {
+                      backgroundColor: featuredEventIsLive
+                        ? Colors.light.liveSurface
+                        : Colors.light.backgroundElement,
+                      borderColor: featuredEventIsLive ? `${Colors.light.accent}38` : undefined,
+                    },
+                  ]}
                 >
                   <View className="bg-gray-200" style={{ height: layout.isSmallPhone ? 150 : 170 }}>
                     <BrandImage
@@ -568,7 +579,10 @@ export default function ExploreScreen({
                         style={[
                           CardStyles.compact,
                           {
-                            backgroundColor: Colors.light.backgroundElement,
+                            backgroundColor: isLiveNow
+                              ? Colors.light.liveSurface
+                              : Colors.light.backgroundElement,
+                            borderColor: isLiveNow ? `${Colors.light.accent}38` : undefined,
                           },
                         ]}
                       >
