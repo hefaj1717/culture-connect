@@ -240,7 +240,8 @@ export default function HomeScreen({
           >
             <View className="flex-row items-center justify-between pt-3">
               <Text className="font-heading text-[23px] font-extrabold text-white">
-                CultureQuest
+                Culture
+                <Text style={{ color: Colors.light.accent }}>Quest</Text>
               </Text>
               <View className="flex-row items-center gap-3">
                 <Pressable onPress={() => setNotificationsOpen(true)} className="h-11 w-11 items-center justify-center rounded-full bg-white/15 active:opacity-80" accessibilityLabel="Open notifications">
