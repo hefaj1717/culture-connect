@@ -90,7 +90,7 @@ export function AdminReviewModal({
                   accessibilityRole="button"
                   accessibilityLabel="Close content review"
                 >
-                  <ArrowLeft size={21} color="#6B818C" strokeWidth={2.6} />
+                  <ArrowLeft size={21} color="#756D54" strokeWidth={2.6} />
                 </Pressable>
                 <Pressable
                   onPress={onRefresh}
@@ -98,7 +98,7 @@ export function AdminReviewModal({
                   accessibilityRole="button"
                   accessibilityLabel="Refresh pending content"
                 >
-                  <RefreshCw size={18} color="#6B818C" strokeWidth={2.5} />
+                  <RefreshCw size={18} color="#756D54" strokeWidth={2.5} />
                 </Pressable>
               </View>
 
@@ -247,13 +247,13 @@ function PendingEventCard({
         </BrandImage>
       </View>
       <View className="p-4">
-        <InfoLine icon={<MapPin size={15} color="#6B818C" />} text={event.venueName} />
+        <InfoLine icon={<MapPin size={15} color="#756D54" />} text={event.venueName} />
         <InfoLine
-          icon={<CalendarDays size={15} color="#6B818C" />}
+          icon={<CalendarDays size={15} color="#756D54" />}
           text={`${event.date}, ${formatPendingEventTimeRange(event)}`}
         />
         <InfoLine
-          icon={<UserRound size={15} color="#6B818C" />}
+          icon={<UserRound size={15} color="#756D54" />}
           text={`Submitted by ${event.organizerName}`}
         />
         <Text className="mt-2 text-[11px] font-semibold uppercase tracking-wide text-muted">
@@ -386,10 +386,10 @@ function PendingRewardCard({
       <Text className="text-[13px] leading-5 text-muted" numberOfLines={3}>
         {reward.description}
       </Text>
-      <InfoLine icon={<MapPin size={15} color="#6B818C" />} text={reward.placeAddress} />
-      <InfoLine icon={<Clock size={15} color="#6B818C" />} text={formatRewardAvailability(reward)} />
+      <InfoLine icon={<MapPin size={15} color="#756D54" />} text={reward.placeAddress} />
+      <InfoLine icon={<Clock size={15} color="#756D54" />} text={formatRewardAvailability(reward)} />
       <InfoLine
-        icon={<UserRound size={15} color="#6B818C" />}
+        icon={<UserRound size={15} color="#756D54" />}
         text={`Submitted by ${reward.organizerName}`}
       />
       <ReviewActions
@@ -462,7 +462,7 @@ function ReviewActions({
           onPress={() => confirmAction('rejected')}
           className="h-11 flex-1 flex-row items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white active:opacity-80"
         >
-          <X size={16} color="#6B818C" strokeWidth={2.5} />
+          <X size={16} color="#756D54" strokeWidth={2.5} />
           <Text className="text-[13px] font-extrabold text-muted">Reject</Text>
         </Pressable>
         <Pressable

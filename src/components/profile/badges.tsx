@@ -137,7 +137,7 @@ export function BadgeDetailSheet({
               accessibilityRole="button"
               accessibilityLabel="Close badge detail"
             >
-              <X size={18} color="#6B818C" strokeWidth={2.6} />
+              <X size={18} color="#756D54" strokeWidth={2.6} />
             </Pressable>
           </View>
           <Text className="text-[13px] leading-5 text-muted">{badge.description}</Text>

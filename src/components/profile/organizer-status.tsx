@@ -30,7 +30,7 @@ export function OrganizerVerifiedBadge({ compact = false }: { compact?: boolean 
 export function OrganizerStatusCard({ status }: { status: OrganizerStatus }) {
   const isApproved = status === 'approved';
   const isRejected = status === 'rejected';
-  const color = isApproved ? '#A63446' : isRejected ? '#EF4444' : '#A63446';
+  const color = isApproved ? '#A88FAC' : isRejected ? '#EF4444' : '#A88FAC';
   const Icon = isApproved ? CheckCircle2 : isRejected ? CircleAlert : Building2;
   const title = isApproved
     ? 'Organizer approved'

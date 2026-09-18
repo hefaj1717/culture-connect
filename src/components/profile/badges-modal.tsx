@@ -63,7 +63,7 @@ export function BadgesModal({
                   accessibilityRole="button"
                   accessibilityLabel="Close badges"
                 >
-                  <ArrowLeft size={21} color="#6B818C" strokeWidth={2.6} />
+                  <ArrowLeft size={21} color="#756D54" strokeWidth={2.6} />
                 </Pressable>
                 <View className="rounded-full bg-primary/10 px-3 py-1.5">
                   <Text className="text-[12px] font-extrabold text-primary">
