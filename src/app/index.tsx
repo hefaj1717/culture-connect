@@ -243,9 +243,7 @@ export default function HomeScreen({
                 className="font-heading text-[23px] font-extrabold text-white"
                 style={{ textShadowColor: 'rgba(30, 30, 36, 0.22)', textShadowOffset: { height: 1, width: 0 }, textShadowRadius: 3 }}
               >
-                Culture
-                <Text style={{ color: Colors.light.accent }}>Q</Text>
-                uest
+                CultureQuest
               </Text>
               <View className="flex-row items-center gap-3">
                 <Pressable
