@@ -239,12 +239,20 @@ export default function HomeScreen({
             style={{ paddingTop: stableTopInset }}
           >
             <View className="flex-row items-center justify-between pt-3">
-              <Text className="font-heading text-[23px] font-extrabold text-white">
+              <Text
+                className="font-heading text-[23px] font-extrabold text-white"
+                style={{ textShadowColor: 'rgba(30, 30, 36, 0.22)', textShadowOffset: { height: 1, width: 0 }, textShadowRadius: 3 }}
+              >
                 Culture
-                <Text style={{ color: Colors.light.accent }}>Quest</Text>
+                <Text style={{ color: Colors.light.accent }}>Q</Text>
+                uest
               </Text>
               <View className="flex-row items-center gap-3">
-                <Pressable onPress={() => setNotificationsOpen(true)} className="h-11 w-11 items-center justify-center rounded-full bg-white/15 active:opacity-80" accessibilityLabel="Open notifications">
+                <Pressable
+                  onPress={() => setNotificationsOpen(true)}
+                  className="h-11 w-11 items-center justify-center rounded-full border border-white/30 bg-white/20 active:opacity-80"
+                  accessibilityLabel="Open notifications"
+                >
                   <Bell size={22} color="white" strokeWidth={2.2} />
                 </Pressable>
                 <Pressable
@@ -432,7 +440,7 @@ export default function HomeScreen({
           </View>
 
           <View
-            className="overflow-hidden rounded-3xl border border-primary/10 bg-surface"
+            className="overflow-hidden rounded-3xl border border-primary/10 bg-canvas"
             style={CardStyles.elevated}
           >
             <View className="h-[210px]">
@@ -613,27 +621,36 @@ export default function HomeScreen({
                   tone="inline"
                 />
               ) : (
-                leaderboard.slice(0, 5).map((row) => (
-                  <View
-                    key={row.universityId}
-                    className="flex-row items-center gap-3 rounded-2xl bg-canvas px-3 py-3"
-                  >
-                    <View className="h-9 w-9 items-center justify-center rounded-full bg-primary/10">
-                      <Text className="text-[13px] font-extrabold text-primary">#{row.rank}</Text>
-                    </View>
-                    <View className="min-w-0 flex-1">
-                      <Text className="text-[14px] font-extrabold text-ink" numberOfLines={1}>
-                        {row.shortName}
+                leaderboard.slice(0, 5).map((row) => {
+                  const rankColors = getLeaderboardRankColors(row.rank);
+
+                  return (
+                    <View
+                      key={row.universityId}
+                      className="flex-row items-center gap-3 rounded-2xl bg-canvas px-3 py-3"
+                    >
+                      <View
+                        className="h-9 w-9 items-center justify-center rounded-full"
+                        style={{ backgroundColor: rankColors.background }}
+                      >
+                        <Text className="text-[13px] font-extrabold" style={{ color: rankColors.text }}>
+                          #{row.rank}
+                        </Text>
+                      </View>
+                      <View className="min-w-0 flex-1">
+                        <Text className="text-[14px] font-extrabold text-ink" numberOfLines={1}>
+                          {row.shortName}
+                        </Text>
+                        <Text className="mt-0.5 text-[11px] text-muted" numberOfLines={1}>
+                          {row.memberCount} linked student{row.memberCount === 1 ? '' : 's'}
+                        </Text>
+                      </View>
+                      <Text className="font-heading text-[20px] leading-[24px] text-accentDeep">
+                        {row.totalXp.toLocaleString()}
                       </Text>
-                      <Text className="mt-0.5 text-[11px] text-muted" numberOfLines={1}>
-                        {row.memberCount} linked student{row.memberCount === 1 ? '' : 's'}
-                      </Text>
                     </View>
-                    <Text className="font-heading text-[20px] leading-[24px] text-accentDeep">
-                      {row.totalXp.toLocaleString()}
-                    </Text>
-                  </View>
-                ))
+                  );
+                })
               )}
             </View>
           </View>
@@ -642,6 +659,22 @@ export default function HomeScreen({
 
     </View>
   );
+}
+
+function getLeaderboardRankColors(rank: number) {
+  if (rank === 1) {
+    return { background: Colors.light.medalGoldSurface, text: Colors.light.medalGold };
+  }
+
+  if (rank === 2) {
+    return { background: Colors.light.medalSilverSurface, text: Colors.light.medalSilver };
+  }
+
+  if (rank === 3) {
+    return { background: Colors.light.medalBronzeSurface, text: Colors.light.medalBronze };
+  }
+
+  return { background: `${Colors.light.primary}10`, text: Colors.light.primary };
 }
 
 function getHeroImageSource(heroImage: CultureCityData['heroImage']) {
