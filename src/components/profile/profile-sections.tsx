@@ -814,25 +814,36 @@ function XpTransactionRow({
 }) {
   const isSpend = transaction.transactionType === 'spend';
   const isAdjustment = transaction.transactionType === 'adjustment';
-  const amountLabel = `${isSpend ? '-' : '+'}${transaction.amount.toLocaleString()}`;
-  const sourceLabel = getXpSourceLabel(transaction.sourceType, transaction.transactionType);
+  const isRewardRedemption = isSpend && transaction.sourceType === 'reward';
+  const amountLabel = `${isSpend ? '-' : '+'}${transaction.amount.toLocaleString()} XP`;
+  const sourceLabel = isRewardRedemption
+    ? 'Reward redeemed'
+    : getXpSourceLabel(transaction.sourceType, transaction.transactionType);
+  const transactionTitle = isRewardRedemption
+    ? transaction.reason.replace(/^reward redeemed:\s*/i, '') || 'Partner reward'
+    : transaction.reason;
+  const TransactionIcon = isRewardRedemption ? Gift : ReceiptText;
 
   return (
     <View
       className={`rounded-3xl border p-4 ${
-        isSpend ? 'border-primary/15 bg-surface' : 'border-accent/15 bg-accent/5'
+        isRewardRedemption
+          ? 'border-accent/20 bg-accent/5'
+          : isSpend
+            ? 'border-primary/15 bg-surface'
+            : 'border-accent/15 bg-accent/5'
       }`}
       style={CardStyles.compact}
     >
       <View className="flex-row items-start gap-3">
         <View
           className={`h-11 w-11 items-center justify-center rounded-2xl ${
-            isSpend ? 'bg-gray-100' : 'bg-accent/12'
+            isRewardRedemption ? 'bg-accent/12' : isSpend ? 'bg-gray-100' : 'bg-accent/12'
           }`}
         >
-          <ReceiptText
+          <TransactionIcon
             size={20}
-            color={isSpend ? '#6B818C' : Colors.light.accentDeep}
+            color={isRewardRedemption ? Colors.light.accent : isSpend ? Colors.light.primary : Colors.light.accentDeep}
             strokeWidth={2.4}
           />
         </View>
@@ -845,13 +856,24 @@ function XpTransactionRow({
                   {transaction.userLabel}
                 </Text>
               )}
+              {isRewardRedemption ? (
+                <Text className="mb-0.5 text-[10px] font-extrabold uppercase tracking-wide text-accent">
+                  Reward redeemed
+                </Text>
+              ) : null}
               <Text className="font-ui text-[15px] font-extrabold leading-5 text-ink">
-                {transaction.reason}
+                {transactionTitle}
               </Text>
             </View>
             <Text
               className={`font-heading text-[24px] font-extrabold leading-7 ${
-                isSpend ? 'text-muted' : isAdjustment ? 'text-primary' : 'text-accentDeep'
+                isRewardRedemption
+                  ? 'text-accent'
+                  : isSpend
+                    ? 'text-muted'
+                    : isAdjustment
+                      ? 'text-primary'
+                      : 'text-accentDeep'
               }`}
             >
               {amountLabel}
