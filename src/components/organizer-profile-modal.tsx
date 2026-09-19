@@ -34,7 +34,6 @@ import { useAuth } from '@/providers/auth-provider';
 type OrganizerProfileModalProps = {
   cityName: string;
   events: CultureEvent[];
-  onBeforeClose?: () => void;
   onClose: () => void;
   onOpenEvent: (event: CultureEvent) => void;
   profile: OrganizerProfile | null;
@@ -43,7 +42,6 @@ type OrganizerProfileModalProps = {
 export function OrganizerProfileModal({
   cityName,
   events,
-  onBeforeClose,
   onClose,
   onOpenEvent,
   profile,
@@ -100,9 +98,6 @@ export function OrganizerProfileModal({
       const shouldClose = translateX.value > width * 0.28 || gestureEvent.velocityX > 700;
 
       if (shouldClose) {
-        if (onBeforeClose) {
-          runOnJS(onBeforeClose)();
-        }
         translateX.value = withTiming(width, { duration: 180 }, (finished) => {
           if (finished) {
             runOnJS(onClose)();
@@ -144,7 +139,6 @@ export function OrganizerProfileModal({
     });
   }, [organizerEvents]);
   function closeWithAnimation() {
-    onBeforeClose?.();
     translateX.value = withTiming(width, { duration: 180 }, (finished) => {
       if (finished) {
         runOnJS(onClose)();
