@@ -21,7 +21,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { EmptyState } from '@/components/async-state';
 import { BrandImage } from '@/components/brand-image';
-import { CardStyles } from '@/constants/theme';
+import { CardStyles, Colors } from '@/constants/theme';
 import type { CultureEvent } from '@/data/culture';
 import { useStableTopInset } from '@/hooks/use-stable-safe-area';
 import type { OrganizerProfile } from '@/lib/organizer-profiles';
@@ -126,9 +126,9 @@ export function OrganizerProfileModal({
   return (
     <Modal animationType="slide" transparent onRequestClose={closeWithAnimation} visible>
       <GestureDetector gesture={swipeGesture}>
-        <Animated.View className="flex-1 bg-white" style={swipeStyle}>
+        <Animated.View className="flex-1 bg-canvas" style={swipeStyle}>
           <ScrollView
-            className="flex-1"
+            className="flex-1 bg-canvas"
             contentContainerStyle={{
               paddingBottom: insets.bottom + 34,
               paddingTop: stableTopInset + 8,
@@ -138,62 +138,54 @@ export function OrganizerProfileModal({
             <View className="px-5">
               <Pressable
                 onPress={closeWithAnimation}
-                className="mb-6 h-12 w-12 items-center justify-center rounded-full bg-gray-100 active:opacity-80"
+                className="mb-5 h-12 w-12 items-center justify-center rounded-full active:opacity-80"
+                style={{ backgroundColor: Colors.light.backgroundElement }}
               >
-                <ArrowLeft size={22} color="#6B818C" strokeWidth={2.6} />
+                <ArrowLeft size={22} color={Colors.light.primary} strokeWidth={2.6} />
               </Pressable>
 
               <View
-                className="overflow-hidden rounded-[32px] border border-primary/10 bg-ink p-5"
-                style={CardStyles.elevated}
+                className="rounded-feature p-5"
+                style={{ backgroundColor: Colors.light.backgroundElement }}
               >
-                <View className="mb-8 flex-row items-start justify-between gap-4">
+                <View className="flex-row items-start justify-between gap-4">
                   <View className="min-w-0 flex-1">
-                    <Text className="text-[11px] font-bold uppercase tracking-[3px] text-white/55">
-                      CultureQuest organizer
+                    <Text className="text-[11px] font-bold uppercase tracking-wider text-primary">
+                      Verified organizer
                     </Text>
-                    <Text className="mt-3 font-display text-[38px] leading-[42px] text-white">
+                    <Text className="mt-2 font-heading text-[30px] leading-9 text-ink">
                       {profile.name}
                     </Text>
                   </View>
-                  <OrganizerAvatar dark profile={profile} size={82} />
+                  <OrganizerAvatar profile={profile} size={68} />
                 </View>
 
-                <View className="rounded-3xl bg-white/10 p-4">
-                  <Text
-                    className="text-[12px] font-bold uppercase tracking-[2px]"
-                    style={{ color: 'rgba(255,255,255,0.58)' }}
-                  >
-                    About
-                  </Text>
-                  <Text
-                    className="mt-2 text-[15px] leading-6"
-                    style={{ color: 'rgba(255,255,255,0.9)' }}
-                  >
-                    {organizerBio}
-                  </Text>
+                <View className="mt-5">
+                  <View className="mb-2 flex-row items-center gap-3">
+                    <Text className="font-serifRegular text-[20px] leading-6 text-ink">About</Text>
+                    <View className="h-px flex-1 bg-primary/15" />
+                  </View>
+                  <Text className="text-[14px] leading-6 text-muted">{organizerBio}</Text>
+                </View>
 
-                  <View className="mt-4 flex-row items-start gap-2.5 border-t border-white/10 pt-4">
-                    <MapPin size={17} color="rgba(255,255,255,0.72)" strokeWidth={2.4} />
-                    <View className="min-w-0 flex-1">
-                      <Text className="text-[13px] font-semibold text-white" numberOfLines={1}>
-                        {organizerLocation.title}
-                      </Text>
-                      <Text
-                        className="mt-0.5 text-[12px] leading-4"
-                        numberOfLines={2}
-                        style={{ color: 'rgba(255,255,255,0.68)' }}
-                      >
-                        {organizerLocation.subtitle}
-                      </Text>
-                    </View>
+                <View className="mt-5 flex-row items-start gap-3 border-t border-primary/10 pt-4">
+                  <View className="h-9 w-9 items-center justify-center rounded-full bg-primary/10">
+                    <MapPin size={17} color={Colors.light.primary} strokeWidth={2.4} />
+                  </View>
+                  <View className="min-w-0 flex-1">
+                    <Text className="text-[13px] font-semibold text-ink" numberOfLines={1}>
+                      {organizerLocation.title}
+                    </Text>
+                    <Text className="mt-0.5 text-[12px] leading-4 text-muted" numberOfLines={2}>
+                      {organizerLocation.subtitle}
+                    </Text>
                   </View>
                 </View>
               </View>
 
-              <View className="mt-7">
+              <View className="mt-6">
                 <View className="mb-3 flex-row items-end justify-between">
-                  <Text className="font-display text-[30px] leading-9 text-ink">Events</Text>
+                  <Text className="font-heading text-[27px] leading-8 text-ink">Events</Text>
                   <Text className="pb-1 text-[12px] font-semibold uppercase tracking-wide text-muted">
                     {organizerEvents.length} total
                   </Text>
@@ -291,8 +283,8 @@ function OrganizerProfileEventRow({
   return (
     <Pressable
       onPress={onPress}
-      className="flex-row items-center gap-3 rounded-3xl border border-primary/10 bg-surface p-3 active:opacity-85"
-      style={CardStyles.compact}
+      className="flex-row items-center gap-3 rounded-feature p-3 active:opacity-85"
+      style={[CardStyles.compact, { backgroundColor: Colors.light.backgroundElement }]}
     >
       <View className="h-[72px] w-[72px] overflow-hidden rounded-2xl bg-gray-200">
         <BrandImage
@@ -312,7 +304,7 @@ function OrganizerProfileEventRow({
           {event.venueName}
         </Text>
       </View>
-      <ChevronRight size={18} color="#6B818C" />
+      <ChevronRight size={18} color={Colors.light.primary} />
     </Pressable>
   );
 }
