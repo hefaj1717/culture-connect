@@ -1087,7 +1087,7 @@ function EventDetailModal({
                 )}
 
                 <View
-                  className="mb-6 rounded-feature border border-primary/10 p-4"
+                  className="mb-6 rounded-feature p-4"
                   style={{ backgroundColor: Colors.light.backgroundElement }}
                 >
                   <InfoRow icon={<MapPin size={17} color={Colors.light.primary} />} label={event.venueName} />
