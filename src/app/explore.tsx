@@ -1351,7 +1351,7 @@ function InfoRow({ icon, label }: { icon: React.ReactNode; label: string }) {
   return (
     <View className="flex-row items-center gap-3">
       <View className="h-8 w-8 items-center justify-center rounded-full bg-primary/10">{icon}</View>
-      <Text className="flex-1 text-[13px] font-medium text-ink/75">{label}</Text>
+      <Text className="flex-1 text-[13px] font-medium text-ink">{label}</Text>
     </View>
   );
 }
