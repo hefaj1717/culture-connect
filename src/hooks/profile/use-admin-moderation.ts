@@ -142,7 +142,7 @@ export function useAdminModeration({
     onNotice?.(status === 'approved' ? 'Content approved and published.' : 'Content rejected.');
   }
 
-  async function deleteEvent(id: string) {
+  async function deleteEvent(id: string, organizerMessage?: string | null) {
     if (!userId) {
       setAdminReviewError('Log in again before deleting events.');
       setAdminManageEventsError('Log in again before deleting events.');
@@ -163,16 +163,16 @@ export function useAdminModeration({
           style: 'destructive',
           text: 'Delete',
           onPress: () => {
-            void deleteEventAfterConfirmation(id);
+            void deleteEventAfterConfirmation(id, organizerMessage);
           },
         },
       ],
     );
   }
 
-  async function deleteEventAfterConfirmation(id: string) {
+  async function deleteEventAfterConfirmation(id: string, organizerMessage?: string | null) {
     setReviewingContentId(`event-delete-${id}`);
-    const result = await deleteOrganizerEvent({ eventId: id });
+    const result = await deleteOrganizerEvent({ eventId: id, organizerMessage });
     setReviewingContentId(null);
 
     if (result.error) {
@@ -243,6 +243,7 @@ export function useAdminModeration({
       date: string;
       description: string;
       endTime?: string | null;
+      organizerMessage?: string | null;
       status: OrganizerEventStatus;
       time: string;
       title: string;

@@ -35,6 +35,8 @@ export function useCreateEventForm({
   const [eventCategory, setEventCategory] = useState<EventCategory>('workshop');
   const [eventDate, setEventDate] = useState('');
   const [eventDateValue, setEventDateValue] = useState<Date | null>(null);
+  const [eventEndDate, setEventEndDate] = useState('');
+  const [eventEndDateValue, setEventEndDateValue] = useState<Date | null>(null);
   const [eventEndTime, setEventEndTime] = useState('');
   const [eventTime, setEventTime] = useState('');
   const [eventDescription, setEventDescription] = useState('');
@@ -44,6 +46,7 @@ export function useCreateEventForm({
   const [creatingEvent, setCreatingEvent] = useState(false);
   const eventSubmissionInFlight = useRef(false);
   const [datePickerOpen, setDatePickerOpen] = useState(false);
+  const [datePickerTarget, setDatePickerTarget] = useState<'end' | 'start'>('start');
   const [timePickerOpen, setTimePickerOpen] = useState(false);
   const [timePickerTarget, setTimePickerTarget] = useState<'end' | 'start'>('start');
   const [calendarMonth, setCalendarMonth] = useState(() => startOfMonth(new Date()));
@@ -99,6 +102,8 @@ export function useCreateEventForm({
     setEventCategory('workshop');
     setEventDate('');
     setEventDateValue(null);
+    setEventEndDate('');
+    setEventEndDateValue(null);
     setEventEndTime('');
     setEventTime('');
     setEventDescription('');
@@ -111,6 +116,7 @@ export function useCreateEventForm({
     setSelectedEndHour(21);
     setSelectedEndMinute(0);
     setTimePickerTarget('start');
+    setDatePickerTarget('start');
     setDatePickerOpen(false);
     setTimePickerOpen(false);
   }
@@ -138,6 +144,9 @@ export function useCreateEventForm({
     setEventCategory(event.category);
     setEventDate(event.date);
     setEventDateValue(event.startsAt ? new Date(event.startsAt) : null);
+    const resolvedEndDate = event.endsAt ? new Date(event.endsAt) : event.startsAt ? new Date(event.startsAt) : null;
+    setEventEndDate(event.endDate ?? (resolvedEndDate ? formatEventDateLabel(resolvedEndDate) : event.date));
+    setEventEndDateValue(resolvedEndDate);
     setEventEndTime(event.endTime ?? '');
     setEventTime(event.time);
     setEventDescription(event.description);
@@ -178,11 +187,12 @@ export function useCreateEventForm({
 
     const normalizedTitle = limitText(eventTitle.trim(), textLimits.eventTitle);
     const normalizedDate = eventDate.trim();
+    const normalizedEndDate = eventEndDate.trim() || normalizedDate;
     const normalizedEndTime = eventEndTime.trim();
     const normalizedTime = eventTime.trim();
     const normalizedDescription = limitText(eventDescription.trim(), textLimits.eventDescription);
     const startsAt = eventDateValue ? buildLocalEventDate(eventDateValue, normalizedTime) : null;
-    const endsAt = eventDateValue ? buildLocalEventDate(eventDateValue, normalizedEndTime) : null;
+    const endsAt = eventEndDateValue ? buildLocalEventDate(eventEndDateValue, normalizedEndTime) : null;
 
     if (!userId) {
       setCreateEventError('Log in again before publishing an event.');
@@ -223,6 +233,7 @@ export function useCreateEventForm({
       description: normalizedDescription,
       category: eventCategory,
       date: normalizedDate,
+      endDate: normalizedEndDate,
       endTime: normalizedEndTime,
       endsAt: endsAt.toISOString(),
       time: normalizedTime,
@@ -292,6 +303,8 @@ export function useCreateEventForm({
     eventCategory,
     eventDate,
     eventDateValue,
+    eventEndDate,
+    eventEndDateValue,
     eventDescription,
     eventImageUri,
     eventIsFree,
@@ -315,9 +328,12 @@ export function useCreateEventForm({
     setCalendarMonth,
     setCreateEventOpen,
     setDatePickerOpen,
+    setDatePickerTarget,
     setEventCategory,
     setEventDate,
     setEventDateValue,
+    setEventEndDate,
+    setEventEndDateValue,
     setEventDescription: changeEventDescription,
     setEventEndTime,
     setEventImageUri,
@@ -334,8 +350,13 @@ export function useCreateEventForm({
     setTimePickerTarget,
     submitEvent,
     timePickerOpen,
+    datePickerTarget,
     timePickerTarget,
   };
+}
+
+function formatEventDateLabel(date: Date) {
+  return new Intl.DateTimeFormat('en-US', { day: 'numeric', month: 'short', weekday: 'short' }).format(date);
 }
 
 function hydrateSelectedTime(

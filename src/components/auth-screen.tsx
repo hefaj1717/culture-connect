@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Building2, Check, GraduationCap } from 'lucide-react-native';
+import { Building2, Check, Eye, EyeOff, GraduationCap } from 'lucide-react-native';
 import {
   ActivityIndicator,
   findNodeHandle,
@@ -93,6 +93,7 @@ export function AuthScreen() {
   const [pendingEmail, setPendingEmail] = useState('');
   const [confirmationCode, setConfirmationCode] = useState('');
   const [password, setPassword] = useState('');
+  const [passwordVisible, setPasswordVisible] = useState(false);
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [cityId, setCityId] = useState<CityId>(defaultCityId);
@@ -754,27 +755,45 @@ export function AuthScreen() {
             {mode !== 'confirmSignUp' && <FormFieldError message={fieldErrors.email} />}
 
             {mode !== 'confirmSignUp' && (
-              <AuthInput
-                inputRef={passwordRef}
-                value={password}
-                onChangeText={(value) => {
-                  setPassword(limitText(value, textLimits.password));
-                  clearFieldError('password');
-                }}
-                maxLength={textLimits.password}
-                placeholder="Password"
-                placeholderTextColor="#8B909A"
-                secureTextEntry
-                textContentType={mode === 'signIn' ? 'password' : 'newPassword'}
-                autoComplete={mode === 'signIn' ? 'current-password' : 'new-password'}
-                returnKeyType="done"
-                onFocus={() => keepInputAboveKeyboard(passwordRef)}
-                onBlur={() => handleFieldBlur('password')}
-                onSubmitEditing={handleSubmit}
-                className="mb-4 rounded-xl border border-gray-300 px-4 py-3 text-[15px] text-ink"
-              />
+              <View className="relative">
+                <AuthInput
+                  inputRef={passwordRef}
+                  value={password}
+                  onChangeText={(value) => {
+                    setPassword(limitText(value, textLimits.password));
+                    clearFieldError('password');
+                  }}
+                  maxLength={textLimits.password}
+                  placeholder="Password"
+                  placeholderTextColor="#8B909A"
+                  secureTextEntry={!passwordVisible}
+                  textContentType={mode === 'signIn' ? 'password' : 'newPassword'}
+                  autoComplete={mode === 'signIn' ? 'current-password' : 'new-password'}
+                  returnKeyType="done"
+                  onFocus={() => keepInputAboveKeyboard(passwordRef)}
+                  onBlur={() => handleFieldBlur('password')}
+                  onSubmitEditing={handleSubmit}
+                  className="mb-4 rounded-xl border border-gray-300 px-4 py-3 pr-14 text-[15px] text-ink"
+                />
+                <Pressable
+                  accessibilityLabel={passwordVisible ? 'Hide password' : 'Show password'}
+                  className="absolute right-1 top-1 h-11 w-11 items-center justify-center active:opacity-70"
+                  onPress={() => setPasswordVisible((visible) => !visible)}
+                >
+                  {passwordVisible ? <EyeOff size={19} color="#6B818C" /> : <Eye size={19} color="#6B818C" />}
+                </Pressable>
+              </View>
             )}
             {mode !== 'confirmSignUp' && <FormFieldError message={fieldErrors.password} />}
+
+            {mode === 'signIn' && (
+              <Pressable
+                accessibilityLabel="Forgot password"
+                className="-mt-1 mb-4 self-end py-1 active:opacity-70"
+              >
+                <Text className="text-[13px] font-semibold text-primary">Forgot password?</Text>
+              </Pressable>
+            )}
 
             {error && <Text className="mb-4 text-[13px] text-destructive">{error}</Text>}
             {notice && <Text className="mb-4 text-[13px] text-primary">{notice}</Text>}

@@ -1,4 +1,4 @@
-import { ArrowLeft, BadgeCheck, Clock3, LockKeyhole, MapPin, X } from 'lucide-react-native';
+import { ArrowLeft, BadgeCheck, Clock3, LockKeyhole, MapPin, Route, X } from 'lucide-react-native';
 import { CameraView, type BarcodeScanningResult, useCameraPermissions } from 'expo-camera';
 import { useEffect, useMemo, useState } from 'react';
 import {
@@ -145,8 +145,11 @@ function QuestCard({ onPress, quest }: { onPress: () => void; quest: Quest }) {
           style={StyleSheet.absoluteFill}
           withTextGradient
         >
-          <View className="absolute left-4 top-4 rounded-full bg-white/90 px-3 py-1">
-            <Text className="text-[11px] font-bold text-primary">{quest.theme}</Text>
+          <View className="absolute left-4 top-4 flex-row items-center gap-1.5 rounded-full bg-white/92 px-3 py-1.5">
+            <Route size={13} color={Colors.light.primary} strokeWidth={2.5} />
+            <Text className="text-[10px] font-extrabold uppercase tracking-wide text-primary">
+              {quest.theme}
+            </Text>
           </View>
           <View className="absolute bottom-4 left-4 right-4">
             <Text className="font-heading text-[24px] font-extrabold leading-[27px] text-white">

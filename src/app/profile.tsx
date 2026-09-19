@@ -9,6 +9,7 @@ import { CreateQuestModal } from '@/components/profile/create-quest-modal';
 import { CreateRewardModal } from '@/components/profile/create-reward-modal';
 import { EditProfileModal } from '@/components/profile/edit-profile-modal';
 import { FollowedOrganizersModal } from '@/components/profile/followed-organizers-modal';
+import { OrganizerProfileModal } from '@/components/organizer-profile-modal';
 import {
   AccountActionsModal,
   AdminXpAuditModal,
@@ -25,7 +26,7 @@ import {
   UniversityAffiliationSection,
 } from '@/components/profile/profile-sections';
 import { RewardDetailModal } from '@/components/profile/reward-detail-modal';
-import { type CityId, type RewardPartner, defaultCityId, getCultureCityData } from '@/data/culture';
+import { type CityId, type CultureEvent, type RewardPartner, defaultCityId, getCultureCityData } from '@/data/culture';
 import { getXpLevelProgress } from '@/data/profile';
 import { useAdminModeration } from '@/hooks/profile/use-admin-moderation';
 import { useCreateEventForm } from '@/hooks/profile/use-create-event-form';
@@ -40,7 +41,7 @@ import {
   fetchFollowedOrganizerProfiles,
   unfollowOrganizer,
 } from '@/lib/organizer-follows';
-import { fetchMyOrganizerEvents, type ManagedOrganizerEvent } from '@/lib/organizer-events';
+import { fetchMyOrganizerEvents, fetchOrganizerEvents, type ManagedOrganizerEvent } from '@/lib/organizer-events';
 import type { OrganizerProfile } from '@/lib/organizer-profiles';
 import {
   fetchMyOrganizerRewards,
@@ -135,6 +136,8 @@ export default function ProfileScreen({
   const [followedOrganizersError, setFollowedOrganizersError] = useState<string | null>(null);
   const [followedOrganizersLoading, setFollowedOrganizersLoading] = useState(false);
   const [followedOrganizersOpen, setFollowedOrganizersOpen] = useState(false);
+  const [selectedFollowedOrganizer, setSelectedFollowedOrganizer] = useState<OrganizerProfile | null>(null);
+  const [followedOrganizerEvents, setFollowedOrganizerEvents] = useState<CultureEvent[]>([]);
   const [followedOrganizersReloadNonce, setFollowedOrganizersReloadNonce] = useState(0);
   const [adminXpAuditOpen, setAdminXpAuditOpen] = useState(false);
   const [adminXpTransactions, setAdminXpTransactions] = useState<XpTransaction[]>([]);
@@ -225,9 +228,12 @@ export default function ProfileScreen({
     createEventOpen,
     creatingEvent,
     datePickerOpen,
+    datePickerTarget,
     eventCategory,
     eventDate,
     eventDateValue,
+    eventEndDate,
+    eventEndDateValue,
     eventDescription,
     eventEndTime,
     eventImageUri,
@@ -249,9 +255,12 @@ export default function ProfileScreen({
     setCalendarMonth,
     setCreateEventOpen,
     setDatePickerOpen,
+    setDatePickerTarget,
     setEventCategory,
     setEventDate,
     setEventDateValue,
+    setEventEndDate,
+    setEventEndDateValue,
     setEventDescription,
     setEventEndTime,
     setEventImageUri,
@@ -601,6 +610,12 @@ export default function ProfileScreen({
     return result;
   }
 
+  async function openFollowedOrganizer(profile: OrganizerProfile) {
+    setSelectedFollowedOrganizer(profile);
+    const result = await fetchOrganizerEvents(savedCityId);
+    if (!result.error) setFollowedOrganizerEvents(result.events);
+  }
+
   return (
     <View className="flex-1 bg-canvas">
       <ScrollView
@@ -660,6 +675,7 @@ export default function ProfileScreen({
           eventsError={myOrganizerEventsError}
           followedOrganizerCount={followedOrganizers.length}
           history={userEventHistory}
+          isOrganizer={isOrganizer}
           onOpenActivity={() => setActivityHistoryOpen(true)}
           onOpenEvents={() => setOrganizerHistoryOpen(true)}
           onOpenFollowing={() => setFollowedOrganizersOpen(true)}
@@ -681,11 +697,20 @@ export default function ProfileScreen({
         error={followedOrganizersError}
         loading={followedOrganizersLoading}
         onClose={() => setFollowedOrganizersOpen(false)}
+        onOpenProfile={(profile) => void openFollowedOrganizer(profile)}
         onRetry={() => setFollowedOrganizersReloadNonce((current) => current + 1)}
         onUnfollow={removeFollowedOrganizer}
         profiles={followedOrganizers}
         stableModalTopInset={stableModalTopInset}
         visible={followedOrganizersOpen}
+      />
+
+      <OrganizerProfileModal
+        cityName={cityData.name}
+        events={followedOrganizerEvents.filter((event) => event.organizerId === selectedFollowedOrganizer?.id)}
+        onClose={() => setSelectedFollowedOrganizer(null)}
+        onOpenEvent={() => undefined}
+        profile={selectedFollowedOrganizer}
       />
 
       <EditProfileModal
@@ -726,9 +751,12 @@ export default function ProfileScreen({
         createEventError={createEventError}
         creatingEvent={creatingEvent}
         datePickerOpen={datePickerOpen}
+        datePickerTarget={datePickerTarget}
         eventCategory={eventCategory}
         eventDate={eventDate}
         eventDateValue={eventDateValue}
+        eventEndDate={eventEndDate}
+        eventEndDateValue={eventEndDateValue}
         eventDescription={eventDescription}
         eventEndTime={eventEndTime}
         eventImageUri={eventImageUri}
@@ -754,6 +782,12 @@ export default function ProfileScreen({
         onCloseTimePicker={() => setTimePickerOpen(false)}
         onOpenDatePicker={() => {
           setTimePickerOpen(false);
+          setDatePickerTarget('start');
+          setDatePickerOpen(true);
+        }}
+        onOpenEndDatePicker={() => {
+          setTimePickerOpen(false);
+          setDatePickerTarget('end');
           setDatePickerOpen(true);
         }}
         onOpenTimePicker={(target) => {
@@ -765,6 +799,8 @@ export default function ProfileScreen({
         onRemoveEventImage={() => setEventImageUri(null)}
         onSelectDate={setEventDate}
         onSelectDateValue={setEventDateValue}
+        onSelectEndDate={setEventEndDate}
+        onSelectEndDateValue={setEventEndDateValue}
         onSelectPlace={selectPlace}
         onSubmit={submitEvent}
         placeQuery={placeQuery}
