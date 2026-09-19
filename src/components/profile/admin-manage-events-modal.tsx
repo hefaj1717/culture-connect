@@ -38,6 +38,7 @@ import {
 import { OrganizerProfileModal } from '@/components/organizer-profile-modal';
 import { CardStyles, Colors } from '@/constants/theme';
 import {
+  eventCategories,
   eventCategoryLabels,
   getCultureCityData,
   type EventCategory,
@@ -88,7 +89,7 @@ const editableRewardStatuses: RewardPartnerStatus[] = [
   'archived',
 ];
 
-const editableCategories = Object.keys(eventCategoryLabels) as EventCategory[];
+const editableCategories: EventCategory[] = [...eventCategories];
 const rewardCategoryLabels: Record<RewardPartner['category'], string> = {
   bar: 'Bar',
   bookstore: 'Bookstore',

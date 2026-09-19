@@ -12,8 +12,20 @@ export type VenueCategory =
   | 'arts-centre'
   | 'cultural-centre';
 
-export type EventCategory =
-  'exhibition' | 'performance' | 'screening' | 'workshop' | 'festival' | 'concert';
+export const eventCategories = [
+  'exhibition',
+  'concert',
+  'screening',
+  'workshop',
+  'party',
+  'performance',
+  'market',
+  'lecture',
+  'sports',
+  'other',
+] as const;
+
+export type EventCategory = (typeof eventCategories)[number];
 
 export type EventLanguage = 'en' | 'nl' | 'fr' | 'pl' | 'multilingual';
 
@@ -160,11 +172,15 @@ export const categoryLabels: Record<VenueCategory, string> = {
 
 export const eventCategoryLabels: Record<EventCategory, string> = {
   exhibition: 'Exhibition',
-  performance: 'Performance',
+  concert: 'Concert',
   screening: 'Screening',
   workshop: 'Workshop',
-  festival: 'Festival',
-  concert: 'Concert',
+  party: 'Party',
+  performance: 'Performance',
+  market: 'Market',
+  lecture: 'Lecture',
+  sports: 'Sports',
+  other: 'Other',
 };
 
 export const languageLabels: Record<EventLanguage, string> = {

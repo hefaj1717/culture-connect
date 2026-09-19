@@ -41,6 +41,7 @@ import {
   type CityId,
   type EventCategory,
   defaultEventXp,
+  eventCategories,
   eventCategoryLabels,
   getCultureCityData,
 } from '@/data/culture';
@@ -102,15 +103,6 @@ type CreateEventModalProps = {
   timePickerTarget: 'end' | 'start';
   visible: boolean;
 };
-
-const eventCategories: EventCategory[] = [
-  'exhibition',
-  'performance',
-  'screening',
-  'workshop',
-  'festival',
-  'concert',
-];
 
 export function CreateEventModal({
   calendarMonth,
@@ -532,7 +524,7 @@ function getEventCategoryIcon(category: EventCategory): ChoiceIcon {
       return Clapperboard;
     case 'workshop':
       return CalendarPlus;
-    case 'festival':
+    case 'party':
       return PartyPopper;
     case 'concert':
       return Music;
