@@ -676,29 +676,28 @@ export default function ExploreScreen({
                     Keyboard.dismiss();
                     setSelectedOrganizerProfile(profile);
                   }}
-                  className="flex-row items-center gap-3 rounded-3xl border border-primary/10 bg-surface p-4 active:opacity-80"
-                  style={CardStyles.compact}
+                  className="flex-row items-center gap-3 rounded-feature p-3 active:opacity-80"
+                  style={[CardStyles.compact, { backgroundColor: Colors.light.backgroundElement }]}
                 >
-                  <OrganizerAvatar profile={profile} size={58} />
+                  <OrganizerAvatar profile={profile} size={52} />
                   <View className="min-w-0 flex-1">
-                    <View className="mb-1 flex-row items-center gap-2">
-                      <Text className="shrink text-[15px] font-semibold text-ink" numberOfLines={1}>
+                    <View className="flex-row items-center gap-1.5">
+                      <Text className="shrink text-[16px] font-semibold text-ink" numberOfLines={1}>
                         {profile.name}
                       </Text>
-                      <View className="rounded-full bg-primary/10 px-2 py-0.5">
-                        <Text className="text-[10px] font-bold uppercase text-primary">
-                          Organizer
-                        </Text>
-                      </View>
+                      <CheckCircle2 size={14} color={Colors.light.background} fill={Colors.light.success} />
                     </View>
-                    <Text className="mb-1 text-[13px] text-muted" numberOfLines={1}>
-                      {profile.locationName ?? cityData.name}
-                    </Text>
-                    <Text className="text-[12px] leading-4 text-ink/65" numberOfLines={2}>
+                    <View className="mt-1 flex-row items-center gap-1">
+                      <MapPin size={12} color={Colors.light.primary} strokeWidth={2.3} />
+                      <Text className="flex-1 text-[12px] font-medium text-primary" numberOfLines={1}>
+                        {profile.locationName ?? cityData.name}
+                      </Text>
+                    </View>
+                    <Text className="mt-1.5 text-[12px] leading-4 text-muted" numberOfLines={1}>
                       {profile.bio}
                     </Text>
                   </View>
-                  <ChevronRight size={18} color={Colors.light.textSecondary} />
+                  <ChevronRight size={18} color={Colors.light.primary} />
                 </Pressable>
               ))
             )}
