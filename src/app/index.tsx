@@ -57,6 +57,12 @@ type HomeScreenProps = {
   onOpenProfile?: () => void;
 };
 
+type NotificationGroup = {
+  key: string;
+  label: string;
+  notifications: UserNotification[];
+};
+
 export default function HomeScreen({
   avatarInitials,
   avatarUrl,
@@ -112,6 +118,10 @@ export default function HomeScreen({
 
   const unreadNotificationCount = useMemo(
     () => notifications.filter((notification) => !notification.readAt).length,
+    [notifications],
+  );
+  const notificationGroups = useMemo(
+    () => groupNotificationsByAge(notifications),
     [notifications],
   );
 
@@ -503,42 +513,66 @@ export default function HomeScreen({
                 </Text>
               </View>
             ) : (
-              <View className="mt-3 gap-1">
-                {notifications.map((notification) => {
-                  const unread = !notification.readAt;
-                  return (
-                  <Pressable
-                    key={notification.id}
-                    onPress={() => {
-                      markNotificationRead(notification);
-                      if (notification.eventId) {
-                        setNotificationsOpen(false);
-                        onOpenEvent?.(`organizer-${notification.eventId}`);
-                      }
-                    }}
-                    className="flex-row gap-3 rounded-2xl px-4 py-4 active:opacity-75"
-                    style={unread ? { backgroundColor: Colors.light.backgroundSelected } : undefined}
-                  >
-                    <View className={`mt-0.5 h-9 w-9 items-center justify-center rounded-full ${unread ? 'bg-accent/10' : 'bg-primary/10'}`}>
-                      <Bell size={17} color={unread ? Colors.light.accent : Colors.light.primary} strokeWidth={2.2} />
+              <View className="mt-3 gap-6">
+                {notificationGroups.map((group) => (
+                  <View key={group.key}>
+                    <View className="mb-2 flex-row items-center gap-3">
+                      <Text className="text-[11px] font-extrabold uppercase tracking-[1.4px] text-primary">
+                        {group.label}
+                      </Text>
+                      <View className="h-px flex-1 bg-primary/20" />
                     </View>
-                    <View className="min-w-0 flex-1">
-                      <View className="flex-row items-start gap-3">
-                        <View className="min-w-0 flex-1 flex-row items-center gap-2">
-                          {unread ? <View className="h-2 w-2 rounded-full bg-accent" /> : null}
-                          <Text className={`shrink text-[14px] ${unread ? 'font-extrabold text-ink' : 'font-semibold text-ink'}`}>
-                          {notification.title}
-                          </Text>
-                        </View>
-                        <Text className="text-[11px] font-medium text-muted">
-                          {formatNotificationDate(notification.createdAt)}
-                        </Text>
-                      </View>
-                      <Text className={`mt-1 text-[13px] leading-5 ${unread ? 'text-primary' : 'text-muted'}`}>{notification.body}</Text>
+                    <View className="gap-1">
+                      {group.notifications.map((notification) => {
+                        const unread = !notification.readAt;
+                        return (
+                          <Pressable
+                            key={notification.id}
+                            onPress={() => {
+                              markNotificationRead(notification);
+                              if (notification.eventId) {
+                                setNotificationsOpen(false);
+                                onOpenEvent?.(`organizer-${notification.eventId}`);
+                              }
+                            }}
+                            className="flex-row gap-3 rounded-2xl px-4 py-4 active:opacity-75"
+                            style={unread ? { backgroundColor: Colors.light.backgroundSelected } : undefined}
+                          >
+                            <View
+                              className={`mt-0.5 h-9 w-9 items-center justify-center rounded-full ${unread ? 'bg-accent/10' : 'bg-primary/10'}`}
+                            >
+                              <Bell
+                                size={17}
+                                color={unread ? Colors.light.accent : Colors.light.primary}
+                                strokeWidth={2.2}
+                              />
+                            </View>
+                            <View className="min-w-0 flex-1">
+                              <View className="flex-row items-start gap-3">
+                                <View className="min-w-0 flex-1 flex-row items-center gap-2">
+                                  {unread ? <View className="h-2 w-2 rounded-full bg-accent" /> : null}
+                                  <Text
+                                    className={`shrink text-[14px] ${unread ? 'font-extrabold text-ink' : 'font-semibold text-ink'}`}
+                                  >
+                                    {notification.title}
+                                  </Text>
+                                </View>
+                                <Text className="text-[11px] font-medium text-muted">
+                                  {formatNotificationDate(notification.createdAt)}
+                                </Text>
+                              </View>
+                              <Text
+                                className={`mt-1 text-[13px] leading-5 ${unread ? 'text-primary' : 'text-muted'}`}
+                              >
+                                {notification.body}
+                              </Text>
+                            </View>
+                          </Pressable>
+                        );
+                      })}
                     </View>
-                  </Pressable>
-                  );
-                })}
+                  </View>
+                ))}
               </View>
             )}
           </ScrollView>
@@ -1012,6 +1046,57 @@ function formatNotificationDate(value: string) {
   return new Intl.DateTimeFormat(undefined, { day: 'numeric', month: 'short' }).format(
     new Date(timestamp),
   );
+}
+
+function groupNotificationsByAge(notifications: UserNotification[]): NotificationGroup[] {
+  const now = new Date();
+  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const groups = new Map<string, NotificationGroup>();
+
+  notifications.forEach((notification) => {
+    const createdAt = new Date(notification.createdAt);
+    const startOfNotificationDay = new Date(
+      createdAt.getFullYear(),
+      createdAt.getMonth(),
+      createdAt.getDate(),
+    );
+    const daysAgo = Math.max(
+      0,
+      Math.floor((startOfToday.getTime() - startOfNotificationDay.getTime()) / 86_400_000),
+    );
+
+    let key: string;
+    let label: string;
+    if (daysAgo === 0) {
+      key = 'today';
+      label = 'Today';
+    } else if (daysAgo === 1) {
+      key = 'yesterday';
+      label = 'Yesterday';
+    } else if (daysAgo < 7) {
+      key = `days-ago-${daysAgo}`;
+      label = `${daysAgo} days ago`;
+    } else {
+      const weekStart = new Date(startOfNotificationDay);
+      const dayOfWeek = (weekStart.getDay() + 6) % 7;
+      weekStart.setDate(weekStart.getDate() - dayOfWeek);
+      const weekStartLabel = new Intl.DateTimeFormat(undefined, {
+        day: 'numeric',
+        month: 'short',
+      }).format(weekStart);
+      key = `week-${weekStart.toISOString().slice(0, 10)}`;
+      label = daysAgo < 14 ? 'Last week' : `Week of ${weekStartLabel}`;
+    }
+
+    const group = groups.get(key);
+    if (group) {
+      group.notifications.push(notification);
+    } else {
+      groups.set(key, { key, label, notifications: [notification] });
+    }
+  });
+
+  return [...groups.values()];
 }
 
 function getCityMapRegion(cityData: CultureCityData) {
