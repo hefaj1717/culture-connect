@@ -159,9 +159,7 @@ export function OrganizerProfileModal({
                       {profile.name}
                     </Text>
                   </View>
-                  <View className="rounded-2xl bg-success/20 p-1">
-                    <OrganizerAvatar profile={profile} size={68} />
-                  </View>
+                  <OrganizerAvatar profile={profile} size={68} />
                 </View>
 
                 <View className="px-5 pt-5">
