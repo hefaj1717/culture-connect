@@ -886,7 +886,9 @@ function EventDetailModal({
     setOrganizerPresentationStatic(true);
     setEmbeddedOrganizerProfile(destination.organizerProfile);
     setReturnContext(null);
-    translateX.value = 0;
+    requestAnimationFrame(() => {
+      translateX.value = 0;
+    });
   }
 
   function openOrganizerProfile() {
