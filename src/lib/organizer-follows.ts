@@ -1,5 +1,35 @@
 import { getNetworkAwareErrorMessage } from '@/lib/network-errors';
+import {
+  fetchOrganizerProfilesByIds,
+  type OrganizerProfile,
+} from '@/lib/organizer-profiles';
 import { supabase } from '@/lib/supabase';
+
+export async function fetchFollowedOrganizerProfiles() {
+  const { data, error } = await supabase
+    .from('organizer_follows')
+    .select('organizer_user_id')
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    return {
+      error: getNetworkAwareErrorMessage(error.message),
+      profiles: [] as OrganizerProfile[],
+    };
+  }
+
+  const organizerIds = (data ?? []).map((follow) => follow.organizer_user_id as string);
+  const profilesResult = await fetchOrganizerProfilesByIds(organizerIds);
+  if (profilesResult.error) return profilesResult;
+
+  const profilesById = new Map(profilesResult.profiles.map((profile) => [profile.id, profile]));
+  return {
+    error: null,
+    profiles: organizerIds
+      .map((organizerId) => profilesById.get(organizerId))
+      .filter((profile): profile is OrganizerProfile => !!profile),
+  };
+}
 
 export async function fetchOrganizerFollowStatus(userId: string, organizerId: string) {
   if (!userId || !organizerId || userId === organizerId) {

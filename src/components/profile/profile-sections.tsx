@@ -374,9 +374,11 @@ type UserActivitySectionProps = {
 type ProfileHistoryListProps = {
   events: ManagedOrganizerEvent[];
   eventsError?: string | null;
+  followedOrganizerCount: number;
   history: UserEventHistoryItem[];
   onOpenActivity: () => void;
   onOpenEvents: () => void;
+  onOpenFollowing: () => void;
   onOpenRewards: () => void;
   rewards: ManagedOrganizerReward[];
   rewardsError?: string | null;
@@ -386,9 +388,11 @@ type ProfileHistoryListProps = {
 export function ProfileHistoryList({
   events,
   eventsError,
+  followedOrganizerCount,
   history,
   onOpenActivity,
   onOpenEvents,
+  onOpenFollowing,
   onOpenRewards,
   rewards,
   rewardsError,
@@ -413,6 +417,16 @@ export function ProfileHistoryList({
           icon={<Clock color={Colors.light.ink} size={18} strokeWidth={2.2} />}
           label="My activity"
           onPress={onOpenActivity}
+        />
+      <ProfileHistoryRow
+          description={
+            followedOrganizerCount === 1
+              ? '1 organizer followed'
+              : `${followedOrganizerCount.toLocaleString()} organizers followed`
+          }
+          icon={<UserRound color={Colors.light.ink} size={18} strokeWidth={2.2} />}
+          label="Following"
+          onPress={onOpenFollowing}
         />
       {(eventsError || rewardsError) && (
         <Text className="mt-1 text-[12px] leading-4 text-muted">

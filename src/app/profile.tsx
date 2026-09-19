@@ -8,6 +8,7 @@ import { CreateEventModal } from '@/components/profile/create-event-modal';
 import { CreateQuestModal } from '@/components/profile/create-quest-modal';
 import { CreateRewardModal } from '@/components/profile/create-reward-modal';
 import { EditProfileModal } from '@/components/profile/edit-profile-modal';
+import { FollowedOrganizersModal } from '@/components/profile/followed-organizers-modal';
 import {
   AccountActionsModal,
   AdminXpAuditModal,
@@ -35,7 +36,12 @@ import { useRewardRedemption } from '@/hooks/profile/use-reward-redemption';
 import { useCardSwipeBack } from '@/hooks/use-card-swipe-back';
 import { useStableTopInset } from '@/hooks/use-stable-safe-area';
 import type { UserEventHistoryItem } from '@/lib/event-history';
+import {
+  fetchFollowedOrganizerProfiles,
+  unfollowOrganizer,
+} from '@/lib/organizer-follows';
 import { fetchMyOrganizerEvents, type ManagedOrganizerEvent } from '@/lib/organizer-events';
+import type { OrganizerProfile } from '@/lib/organizer-profiles';
 import {
   fetchMyOrganizerRewards,
   fetchOrganizerRewards,
@@ -125,6 +131,11 @@ export default function ProfileScreen({
   const [xpTransactions, setXpTransactions] = useState<XpTransaction[]>([]);
   const [xpTransactionsError, setXpTransactionsError] = useState<string | null>(null);
   const [xpTransactionsLoading, setXpTransactionsLoading] = useState(false);
+  const [followedOrganizers, setFollowedOrganizers] = useState<OrganizerProfile[]>([]);
+  const [followedOrganizersError, setFollowedOrganizersError] = useState<string | null>(null);
+  const [followedOrganizersLoading, setFollowedOrganizersLoading] = useState(false);
+  const [followedOrganizersOpen, setFollowedOrganizersOpen] = useState(false);
+  const [followedOrganizersReloadNonce, setFollowedOrganizersReloadNonce] = useState(0);
   const [adminXpAuditOpen, setAdminXpAuditOpen] = useState(false);
   const [adminXpTransactions, setAdminXpTransactions] = useState<XpTransaction[]>([]);
   const [adminXpTransactionsError, setAdminXpTransactionsError] = useState<string | null>(null);
@@ -431,6 +442,33 @@ export default function ProfileScreen({
   }, [session?.user.id, universityMembershipReloadNonce]);
 
   useEffect(() => {
+    let active = true;
+
+    async function loadFollowedOrganizers() {
+      if (!session?.user.id) {
+        setFollowedOrganizers([]);
+        setFollowedOrganizersError(null);
+        setFollowedOrganizersLoading(false);
+        return;
+      }
+
+      setFollowedOrganizersLoading(true);
+      const result = await fetchFollowedOrganizerProfiles();
+      if (!active) return;
+
+      setFollowedOrganizers(result.profiles);
+      setFollowedOrganizersError(result.error);
+      setFollowedOrganizersLoading(false);
+    }
+
+    void loadFollowedOrganizers();
+
+    return () => {
+      active = false;
+    };
+  }, [followedOrganizersReloadNonce, session?.user.id]);
+
+  useEffect(() => {
     const userId = session?.user.id;
 
     if (!userId) {
@@ -551,6 +589,18 @@ export default function ProfileScreen({
     setAdminXpTransactionsLoading(false);
   }
 
+  async function removeFollowedOrganizer(organizerId: string) {
+    const userId = session?.user.id;
+    if (!userId) return { error: 'Log in to manage followed organizers.' };
+
+    const result = await unfollowOrganizer(userId, organizerId);
+    if (!result.error) {
+      setFollowedOrganizers((current) => current.filter((profile) => profile.id !== organizerId));
+    }
+
+    return result;
+  }
+
   return (
     <View className="flex-1 bg-canvas">
       <ScrollView
@@ -608,9 +658,11 @@ export default function ProfileScreen({
         <ProfileHistoryList
           events={myOrganizerEvents}
           eventsError={myOrganizerEventsError}
+          followedOrganizerCount={followedOrganizers.length}
           history={userEventHistory}
           onOpenActivity={() => setActivityHistoryOpen(true)}
           onOpenEvents={() => setOrganizerHistoryOpen(true)}
+          onOpenFollowing={() => setFollowedOrganizersOpen(true)}
           onOpenRewards={() => setOrganizerRewardsHistoryOpen(true)}
           rewards={myOrganizerRewards}
           rewardsError={myOrganizerRewardsError}
@@ -623,6 +675,17 @@ export default function ProfileScreen({
         onEdit={openEditProfile}
         onSignOut={signOut}
         visible={accountActionsOpen}
+      />
+
+      <FollowedOrganizersModal
+        error={followedOrganizersError}
+        loading={followedOrganizersLoading}
+        onClose={() => setFollowedOrganizersOpen(false)}
+        onRetry={() => setFollowedOrganizersReloadNonce((current) => current + 1)}
+        onUnfollow={removeFollowedOrganizer}
+        profiles={followedOrganizers}
+        stableModalTopInset={stableModalTopInset}
+        visible={followedOrganizersOpen}
       />
 
       <EditProfileModal
