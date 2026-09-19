@@ -586,8 +586,8 @@ export default function ExploreScreen({
                         <View
                           className="shrink-0 overflow-hidden rounded-xl bg-gray-200"
                           style={{
-                            height: layout.isSmallPhone ? 84 : 92,
-                            width: layout.isSmallPhone ? 84 : 92,
+                            height: layout.isSmallPhone ? 98 : 108,
+                            width: layout.isSmallPhone ? 98 : 108,
                           }}
                         >
                           <BrandImage
