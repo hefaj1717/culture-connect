@@ -1,5 +1,5 @@
 import { Image } from 'expo-image';
-import { ArrowLeft, ChevronRight, MapPin } from 'lucide-react-native';
+import { ArrowLeft, CheckCircle2, ChevronRight, MapPin } from 'lucide-react-native';
 import { useEffect, useMemo } from 'react';
 import {
   Modal,
@@ -144,40 +144,44 @@ export function OrganizerProfileModal({
               </Pressable>
 
               <View
-                className="rounded-feature p-5"
+                className="overflow-hidden rounded-feature"
                 style={{ backgroundColor: Colors.light.backgroundElement }}
               >
-                <View className="flex-row items-start justify-between gap-4">
+                <View className="flex-row items-start justify-between gap-4 p-5" style={{ backgroundColor: Colors.light.backgroundSelected }}>
                   <View className="min-w-0 flex-1">
-                    <Text className="text-[11px] font-bold uppercase tracking-wider text-primary">
-                      Verified organizer
-                    </Text>
-                    <Text className="mt-2 font-heading text-[30px] leading-9 text-ink">
+                    <View className="self-start flex-row items-center gap-1.5 rounded-full bg-success/15 px-2.5 py-1">
+                      <CheckCircle2 size={13} color={Colors.light.background} fill={Colors.light.success} />
+                      <Text className="text-[10px] font-bold uppercase tracking-wide text-success">
+                        Verified organizer
+                      </Text>
+                    </View>
+                    <Text className="mt-3 font-heading text-[30px] leading-9 text-ink">
                       {profile.name}
                     </Text>
                   </View>
-                  <OrganizerAvatar profile={profile} size={68} />
+                  <View className="rounded-2xl bg-success/20 p-1">
+                    <OrganizerAvatar profile={profile} size={68} />
+                  </View>
                 </View>
 
-                <View className="mt-5">
+                <View className="px-5 pt-5">
                   <View className="mb-2 flex-row items-center gap-3">
                     <Text className="font-serifRegular text-[20px] leading-6 text-ink">About</Text>
                     <View className="h-px flex-1 bg-primary/15" />
                   </View>
                   <Text className="text-[14px] leading-6 text-muted">{organizerBio}</Text>
-                </View>
-
-                <View className="mt-5 flex-row items-start gap-3 border-t border-primary/10 pt-4">
-                  <View className="h-9 w-9 items-center justify-center rounded-full bg-primary/10">
-                    <MapPin size={17} color={Colors.light.primary} strokeWidth={2.4} />
-                  </View>
-                  <View className="min-w-0 flex-1">
-                    <Text className="text-[13px] font-semibold text-ink" numberOfLines={1}>
-                      {organizerLocation.title}
-                    </Text>
-                    <Text className="mt-0.5 text-[12px] leading-4 text-muted" numberOfLines={2}>
-                      {organizerLocation.subtitle}
-                    </Text>
+                  <View className="mt-5 flex-row items-start gap-3 border-t border-primary/10 pb-5 pt-4">
+                    <View className="h-9 w-9 items-center justify-center rounded-full bg-primary/10">
+                      <MapPin size={17} color={Colors.light.primary} strokeWidth={2.4} />
+                    </View>
+                    <View className="min-w-0 flex-1">
+                      <Text className="text-[13px] font-semibold text-ink" numberOfLines={1}>
+                        {organizerLocation.title}
+                      </Text>
+                      <Text className="mt-0.5 text-[12px] leading-4 text-muted" numberOfLines={2}>
+                        {organizerLocation.subtitle}
+                      </Text>
+                    </View>
                   </View>
                 </View>
               </View>
