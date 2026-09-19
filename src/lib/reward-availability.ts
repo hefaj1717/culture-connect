@@ -101,17 +101,13 @@ export function validateRewardAvailability(input: RewardAvailabilityInput) {
 }
 
 export function formatRewardAvailability(reward: RewardAvailabilitySource) {
-  const days = reward.availableDays?.length
-    ? reward.availableDays
-    : defaultRewardAvailabilityDays;
-  const dayLabel = formatDays(days);
   const startTime = reward.availableStartTime ?? defaultRewardStartTime;
   const endTime = reward.availableEndTime ?? defaultRewardEndTime;
-  const fromLabel = reward.availableFrom ? `from ${formatShortDate(reward.availableFrom)}` : '';
-  const untilLabel = reward.availableUntil ? `until ${formatShortDate(reward.availableUntil)}` : '';
-  const dateLabel = [fromLabel, untilLabel].filter(Boolean).join(' ');
+  const from = reward.availableFrom ? formatShortDate(reward.availableFrom) : null;
+  const until = reward.availableUntil ? formatShortDate(reward.availableUntil) : null;
+  const dateLabel = from && until ? `${from} – ${until}` : from ? `From ${from}` : until ? `Until ${until}` : 'Available daily';
 
-  return `${dayLabel}, ${startTime}-${endTime}${dateLabel ? ` · ${dateLabel}` : ''}`;
+  return `${dateLabel} · ${startTime}–${endTime}`;
 }
 
 export function isRewardCurrentlyAvailable(reward: RewardPartner, now = new Date()) {
@@ -192,20 +188,4 @@ function formatShortDate(value: string) {
     day: 'numeric',
     month: 'short',
   }).format(date);
-}
-
-function formatDays(days: number[]) {
-  const sortedDays = [...days].sort((a, b) => a - b);
-  if (sortedDays.length === 7) return 'Every day';
-  if (sameDays(sortedDays, [1, 2, 3, 4, 5])) return 'Weekdays';
-  if (sameDays(sortedDays, [6, 7])) return 'Weekends';
-
-  return sortedDays
-    .map((day) => rewardWeekdays.find((weekday) => weekday.key === day)?.label)
-    .filter(Boolean)
-    .join(', ');
-}
-
-function sameDays(days: number[], expected: number[]) {
-  return days.length === expected.length && days.every((day, index) => day === expected[index]);
 }

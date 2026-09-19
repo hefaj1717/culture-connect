@@ -159,10 +159,13 @@ export function RewardDetailModal({
                       className="flex-row items-center justify-between gap-3 active:opacity-80"
                     >
                       <View className="min-w-0 flex-1">
-                        <Text className="text-[14px] font-extrabold leading-5 text-ink">
+                        <Text className="text-[20px] font-extrabold leading-6 text-accent">
+                          {reward.xpCost.toLocaleString()} XP
+                        </Text>
+                        <Text className="mt-1 text-[12px] font-semibold leading-4 text-muted">
                           {rewardCanRedeem || rewardStateExists
-                            ? `${reward.condition} · ${formatRewardAvailability(reward)}`
-                            : `${userXp.toLocaleString()} / ${reward.xpCost.toLocaleString()} XP`}
+                            ? formatRewardAvailability(reward)
+                            : `${userXp.toLocaleString()} / ${reward.xpCost.toLocaleString()} XP collected`}
                         </Text>
                       </View>
                       <Text className="text-[12px] font-extrabold text-accentDeep">
