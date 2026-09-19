@@ -739,6 +739,7 @@ export default function ExploreScreen({
         onOpenOrganizer={(profile) => {
           eventReturnOrganizerRef.current = null;
           organizerReturnEventRef.current = selectedEvent;
+          setSelectedEvent(null);
           setSelectedOrganizerProfile(profile);
         }}
         organizerProfile={selectedEventOrganizerProfile}
@@ -759,8 +760,12 @@ export default function ExploreScreen({
           setSelectedEvent(event);
         }}
         onClose={() => {
+          const eventToRestore = organizerReturnEventRef.current;
           organizerReturnEventRef.current = null;
           setSelectedOrganizerProfile(null);
+          if (eventToRestore) {
+            setSelectedEvent(eventToRestore);
+          }
         }}
         profile={selectedOrganizerProfile}
       />
@@ -854,7 +859,11 @@ function EventDetailModal({
       return;
     }
 
-    onOpenOrganizer(organizerProfile);
+    translateX.value = withTiming(width, { duration: 180 }, (finished) => {
+      if (finished) {
+        runOnJS(onOpenOrganizer)(organizerProfile);
+      }
+    });
   }
 
   if (!event) return null;
