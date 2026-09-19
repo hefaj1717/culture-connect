@@ -48,3 +48,15 @@ export async function fetchUserNotifications() {
     })),
   };
 }
+
+export async function markUserNotificationsRead(notificationIds: string[]) {
+  if (notificationIds.length === 0) return { error: null };
+
+  const { error } = await supabase
+    .from('user_notifications')
+    .update({ read_at: new Date().toISOString() })
+    .in('id', notificationIds)
+    .is('read_at', null);
+
+  return { error: error ? getNetworkAwareErrorMessage(error.message) : null };
+}

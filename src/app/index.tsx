@@ -31,7 +31,11 @@ import {
   type CityActivityBaseline,
 } from '@/lib/city-activity';
 import type { UserEventStatus } from '@/lib/event-history';
-import { fetchUserNotifications, type UserNotification } from '@/lib/user-notifications';
+import {
+  fetchUserNotifications,
+  markUserNotificationsRead,
+  type UserNotification,
+} from '@/lib/user-notifications';
 import { useResponsiveLayout } from '@/hooks/use-responsive-layout';
 import { useStableTopInset } from '@/hooks/use-stable-safe-area';
 import type { UniversityLeaderboardRow } from '@/lib/university-leaderboard';
@@ -97,10 +101,33 @@ export default function HomeScreen({
   }, [user]);
 
   useEffect(() => {
+    void loadNotifications();
+  }, [loadNotifications]);
+
+  useEffect(() => {
     if (notificationsOpen) {
       void loadNotifications();
     }
   }, [loadNotifications, notificationsOpen]);
+
+  const unreadNotificationCount = useMemo(
+    () => notifications.filter((notification) => !notification.readAt).length,
+    [notifications],
+  );
+
+  function openNotifications() {
+    setNotificationsOpen(true);
+    const unreadIds = notifications.filter((notification) => !notification.readAt).map(({ id }) => id);
+    if (unreadIds.length === 0) return;
+
+    const readAt = new Date().toISOString();
+    setNotifications((current) =>
+      current.map((notification) =>
+        unreadIds.includes(notification.id) ? { ...notification, readAt } : notification,
+      ),
+    );
+    void markUserNotificationsRead(unreadIds);
+  }
   const happeningNow = useMemo(
     () =>
       events
@@ -273,11 +300,18 @@ export default function HomeScreen({
               </Text>
               <View className="flex-row items-center gap-3">
                 <Pressable
-                  onPress={() => setNotificationsOpen(true)}
-                  className="h-11 w-11 items-center justify-center rounded-full border border-white/30 bg-white/20 active:opacity-80"
+                  onPress={openNotifications}
+                  className="relative h-11 w-11 items-center justify-center rounded-full border border-white/30 bg-white/20 active:opacity-80"
                   accessibilityLabel="Open notifications"
                 >
                   <Bell size={22} color="white" strokeWidth={2.2} />
+                  {unreadNotificationCount > 0 ? (
+                    <View className="absolute -right-1 -top-1 min-w-[17px] items-center justify-center rounded-full border-2 border-ink bg-accent px-1 py-0.5">
+                      <Text className="text-[9px] font-extrabold text-white">
+                        {unreadNotificationCount > 9 ? '9+' : unreadNotificationCount}
+                      </Text>
+                    </View>
+                  ) : null}
                 </Pressable>
                 <Pressable
                   onPress={onOpenProfile}
