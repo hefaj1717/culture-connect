@@ -135,25 +135,26 @@ export function OrganizerProfileModal({
             showsVerticalScrollIndicator={false}
           >
             <View className="px-5">
-              <Pressable
-                onPress={closeWithAnimation}
-                className="mb-5 h-12 w-12 items-center justify-center rounded-full active:opacity-80"
-                style={{ backgroundColor: Colors.light.backgroundElement }}
-              >
-                <ArrowLeft size={22} color={Colors.light.primary} strokeWidth={2.6} />
-              </Pressable>
-
               <View
                 className="overflow-hidden rounded-feature"
                 style={{ backgroundColor: Colors.light.backgroundElement }}
               >
                 <View className="flex-row items-start justify-between gap-4 p-5">
                   <View className="min-w-0 flex-1">
-                    <View className="self-start flex-row items-center gap-1.5 rounded-full bg-success/15 px-2.5 py-1">
-                      <CheckCircle2 size={13} color={Colors.light.background} fill={Colors.light.success} />
-                      <Text className="text-[10px] font-bold uppercase tracking-wide text-success">
-                        Verified organizer
-                      </Text>
+                    <View className="flex-row items-center gap-2.5">
+                      <Pressable
+                        accessibilityLabel="Back to organizers"
+                        onPress={closeWithAnimation}
+                        className="h-10 w-10 items-center justify-center rounded-full bg-primary/10 active:opacity-80"
+                      >
+                        <ArrowLeft size={20} color={Colors.light.primary} strokeWidth={2.6} />
+                      </Pressable>
+                      <View className="flex-row items-center gap-1.5 rounded-full bg-success/15 px-2.5 py-1">
+                        <CheckCircle2 size={13} color={Colors.light.background} fill={Colors.light.success} />
+                        <Text className="text-[10px] font-bold uppercase tracking-wide text-success">
+                          Verified organizer
+                        </Text>
+                      </View>
                     </View>
                     <Text className="mt-3 font-heading text-[30px] leading-9 text-ink">
                       {profile.name}
