@@ -457,8 +457,8 @@ function ProfileHistoryRow({
     >
       <View className="mt-1 mr-4">{icon}</View>
       <View className="min-w-0 flex-1">
-        <Text className="font-serifRegular text-[21px] leading-[26px] text-ink">{label}</Text>
-        <Text className="mt-1 text-[14px] leading-5 text-muted">{description}</Text>
+        <Text className="font-heading text-[20px] leading-6 text-ink">{label}</Text>
+        <Text className="mt-1 text-[13px] leading-5 text-muted">{description}</Text>
       </View>
     </Pressable>
   );
