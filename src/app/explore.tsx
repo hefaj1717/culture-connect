@@ -998,20 +998,7 @@ function EventDetailModal({
       onRequestClose={embeddedOrganizerProfile ? () => setEmbeddedOrganizerProfile(null) : closeWithAnimation}
       visible
     >
-      {embeddedOrganizerProfile ? (
-        <OrganizerProfileModal
-          embedded
-          cityName={cityName}
-          events={organizerEvents}
-          onClose={() => setEmbeddedOrganizerProfile(null)}
-          onOpenEvent={(nextEvent) => {
-            setEmbeddedOrganizerProfile(null);
-            onOpenOrganizerEvent(nextEvent);
-          }}
-          profile={embeddedOrganizerProfile}
-        />
-      ) : (
-        <GestureDetector gesture={swipeGesture}>
+      <GestureDetector gesture={swipeGesture}>
         <Animated.View className="flex-1 bg-canvas" style={swipeStyle}>
           <View className="flex-1 bg-canvas">
             <ScrollView
@@ -1290,8 +1277,22 @@ function EventDetailModal({
             </Modal>
           </View>
         </Animated.View>
-        </GestureDetector>
-      )}
+      </GestureDetector>
+      {embeddedOrganizerProfile ? (
+        <View style={StyleSheet.absoluteFill}>
+          <OrganizerProfileModal
+            embedded
+            cityName={cityName}
+            events={organizerEvents}
+            onClose={() => setEmbeddedOrganizerProfile(null)}
+            onOpenEvent={(nextEvent) => {
+              setEmbeddedOrganizerProfile(null);
+              onOpenOrganizerEvent(nextEvent);
+            }}
+            profile={embeddedOrganizerProfile}
+          />
+        </View>
+      ) : null}
     </Modal>
   );
 }
