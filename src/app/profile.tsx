@@ -9,7 +9,6 @@ import { CreateQuestModal } from '@/components/profile/create-quest-modal';
 import { CreateRewardModal } from '@/components/profile/create-reward-modal';
 import { EditProfileModal } from '@/components/profile/edit-profile-modal';
 import { FollowedOrganizersModal } from '@/components/profile/followed-organizers-modal';
-import { OrganizerProfileModal } from '@/components/organizer-profile-modal';
 import {
   AccountActionsModal,
   AdminXpAuditModal,
@@ -694,23 +693,18 @@ export default function ProfileScreen({
       />
 
       <FollowedOrganizersModal
+        activeProfile={selectedFollowedOrganizer}
+        activeProfileEvents={followedOrganizerEvents}
         error={followedOrganizersError}
         loading={followedOrganizersLoading}
         onClose={() => setFollowedOrganizersOpen(false)}
+        onCloseProfile={() => setSelectedFollowedOrganizer(null)}
         onOpenProfile={(profile) => void openFollowedOrganizer(profile)}
         onRetry={() => setFollowedOrganizersReloadNonce((current) => current + 1)}
         onUnfollow={removeFollowedOrganizer}
         profiles={followedOrganizers}
         stableModalTopInset={stableModalTopInset}
         visible={followedOrganizersOpen}
-      />
-
-      <OrganizerProfileModal
-        cityName={cityData.name}
-        events={followedOrganizerEvents.filter((event) => event.organizerId === selectedFollowedOrganizer?.id)}
-        onClose={() => setSelectedFollowedOrganizer(null)}
-        onOpenEvent={() => undefined}
-        profile={selectedFollowedOrganizer}
       />
 
       <EditProfileModal

@@ -3,15 +3,18 @@ import { useState } from 'react';
 import { Modal, Pressable, ScrollView, Text, View } from 'react-native';
 
 import { EmptyState, ErrorState, LoadingState } from '@/components/async-state';
-import { OrganizerAvatar } from '@/components/organizer-profile-modal';
+import { OrganizerAvatar, OrganizerProfileModal } from '@/components/organizer-profile-modal';
 import { Colors } from '@/constants/theme';
-import { getCultureCityData } from '@/data/culture';
+import { getCultureCityData, type CultureEvent } from '@/data/culture';
 import type { OrganizerProfile } from '@/lib/organizer-profiles';
 
 type FollowedOrganizersModalProps = {
+  activeProfile: OrganizerProfile | null;
+  activeProfileEvents: CultureEvent[];
   error: string | null;
   loading: boolean;
   onClose: () => void;
+  onCloseProfile: () => void;
   onOpenProfile: (profile: OrganizerProfile) => void;
   onRetry: () => void;
   onUnfollow: (organizerId: string) => Promise<{ error: string | null }>;
@@ -21,9 +24,12 @@ type FollowedOrganizersModalProps = {
 };
 
 export function FollowedOrganizersModal({
+  activeProfile,
+  activeProfileEvents,
   error,
   loading,
   onClose,
+  onCloseProfile,
   onOpenProfile,
   onRetry,
   onUnfollow,
@@ -46,7 +52,21 @@ export function FollowedOrganizersModal({
   }
 
   return (
-    <Modal animationType="slide" onRequestClose={onClose} visible={visible}>
+    <Modal
+      animationType="slide"
+      onRequestClose={activeProfile ? onCloseProfile : onClose}
+      visible={visible}
+    >
+      {activeProfile ? (
+        <OrganizerProfileModal
+          cityName={getCultureCityData(activeProfile.cityId).name}
+          embedded
+          events={activeProfileEvents}
+          onClose={onCloseProfile}
+          onOpenEvent={() => undefined}
+          profile={activeProfile}
+        />
+      ) : (
       <View className="flex-1 bg-canvas" style={{ paddingTop: stableModalTopInset }}>
         <View className="flex-row items-center px-5 pb-4 pt-3">
           <View className="min-w-0 flex-1">
@@ -111,6 +131,7 @@ export function FollowedOrganizersModal({
           )}
         </ScrollView>
       </View>
+      )}
     </Modal>
   );
 }
