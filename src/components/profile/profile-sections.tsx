@@ -1631,8 +1631,8 @@ function OrganizerRewardRow({ reward }: { reward: ManagedOrganizerReward }) {
           </View>
 
           <View className="mt-2 flex-row items-center justify-between gap-3">
-            <Text className="min-w-0 flex-1 text-[12px] font-semibold text-muted" numberOfLines={1}>
-              Unlock at {reward.xpCost.toLocaleString()} XP
+            <Text className="min-w-0 flex-1 text-[14px] font-extrabold text-accent" numberOfLines={1}>
+              {reward.xpCost.toLocaleString()} XP
             </Text>
             <Text className="text-[12px] font-extrabold text-primary">
               {reward.reviewStatus === 'approved' ? 'Live' : 'Review'}
