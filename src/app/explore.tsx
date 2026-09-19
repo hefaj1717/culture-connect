@@ -1011,7 +1011,7 @@ function EventDetailModal({
               showsVerticalScrollIndicator={false}
             >
               <View
-                className="relative z-10 h-[280px] bg-ink"
+                className="relative z-10 h-[260px] bg-ink"
                 style={{ boxShadow: '0 8px 18px rgba(30, 30, 36, 0.14)' }}
               >
                 <BrandImage
