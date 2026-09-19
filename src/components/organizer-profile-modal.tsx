@@ -156,6 +156,11 @@ export function OrganizerProfileModal({
   }
 
   function openOrganizerEvent(event: CultureEvent) {
+    if (embedded) {
+      onOpenEvent(event);
+      return;
+    }
+
     translateX.value = withTiming(width, { duration: 180 }, (finished) => {
       if (finished) {
         runOnJS(onOpenEvent)(event);
