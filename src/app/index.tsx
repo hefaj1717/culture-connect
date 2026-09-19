@@ -309,7 +309,7 @@ export default function HomeScreen({
                 >
                   <Bell size={22} color="white" strokeWidth={2.2} />
                   {unreadNotificationCount > 0 ? (
-                    <View className="absolute -right-1 -top-1 min-w-[17px] items-center justify-center rounded-full border-2 border-ink bg-accent px-1 py-0.5">
+                    <View className="absolute -right-1 -top-1 min-w-[17px] items-center justify-center rounded-full bg-accent px-1 py-0.5">
                       <Text className="text-[9px] font-extrabold text-white">
                         {unreadNotificationCount > 9 ? '9+' : unreadNotificationCount}
                       </Text>
