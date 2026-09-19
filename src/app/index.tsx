@@ -10,7 +10,7 @@ import {
   X,
 } from 'lucide-react-native';
 import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 import MapView, { Marker } from 'react-native-maps';
 
 import { CardListSkeleton, EmptyState, ErrorState, LoadingState } from '@/components/async-state';
@@ -31,9 +31,11 @@ import {
   type CityActivityBaseline,
 } from '@/lib/city-activity';
 import type { UserEventStatus } from '@/lib/event-history';
+import { fetchUserNotifications, type UserNotification } from '@/lib/user-notifications';
 import { useResponsiveLayout } from '@/hooks/use-responsive-layout';
 import { useStableTopInset } from '@/hooks/use-stable-safe-area';
 import type { UniversityLeaderboardRow } from '@/lib/university-leaderboard';
+import { useAuth } from '@/providers/auth-provider';
 
 type HomeScreenProps = {
   avatarInitials?: string | null;
@@ -66,15 +68,39 @@ export default function HomeScreen({
   onOpenEvent,
   onOpenProfile,
 }: HomeScreenProps) {
+  const { user } = useAuth();
   const stableTopInset = useStableTopInset();
   const layout = useResponsiveLayout();
   const [canShowUserLocation, setCanShowUserLocation] = useState(false);
   const [isMapInteractive, setIsMapInteractive] = useState(true);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [notifications, setNotifications] = useState<UserNotification[]>([]);
+  const [notificationsError, setNotificationsError] = useState<string | null>(null);
+  const [notificationsLoading, setNotificationsLoading] = useState(false);
   const [activityNow, setActivityNow] = useState(() => Date.now());
   const [activityBaseline, setActivityBaseline] = useState<CityActivityBaseline>(
     EMPTY_CITY_ACTIVITY_BASELINE,
   );
+
+  const loadNotifications = useCallback(async () => {
+    if (!user) {
+      setNotifications([]);
+      setNotificationsError(null);
+      return;
+    }
+
+    setNotificationsLoading(true);
+    const result = await fetchUserNotifications();
+    setNotifications(result.notifications);
+    setNotificationsError(result.error);
+    setNotificationsLoading(false);
+  }, [user]);
+
+  useEffect(() => {
+    if (notificationsOpen) {
+      void loadNotifications();
+    }
+  }, [loadNotifications, notificationsOpen]);
   const happeningNow = useMemo(
     () =>
       events
@@ -413,17 +439,65 @@ export default function HomeScreen({
             contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 44, paddingTop: 12 }}
             showsVerticalScrollIndicator={false}
           >
-            <View className="mt-10 items-center rounded-feature border border-primary/10 bg-surface px-7 py-10">
-              <View className="h-12 w-12 items-center justify-center rounded-full bg-primary/10">
-                <Bell size={22} color={Colors.light.primary} strokeWidth={2.1} />
+            {notificationsLoading ? (
+              <LoadingState
+                style={{ marginTop: 20 }}
+                title="Loading notifications"
+                body="Checking for the latest updates."
+              />
+            ) : notificationsError ? (
+              <ErrorState
+                style={{ marginTop: 20 }}
+                title="Notifications could not load"
+                body={notificationsError}
+                onAction={() => void loadNotifications()}
+              />
+            ) : notifications.length === 0 ? (
+              <View className="mt-10 items-center rounded-feature border border-primary/10 bg-surface px-7 py-10">
+                <View className="h-12 w-12 items-center justify-center rounded-full bg-primary/10">
+                  <Bell size={22} color={Colors.light.primary} strokeWidth={2.1} />
+                </View>
+                <Text className="mt-4 text-center font-heading text-[23px] font-extrabold text-ink">
+                  No new notifications
+                </Text>
+                <Text className="mt-2 text-center text-[14px] leading-5 text-muted">
+                  New events from organizers you follow will appear here.
+                </Text>
               </View>
-              <Text className="mt-4 text-center font-heading text-[23px] font-extrabold text-ink">
-                No new notifications
-              </Text>
-              <Text className="mt-2 text-center text-[14px] leading-5 text-muted">
-                Decisions, changes to your events, and completed actions will appear here.
-              </Text>
-            </View>
+            ) : (
+              <View className="mt-3 overflow-hidden rounded-feature border border-primary/10 bg-surface px-5">
+                {notifications.map((notification, index) => (
+                  <Pressable
+                    key={notification.id}
+                    onPress={() => {
+                      if (notification.eventId) {
+                        setNotificationsOpen(false);
+                        onOpenEvent?.(`organizer-${notification.eventId}`);
+                      }
+                    }}
+                    className={`flex-row gap-3 py-4 active:opacity-75 ${
+                      index < notifications.length - 1 ? 'border-b border-primary/10' : ''
+                    }`}
+                    disabled={!notification.eventId}
+                  >
+                    <View className="mt-0.5 h-9 w-9 items-center justify-center rounded-full bg-success/15">
+                      <Bell size={17} color={Colors.light.success} strokeWidth={2.2} />
+                    </View>
+                    <View className="min-w-0 flex-1">
+                      <View className="flex-row items-start gap-3">
+                        <Text className="min-w-0 flex-1 text-[14px] font-bold text-ink">
+                          {notification.title}
+                        </Text>
+                        <Text className="text-[11px] font-medium text-muted">
+                          {formatNotificationDate(notification.createdAt)}
+                        </Text>
+                      </View>
+                      <Text className="mt-1 text-[13px] leading-5 text-muted">{notification.body}</Text>
+                    </View>
+                  </Pressable>
+                ))}
+              </View>
+            )}
           </ScrollView>
         </View>
       </Modal>
@@ -876,6 +950,22 @@ function MiniEngagementStat({ icon, value }: { icon: ReactNode; value: number })
       {icon}
       <Text className="text-[10px] font-extrabold text-primary">{value.toLocaleString()}</Text>
     </View>
+  );
+}
+
+function formatNotificationDate(value: string) {
+  const timestamp = Date.parse(value);
+  if (Number.isNaN(timestamp)) return '';
+
+  const elapsedMinutes = Math.max(0, Math.floor((Date.now() - timestamp) / 60_000));
+  if (elapsedMinutes < 1) return 'Now';
+  if (elapsedMinutes < 60) return `${elapsedMinutes}m`;
+
+  const elapsedHours = Math.floor(elapsedMinutes / 60);
+  if (elapsedHours < 24) return `${elapsedHours}h`;
+
+  return new Intl.DateTimeFormat(undefined, { day: 'numeric', month: 'short' }).format(
+    new Date(timestamp),
   );
 }
 

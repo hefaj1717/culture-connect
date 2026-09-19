@@ -1,6 +1,6 @@
 import { Image } from 'expo-image';
-import { ArrowLeft, CheckCircle2, ChevronRight, MapPin } from 'lucide-react-native';
-import { useEffect, useMemo } from 'react';
+import { ArrowLeft, CheckCircle2, ChevronRight, MapPin, UserCheck, UserPlus } from 'lucide-react-native';
+import { useEffect, useMemo, useState } from 'react';
 import {
   Modal,
   Pressable,
@@ -23,7 +23,13 @@ import { BrandImage } from '@/components/brand-image';
 import { CardStyles, Colors } from '@/constants/theme';
 import type { CultureEvent } from '@/data/culture';
 import { useStableTopInset } from '@/hooks/use-stable-safe-area';
+import {
+  fetchOrganizerFollowStatus,
+  followOrganizer,
+  unfollowOrganizer,
+} from '@/lib/organizer-follows';
 import type { OrganizerProfile } from '@/lib/organizer-profiles';
+import { useAuth } from '@/providers/auth-provider';
 
 type OrganizerProfileModalProps = {
   cityName: string;
@@ -40,16 +46,47 @@ export function OrganizerProfileModal({
   onOpenEvent,
   profile,
 }: OrganizerProfileModalProps) {
+  const { user } = useAuth();
   const { width } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const stableTopInset = useStableTopInset();
   const translateX = useSharedValue(0);
+  const [followError, setFollowError] = useState<string | null>(null);
+  const [followLoading, setFollowLoading] = useState(false);
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [isUpdatingFollow, setIsUpdatingFollow] = useState(false);
 
   useEffect(() => {
     if (profile) {
       translateX.value = 0;
     }
   }, [profile, translateX]);
+
+  useEffect(() => {
+    let isCurrent = true;
+
+    if (!profile || !user || profile.id === user.id) {
+      setFollowError(null);
+      setFollowLoading(false);
+      setIsFollowing(false);
+      return () => {
+        isCurrent = false;
+      };
+    }
+
+    setFollowLoading(true);
+    setFollowError(null);
+    void fetchOrganizerFollowStatus(user.id, profile.id).then(({ error, isFollowing: nextIsFollowing }) => {
+      if (!isCurrent) return;
+      setFollowError(error);
+      setIsFollowing(nextIsFollowing);
+      setFollowLoading(false);
+    });
+
+    return () => {
+      isCurrent = false;
+    };
+  }, [profile, user]);
 
   const swipeGesture = Gesture.Pan()
     .activeOffsetX([-999, 18])
@@ -117,10 +154,29 @@ export function OrganizerProfileModal({
     });
   }
 
+  async function toggleFollow() {
+    if (!profile || !user || isUpdatingFollow || followLoading) return;
+
+    setIsUpdatingFollow(true);
+    setFollowError(null);
+    const result = isFollowing
+      ? await unfollowOrganizer(user.id, profile.id)
+      : await followOrganizer(user.id, profile.id);
+
+    if (result.error) {
+      setFollowError(result.error);
+    } else {
+      setIsFollowing((current) => !current);
+    }
+
+    setIsUpdatingFollow(false);
+  }
+
   if (!profile) return null;
 
   const organizerBio = getOrganizerBio(profile);
   const organizerLocation = getOrganizerLocation(profile, cityName);
+  const canFollow = !!user && user.id !== profile.id;
 
   return (
     <Modal animationType="slide" transparent onRequestClose={closeWithAnimation} visible>
@@ -158,6 +214,36 @@ export function OrganizerProfileModal({
                     <Text className="mt-3 font-heading text-[30px] leading-9 text-ink">
                       {profile.name}
                     </Text>
+                    {canFollow ? (
+                      <View className="mt-3 self-start">
+                        <Pressable
+                          accessibilityLabel={isFollowing ? `Unfollow ${profile.name}` : `Follow ${profile.name}`}
+                          disabled={followLoading || isUpdatingFollow}
+                          onPress={() => void toggleFollow()}
+                          className={`flex-row items-center gap-1.5 rounded-full px-3 py-2 ${
+                            isFollowing ? 'bg-success/15' : 'bg-primary'
+                          } ${(followLoading || isUpdatingFollow) ? 'opacity-55' : 'active:opacity-80'}`}
+                        >
+                          {isFollowing ? (
+                            <UserCheck size={15} color={Colors.light.success} strokeWidth={2.5} />
+                          ) : (
+                            <UserPlus size={15} color={Colors.light.background} strokeWidth={2.5} />
+                          )}
+                          <Text
+                            className={`text-[12px] font-bold ${
+                              isFollowing ? 'text-success' : 'text-white'
+                            }`}
+                          >
+                            {isUpdatingFollow ? 'Saving…' : isFollowing ? 'Following' : 'Follow'}
+                          </Text>
+                        </Pressable>
+                        {followError ? (
+                          <Text className="mt-1.5 max-w-[210px] text-[11px] leading-4 text-destructive">
+                            {followError}
+                          </Text>
+                        ) : null}
+                      </View>
+                    ) : null}
                   </View>
                   <OrganizerAvatar profile={profile} size={68} />
                 </View>
