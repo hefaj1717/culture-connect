@@ -1003,7 +1003,10 @@ function EventDetailModal({
               contentContainerStyle={{ paddingBottom: insets.bottom + 30 }}
               showsVerticalScrollIndicator={false}
             >
-              <View className="relative h-[280px] bg-ink">
+              <View
+                className="relative z-10 h-[280px] bg-ink"
+                style={{ boxShadow: '0 8px 18px rgba(30, 30, 36, 0.14)' }}
+              >
                 <BrandImage
                   source={getEventImageSource(event)}
                   contentFit="cover"
