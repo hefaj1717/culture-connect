@@ -829,7 +829,14 @@ function EventDetailModal({
   const activeEvent = detailEvent ?? event;
   const activeOrganizerProfile = detailOrganizerProfile ?? organizerProfile ?? null;
 
+  useEffect(() => {
+    if (embeddedOrganizerProfile) {
+      translateX.value = 0;
+    }
+  }, [embeddedOrganizerProfile, translateX]);
+
   const swipeGesture = Gesture.Pan()
+    .enabled(!embeddedOrganizerProfile)
     .activeOffsetX([-999, 18])
     .failOffsetY([-35, 35])
     .onUpdate((gestureEvent) => {
