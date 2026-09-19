@@ -851,16 +851,7 @@ function EventDetailModal({
       const shouldClose = translateX.value > width * 0.28 || gestureEvent.velocityX > 700;
 
       if (shouldClose) {
-        if (routeStack.length > 1) {
-          runOnJS(goBack)();
-          return;
-        }
-
-        translateX.value = withTiming(width, { duration: 180 }, (finished) => {
-          if (finished) {
-            runOnJS(onClose)();
-          }
-        });
+        runOnJS(closeWithAnimation)();
         return;
       }
 
