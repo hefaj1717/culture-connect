@@ -450,6 +450,7 @@ function AuthenticatedTabs() {
           <View style={{ width }}>
             <ProfileScreen
               eventsRefreshKey={organizerEventsVersion}
+              onOpenEvent={openDiscoverEvent}
               rewardsRefreshKey={rewardsRefreshKey}
               userEventHistory={userEventHistory}
               userXp={userXp}
