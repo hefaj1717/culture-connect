@@ -133,6 +133,7 @@ export default function ExploreScreen({
   const handledOpenEventNonceRef = useRef<number | null>(null);
   const externalSelectedEventIdRef = useRef<string | null>(null);
   const organizerReturnEventRef = useRef<CultureEvent | null>(null);
+  const eventReturnOrganizerRef = useRef<OrganizerProfile | null>(null);
   const hasApprovedEventsProp = approvedEventsProp !== undefined;
   const allEvents = approvedEventsProp ?? organizerEvents;
   const eventsError = hasApprovedEventsProp ? approvedEventsError : organizerEventsError;
@@ -311,6 +312,7 @@ export default function ExploreScreen({
     handledOpenEventNonceRef.current = null;
     externalSelectedEventIdRef.current = null;
     organizerReturnEventRef.current = null;
+    eventReturnOrganizerRef.current = null;
   }, [cityData.id]);
 
   useEffect(() => {
@@ -329,11 +331,15 @@ export default function ExploreScreen({
   function closeSelectedEvent() {
     const shouldReturnToSource =
       !!selectedEvent && externalSelectedEventIdRef.current === selectedEvent.id;
+    const organizerToRestore = eventReturnOrganizerRef.current;
 
     externalSelectedEventIdRef.current = null;
+    eventReturnOrganizerRef.current = null;
     setSelectedEvent(null);
 
-    if (shouldReturnToSource) {
+    if (organizerToRestore) {
+      setSelectedOrganizerProfile(organizerToRestore);
+    } else if (shouldReturnToSource) {
       onExternalEventClose?.();
     }
   }
@@ -731,6 +737,7 @@ export default function ExploreScreen({
         }}
         onClose={closeSelectedEvent}
         onOpenOrganizer={(profile) => {
+          eventReturnOrganizerRef.current = null;
           organizerReturnEventRef.current = selectedEvent;
           setSelectedEvent(null);
           setSelectedOrganizerProfile(profile);
@@ -747,6 +754,7 @@ export default function ExploreScreen({
         cityName={cityData.name}
         events={allEvents}
         onOpenEvent={(event) => {
+          eventReturnOrganizerRef.current = selectedOrganizerProfile;
           organizerReturnEventRef.current = null;
           setSelectedOrganizerProfile(null);
           setSelectedEvent(event);
