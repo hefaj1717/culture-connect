@@ -3,6 +3,7 @@ import {
   CalendarDays,
   Check,
   Clock,
+  Gift,
   MapPin,
   RefreshCw,
   Trash2,
@@ -136,6 +137,7 @@ export function AdminReviewModal({
               ) : activeItemsCount === 0 ? (
                 <EmptyState
                   body={`Pending ${activeTab} will appear here as soon as organizers submit them.`}
+                  icon={activeTab === 'events' ? CalendarDays : Gift}
                   title="Nothing to review"
                 />
               ) : (

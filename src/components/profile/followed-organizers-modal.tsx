@@ -80,6 +80,7 @@ export function FollowedOrganizersModal({
             <EmptyState
               title="Not following anyone yet"
               body="Open an organizer profile and tap Follow to receive updates about new events."
+              icon={UserCheck}
             />
           ) : (
             <View className="overflow-hidden rounded-feature border border-primary/10 bg-surface px-5">

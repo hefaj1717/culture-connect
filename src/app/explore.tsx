@@ -553,6 +553,7 @@ export default function ExploreScreen({
                       ? 'Events are unavailable right now.'
                       : 'Try another filter, or check back when organizers publish something new.'
                   }
+                  icon={Search}
                   title={eventsError ? 'Events unavailable' : 'No events found'}
                 />
               ) : (
@@ -670,6 +671,7 @@ export default function ExploreScreen({
             ) : filteredOrganizerProfiles.length === 0 ? (
               <EmptyState
                 body={`Approved organizers in ${cityData.name} will appear here once they complete their profiles.`}
+                icon={Users}
                 title="No organizers yet"
               />
             ) : (
