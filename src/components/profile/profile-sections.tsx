@@ -199,21 +199,14 @@ export function UniversityAffiliationSection({
 }: UniversityAffiliationSectionProps) {
   if (error) {
     return (
-      <View
-        className="mx-5 mb-7 flex-row items-center gap-3 rounded-3xl border border-destructive/20 bg-destructive/5 px-4 py-4"
-        style={CardStyles.compact}
-      >
-        <GraduationCap size={20} color="#DC2626" strokeWidth={2.4} />
-        <View className="min-w-0 flex-1">
-          <Text className="text-[13px] font-bold text-ink">University affiliation could not load</Text>
-          <Text className="mt-1 text-[12px] leading-4 text-muted">{error}</Text>
-        </View>
-        {onRetry && (
-          <Pressable onPress={onRetry} className="rounded-lg bg-destructive px-3 py-2 active:opacity-85">
-            <Text className="text-[12px] font-bold text-white">Retry</Text>
-          </Pressable>
-        )}
-      </View>
+      <ErrorState
+        body="Your profile still works; we just could not refresh your university affiliation."
+        compact
+        icon={GraduationCap}
+        onAction={onRetry}
+        style={{ marginBottom: 28, marginHorizontal: 20 }}
+        title="University affiliation could not load"
+      />
     );
   }
 

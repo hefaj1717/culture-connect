@@ -12,6 +12,7 @@ import Animated, {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AuthScreen } from '@/components/auth-screen';
+import { ErrorState } from '@/components/async-state';
 import ExploreScreen, { type EventCheckInResult } from '@/app/explore';
 import HomeScreen from '@/app/index';
 import ProfileScreen from '@/app/profile';
@@ -381,19 +382,14 @@ function AuthenticatedTabs() {
     <View className="flex-1 bg-white">
       <StatusBar style={activeIndex === 0 ? 'light' : 'dark'} />
       {userStateError && (
-        <View className="absolute left-4 right-4 z-20 flex-row items-center gap-3 rounded-2xl border border-destructive/20 bg-white p-3 shadow-sm" style={{ top: insets.top + 8 }}>
-          <WifiOff size={18} color="#DC2626" />
-          <Text className="min-w-0 flex-1 text-[12px] leading-4 text-ink">
-            Some account data could not refresh. Showing saved information where available.
-          </Text>
-          <Pressable
-            disabled={userStateLoading}
-            onPress={() => setUserStateReloadNonce((current) => current + 1)}
-            className="rounded-lg bg-primary px-3 py-2 active:opacity-85 disabled:opacity-50"
-          >
-            <Text className="text-[12px] font-bold text-white">Retry</Text>
-          </Pressable>
-        </View>
+        <ErrorState
+          body="Showing saved account information where available."
+          compact
+          icon={WifiOff}
+          onAction={userStateLoading ? undefined : () => setUserStateReloadNonce((current) => current + 1)}
+          style={{ left: 16, position: 'absolute', right: 16, top: insets.top + 8, zIndex: 20 }}
+          title="Some account data could not refresh"
+        />
       )}
       <GestureDetector gesture={gesture}>
         <Animated.View

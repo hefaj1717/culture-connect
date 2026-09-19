@@ -673,7 +673,7 @@ export default function HomeScreen({
             <View className="border-t border-primary/10 bg-surface px-4 py-3">
               {eventsError ? (
                 <ErrorState
-                  body="Approved events could not load from Supabase."
+                  body="We could not refresh city activity right now. Try again in a moment."
                   compact
                   style={{ marginBottom: 12 }}
                   title="Event activity unavailable"
@@ -758,7 +758,7 @@ export default function HomeScreen({
                 <LoadingState compact title="Loading universities" tone="inline" />
               ) : leaderboardError ? (
                 <ErrorState
-                  body="Leaderboard could not load from Supabase."
+                  body="We could not refresh the campus ranking right now. Try again in a moment."
                   compact
                   title="Campus ranking unavailable"
                   tone="inline"
