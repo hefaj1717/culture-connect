@@ -33,6 +33,7 @@ import { useAuth } from '@/providers/auth-provider';
 
 type OrganizerProfileModalProps = {
   cityName: string;
+  embedded?: boolean;
   events: CultureEvent[];
   onClose: () => void;
   onOpenEvent: (event: CultureEvent) => void;
@@ -41,6 +42,7 @@ type OrganizerProfileModalProps = {
 
 export function OrganizerProfileModal({
   cityName,
+  embedded = false,
   events,
   onClose,
   onOpenEvent,
@@ -178,9 +180,8 @@ export function OrganizerProfileModal({
   const organizerLocation = getOrganizerLocation(profile, cityName);
   const canFollow = !!user && user.id !== profile.id;
 
-  return (
-    <Modal animationType="slide" transparent onRequestClose={closeWithAnimation} visible>
-      <GestureDetector gesture={swipeGesture}>
+  const content = (
+    <GestureDetector gesture={swipeGesture}>
         <Animated.View className="flex-1 bg-canvas" style={swipeStyle}>
           <ScrollView
             className="flex-1 bg-canvas"
@@ -294,7 +295,16 @@ export function OrganizerProfileModal({
             </View>
           </ScrollView>
         </Animated.View>
-      </GestureDetector>
+    </GestureDetector>
+  );
+
+  if (embedded) {
+    return content;
+  }
+
+  return (
+    <Modal animationType="slide" transparent onRequestClose={closeWithAnimation} visible>
+      {content}
     </Modal>
   );
 }
