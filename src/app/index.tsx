@@ -117,16 +117,19 @@ export default function HomeScreen({
 
   function openNotifications() {
     setNotificationsOpen(true);
-    const unreadIds = notifications.filter((notification) => !notification.readAt).map(({ id }) => id);
-    if (unreadIds.length === 0) return;
+  }
 
+  function markNotificationRead(notification: UserNotification) {
+    if (notification.readAt) return;
     const readAt = new Date().toISOString();
     setNotifications((current) =>
-      current.map((notification) =>
-        unreadIds.includes(notification.id) ? { ...notification, readAt } : notification,
+      current.map((currentNotification) =>
+        currentNotification.id === notification.id
+          ? { ...currentNotification, readAt }
+          : currentNotification,
       ),
     );
-    void markUserNotificationsRead(unreadIds);
+    void markUserNotificationsRead([notification.id]);
   }
   const happeningNow = useMemo(
     () =>
@@ -500,37 +503,42 @@ export default function HomeScreen({
                 </Text>
               </View>
             ) : (
-              <View className="mt-3 overflow-hidden rounded-feature border border-primary/10 bg-surface px-5">
-                {notifications.map((notification, index) => (
+              <View className="mt-3 gap-1">
+                {notifications.map((notification) => {
+                  const unread = !notification.readAt;
+                  return (
                   <Pressable
                     key={notification.id}
                     onPress={() => {
+                      markNotificationRead(notification);
                       if (notification.eventId) {
                         setNotificationsOpen(false);
                         onOpenEvent?.(`organizer-${notification.eventId}`);
                       }
                     }}
-                    className={`flex-row gap-3 py-4 active:opacity-75 ${
-                      index < notifications.length - 1 ? 'border-b border-primary/10' : ''
-                    }`}
-                    disabled={!notification.eventId}
+                    className="flex-row gap-3 rounded-2xl px-4 py-4 active:opacity-75"
+                    style={unread ? { backgroundColor: Colors.light.backgroundSelected } : undefined}
                   >
-                    <View className="mt-0.5 h-9 w-9 items-center justify-center rounded-full bg-success/15">
-                      <Bell size={17} color={Colors.light.success} strokeWidth={2.2} />
+                    <View className={`mt-0.5 h-9 w-9 items-center justify-center rounded-full ${unread ? 'bg-accent/10' : 'bg-primary/10'}`}>
+                      <Bell size={17} color={unread ? Colors.light.accent : Colors.light.primary} strokeWidth={2.2} />
                     </View>
                     <View className="min-w-0 flex-1">
                       <View className="flex-row items-start gap-3">
-                        <Text className="min-w-0 flex-1 text-[14px] font-bold text-ink">
+                        <View className="min-w-0 flex-1 flex-row items-center gap-2">
+                          {unread ? <View className="h-2 w-2 rounded-full bg-accent" /> : null}
+                          <Text className={`shrink text-[14px] ${unread ? 'font-extrabold text-ink' : 'font-semibold text-ink'}`}>
                           {notification.title}
-                        </Text>
+                          </Text>
+                        </View>
                         <Text className="text-[11px] font-medium text-muted">
                           {formatNotificationDate(notification.createdAt)}
                         </Text>
                       </View>
-                      <Text className="mt-1 text-[13px] leading-5 text-muted">{notification.body}</Text>
+                      <Text className={`mt-1 text-[13px] leading-5 ${unread ? 'text-primary' : 'text-muted'}`}>{notification.body}</Text>
                     </View>
                   </Pressable>
-                ))}
+                  );
+                })}
               </View>
             )}
           </ScrollView>
