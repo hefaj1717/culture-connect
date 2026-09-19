@@ -807,7 +807,10 @@ function EventDetailModal({
     organizerProfile ?? null,
   );
   const [embeddedOrganizerProfile, setEmbeddedOrganizerProfile] = useState<OrganizerProfile | null>(null);
-  const detailHistoryRef = useRef<{ event: CultureEvent; organizerProfile: OrganizerProfile }[]>([]);
+  const [returnContext, setReturnContext] = useState<{
+    event: CultureEvent;
+    organizerProfile: OrganizerProfile;
+  } | null>(null);
   const rootEventIdRef = useRef<string | null>(null);
   const [permission, requestPermission] = useCameraPermissions();
   const translateX = useSharedValue(0);
@@ -817,7 +820,7 @@ function EventDetailModal({
 
     rootEventIdRef.current = event?.id ?? null;
     translateX.value = 0;
-    detailHistoryRef.current = [];
+    setReturnContext(null);
     setDetailEvent(event ?? null);
     setDetailOrganizerProfile(organizerProfile ?? null);
     setEmbeddedOrganizerProfile(null);
@@ -852,11 +855,11 @@ function EventDetailModal({
   }));
 
   function closeWithAnimation() {
-    const previousDetail = detailHistoryRef.current.pop();
-    if (previousDetail) {
-      setDetailEvent(previousDetail.event);
-      setDetailOrganizerProfile(previousDetail.organizerProfile);
-      setEmbeddedOrganizerProfile(previousDetail.organizerProfile);
+    if (returnContext) {
+      setDetailEvent(returnContext.event);
+      setDetailOrganizerProfile(returnContext.organizerProfile);
+      setEmbeddedOrganizerProfile(returnContext.organizerProfile);
+      setReturnContext(null);
       return;
     }
 
@@ -1303,7 +1306,7 @@ function EventDetailModal({
           events={organizerEvents}
           onClose={() => setEmbeddedOrganizerProfile(null)}
           onOpenEvent={(nextEvent) => {
-            detailHistoryRef.current.push({
+            setReturnContext({
               event: activeEvent,
               organizerProfile: embeddedOrganizerProfile,
             });
