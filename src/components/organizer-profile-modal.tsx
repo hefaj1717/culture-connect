@@ -147,7 +147,7 @@ export function OrganizerProfileModal({
                 className="overflow-hidden rounded-feature"
                 style={{ backgroundColor: Colors.light.backgroundElement }}
               >
-                <View className="flex-row items-start justify-between gap-4 p-5" style={{ backgroundColor: Colors.light.backgroundSelected }}>
+                <View className="flex-row items-start justify-between gap-4 p-5">
                   <View className="min-w-0 flex-1">
                     <View className="self-start flex-row items-center gap-1.5 rounded-full bg-success/15 px-2.5 py-1">
                       <CheckCircle2 size={13} color={Colors.light.background} fill={Colors.light.success} />
