@@ -1342,14 +1342,20 @@ function EventDetailModal({
               setOrganizerPresentationStatic(false);
             }}
             onOpenEvent={(nextEvent) => {
+              const sourceProfile = embeddedOrganizerProfile;
+
               setReturnContext({
                 event: activeEvent,
-                organizerProfile: embeddedOrganizerProfile,
+                organizerProfile: sourceProfile,
               });
+              translateX.value = width;
               setDetailEvent(nextEvent);
-              setDetailOrganizerProfile(embeddedOrganizerProfile);
+              setDetailOrganizerProfile(sourceProfile);
               setEmbeddedOrganizerProfile(null);
               setOrganizerPresentationStatic(false);
+              requestAnimationFrame(() => {
+                translateX.value = withTiming(0, { duration: 220 });
+              });
             }}
             profile={embeddedOrganizerProfile}
             staticPresentation={organizerPresentationStatic}
