@@ -14,6 +14,7 @@ import {
   Settings,
   Users,
   UserRound,
+  X,
 } from 'lucide-react-native';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { Alert, Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
@@ -292,41 +293,57 @@ export function AccountActionsModal({
     <Modal animationType="fade" transparent visible={visible} onRequestClose={onClose}>
       <Pressable className="flex-1 justify-end bg-ink/25 px-5 pb-8" onPress={onClose}>
         <Pressable
-          className="rounded-[28px] border border-gray-200 bg-white p-3"
+          className="rounded-[30px] bg-canvas px-4 pb-4 pt-3"
           onPress={(event) => event.stopPropagation()}
         >
-          <View className="mb-2 h-1.5 w-10 self-center rounded-full bg-gray-200" />
+          <View className="mb-3 h-1.5 w-10 self-center rounded-full bg-primary/20" />
+          <View className="mb-4 flex-row items-start px-1">
+            <View className="min-w-0 flex-1">
+              <Text className="font-heading text-[24px] leading-7 text-ink">Settings</Text>
+              <Text className="mt-1 text-[13px] leading-5 text-muted">
+                Manage your CultureQuest account.
+              </Text>
+            </View>
+            <Pressable
+              accessibilityLabel="Close settings"
+              className="ml-4 h-9 w-9 items-center justify-center rounded-full bg-surface active:opacity-75"
+              hitSlop={8}
+              onPress={onClose}
+            >
+              <X size={18} color={Colors.light.primary} strokeWidth={2.5} />
+            </Pressable>
+          </View>
           <Pressable
             onPress={() => {
               onClose();
               onEdit();
             }}
-            className="flex-row items-center gap-3 rounded-2xl px-3 py-4 active:bg-primary/5"
+            className="flex-row items-center gap-3 rounded-2xl bg-surface px-3.5 py-4 active:opacity-75"
           >
-            <View className="h-10 w-10 items-center justify-center rounded-full bg-primary/10">
-              <UserRound size={18} color="#6B818C" strokeWidth={2.4} />
+            <View className="h-10 w-10 items-center justify-center rounded-xl bg-primary/10">
+              <UserRound size={18} color={Colors.light.primary} strokeWidth={2.4} />
             </View>
             <View className="flex-1">
-              <Text className="font-ui text-[15px] font-extrabold text-ink">Edit profile</Text>
+              <Text className="font-heading text-[18px] leading-6 text-ink">Edit profile</Text>
               <Text className="mt-0.5 text-[12px] text-muted">Name, city, and profile photo</Text>
             </View>
-            <ChevronRight size={17} color="#6B818C" strokeWidth={2.4} />
+            <ChevronRight size={17} color={Colors.light.primary} strokeWidth={2.4} />
           </Pressable>
 
-          <View className="mx-3 h-px bg-gray-100" />
+          <View className="my-2 h-px bg-primary/10" />
 
           <Pressable
             onPress={() => {
               onClose();
               onSignOut();
             }}
-            className="flex-row items-center gap-3 rounded-2xl px-3 py-4 active:bg-destructive/5"
+            className="flex-row items-center gap-3 rounded-2xl px-3.5 py-3.5 active:bg-destructive/5"
           >
-            <View className="h-10 w-10 items-center justify-center rounded-full bg-gray-100">
-              <LogOut size={18} color="#6B818C" strokeWidth={2.4} />
+            <View className="h-10 w-10 items-center justify-center rounded-xl bg-destructive/10">
+              <LogOut size={18} color={Colors.light.destructive} strokeWidth={2.4} />
             </View>
             <View className="flex-1">
-              <Text className="font-ui text-[15px] font-extrabold text-ink">Log out</Text>
+              <Text className="font-ui text-[15px] font-bold text-destructive">Log out</Text>
               <Text className="mt-0.5 text-[12px] text-muted">
                 Leave this account on this device
               </Text>
