@@ -87,20 +87,6 @@ function getAuthRedirectUrl() {
   return Linking.createURL('/auth/callback');
 }
 
-function isProfileSchemaCacheError(message: string) {
-  const normalizedMessage = message.toLowerCase();
-
-  return (
-    normalizedMessage.includes('schema cache') ||
-    normalizedMessage.includes('permission denied') ||
-    normalizedMessage.includes('city_key') ||
-    normalizedMessage.includes('first_name') ||
-    normalizedMessage.includes('last_name') ||
-    normalizedMessage.includes('organizer_bio') ||
-    normalizedMessage.includes('organizer_location')
-  );
-}
-
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
@@ -452,46 +438,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         });
       }
 
-      const { error: profileError } = await supabase.from('profiles').upsert(
-        {
-          id: session.user.id,
-          username: fullName,
-          first_name: normalizedFirstName,
-          last_name: normalizedLastName,
-          city_key: normalizedCityId,
-          avatar_url: normalizedAvatarUrl,
-          organizer_bio: normalizedOrganizerBio,
-          organizer_location_address: normalizedOrganizerLocationAddress,
-          organizer_location_latitude: organizerLocationLatitude,
-          organizer_location_longitude: organizerLocationLongitude,
-          organizer_location_name: normalizedOrganizerLocationName,
-        },
-        { onConflict: 'id' },
-      );
+      const { data: profileResult, error: profileError } = await supabase.rpc('upsert_my_profile', {
+        _avatar_url: normalizedAvatarUrl,
+        _city_key: normalizedCityId,
+        _first_name: normalizedFirstName,
+        _last_name: normalizedLastName,
+        _organizer_bio: normalizedOrganizerBio,
+        _organizer_location_address: normalizedOrganizerLocationAddress,
+        _organizer_location_latitude: organizerLocationLatitude,
+        _organizer_location_longitude: organizerLocationLongitude,
+        _organizer_location_name: normalizedOrganizerLocationName,
+        _username: fullName,
+      });
 
-      if (profileError) {
-        if (!isProfileSchemaCacheError(profileError.message)) {
-          return {
-            error:
-              'Your account profile was saved, but the public profile could not sync. Please try saving again.',
-          };
-        }
-
-        const { error: fallbackProfileError } = await supabase.from('profiles').upsert(
-          {
-            id: session.user.id,
-            username: fullName,
-            avatar_url: normalizedAvatarUrl,
-          },
-          { onConflict: 'id' },
-        );
-
-        if (fallbackProfileError) {
-          return {
-            error:
-              'Your account profile was saved, but the public profile could not sync. Please try saving again.',
-          };
-        }
+      if (profileError || !profileResult?.success) {
+        return {
+          error: getProfileSyncError(profileError?.message ?? profileResult?.error),
+        };
       }
     } catch {
       return { error: OFFLINE_ERROR_MESSAGE };
@@ -527,6 +490,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       {children}
     </AuthContext.Provider>
   );
+}
+
+function getProfileSyncError(error?: string | null) {
+  if (error === 'not_authenticated') return 'Your session expired. Please sign in again.';
+  if (error === 'invalid_location') return 'Choose a valid organizer location and try again.';
+  if (error === 'invalid_city') return 'Choose a supported city and try again.';
+  if (error === 'invalid_name') return 'Enter your first and last name.';
+
+  return getNetworkAwareErrorMessage(error, 'Your profile could not be saved. Please try again.');
 }
 
 export function useAuth() {
