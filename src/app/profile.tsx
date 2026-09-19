@@ -8,6 +8,7 @@ import { AdminManageEventsModal } from '@/components/profile/admin-manage-events
 import { CreateEventModal } from '@/components/profile/create-event-modal';
 import { CreateQuestModal } from '@/components/profile/create-quest-modal';
 import { CreateRewardModal } from '@/components/profile/create-reward-modal';
+import { OrganizerAnnouncementModal } from '@/components/profile/organizer-announcement-modal';
 import { EditProfileModal } from '@/components/profile/edit-profile-modal';
 import { FollowedOrganizersModal } from '@/components/profile/followed-organizers-modal';
 import {
@@ -26,7 +27,13 @@ import {
   UniversityAffiliationSection,
 } from '@/components/profile/profile-sections';
 import { RewardDetailModal } from '@/components/profile/reward-detail-modal';
-import { type CityId, type CultureEvent, type RewardPartner, defaultCityId, getCultureCityData } from '@/data/culture';
+import {
+  type CityId,
+  type CultureEvent,
+  type RewardPartner,
+  defaultCityId,
+  getCultureCityData,
+} from '@/data/culture';
 import { getXpLevelProgress } from '@/data/profile';
 import { useAdminModeration } from '@/hooks/profile/use-admin-moderation';
 import { useCreateEventForm } from '@/hooks/profile/use-create-event-form';
@@ -37,11 +44,13 @@ import { useRewardRedemption } from '@/hooks/profile/use-reward-redemption';
 import { useCardSwipeBack } from '@/hooks/use-card-swipe-back';
 import { useStableTopInset } from '@/hooks/use-stable-safe-area';
 import type { UserEventHistoryItem, UserEventStatus } from '@/lib/event-history';
+import { fetchFollowedOrganizerProfiles, unfollowOrganizer } from '@/lib/organizer-follows';
+import { publishOrganizerAnnouncement } from '@/lib/organizer-announcements';
 import {
-  fetchFollowedOrganizerProfiles,
-  unfollowOrganizer,
-} from '@/lib/organizer-follows';
-import { fetchMyOrganizerEvents, fetchOrganizerEvents, type ManagedOrganizerEvent } from '@/lib/organizer-events';
+  fetchMyOrganizerEvents,
+  fetchOrganizerEvents,
+  type ManagedOrganizerEvent,
+} from '@/lib/organizer-events';
 import type { OrganizerProfile } from '@/lib/organizer-profiles';
 import {
   fetchMyOrganizerRewards,
@@ -137,6 +146,7 @@ export default function ProfileScreen({
   const [myOrganizerRewardsError, setMyOrganizerRewardsError] = useState<string | null>(null);
   const [, setMyOrganizerRewardsLoading] = useState(false);
   const [organizerContentRefreshNonce, setOrganizerContentRefreshNonce] = useState(0);
+  const [organizerAnnouncementOpen, setOrganizerAnnouncementOpen] = useState(false);
   const [rewardsError, setRewardsError] = useState<string | null>(null);
   const [rewardsLoading, setRewardsLoading] = useState(true);
   const [universityMembership, setUniversityMembership] = useState<UserUniversityMembership | null>(
@@ -151,7 +161,8 @@ export default function ProfileScreen({
   const [followedOrganizersError, setFollowedOrganizersError] = useState<string | null>(null);
   const [followedOrganizersLoading, setFollowedOrganizersLoading] = useState(false);
   const [followedOrganizersOpen, setFollowedOrganizersOpen] = useState(false);
-  const [selectedFollowedOrganizer, setSelectedFollowedOrganizer] = useState<OrganizerProfile | null>(null);
+  const [selectedFollowedOrganizer, setSelectedFollowedOrganizer] =
+    useState<OrganizerProfile | null>(null);
   const [followedOrganizerEvents, setFollowedOrganizerEvents] = useState<CultureEvent[]>([]);
   const [followedOrganizersReloadNonce, setFollowedOrganizersReloadNonce] = useState(0);
   const [adminXpAuditOpen, setAdminXpAuditOpen] = useState(false);
@@ -629,6 +640,18 @@ export default function ProfileScreen({
     return result;
   }
 
+  async function sendOrganizerAnnouncement(input: {
+    body: string;
+    eventId: string | null;
+    title: string;
+  }) {
+    const result = await publishOrganizerAnnouncement(input);
+    if (!result.error) {
+      setNotice('Announcement sent to your followers.');
+    }
+    return result;
+  }
+
   async function openFollowedOrganizer(profile: OrganizerProfile) {
     setSelectedFollowedOrganizer(profile);
     const result = await fetchOrganizerEvents(savedCityId);
@@ -674,6 +697,7 @@ export default function ProfileScreen({
 
         <OrganizerToolsSection
           cityName={cityData.name}
+          onCreateAnnouncement={() => setOrganizerAnnouncementOpen(true)}
           onCreateEvent={openCreateEvent}
           onCreateReward={openCreateReward}
           status={organizerApplicationStatus}
@@ -726,8 +750,7 @@ export default function ProfileScreen({
           (async () => ({ error: 'Check-in is not available right now.', success: false }))
         }
         onEventStatusChange={
-          onEventStatusChange ??
-          (async () => ({ error: 'RSVP is not available right now.' }))
+          onEventStatusChange ?? (async () => ({ error: 'RSVP is not available right now.' }))
         }
         onOpenProfile={(profile) => void openFollowedOrganizer(profile)}
         onRetry={() => setFollowedOrganizersReloadNonce((current) => current + 1)}
@@ -841,6 +864,14 @@ export default function ProfileScreen({
         timePickerOpen={timePickerOpen}
         timePickerTarget={timePickerTarget}
         visible={createEventOpen}
+      />
+
+      <OrganizerAnnouncementModal
+        events={myOrganizerEvents}
+        onClose={() => setOrganizerAnnouncementOpen(false)}
+        onPublish={sendOrganizerAnnouncement}
+        stableModalTopInset={stableModalTopInset}
+        visible={organizerAnnouncementOpen}
       />
 
       <CreateRewardModal

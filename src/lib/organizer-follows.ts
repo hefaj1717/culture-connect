@@ -1,8 +1,5 @@
 import { getNetworkAwareErrorMessage } from '@/lib/network-errors';
-import {
-  fetchOrganizerProfilesByIds,
-  type OrganizerProfile,
-} from '@/lib/organizer-profiles';
+import { fetchOrganizerProfilesByIds, type OrganizerProfile } from '@/lib/organizer-profiles';
 import { supabase } from '@/lib/supabase';
 
 export async function fetchFollowedOrganizerProfiles() {
@@ -33,21 +30,38 @@ export async function fetchFollowedOrganizerProfiles() {
 
 export async function fetchOrganizerFollowStatus(userId: string, organizerId: string) {
   if (!userId || !organizerId || userId === organizerId) {
-    return { error: null, isFollowing: false };
+    return { announcementsMuted: false, error: null, isFollowing: false };
   }
 
   const { data, error } = await supabase
     .from('organizer_follows')
-    .select('organizer_user_id')
+    .select('organizer_user_id, announcements_muted')
     .eq('follower_user_id', userId)
     .eq('organizer_user_id', organizerId)
     .maybeSingle();
 
   if (error) {
-    return { error: getNetworkAwareErrorMessage(error.message), isFollowing: false };
+    return {
+      announcementsMuted: false,
+      error: getNetworkAwareErrorMessage(error.message),
+      isFollowing: false,
+    };
   }
 
-  return { error: null, isFollowing: !!data };
+  return {
+    announcementsMuted: data?.announcements_muted ?? false,
+    error: null,
+    isFollowing: !!data,
+  };
+}
+
+export async function setOrganizerAnnouncementMuted(organizerId: string, muted: boolean) {
+  const { error } = await supabase.rpc('set_organizer_announcement_muted', {
+    p_muted: muted,
+    p_organizer_user_id: organizerId,
+  });
+
+  return { error: error ? getNetworkAwareErrorMessage(error.message) : null };
 }
 
 export async function followOrganizer(userId: string, organizerId: string) {
