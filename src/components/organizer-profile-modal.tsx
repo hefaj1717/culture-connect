@@ -1,5 +1,5 @@
 import { Image } from 'expo-image';
-import { ArrowLeft, CalendarDays, ChevronRight, MapPin } from 'lucide-react-native';
+import { ArrowLeft, ChevronRight, MapPin } from 'lucide-react-native';
 import { useEffect, useMemo } from 'react';
 import {
   Modal,
@@ -260,19 +260,11 @@ function OrganizerEventGroup({
         {title}
       </Text>
       {events.length === 0 ? (
-        <View
-          className="flex-row items-center gap-3 rounded-feature p-4"
-          style={{ backgroundColor: Colors.light.backgroundElement }}
-        >
-          <View className="h-10 w-10 items-center justify-center rounded-full bg-primary/10">
-            <CalendarDays size={19} color={Colors.light.primary} strokeWidth={2.2} />
-          </View>
-          <View className="flex-1">
-            <Text className="text-[14px] font-semibold text-ink">
-              {title === 'Upcoming' ? 'Nothing upcoming yet' : 'No previous events'}
-            </Text>
-            <Text className="mt-1 text-[12px] leading-4 text-muted">{emptyLabel}</Text>
-          </View>
+        <View className="rounded-feature p-4" style={{ backgroundColor: Colors.light.backgroundElement }}>
+          <Text className="text-[14px] font-semibold text-ink">
+            {title === 'Upcoming' ? 'Nothing upcoming yet' : 'No previous events'}
+          </Text>
+          <Text className="mt-1 text-[12px] leading-4 text-muted">{emptyLabel}</Text>
         </View>
       ) : (
         <View className="gap-3">
