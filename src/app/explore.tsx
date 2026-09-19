@@ -761,10 +761,6 @@ export default function ExploreScreen({
   );
 }
 
-type EventDetailRoute =
-  | { kind: 'event'; event: CultureEvent; organizerProfile: OrganizerProfile | null }
-  | { kind: 'organizer'; profile: OrganizerProfile };
-
 function EventDetailModal({
   checkedIn,
   event,
@@ -806,40 +802,29 @@ function EventDetailModal({
   const [statusActionToRetry, setStatusActionToRetry] = useState<'interested' | 'going' | null>(null);
   const [locationMessage, setLocationMessage] = useState<string | null>(null);
   const [checkingLocation, setCheckingLocation] = useState(false);
-  const [routeStack, setRouteStack] = useState<EventDetailRoute[]>([]);
+  const [detailEvent, setDetailEvent] = useState<CultureEvent | null>(event);
+  const [detailOrganizerProfile, setDetailOrganizerProfile] = useState<OrganizerProfile | null>(
+    organizerProfile ?? null,
+  );
+  const [embeddedOrganizerProfile, setEmbeddedOrganizerProfile] = useState<OrganizerProfile | null>(null);
+  const detailHistoryRef = useRef<{ event: CultureEvent; organizerProfile: OrganizerProfile }[]>([]);
+  const rootEventIdRef = useRef<string | null>(null);
   const [permission, requestPermission] = useCameraPermissions();
   const translateX = useSharedValue(0);
 
   useEffect(() => {
-    if (!event) return;
+    if (event?.id === rootEventIdRef.current) return;
 
+    rootEventIdRef.current = event?.id ?? null;
     translateX.value = 0;
-    setRouteStack((current) => {
-      const rootRoute = current[0];
-      const isSameRootEvent = rootRoute?.kind === 'event' && rootRoute.event.id === event.id;
-
-      if (isSameRootEvent) {
-        if (
-          current.length === 1 &&
-          rootRoute.organizerProfile?.id !== organizerProfile?.id
-        ) {
-          return [{ kind: 'event', event, organizerProfile: organizerProfile ?? null }];
-        }
-
-        return current;
-      }
-
-      return [{ kind: 'event', event, organizerProfile: organizerProfile ?? null }];
-    });
+    detailHistoryRef.current = [];
+    setDetailEvent(event ?? null);
+    setDetailOrganizerProfile(organizerProfile ?? null);
+    setEmbeddedOrganizerProfile(null);
   }, [event, organizerProfile, translateX]);
 
-  const currentRoute = routeStack.at(-1);
-  const currentEventRoute = [...routeStack].reverse().find(
-    (route): route is Extract<EventDetailRoute, { kind: 'event' }> => route.kind === 'event',
-  );
-  const activeEvent = currentEventRoute?.event ?? event;
-  const activeOrganizerProfile = currentEventRoute?.organizerProfile ?? organizerProfile ?? null;
-  const embeddedOrganizerProfile = currentRoute?.kind === 'organizer' ? currentRoute.profile : null;
+  const activeEvent = detailEvent ?? event;
+  const activeOrganizerProfile = detailOrganizerProfile ?? organizerProfile ?? null;
 
   const swipeGesture = Gesture.Pan()
     .activeOffsetX([-999, 18])
@@ -851,7 +836,11 @@ function EventDetailModal({
       const shouldClose = translateX.value > width * 0.28 || gestureEvent.velocityX > 700;
 
       if (shouldClose) {
-        runOnJS(closeWithAnimation)();
+        translateX.value = withTiming(width, { duration: 180 }, (finished) => {
+          if (finished) {
+            runOnJS(onClose)();
+          }
+        });
         return;
       }
 
@@ -863,8 +852,11 @@ function EventDetailModal({
   }));
 
   function closeWithAnimation() {
-    if (routeStack.length > 1) {
-      goBack();
+    const previousDetail = detailHistoryRef.current.pop();
+    if (previousDetail) {
+      setDetailEvent(previousDetail.event);
+      setDetailOrganizerProfile(previousDetail.organizerProfile);
+      setEmbeddedOrganizerProfile(previousDetail.organizerProfile);
       return;
     }
 
@@ -875,19 +867,15 @@ function EventDetailModal({
     });
   }
 
-  function goBack() {
-    setRouteStack((current) => current.slice(0, -1));
-  }
-
   function openOrganizerProfile() {
     if (!activeOrganizerProfile) {
       return;
     }
 
-    setRouteStack((current) => [...current, { kind: 'organizer', profile: activeOrganizerProfile }]);
+    setEmbeddedOrganizerProfile(activeOrganizerProfile);
   }
 
-  if (!activeEvent) return null;
+  if (!event || !activeEvent) return null;
 
   const verifiedVenue = venue ?? getEventLocationVenue(activeEvent);
   const detailEngagement = getEventEngagement(activeEvent, checkedIn ? 'attended' : status);
@@ -1313,12 +1301,15 @@ function EventDetailModal({
           embedded
           cityName={cityName}
           events={organizerEvents}
-          onClose={goBack}
+          onClose={() => setEmbeddedOrganizerProfile(null)}
           onOpenEvent={(nextEvent) => {
-            setRouteStack((current) => [
-              ...current,
-              { kind: 'event', event: nextEvent, organizerProfile: embeddedOrganizerProfile },
-            ]);
+            detailHistoryRef.current.push({
+              event: activeEvent,
+              organizerProfile: embeddedOrganizerProfile,
+            });
+            setDetailEvent(nextEvent);
+            setDetailOrganizerProfile(embeddedOrganizerProfile);
+            setEmbeddedOrganizerProfile(null);
           }}
             profile={embeddedOrganizerProfile}
           />
