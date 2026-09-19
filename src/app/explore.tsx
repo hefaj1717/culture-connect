@@ -1022,11 +1022,17 @@ function EventDetailModal({
                 </Pressable>
                 <View className="absolute bottom-5 left-5 right-5">
                   <View className="mb-2 flex-row flex-wrap items-center gap-2">
-                    <View className="rounded-full bg-white/90 px-2.5 py-1">
-                      <Text className="text-[11px] font-bold text-primary">
-                        {eventCategoryLabels[event.category]}
-                      </Text>
-                    </View>
+                    <Text className="text-[11px] font-bold uppercase tracking-wider text-white/75">
+                      {eventCategoryLabels[event.category]}
+                    </Text>
+                    {isLiveNow ? (
+                      <View className="flex-row items-center gap-1.5">
+                        <View className="h-1.5 w-1.5 rounded-full bg-accent" />
+                        <Text className="text-[11px] font-bold uppercase tracking-wide text-white">
+                          Live now
+                        </Text>
+                      </View>
+                    ) : null}
                     {checkedIn && (
                       <View className="rounded-full bg-success px-2.5 py-1">
                         <Text className="text-[11px] font-bold text-white">
