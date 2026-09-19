@@ -100,6 +100,11 @@ export function OrganizerProfileModal({
       const shouldClose = translateX.value > width * 0.28 || gestureEvent.velocityX > 700;
 
       if (shouldClose) {
+        if (embedded) {
+          runOnJS(onClose)();
+          return;
+        }
+
         translateX.value = withTiming(width, { duration: 180 }, (finished) => {
           if (finished) {
             runOnJS(onClose)();
@@ -141,6 +146,11 @@ export function OrganizerProfileModal({
     });
   }, [organizerEvents]);
   function closeWithAnimation() {
+    if (embedded) {
+      onClose();
+      return;
+    }
+
     translateX.value = withTiming(width, { duration: 180 }, (finished) => {
       if (finished) {
         runOnJS(onClose)();
@@ -149,6 +159,11 @@ export function OrganizerProfileModal({
   }
 
   function openOrganizerEvent(event: CultureEvent) {
+    if (embedded) {
+      onOpenEvent(event);
+      return;
+    }
+
     translateX.value = withTiming(width, { duration: 180 }, (finished) => {
       if (finished) {
         runOnJS(onOpenEvent)(event);
