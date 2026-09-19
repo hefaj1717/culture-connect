@@ -10,7 +10,7 @@ import {
   UserRound,
   X,
 } from 'lucide-react-native';
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -108,6 +108,12 @@ export function AdminReviewModal({
                 title="Approve what goes live"
               />
 
+              <View className="mb-4 flex-row overflow-hidden rounded-feature border border-primary/10 bg-surface">
+                <ReviewQueueSummary icon={<CalendarDays size={17} color="#6B818C" />} label="Events" value={events.length} />
+                <View className="my-4 w-px bg-primary/15" />
+                <ReviewQueueSummary icon={<Gift size={17} color="#A63446" />} label="Rewards" value={rewards.length} />
+              </View>
+
               <View className="mb-4 flex-row gap-2 rounded-2xl bg-gray-100 p-1">
                 <ReviewTabButton
                   active={activeTab === 'events'}
@@ -167,6 +173,18 @@ export function AdminReviewModal({
         </Animated.View>
       </GestureDetector>
     </Modal>
+  );
+}
+
+function ReviewQueueSummary({ icon, label, value }: { icon: ReactNode; label: string; value: number }) {
+  return (
+    <View className="min-w-0 flex-1 flex-row items-center gap-2.5 px-4 py-3">
+      <View className="h-9 w-9 items-center justify-center rounded-full bg-white">{icon}</View>
+      <View>
+        <Text className="font-serifRegular text-[22px] leading-6 text-ink">{value}</Text>
+        <Text className="text-[10px] font-bold uppercase tracking-wide text-muted">{label}</Text>
+      </View>
+    </View>
   );
 }
 

@@ -54,9 +54,12 @@ type CreateEventModalProps = {
   createEventError: string | null;
   creatingEvent: boolean;
   datePickerOpen: boolean;
+  datePickerTarget: 'end' | 'start';
   eventCategory: EventCategory;
   eventDate: string;
   eventDateValue: Date | null;
+  eventEndDate: string;
+  eventEndDateValue: Date | null;
   eventDescription: string;
   eventEndTime: string;
   eventImageUri: string | null;
@@ -81,11 +84,14 @@ type CreateEventModalProps = {
   onCloseDatePicker: () => void;
   onCloseTimePicker: () => void;
   onOpenDatePicker: () => void;
+  onOpenEndDatePicker: () => void;
   onOpenTimePicker: (target: 'end' | 'start') => void;
   onPickEventImage: () => void;
   onRemoveEventImage: () => void;
   onSelectDate: (value: string) => void;
   onSelectDateValue: (value: Date) => void;
+  onSelectEndDate: (value: string) => void;
+  onSelectEndDateValue: (value: Date) => void;
   onSelectPlace: (place: PlaceSuggestion) => void;
   onSubmit: () => void;
   placeQuery: string;
@@ -110,9 +116,12 @@ export function CreateEventModal({
   createEventError,
   creatingEvent,
   datePickerOpen,
+  datePickerTarget,
   eventCategory,
   eventDate,
   eventDateValue,
+  eventEndDate,
+  eventEndDateValue,
   eventDescription,
   eventEndTime,
   eventImageUri,
@@ -137,11 +146,14 @@ export function CreateEventModal({
   onCloseDatePicker,
   onCloseTimePicker,
   onOpenDatePicker,
+  onOpenEndDatePicker,
   onOpenTimePicker,
   onPickEventImage,
   onRemoveEventImage,
   onSelectDate,
   onSelectDateValue,
+  onSelectEndDate,
+  onSelectEndDateValue,
   onSelectPlace,
   onSubmit,
   placeQuery,
@@ -362,16 +374,19 @@ export function CreateEventModal({
                 </View>
 
                 <View className="mb-4 gap-3">
-                  <View>
-                    <Text className="mb-2 text-[13px] font-semibold text-ink">Date</Text>
-                    <Pressable
-                      onPress={openDatePicker}
-                      className="h-12 justify-center rounded-xl border border-gray-300 px-4 active:opacity-80"
-                    >
-                      <Text className={`text-[15px] ${eventDate ? 'text-ink' : 'text-muted'}`}>
-                        {eventDate || 'Choose date'}
-                      </Text>
-                    </Pressable>
+                  <View className="flex-row gap-3">
+                    <View className="flex-1">
+                      <Text className="mb-2 text-[13px] font-semibold text-ink">Starts on</Text>
+                      <Pressable onPress={openDatePicker} className="h-12 justify-center rounded-xl border border-gray-300 px-4 active:opacity-80">
+                        <Text className={`text-[15px] ${eventDate ? 'text-ink' : 'text-muted'}`}>{eventDate || 'Choose date'}</Text>
+                      </Pressable>
+                    </View>
+                    <View className="flex-1">
+                      <Text className="mb-2 text-[13px] font-semibold text-ink">Ends on</Text>
+                      <Pressable onPress={onOpenEndDatePicker} className="h-12 justify-center rounded-xl border border-gray-300 px-4 active:opacity-80">
+                        <Text className={`text-[15px] ${eventEndDate || eventDate ? 'text-ink' : 'text-muted'}`}>{eventEndDate || eventDate || 'Choose date'}</Text>
+                      </Pressable>
+                    </View>
                   </View>
                   <View className="flex-row gap-3">
                     <View className="flex-1">
@@ -399,10 +414,10 @@ export function CreateEventModal({
                   </View>
                 </View>
 
-                {eventDateValue && eventTime && eventEndTime && (
+                {eventDateValue && eventEndDateValue && eventTime && eventEndTime && (
                   <View className="mb-4 rounded-2xl bg-canvas px-3 py-2.5">
                     <Text className="text-[12px] font-semibold leading-4 text-muted">
-                      QR check-in works only on {eventDate}, from {eventTime} to {eventEndTime}.
+                      QR check-in works from {eventDate} {eventTime} until {eventEndDate || eventDate} {eventEndTime}.
                     </Text>
                   </View>
                 )}
@@ -478,8 +493,17 @@ export function CreateEventModal({
             onChangeMonth={onChangeCalendarMonth}
             onClose={onCloseDatePicker}
             onSelectDate={(date) => {
-              onSelectDate(formatEventDate(date));
-              onSelectDateValue(date);
+              if (datePickerTarget === 'start') {
+                onSelectDate(formatEventDate(date));
+                onSelectDateValue(date);
+                if (!eventEndDateValue || eventEndDateValue < date) {
+                  onSelectEndDate(formatEventDate(date));
+                  onSelectEndDateValue(date);
+                }
+              } else {
+                onSelectEndDate(formatEventDate(date));
+                onSelectEndDateValue(date);
+              }
               onCloseDatePicker();
             }}
             visible={datePickerOpen}

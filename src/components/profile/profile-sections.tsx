@@ -372,6 +372,7 @@ type UserActivitySectionProps = {
 };
 
 type ProfileHistoryListProps = {
+  isOrganizer: boolean;
   events: ManagedOrganizerEvent[];
   eventsError?: string | null;
   followedOrganizerCount: number;
@@ -386,6 +387,7 @@ type ProfileHistoryListProps = {
 };
 
 export function ProfileHistoryList({
+  isOrganizer,
   events,
   eventsError,
   followedOrganizerCount,
@@ -400,18 +402,18 @@ export function ProfileHistoryList({
 }: ProfileHistoryListProps) {
   return (
     <View className="mb-7 px-5">
-      <ProfileHistoryRow
+      {isOrganizer ? <ProfileHistoryRow
           description="Submitted, pending, and past events"
           icon={<CalendarDays color={Colors.light.ink} size={18} strokeWidth={2.2} />}
           label="My events"
           onPress={onOpenEvents}
-        />
-      <ProfileHistoryRow
+        /> : null}
+      {isOrganizer ? <ProfileHistoryRow
           description="Partner rewards you manage"
           icon={<Gift color={Colors.light.ink} size={18} strokeWidth={2.2} />}
           label="My rewards"
           onPress={onOpenRewards}
-        />
+        /> : null}
       <ProfileHistoryRow
           description="Events, reward spends, and XP changes"
           icon={<Clock color={Colors.light.ink} size={18} strokeWidth={2.2} />}
@@ -723,17 +725,14 @@ export function AdminXpAuditModal({
               contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 40, paddingTop: 8 }}
               showsVerticalScrollIndicator={false}
             >
-              <View
-                className="mb-4 overflow-hidden rounded-[30px] bg-ink p-5"
-                style={{ boxShadow: '0 14px 28px rgba(36, 28, 46, 0.14)' }}
-              >
-                <Text className="text-[11px] font-extrabold uppercase tracking-[2px] text-white/60">
+              <View className="mb-4 overflow-hidden rounded-feature border border-primary/10 bg-surface p-5">
+                <Text className="text-[11px] font-extrabold uppercase tracking-[2px] text-primary">
                   Admin audit
                 </Text>
-                <Text className="mt-2 font-heading text-[34px] font-extrabold leading-[38px] text-white">
+                <Text className="mt-2 font-heading text-[34px] font-extrabold leading-[38px] text-ink">
                   XP ledger
                 </Text>
-                <Text className="mt-2 text-[13px] leading-5 text-white/70">
+                <Text className="mt-2 text-[13px] leading-5 text-muted">
                   Server-side XP transactions, duplicate protection, reward spends, and quest
                   awards.
                 </Text>
@@ -773,11 +772,11 @@ export function AdminXpAuditModal({
 
 function AuditSummaryPill({ label, value }: { label: string; value: number }) {
   return (
-    <View className="min-w-0 flex-1 rounded-2xl bg-white/10 px-3 py-2">
-      <Text className="text-[10px] font-extrabold uppercase tracking-wide text-white/55">
+    <View className="min-w-0 flex-1 rounded-2xl bg-canvas px-3 py-2">
+      <Text className="text-[10px] font-extrabold uppercase tracking-wide text-muted">
         {label}
       </Text>
-      <Text className="mt-0.5 font-heading text-[24px] font-extrabold text-white">
+      <Text className="mt-0.5 font-heading text-[24px] font-extrabold text-ink">
         {value.toLocaleString()}
       </Text>
     </View>

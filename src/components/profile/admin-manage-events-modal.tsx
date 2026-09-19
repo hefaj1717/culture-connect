@@ -104,7 +104,7 @@ type AdminManageEventsModalProps = {
   events: AdminManagedEvent[];
   loading: boolean;
   onClose: () => void;
-  onDeleteEvent: (id: string) => void;
+  onDeleteEvent: (id: string, organizerMessage?: string | null) => void;
   onDeleteReward: (id: string) => void;
   onRefresh: () => void;
   onSaveEvent: (
@@ -114,6 +114,7 @@ type AdminManageEventsModalProps = {
       date: string;
       description: string;
       endTime?: string | null;
+      organizerMessage?: string | null;
       status: OrganizerEventStatus;
       time: string;
       title: string;
@@ -404,7 +405,7 @@ export function AdminManageEventsModal({
                   <AdminEventEditor
                     event={visibleSelectedEvent}
                     onBack={closeDetailWithAnimation}
-                    onDelete={() => onDeleteEvent(visibleSelectedEvent.databaseId)}
+                    onDelete={(organizerMessage) => onDeleteEvent(visibleSelectedEvent.databaseId, organizerMessage)}
                     onOpenOrganizer={() => openOrganizerProfile(visibleSelectedEvent)}
                     onSave={onSaveEvent}
                     saving={savingEventId === visibleSelectedEvent.databaseId}
@@ -733,7 +734,7 @@ function AdminEventEditor({
 }: {
   event: AdminManagedEvent;
   onBack: () => void;
-  onDelete: () => void;
+  onDelete: (organizerMessage?: string | null) => void;
   onOpenOrganizer: () => void;
   onSave: AdminManageEventsModalProps['onSaveEvent'];
   saving: boolean;
@@ -743,6 +744,7 @@ function AdminEventEditor({
   const [date, setDate] = useState(event.date);
   const [description, setDescription] = useState(event.description);
   const [endTime, setEndTime] = useState(event.endTime ?? '');
+  const [organizerMessage, setOrganizerMessage] = useState('');
   const [status, setStatus] = useState<OrganizerEventStatus>(event.reviewStatus);
   const [time, setTime] = useState(event.time);
   const [title, setTitle] = useState(event.title);
@@ -755,6 +757,7 @@ function AdminEventEditor({
     setDate(event.date);
     setDescription(event.description);
     setEndTime(event.endTime ?? '');
+    setOrganizerMessage('');
     setStatus(event.reviewStatus);
     setTime(event.time);
     setTitle(event.title);
@@ -781,6 +784,7 @@ function AdminEventEditor({
       date: date.trim(),
       description: description.trim(),
       endTime: endTime.trim() || null,
+      organizerMessage: organizerMessage.trim() || null,
       status,
       time: time.trim(),
       title: title.trim(),
@@ -881,6 +885,12 @@ function AdminEventEditor({
             onChangeText={setDescription}
             value={description}
           />
+          <AdminTextField
+            label="Message to organizer (optional)"
+            multiline
+            onChangeText={setOrganizerMessage}
+            value={organizerMessage}
+          />
         </View>
 
         {event.changes.length > 0 && (
@@ -955,7 +965,7 @@ function AdminEventEditor({
 
         <Pressable
           disabled={saving}
-          onPress={onDelete}
+          onPress={() => onDelete(organizerMessage.trim() || null)}
           className="mt-3 h-[52px] flex-row items-center justify-center gap-2 rounded-2xl bg-destructive active:opacity-85 disabled:opacity-60"
         >
           <Trash2 size={17} color="white" strokeWidth={2.5} />

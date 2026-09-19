@@ -12,6 +12,7 @@ type FollowedOrganizersModalProps = {
   error: string | null;
   loading: boolean;
   onClose: () => void;
+  onOpenProfile: (profile: OrganizerProfile) => void;
   onRetry: () => void;
   onUnfollow: (organizerId: string) => Promise<{ error: string | null }>;
   profiles: OrganizerProfile[];
@@ -23,6 +24,7 @@ export function FollowedOrganizersModal({
   error,
   loading,
   onClose,
+  onOpenProfile,
   onRetry,
   onUnfollow,
   profiles,
@@ -99,6 +101,7 @@ export function FollowedOrganizersModal({
                   isLast={index === profiles.length - 1}
                   isUnfollowDisabled={!!unfollowingId}
                   key={profile.id}
+                  onOpenProfile={onOpenProfile}
                   onUnfollow={handleUnfollow}
                   profile={profile}
                   unfollowing={unfollowingId === profile.id}
@@ -115,27 +118,36 @@ export function FollowedOrganizersModal({
 function FollowedOrganizerRow({
   isLast,
   isUnfollowDisabled,
+  onOpenProfile,
   onUnfollow,
   profile,
   unfollowing,
 }: {
   isLast: boolean;
   isUnfollowDisabled: boolean;
+  onOpenProfile: (profile: OrganizerProfile) => void;
   onUnfollow: (organizerId: string) => Promise<{ error: string | null }>;
   profile: OrganizerProfile;
   unfollowing: boolean;
 }) {
   return (
     <View className={`flex-row items-center gap-3 py-4 ${isLast ? '' : 'border-b border-primary/10'}`}>
-      <OrganizerAvatar profile={profile} size={50} />
-      <View className="min-w-0 flex-1">
+      <Pressable
+        accessibilityLabel={`Open ${profile.name}`}
+        accessibilityRole="button"
+        className="min-w-0 flex-1 flex-row items-center gap-3 active:opacity-75"
+        onPress={() => onOpenProfile(profile)}
+      >
+        <OrganizerAvatar profile={profile} size={50} />
+        <View className="min-w-0 flex-1">
         <Text className="font-serifRegular text-[18px] leading-6 text-ink" numberOfLines={1}>
           {profile.name}
         </Text>
         <Text className="mt-0.5 text-[12px] font-medium text-muted" numberOfLines={1}>
           {getCultureCityData(profile.cityId).name}
         </Text>
-      </View>
+        </View>
+      </Pressable>
       <Pressable
         accessibilityLabel={`Unfollow ${profile.name}`}
         className={`flex-row items-center gap-1 rounded-full bg-success/15 px-2.5 py-2 ${

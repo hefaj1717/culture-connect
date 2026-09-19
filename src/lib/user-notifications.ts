@@ -8,7 +8,7 @@ export type UserNotification = {
   id: string;
   readAt: string | null;
   title: string;
-  type: 'organizer_event_published';
+  type: 'organizer_event_published' | 'organizer_event_updated' | 'organizer_event_deleted';
 };
 
 type UserNotificationRow = {

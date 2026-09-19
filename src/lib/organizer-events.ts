@@ -18,6 +18,7 @@ export type CreateOrganizerEventInput = {
   description: string;
   category: EventCategory;
   date: string;
+  endDate: string;
   endsAt: string;
   endTime: string;
   time: string;
@@ -45,6 +46,7 @@ type OrganizerEventRow = {
   description: string;
   category: EventCategory;
   date_label: string;
+  end_date_label?: string | null;
   end_time_label?: string | null;
   ends_at?: string | null;
   time_label: string;
@@ -63,7 +65,7 @@ type OrganizerEventRow = {
 
 const EVENT_IMAGES_BUCKET = 'event-images';
 const ORGANIZER_EVENT_SELECT =
-  'id, organizer_user_id, city_key, venue_key, venue_name, venue_address, venue_latitude, venue_longitude, title, description, category, date_label, time_label, end_time_label, starts_at, ends_at, xp_bonus, language, is_free, is_international, interested_count, going_count, attendee_count, image_kind, image_url';
+  'id, organizer_user_id, city_key, venue_key, venue_name, venue_address, venue_latitude, venue_longitude, title, description, category, date_label, end_date_label, time_label, end_time_label, starts_at, ends_at, xp_bonus, language, is_free, is_international, interested_count, going_count, attendee_count, image_kind, image_url';
 const LEGACY_ORGANIZER_EVENT_SELECT_WITH_INTERESTED =
   'id, organizer_user_id, city_key, venue_key, venue_name, venue_address, venue_latitude, venue_longitude, title, description, category, date_label, time_label, end_time_label, starts_at, ends_at, xp_bonus, language, is_free, is_international, interested_count, attendee_count, image_kind, image_url';
 const LEGACY_ORGANIZER_EVENT_SELECT =
@@ -201,6 +203,7 @@ export async function createOrganizerEvent(userId: string, input: CreateOrganize
     description: input.description,
     category: input.category,
     date_label: input.date,
+    end_date_label: input.endDate,
     end_time_label: input.endTime,
     ends_at: input.endsAt,
     time_label: input.time,
@@ -237,6 +240,7 @@ export async function updateOrganizerEvent(userId: string, input: UpdateOrganize
       description: input.description,
       category: input.category,
       date_label: input.date,
+      end_date_label: input.endDate,
       end_time_label: input.endTime,
       ends_at: input.endsAt,
       time_label: input.time,
@@ -293,6 +297,7 @@ function mapOrganizerEventRow(
     venueName: row.venue_name,
     category: row.category,
     date: row.date_label,
+    endDate: row.end_date_label ?? row.date_label,
     endsAt: row.ends_at ?? undefined,
     endTime: row.end_time_label ?? undefined,
     time: row.time_label,

@@ -367,6 +367,7 @@ export async function updateAdminManagedEvent({
     date: string;
     description: string;
     endTime?: string | null;
+    organizerMessage?: string | null;
     status: OrganizerEventStatus;
     time: string;
     title: string;
@@ -382,6 +383,8 @@ export async function updateAdminManagedEvent({
       date_label: input.date,
       description: input.description,
       end_time_label: input.endTime,
+      moderation_message:
+        input.organizerMessage?.trim() || 'A CultureQuest administrator updated your event.',
       rejection_reason: input.status === 'rejected' ? 'Rejected by CultureQuest admin.' : null,
       reviewed_at: new Date().toISOString(),
       reviewed_by: adminUserId,
@@ -397,7 +400,21 @@ export async function updateAdminManagedEvent({
   return { error: getNetworkAwareErrorMessage(error?.message, '') || null };
 }
 
-export async function deleteOrganizerEvent({ eventId }: { eventId: string }) {
+export async function deleteOrganizerEvent({
+  eventId,
+  organizerMessage,
+}: {
+  eventId: string;
+  organizerMessage?: string | null;
+}) {
+  const { error: messageError } = await supabase
+    .from('organizer_events')
+    .update({
+      moderation_message:
+        organizerMessage?.trim() || 'A CultureQuest administrator removed your event.',
+    })
+    .eq('id', eventId);
+  if (messageError) return { error: getNetworkAwareErrorMessage(messageError.message) };
   const { error } = await supabase.from('organizer_events').delete().eq('id', eventId);
 
   return { error: getNetworkAwareErrorMessage(error?.message, '') || null };
