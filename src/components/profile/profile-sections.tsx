@@ -47,6 +47,7 @@ import {
   type OrganizerEventStatus,
 } from '@/lib/organizer-events';
 import type { ManagedOrganizerReward, OrganizerRewardStatus } from '@/lib/organizer-rewards';
+import { organizerProfileFromEvent } from '@/lib/organizer-profiles';
 import { formatRewardAvailability } from '@/lib/reward-availability';
 import type { UserUniversityMembership } from '@/lib/university-leaderboard';
 import type { XpTransaction } from '@/lib/xp-transactions';
@@ -1132,6 +1133,7 @@ export function UserActivityHistoryModal({
                   (async () => ({ error: 'RSVP is not available right now.' }))
                 }
                 organizerEvents={history.map((item) => item.event)}
+                organizerProfile={organizerProfileFromEvent(selectedEvent)}
                 status={selectedEventRsvp}
                 venue={null}
               />
@@ -1261,6 +1263,7 @@ export function OrganizerEventHistoryModal({
                   (async () => ({ error: 'RSVP is not available right now.' }))
                 }
                 organizerEvents={events}
+                organizerProfile={organizerProfileFromEvent(selectedEvent)}
                 status={selectedEventRsvp}
                 venue={null}
               />
