@@ -132,7 +132,6 @@ export default function ExploreScreen({
   );
   const handledOpenEventNonceRef = useRef<number | null>(null);
   const externalSelectedEventIdRef = useRef<string | null>(null);
-  const organizerReturnEventRef = useRef<CultureEvent | null>(null);
   const eventReturnOrganizerRef = useRef<OrganizerProfile | null>(null);
   const hasApprovedEventsProp = approvedEventsProp !== undefined;
   const allEvents = approvedEventsProp ?? organizerEvents;
@@ -311,7 +310,6 @@ export default function ExploreScreen({
     setSelectedOrganizerProfile(null);
     handledOpenEventNonceRef.current = null;
     externalSelectedEventIdRef.current = null;
-    organizerReturnEventRef.current = null;
     eventReturnOrganizerRef.current = null;
   }, [cityData.id]);
 
@@ -736,12 +734,9 @@ export default function ExploreScreen({
           return checkInResult;
         }}
         onClose={closeSelectedEvent}
-        onOpenOrganizer={(profile) => {
-          eventReturnOrganizerRef.current = null;
-          organizerReturnEventRef.current = selectedEvent;
-          setSelectedEvent(null);
-          setSelectedOrganizerProfile(profile);
-        }}
+        cityName={cityData.name}
+        organizerEvents={allEvents}
+        onOpenOrganizerEvent={(event) => setSelectedEvent(event)}
         organizerProfile={selectedEventOrganizerProfile}
         onToggleStatus={async (eventId, status) =>
           (await onEventStatusChange?.(eventId, eventStatuses[eventId] === status ? null : status)) ?? {
@@ -755,17 +750,11 @@ export default function ExploreScreen({
         events={allEvents}
         onOpenEvent={(event) => {
           eventReturnOrganizerRef.current = selectedOrganizerProfile;
-          organizerReturnEventRef.current = null;
           setSelectedOrganizerProfile(null);
           setSelectedEvent(event);
         }}
         onClose={() => {
-          const eventToRestore = organizerReturnEventRef.current;
-          organizerReturnEventRef.current = null;
           setSelectedOrganizerProfile(null);
-          if (eventToRestore) {
-            setSelectedEvent(eventToRestore);
-          }
         }}
         profile={selectedOrganizerProfile}
       />
@@ -779,7 +768,9 @@ function EventDetailModal({
   venue,
   onCheckIn,
   onClose,
-  onOpenOrganizer,
+  cityName,
+  organizerEvents,
+  onOpenOrganizerEvent,
   organizerProfile,
   onToggleStatus,
   status,
@@ -793,7 +784,9 @@ function EventDetailModal({
     location: { latitude: number; longitude: number },
   ) => Promise<EventCheckInResult>;
   onClose: () => void;
-  onOpenOrganizer: (profile: OrganizerProfile) => void;
+  cityName: string;
+  organizerEvents: CultureEvent[];
+  onOpenOrganizerEvent: (event: CultureEvent) => void;
   organizerProfile?: OrganizerProfile | null;
   onToggleStatus: (
     eventId: string,
@@ -812,12 +805,14 @@ function EventDetailModal({
   const [statusActionToRetry, setStatusActionToRetry] = useState<'interested' | 'going' | null>(null);
   const [locationMessage, setLocationMessage] = useState<string | null>(null);
   const [checkingLocation, setCheckingLocation] = useState(false);
+  const [embeddedOrganizerProfile, setEmbeddedOrganizerProfile] = useState<OrganizerProfile | null>(null);
   const [permission, requestPermission] = useCameraPermissions();
   const translateX = useSharedValue(0);
 
   useEffect(() => {
     if (event) {
       translateX.value = 0;
+      setEmbeddedOrganizerProfile(null);
     }
   }, [event, translateX]);
 
@@ -859,11 +854,7 @@ function EventDetailModal({
       return;
     }
 
-    translateX.value = withTiming(width, { duration: 180 }, (finished) => {
-      if (finished) {
-        runOnJS(onOpenOrganizer)(organizerProfile);
-      }
-    });
+    setEmbeddedOrganizerProfile(organizerProfile);
   }
 
   if (!event) return null;
@@ -1001,8 +992,26 @@ function EventDetailModal({
   }
 
   return (
-    <Modal animationType="slide" transparent onRequestClose={closeWithAnimation} visible>
-      <GestureDetector gesture={swipeGesture}>
+    <Modal
+      animationType="slide"
+      transparent
+      onRequestClose={embeddedOrganizerProfile ? () => setEmbeddedOrganizerProfile(null) : closeWithAnimation}
+      visible
+    >
+      {embeddedOrganizerProfile ? (
+        <OrganizerProfileModal
+          embedded
+          cityName={cityName}
+          events={organizerEvents}
+          onClose={() => setEmbeddedOrganizerProfile(null)}
+          onOpenEvent={(nextEvent) => {
+            setEmbeddedOrganizerProfile(null);
+            onOpenOrganizerEvent(nextEvent);
+          }}
+          profile={embeddedOrganizerProfile}
+        />
+      ) : (
+        <GestureDetector gesture={swipeGesture}>
         <Animated.View className="flex-1 bg-canvas" style={swipeStyle}>
           <View className="flex-1 bg-canvas">
             <ScrollView
@@ -1281,7 +1290,8 @@ function EventDetailModal({
             </Modal>
           </View>
         </Animated.View>
-      </GestureDetector>
+        </GestureDetector>
+      )}
     </Modal>
   );
 }
