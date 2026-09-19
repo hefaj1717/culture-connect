@@ -807,6 +807,7 @@ function EventDetailModal({
     organizerProfile ?? null,
   );
   const [embeddedOrganizerProfile, setEmbeddedOrganizerProfile] = useState<OrganizerProfile | null>(null);
+  const [organizerPresentationStatic, setOrganizerPresentationStatic] = useState(false);
   const [returnContext, setReturnContext] = useState<{
     event: CultureEvent;
     organizerProfile: OrganizerProfile;
@@ -824,6 +825,7 @@ function EventDetailModal({
     setDetailEvent(event ?? null);
     setDetailOrganizerProfile(organizerProfile ?? null);
     setEmbeddedOrganizerProfile(null);
+    setOrganizerPresentationStatic(false);
   }, [event, organizerProfile, translateX]);
 
   const activeEvent = detailEvent ?? event;
@@ -859,10 +861,12 @@ function EventDetailModal({
 
   function closeWithAnimation() {
     if (returnContext) {
-      setDetailEvent(returnContext.event);
-      setDetailOrganizerProfile(returnContext.organizerProfile);
-      setEmbeddedOrganizerProfile(returnContext.organizerProfile);
-      setReturnContext(null);
+      const destination = returnContext;
+      translateX.value = withTiming(width, { duration: 180 }, (finished) => {
+        if (finished) {
+          runOnJS(showPreviousOrganizer)(destination);
+        }
+      });
       return;
     }
 
@@ -873,11 +877,24 @@ function EventDetailModal({
     });
   }
 
+  function showPreviousOrganizer(destination: {
+    event: CultureEvent;
+    organizerProfile: OrganizerProfile;
+  }) {
+    setDetailEvent(destination.event);
+    setDetailOrganizerProfile(destination.organizerProfile);
+    setOrganizerPresentationStatic(true);
+    setEmbeddedOrganizerProfile(destination.organizerProfile);
+    setReturnContext(null);
+    translateX.value = 0;
+  }
+
   function openOrganizerProfile() {
     if (!activeOrganizerProfile) {
       return;
     }
 
+    setOrganizerPresentationStatic(false);
     setEmbeddedOrganizerProfile(activeOrganizerProfile);
   }
 
@@ -1021,6 +1038,19 @@ function EventDetailModal({
       onRequestClose={closeWithAnimation}
       visible
     >
+      {returnContext && !embeddedOrganizerProfile ? (
+        <View pointerEvents="none" style={StyleSheet.absoluteFill}>
+          <OrganizerProfileModal
+            embedded
+            cityName={cityName}
+            events={organizerEvents}
+            onClose={() => undefined}
+            onOpenEvent={() => undefined}
+            profile={returnContext.organizerProfile}
+            staticPresentation
+          />
+        </View>
+      ) : null}
       <GestureDetector gesture={swipeGesture}>
         <Animated.View className="flex-1 bg-canvas" style={swipeStyle}>
           <View className="flex-1 bg-canvas">
@@ -1304,20 +1334,25 @@ function EventDetailModal({
       {embeddedOrganizerProfile ? (
         <View style={StyleSheet.absoluteFill}>
           <OrganizerProfileModal
-          embedded
-          cityName={cityName}
-          events={organizerEvents}
-          onClose={() => setEmbeddedOrganizerProfile(null)}
-          onOpenEvent={(nextEvent) => {
-            setReturnContext({
-              event: activeEvent,
-              organizerProfile: embeddedOrganizerProfile,
-            });
-            setDetailEvent(nextEvent);
-            setDetailOrganizerProfile(embeddedOrganizerProfile);
-            setEmbeddedOrganizerProfile(null);
-          }}
+            embedded
+            cityName={cityName}
+            events={organizerEvents}
+            onClose={() => {
+              setEmbeddedOrganizerProfile(null);
+              setOrganizerPresentationStatic(false);
+            }}
+            onOpenEvent={(nextEvent) => {
+              setReturnContext({
+                event: activeEvent,
+                organizerProfile: embeddedOrganizerProfile,
+              });
+              setDetailEvent(nextEvent);
+              setDetailOrganizerProfile(embeddedOrganizerProfile);
+              setEmbeddedOrganizerProfile(null);
+              setOrganizerPresentationStatic(false);
+            }}
             profile={embeddedOrganizerProfile}
+            staticPresentation={organizerPresentationStatic}
           />
         </View>
       ) : null}
