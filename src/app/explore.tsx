@@ -749,10 +749,18 @@ export default function ExploreScreen({
           }
         }
         status={selectedDetailStatus}
+        visible={!selectedOrganizerProfile}
       />
       <OrganizerProfileModal
         cityName={cityData.name}
         events={allEvents}
+        onBeforeClose={() => {
+          const eventToRestore = organizerReturnEventRef.current;
+          if (eventToRestore) {
+            organizerReturnEventRef.current = null;
+            setSelectedEvent(eventToRestore);
+          }
+        }}
         onOpenEvent={(event) => {
           eventReturnOrganizerRef.current = selectedOrganizerProfile;
           organizerReturnEventRef.current = null;
@@ -760,12 +768,8 @@ export default function ExploreScreen({
           setSelectedEvent(event);
         }}
         onClose={() => {
-          const eventToRestore = organizerReturnEventRef.current;
           organizerReturnEventRef.current = null;
           setSelectedOrganizerProfile(null);
-          if (eventToRestore) {
-            setSelectedEvent(eventToRestore);
-          }
         }}
         profile={selectedOrganizerProfile}
       />
@@ -783,6 +787,7 @@ function EventDetailModal({
   organizerProfile,
   onToggleStatus,
   status,
+  visible,
 }: {
   checkedIn: boolean;
   event: CultureEvent | null;
@@ -800,6 +805,7 @@ function EventDetailModal({
     status: 'interested' | 'going',
   ) => Promise<{ error: string | null }>;
   status?: 'interested' | 'going';
+  visible: boolean;
 }) {
   const { width } = useWindowDimensions();
   const insets = useSafeAreaInsets();
@@ -1001,7 +1007,7 @@ function EventDetailModal({
   }
 
   return (
-    <Modal animationType="slide" transparent onRequestClose={closeWithAnimation} visible>
+    <Modal animationType="slide" transparent onRequestClose={closeWithAnimation} visible={visible}>
       <GestureDetector gesture={swipeGesture}>
         <Animated.View className="flex-1 bg-canvas" style={swipeStyle}>
           <View className="flex-1 bg-canvas">
