@@ -736,7 +736,6 @@ export default function ExploreScreen({
         onClose={closeSelectedEvent}
         cityName={cityData.name}
         organizerEvents={allEvents}
-        onOpenOrganizerEvent={(event) => setSelectedEvent(event)}
         organizerProfile={selectedEventOrganizerProfile}
         onToggleStatus={async (eventId, status) =>
           (await onEventStatusChange?.(eventId, eventStatuses[eventId] === status ? null : status)) ?? {
@@ -762,6 +761,10 @@ export default function ExploreScreen({
   );
 }
 
+type EventDetailRoute =
+  | { kind: 'event'; event: CultureEvent; organizerProfile: OrganizerProfile | null }
+  | { kind: 'organizer'; profile: OrganizerProfile };
+
 function EventDetailModal({
   checkedIn,
   event,
@@ -770,7 +773,6 @@ function EventDetailModal({
   onClose,
   cityName,
   organizerEvents,
-  onOpenOrganizerEvent,
   organizerProfile,
   onToggleStatus,
   status,
@@ -786,7 +788,6 @@ function EventDetailModal({
   onClose: () => void;
   cityName: string;
   organizerEvents: CultureEvent[];
-  onOpenOrganizerEvent: (event: CultureEvent) => void;
   organizerProfile?: OrganizerProfile | null;
   onToggleStatus: (
     eventId: string,
@@ -805,16 +806,40 @@ function EventDetailModal({
   const [statusActionToRetry, setStatusActionToRetry] = useState<'interested' | 'going' | null>(null);
   const [locationMessage, setLocationMessage] = useState<string | null>(null);
   const [checkingLocation, setCheckingLocation] = useState(false);
-  const [embeddedOrganizerProfile, setEmbeddedOrganizerProfile] = useState<OrganizerProfile | null>(null);
+  const [routeStack, setRouteStack] = useState<EventDetailRoute[]>([]);
   const [permission, requestPermission] = useCameraPermissions();
   const translateX = useSharedValue(0);
 
   useEffect(() => {
-    if (event) {
-      translateX.value = 0;
-      setEmbeddedOrganizerProfile(null);
-    }
-  }, [event, translateX]);
+    if (!event) return;
+
+    translateX.value = 0;
+    setRouteStack((current) => {
+      const rootRoute = current[0];
+      const isSameRootEvent = rootRoute?.kind === 'event' && rootRoute.event.id === event.id;
+
+      if (isSameRootEvent) {
+        if (
+          current.length === 1 &&
+          rootRoute.organizerProfile?.id !== organizerProfile?.id
+        ) {
+          return [{ kind: 'event', event, organizerProfile: organizerProfile ?? null }];
+        }
+
+        return current;
+      }
+
+      return [{ kind: 'event', event, organizerProfile: organizerProfile ?? null }];
+    });
+  }, [event, organizerProfile, translateX]);
+
+  const currentRoute = routeStack.at(-1);
+  const currentEventRoute = [...routeStack].reverse().find(
+    (route): route is Extract<EventDetailRoute, { kind: 'event' }> => route.kind === 'event',
+  );
+  const activeEvent = currentEventRoute?.event ?? event;
+  const activeOrganizerProfile = currentEventRoute?.organizerProfile ?? organizerProfile ?? null;
+  const embeddedOrganizerProfile = currentRoute?.kind === 'organizer' ? currentRoute.profile : null;
 
   const swipeGesture = Gesture.Pan()
     .activeOffsetX([-999, 18])
@@ -826,6 +851,11 @@ function EventDetailModal({
       const shouldClose = translateX.value > width * 0.28 || gestureEvent.velocityX > 700;
 
       if (shouldClose) {
+        if (routeStack.length > 1) {
+          runOnJS(goBack)();
+          return;
+        }
+
         translateX.value = withTiming(width, { duration: 180 }, (finished) => {
           if (finished) {
             runOnJS(onClose)();
@@ -842,6 +872,11 @@ function EventDetailModal({
   }));
 
   function closeWithAnimation() {
+    if (routeStack.length > 1) {
+      goBack();
+      return;
+    }
+
     translateX.value = withTiming(width, { duration: 180 }, (finished) => {
       if (finished) {
         runOnJS(onClose)();
@@ -849,24 +884,27 @@ function EventDetailModal({
     });
   }
 
+  function goBack() {
+    setRouteStack((current) => current.slice(0, -1));
+  }
+
   function openOrganizerProfile() {
-    if (!organizerProfile) {
+    if (!activeOrganizerProfile) {
       return;
     }
 
-    setEmbeddedOrganizerProfile(organizerProfile);
+    setRouteStack((current) => [...current, { kind: 'organizer', profile: activeOrganizerProfile }]);
   }
 
-  if (!event) return null;
+  if (!activeEvent) return null;
 
-  const activeEvent = event;
   const verifiedVenue = venue ?? getEventLocationVenue(activeEvent);
   const detailEngagement = getEventEngagement(activeEvent, checkedIn ? 'attended' : status);
   const checkInWindowState = getCheckInWindowState(activeEvent);
   const isLiveNow = checkInWindowState === 'open';
 
   async function verifyVenueDistance() {
-    const currentWindowState = getCheckInWindowState(activeEvent);
+    const currentWindowState = getCheckInWindowState(activeEvent!);
     if (currentWindowState === 'not-started') {
       return {
         allowed: false,
@@ -945,7 +983,7 @@ function EventDetailModal({
   }
 
   async function handleBarcodeScanned(result: BarcodeScanningResult) {
-    if (scanLocked || !event) return;
+    if (scanLocked || !activeEvent) return;
 
     setScanLocked(true);
     const locationResult = await verifyVenueDistance();
@@ -962,11 +1000,11 @@ function EventDetailModal({
       return;
     }
 
-    const checkInResult = await onCheckIn(event, checkInCode, locationResult.location);
+    const checkInResult = await onCheckIn(activeEvent, checkInCode, locationResult.location);
     if (checkInResult.success) {
       setScannerOpen(false);
       setScanMessage(null);
-      setLocationMessage(getCheckInResultMessage(event, checkInResult));
+      setLocationMessage(getCheckInResultMessage(activeEvent, checkInResult));
       return;
     }
 
@@ -975,12 +1013,12 @@ function EventDetailModal({
   }
 
   async function handleStatusToggle(nextStatus: 'interested' | 'going') {
-    if (!event || statusActionPending) return;
+    if (!activeEvent || statusActionPending) return;
 
     setStatusActionPending(true);
     setStatusActionError(null);
     setStatusActionToRetry(nextStatus);
-    const result = await onToggleStatus(event.id, nextStatus);
+    const result = await onToggleStatus(activeEvent.id, nextStatus);
     setStatusActionPending(false);
 
     if (result.error) {
@@ -995,7 +1033,7 @@ function EventDetailModal({
     <Modal
       animationType="slide"
       transparent
-      onRequestClose={embeddedOrganizerProfile ? () => setEmbeddedOrganizerProfile(null) : closeWithAnimation}
+      onRequestClose={closeWithAnimation}
       visible
     >
       <GestureDetector gesture={swipeGesture}>
@@ -1011,7 +1049,7 @@ function EventDetailModal({
                 style={{ boxShadow: '0 8px 18px rgba(30, 30, 36, 0.14)' }}
               >
                 <BrandImage
-                  source={getEventImageSource(event)}
+                  source={getEventImageSource(activeEvent)}
                   contentFit="cover"
                   style={StyleSheet.absoluteFill}
                   withTextGradient
@@ -1026,7 +1064,7 @@ function EventDetailModal({
                 <View className="absolute bottom-5 left-5 right-5">
                   <View className="mb-2 flex-row flex-wrap items-center gap-2">
                     <Text className="text-[11px] font-bold uppercase tracking-wider text-white/75">
-                      {eventCategoryLabels[event.category]}
+                      {eventCategoryLabels[activeEvent.category]}
                     </Text>
                     {isLiveNow ? (
                       <View className="flex-row items-center gap-1.5">
@@ -1048,7 +1086,7 @@ function EventDetailModal({
                     className="font-heading text-[30px] leading-9 text-white"
                     numberOfLines={3}
                   >
-                    {event.title}
+                    {activeEvent.title}
                   </Text>
                 </View>
               </View>
@@ -1102,11 +1140,11 @@ function EventDetailModal({
                   className="mb-6 rounded-feature p-4"
                   style={{ backgroundColor: Colors.light.backgroundElement }}
                 >
-                  <InfoRow icon={<MapPin size={17} color={Colors.light.primary} />} label={event.venueName} />
+                  <InfoRow icon={<MapPin size={17} color={Colors.light.primary} />} label={activeEvent.venueName} />
                   <View className="my-3 h-px bg-primary/10" />
                   <InfoRow
                     icon={<Clock size={17} color={Colors.light.primary} />}
-                    label={`${event.date}, ${formatEventTimeRange(event)}`}
+                    label={`${activeEvent.date}, ${formatEventTimeRange(activeEvent)}`}
                   />
                   <View className="my-3 h-px bg-primary/10" />
                   <View className="flex-row items-center justify-between gap-3">
@@ -1133,7 +1171,7 @@ function EventDetailModal({
                       )}
                     </View>
                     <View className="rounded-full bg-accent/10 px-3 py-1.5">
-                      <Text className="text-[12px] font-semibold text-accent">+{event.xpBonus} XP</Text>
+                      <Text className="text-[12px] font-semibold text-accent">+{activeEvent.xpBonus} XP</Text>
                     </View>
                   </View>
                 </View>
@@ -1142,26 +1180,26 @@ function EventDetailModal({
                   <Text className="font-serifRegular text-[22px] leading-7 text-ink">About</Text>
                   <View className="h-px flex-1 bg-primary/15" />
                 </View>
-                <Text className="mb-6 text-[14px] leading-6 text-muted">{event.description}</Text>
+                <Text className="mb-6 text-[14px] leading-6 text-muted">{activeEvent.description}</Text>
 
                 <View className="mb-6">
                   <View className="mb-2 flex-row items-center gap-3">
                     <Text className="font-serifRegular text-[22px] leading-7 text-ink">Hosted by</Text>
                     <View className="h-px flex-1 bg-primary/15" />
                   </View>
-                  {organizerProfile ? (
+                  {activeOrganizerProfile ? (
                     <Pressable
                       onPress={openOrganizerProfile}
                       className="flex-row items-center gap-3 rounded-feature p-3 active:opacity-85"
                       style={{ backgroundColor: Colors.light.backgroundElement }}
                     >
-                      <OrganizerAvatar profile={organizerProfile} size={44} />
+                      <OrganizerAvatar profile={activeOrganizerProfile} size={44} />
                       <View className="min-w-0 flex-1">
                         <Text className="text-[15px] font-bold text-ink" numberOfLines={1}>
-                          {organizerProfile.name}
+                          {activeOrganizerProfile.name}
                         </Text>
                         <Text className="mt-1 text-[12px] font-semibold text-primary" numberOfLines={1}>
-                          {organizerProfile.locationName ?? 'Verified CultureQuest organizer'}
+                          {activeOrganizerProfile.locationName ?? 'Verified CultureQuest organizer'}
                         </Text>
                       </View>
                       <ChevronRight size={18} color={Colors.light.primary} />
@@ -1171,7 +1209,7 @@ function EventDetailModal({
                       className="rounded-feature p-3"
                       style={{ backgroundColor: Colors.light.backgroundElement }}
                     >
-                      <Text className="text-[15px] font-bold text-ink">{event.organizerName}</Text>
+                      <Text className="text-[15px] font-bold text-ink">{activeEvent.organizerName}</Text>
                       <Text className="mt-1 text-[12px] leading-4 text-muted">
                         Organizer profile is not available yet.
                       </Text>
@@ -1185,7 +1223,7 @@ function EventDetailModal({
                       Attendance confirmed
                     </Text>
                     <Text className="mt-1 text-[13px] leading-5 text-ink/75">
-                      You earned {event.xpBonus} XP for this event.
+                      You earned {activeEvent.xpBonus} XP for this event.
                     </Text>
                   </View>
                 ) : (
@@ -1281,14 +1319,16 @@ function EventDetailModal({
       {embeddedOrganizerProfile ? (
         <View style={StyleSheet.absoluteFill}>
           <OrganizerProfileModal
-            embedded
-            cityName={cityName}
-            events={organizerEvents}
-            onClose={() => setEmbeddedOrganizerProfile(null)}
-            onOpenEvent={(nextEvent) => {
-              setEmbeddedOrganizerProfile(null);
-              onOpenOrganizerEvent(nextEvent);
-            }}
+          embedded
+          cityName={cityName}
+          events={organizerEvents}
+          onClose={goBack}
+          onOpenEvent={(nextEvent) => {
+            setRouteStack((current) => [
+              ...current,
+              { kind: 'event', event: nextEvent, organizerProfile: embeddedOrganizerProfile },
+            ]);
+          }}
             profile={embeddedOrganizerProfile}
           />
         </View>
