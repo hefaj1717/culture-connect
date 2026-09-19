@@ -145,9 +145,12 @@ function QuestCard({ onPress, quest }: { onPress: () => void; quest: Quest }) {
           style={StyleSheet.absoluteFill}
           withTextGradient
         >
-          <View className="absolute left-4 top-4 flex-row items-center gap-1.5 rounded-full bg-white/92 px-3 py-1.5">
-            <Route size={13} color={Colors.light.primary} strokeWidth={2.5} />
-            <Text className="text-[10px] font-extrabold uppercase tracking-wide text-primary">
+          <View
+            className="absolute left-4 top-4 flex-row items-center gap-1.5 rounded-full px-3 py-1.5"
+            style={{ backgroundColor: Colors.light.background }}
+          >
+            <Route size={13} color={Colors.light.ink} strokeWidth={2.5} />
+            <Text className="text-[10px] font-extrabold uppercase tracking-wide text-ink">
               {quest.theme}
             </Text>
           </View>
