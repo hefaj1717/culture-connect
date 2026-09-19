@@ -739,7 +739,6 @@ export default function ExploreScreen({
         onOpenOrganizer={(profile) => {
           eventReturnOrganizerRef.current = null;
           organizerReturnEventRef.current = selectedEvent;
-          setSelectedEvent(null);
           setSelectedOrganizerProfile(profile);
         }}
         organizerProfile={selectedEventOrganizerProfile}
@@ -749,18 +748,10 @@ export default function ExploreScreen({
           }
         }
         status={selectedDetailStatus}
-        visible={!selectedOrganizerProfile}
       />
       <OrganizerProfileModal
         cityName={cityData.name}
         events={allEvents}
-        onBeforeClose={() => {
-          const eventToRestore = organizerReturnEventRef.current;
-          if (eventToRestore) {
-            organizerReturnEventRef.current = null;
-            setSelectedEvent(eventToRestore);
-          }
-        }}
         onOpenEvent={(event) => {
           eventReturnOrganizerRef.current = selectedOrganizerProfile;
           organizerReturnEventRef.current = null;
@@ -787,7 +778,6 @@ function EventDetailModal({
   organizerProfile,
   onToggleStatus,
   status,
-  visible,
 }: {
   checkedIn: boolean;
   event: CultureEvent | null;
@@ -805,7 +795,6 @@ function EventDetailModal({
     status: 'interested' | 'going',
   ) => Promise<{ error: string | null }>;
   status?: 'interested' | 'going';
-  visible: boolean;
 }) {
   const { width } = useWindowDimensions();
   const insets = useSafeAreaInsets();
@@ -865,11 +854,7 @@ function EventDetailModal({
       return;
     }
 
-    translateX.value = withTiming(width, { duration: 180 }, (finished) => {
-      if (finished) {
-        runOnJS(onOpenOrganizer)(organizerProfile);
-      }
-    });
+    onOpenOrganizer(organizerProfile);
   }
 
   if (!event) return null;
@@ -1007,7 +992,7 @@ function EventDetailModal({
   }
 
   return (
-    <Modal animationType="slide" transparent onRequestClose={closeWithAnimation} visible={visible}>
+    <Modal animationType="slide" transparent onRequestClose={closeWithAnimation} visible>
       <GestureDetector gesture={swipeGesture}>
         <Animated.View className="flex-1 bg-canvas" style={swipeStyle}>
           <View className="flex-1 bg-canvas">
