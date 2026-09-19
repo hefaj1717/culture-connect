@@ -15,6 +15,7 @@ type FollowedOrganizersModalProps = {
   loading: boolean;
   onClose: () => void;
   onCloseProfile: () => void;
+  onOpenEvent: (event: CultureEvent) => void;
   onOpenProfile: (profile: OrganizerProfile) => void;
   onRetry: () => void;
   onUnfollow: (organizerId: string) => Promise<{ error: string | null }>;
@@ -30,6 +31,7 @@ export function FollowedOrganizersModal({
   loading,
   onClose,
   onCloseProfile,
+  onOpenEvent,
   onOpenProfile,
   onRetry,
   onUnfollow,
@@ -63,7 +65,7 @@ export function FollowedOrganizersModal({
           embedded
           events={activeProfileEvents}
           onClose={onCloseProfile}
-          onOpenEvent={() => undefined}
+          onOpenEvent={onOpenEvent}
           profile={activeProfile}
         />
       ) : (

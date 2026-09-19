@@ -57,6 +57,7 @@ import { useAuth } from '@/providers/auth-provider';
 type ProfileScreenProps = {
   eventsRefreshKey?: number;
   onEventCreated?: () => void;
+  onOpenEvent?: (eventId: string) => void;
   onQuestCreated?: () => void;
   onRewardCreated?: () => void;
   onUserXpChange?: (nextXp: number) => void;
@@ -68,6 +69,7 @@ type ProfileScreenProps = {
 export default function ProfileScreen({
   eventsRefreshKey = 0,
   onEventCreated,
+  onOpenEvent,
   onQuestCreated,
   onRewardCreated,
   onUserXpChange,
@@ -615,6 +617,12 @@ export default function ProfileScreen({
     if (!result.error) setFollowedOrganizerEvents(result.events);
   }
 
+  function openFollowedOrganizerEvent(event: CultureEvent) {
+    setSelectedFollowedOrganizer(null);
+    setFollowedOrganizersOpen(false);
+    onOpenEvent?.(event.id);
+  }
+
   return (
     <View className="flex-1 bg-canvas">
       <ScrollView
@@ -699,6 +707,7 @@ export default function ProfileScreen({
         loading={followedOrganizersLoading}
         onClose={() => setFollowedOrganizersOpen(false)}
         onCloseProfile={() => setSelectedFollowedOrganizer(null)}
+        onOpenEvent={openFollowedOrganizerEvent}
         onOpenProfile={(profile) => void openFollowedOrganizer(profile)}
         onRetry={() => setFollowedOrganizersReloadNonce((current) => current + 1)}
         onUnfollow={removeFollowedOrganizer}
