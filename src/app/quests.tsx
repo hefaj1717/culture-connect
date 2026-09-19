@@ -1,4 +1,14 @@
-import { ArrowLeft, BadgeCheck, Clock3, LockKeyhole, MapPin, Route, Users, X } from 'lucide-react-native';
+import {
+  ArrowLeft,
+  BadgeCheck,
+  CalendarDays,
+  Clock3,
+  LockKeyhole,
+  MapPin,
+  Route,
+  Users,
+  X,
+} from 'lucide-react-native';
 import { CameraView, type BarcodeScanningResult, useCameraPermissions } from 'expo-camera';
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import {
@@ -165,7 +175,7 @@ function QuestCard({ onPress, quest }: { onPress: () => void; quest: Quest }) {
       <View className="p-4">
         <View className="mb-4 flex-row flex-wrap gap-2">
           <QuestMeta
-            icon={<Clock3 size={13} color={Colors.light.primary} strokeWidth={2.4} />}
+            icon={<CalendarDays size={13} color={Colors.light.primary} strokeWidth={2.4} />}
             label={formatQuestAvailability(quest.availableFrom, quest.availableUntil)}
           />
           <QuestMeta
@@ -206,7 +216,7 @@ function formatQuestAvailability(availableFrom: string, availableUntil?: string)
     const date = new Date(`${value}T00:00:00`);
     return Number.isNaN(date.getTime())
       ? value
-      : new Intl.DateTimeFormat(undefined, { day: 'numeric', month: 'short' }).format(date);
+      : new Intl.DateTimeFormat('pl-PL', { day: '2-digit', month: '2-digit' }).format(date);
   };
 
   return availableUntil
@@ -352,6 +362,17 @@ function QuestDetailModal({
                 <Text className="text-[13px] font-semibold text-muted">
                   {quest.completedStops}/{quest.stops.length} stops
                 </Text>
+              </View>
+
+              <View className="mb-5 flex-row flex-wrap gap-2">
+                <QuestMeta
+                  icon={<CalendarDays size={13} color={Colors.light.primary} strokeWidth={2.4} />}
+                  label={formatQuestAvailability(quest.availableFrom, quest.availableUntil)}
+                />
+                <QuestMeta
+                  icon={<Users size={13} color={Colors.light.accent} strokeWidth={2.4} />}
+                  label={`${quest.completionCount.toLocaleString()} completed`}
+                />
               </View>
 
               <Text className="mb-3 font-heading text-[23px] font-extrabold text-ink">
