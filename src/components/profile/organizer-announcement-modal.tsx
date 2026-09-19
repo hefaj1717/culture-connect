@@ -47,8 +47,14 @@ export function OrganizerAnnouncementModal({
   const [linkedEventId, setLinkedEventId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [publishing, setPublishing] = useState(false);
-  const approvedEvents = useMemo(
-    () => events.filter((event) => event.reviewStatus === 'approved'),
+  const linkableEvents = useMemo(
+    () =>
+      events.filter((event) => {
+        if (event.reviewStatus !== 'approved' || !event.endsAt) return false;
+
+        const endTime = Date.parse(event.endsAt);
+        return !Number.isNaN(endTime) && endTime >= Date.now();
+      }),
     [events],
   );
   const { closeWithAnimation, gesture, swipeStyle } = useCardSwipeBack({
@@ -173,7 +179,7 @@ export function OrganizerAnnouncementModal({
                       No event link
                     </Text>
                   </Pressable>
-                  {approvedEvents.map((event) => {
+                  {linkableEvents.map((event) => {
                     const selected = linkedEventId === event.id;
                     return (
                       <Pressable
