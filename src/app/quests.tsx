@@ -1,6 +1,6 @@
-import { ArrowLeft, BadgeCheck, Clock3, LockKeyhole, MapPin, Route, X } from 'lucide-react-native';
+import { ArrowLeft, BadgeCheck, Clock3, LockKeyhole, MapPin, Route, Users, X } from 'lucide-react-native';
 import { CameraView, type BarcodeScanningResult, useCameraPermissions } from 'expo-camera';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import {
   Modal,
   Pressable,
@@ -163,9 +163,16 @@ function QuestCard({ onPress, quest }: { onPress: () => void; quest: Quest }) {
       </View>
 
       <View className="p-4">
-        <Text className="mb-4 text-[13px] leading-5 text-muted" numberOfLines={2}>
-          {quest.description}
-        </Text>
+        <View className="mb-4 flex-row flex-wrap gap-2">
+          <QuestMeta
+            icon={<Clock3 size={13} color={Colors.light.primary} strokeWidth={2.4} />}
+            label={formatQuestAvailability(quest.availableFrom, quest.availableUntil)}
+          />
+          <QuestMeta
+            icon={<Users size={13} color={Colors.light.accent} strokeWidth={2.4} />}
+            label={`${quest.completionCount.toLocaleString()} completed`}
+          />
+        </View>
 
         <View className="mb-3 flex-row items-center justify-between">
           <Text className="text-[13px] font-extrabold text-primary">+{quest.totalXp} XP</Text>
@@ -183,6 +190,28 @@ function QuestCard({ onPress, quest }: { onPress: () => void; quest: Quest }) {
       </View>
     </Pressable>
   );
+}
+
+function QuestMeta({ icon, label }: { icon: ReactNode; label: string }) {
+  return (
+    <View className="flex-row items-center gap-1.5 rounded-full bg-primary/5 px-2.5 py-1.5">
+      {icon}
+      <Text className="text-[11px] font-semibold text-primary">{label}</Text>
+    </View>
+  );
+}
+
+function formatQuestAvailability(availableFrom: string, availableUntil?: string) {
+  const formatDate = (value: string) => {
+    const date = new Date(`${value}T00:00:00`);
+    return Number.isNaN(date.getTime())
+      ? value
+      : new Intl.DateTimeFormat(undefined, { day: 'numeric', month: 'short' }).format(date);
+  };
+
+  return availableUntil
+    ? `${formatDate(availableFrom)} – ${formatDate(availableUntil)}`
+    : `From ${formatDate(availableFrom)}`;
 }
 
 function QuestDetailModal({

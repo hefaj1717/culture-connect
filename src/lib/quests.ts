@@ -11,6 +11,9 @@ export type QuestStop = {
 };
 
 export type Quest = {
+  availableFrom: string;
+  availableUntil?: string;
+  completionCount: number;
   id: string;
   title: string;
   theme: string;
@@ -31,6 +34,8 @@ export type CreateQuestStopInput = {
 };
 
 export type CreateQuestInput = {
+  availableFrom: string;
+  availableUntil?: string | null;
   cityId: CityId;
   createdBy: string;
   description: string;
@@ -44,6 +49,8 @@ export type CreateQuestInput = {
 };
 
 type QuestRow = {
+  available_from: string;
+  available_until?: string | null;
   id: string;
   title: string;
   theme: string;
@@ -51,6 +58,11 @@ type QuestRow = {
   total_xp: number;
   image_kind: Quest['image'];
   image_url?: string | null;
+};
+
+type QuestCompletionStatsRow = {
+  completion_count: number;
+  quest_id: string;
 };
 
 type QuestStopRow = {
@@ -63,8 +75,10 @@ type QuestStopRow = {
 };
 
 const QUEST_IMAGES_BUCKET = 'quest-images';
-const QUEST_SELECT = 'id, title, theme, description, total_xp, image_kind, image_url';
-const LEGACY_QUEST_SELECT = 'id, title, theme, description, total_xp, image_kind';
+const QUEST_SELECT =
+  'id, title, theme, description, total_xp, image_kind, image_url, available_from, available_until';
+const LEGACY_QUEST_SELECT =
+  'id, title, theme, description, total_xp, image_kind, available_from, available_until';
 
 export async function fetchApprovedQuests(cityId: CityId) {
   const queryApprovedQuests = (selectColumns: string) =>
@@ -93,6 +107,10 @@ export async function fetchApprovedQuests(cityId: CityId) {
   }
 
   const questIds = quests.map((quest) => quest.id);
+  const { data: completionStatsRows } = await supabase
+    .from('quest_completion_stats')
+    .select('quest_id, completion_count')
+    .in('quest_id', questIds);
   const { data: stopRows, error: stopsError } = await supabase
     .from('quest_stops')
     .select('id, quest_id, title, description, eta, position')
@@ -120,10 +138,16 @@ export async function fetchApprovedQuests(cityId: CityId) {
     },
     {},
   );
+  const completionCountByQuestId = ((completionStatsRows ?? []) as QuestCompletionStatsRow[]).reduce<
+    Record<string, number>
+  >((counts, stat) => ({ ...counts, [stat.quest_id]: stat.completion_count }), {});
 
   return {
     error: null,
     quests: quests.map((quest) => ({
+      availableFrom: quest.available_from,
+      availableUntil: quest.available_until ?? undefined,
+      completionCount: completionCountByQuestId[quest.id] ?? 0,
       id: quest.id,
       title: quest.title,
       theme: quest.theme,
@@ -157,6 +181,8 @@ export async function createQuest(input: CreateQuestInput) {
   const { data: questRow, error: questError } = await supabase
     .from('quests')
     .insert({
+      available_from: input.availableFrom,
+      available_until: input.availableUntil ?? null,
       city_key: input.cityId,
       created_by: input.createdBy,
       description: input.description,

@@ -28,6 +28,14 @@ const initialStops: QuestDraftStop[] = [
   { title: '', description: '', eta: '10 min' },
 ];
 
+function formatDateInput(value: Date) {
+  return value.toISOString().slice(0, 10);
+}
+
+function isValidDateInput(value: string) {
+  return /^\d{4}-\d{2}-\d{2}$/.test(value) && !Number.isNaN(Date.parse(`${value}T00:00:00`));
+}
+
 export function useCreateQuestForm({
   onQuestCreated,
   savedCityId,
@@ -35,6 +43,8 @@ export function useCreateQuestForm({
 }: UseCreateQuestFormInput) {
   const [createQuestOpen, setCreateQuestOpen] = useState(false);
   const [questCityId, setQuestCityId] = useState<CityId>(savedCityId);
+  const [questAvailableFrom, setQuestAvailableFrom] = useState(() => formatDateInput(new Date()));
+  const [questAvailableUntil, setQuestAvailableUntil] = useState('');
   const [questDescription, setQuestDescription] = useState('');
   const [questImage, setQuestImage] = useState<QuestImageKind>('museum');
   const [questImageUri, setQuestImageUri] = useState<string | null>(null);
@@ -50,6 +60,8 @@ export function useCreateQuestForm({
 
   function resetQuestForm() {
     setQuestCityId(savedCityId);
+    setQuestAvailableFrom(formatDateInput(new Date()));
+    setQuestAvailableUntil('');
     setQuestDescription('');
     setQuestImage('museum');
     setQuestImageUri(null);
@@ -140,6 +152,8 @@ export function useCreateQuestForm({
     const normalizedTheme = limitText(questTheme.trim(), textLimits.questTheme);
     const normalizedDescription = limitText(questDescription.trim(), textLimits.questDescription);
     const normalizedXp = Number.parseInt(questXp.trim(), 10);
+    const normalizedAvailableFrom = questAvailableFrom.trim();
+    const normalizedAvailableUntil = questAvailableUntil.trim();
     const completeStops = questStops
       .map((stop) => ({
         description: limitText(stop.description.trim(), textLimits.questStopDescription),
@@ -164,6 +178,18 @@ export function useCreateQuestForm({
       setCreateQuestError('Enter a valid XP amount.');
       return;
     }
+    if (!isValidDateInput(normalizedAvailableFrom)) {
+      setCreateQuestError('Enter a valid availability start date in YYYY-MM-DD format.');
+      return;
+    }
+    if (
+      normalizedAvailableUntil &&
+      (!isValidDateInput(normalizedAvailableUntil) ||
+        normalizedAvailableUntil < normalizedAvailableFrom)
+    ) {
+      setCreateQuestError('The availability end date must be on or after the start date.');
+      return;
+    }
     if (completeStops.length === 0) {
       setCreateQuestError('Add at least one quest stop.');
       return;
@@ -179,6 +205,8 @@ export function useCreateQuestForm({
     let result;
     try {
       result = await createQuest({
+        availableFrom: normalizedAvailableFrom,
+        availableUntil: normalizedAvailableUntil || null,
         cityId: questCityId,
         createdBy: userId,
         description: normalizedDescription,
@@ -224,6 +252,8 @@ export function useCreateQuestForm({
     creatingQuest,
     openCreateQuest,
     pickQuestImage,
+    questAvailableFrom,
+    questAvailableUntil,
     questCityId,
     questDescription,
     questImage,
@@ -235,6 +265,8 @@ export function useCreateQuestForm({
     questXp,
     removeQuestStop,
     setCreateQuestOpen,
+    setQuestAvailableFrom,
+    setQuestAvailableUntil,
     setQuestCityId,
     setQuestDescription: changeQuestDescription,
     setQuestImage,

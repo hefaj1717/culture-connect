@@ -34,6 +34,8 @@ type CreateQuestModalProps = {
   creatingQuest: boolean;
   gesture: GestureType;
   onAddStop: () => void;
+  onChangeAvailableFrom: (value: string) => void;
+  onChangeAvailableUntil: (value: string) => void;
   onChangeCity: (value: CityId) => void;
   onChangeDescription: (value: string) => void;
   onChangeStatus: (value: 'draft' | 'approved') => void;
@@ -47,6 +49,8 @@ type CreateQuestModalProps = {
   onRemoveStop: (index: number) => void;
   onSubmit: () => void;
   questCityId: CityId;
+  questAvailableFrom: string;
+  questAvailableUntil: string;
   questDescription: string;
   questImageUri: string | null;
   questStatus: 'draft' | 'approved';
@@ -64,6 +68,8 @@ export function CreateQuestModal({
   creatingQuest,
   gesture,
   onAddStop,
+  onChangeAvailableFrom,
+  onChangeAvailableUntil,
   onChangeCity,
   onChangeDescription,
   onChangeStatus,
@@ -77,6 +83,8 @@ export function CreateQuestModal({
   onRemoveStop,
   onSubmit,
   questCityId,
+  questAvailableFrom,
+  questAvailableUntil,
   questDescription,
   questImageUri,
   questStatus,
@@ -168,6 +176,32 @@ export function CreateQuestModal({
                   maxLength={textLimits.questTheme}
                   className="mb-4 rounded-xl border border-gray-300 px-4 py-3 text-[15px] text-ink"
                 />
+
+                <Text className="mb-2 text-[13px] font-semibold text-ink">Availability</Text>
+                <View className="mb-4 flex-row gap-3">
+                  <View className="flex-1">
+                    <Text className="mb-1.5 text-[11px] font-medium text-muted">From</Text>
+                    <TextInput
+                      value={questAvailableFrom}
+                      onChangeText={onChangeAvailableFrom}
+                      placeholder="YYYY-MM-DD"
+                      placeholderTextColor="#8B909A"
+                      keyboardType="numbers-and-punctuation"
+                      className="rounded-xl border border-gray-300 px-3 py-3 text-[14px] text-ink"
+                    />
+                  </View>
+                  <View className="flex-1">
+                    <Text className="mb-1.5 text-[11px] font-medium text-muted">Until (optional)</Text>
+                    <TextInput
+                      value={questAvailableUntil}
+                      onChangeText={onChangeAvailableUntil}
+                      placeholder="YYYY-MM-DD"
+                      placeholderTextColor="#8B909A"
+                      keyboardType="numbers-and-punctuation"
+                      className="rounded-xl border border-gray-300 px-3 py-3 text-[14px] text-ink"
+                    />
+                  </View>
+                </View>
 
                 <Text className="mb-2 text-[13px] font-semibold text-ink">Description</Text>
                 <TextInput
