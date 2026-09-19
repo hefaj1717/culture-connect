@@ -20,6 +20,7 @@ import Animated, {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { BrandImage } from '@/components/brand-image';
+import { EmptyState } from '@/components/async-state';
 import { CardStyles, Colors } from '@/constants/theme';
 import type { CultureEvent } from '@/data/culture';
 import { useStableTopInset } from '@/hooks/use-stable-safe-area';
@@ -370,12 +371,12 @@ function OrganizerEventGroup({
         {title}
       </Text>
       {events.length === 0 ? (
-        <View className="rounded-feature p-4" style={{ backgroundColor: Colors.light.backgroundElement }}>
-          <Text className="text-[14px] font-semibold text-ink">
-            {title === 'Upcoming' ? 'Nothing upcoming yet' : 'No previous events'}
-          </Text>
-          <Text className="mt-1 text-[12px] leading-4 text-muted">{emptyLabel}</Text>
-        </View>
+        <EmptyState
+          body={emptyLabel}
+          compact
+          icon={null}
+          title={title === 'Upcoming' ? 'Nothing upcoming yet' : 'No previous events'}
+        />
       ) : (
         <View className="gap-3">
           {events.map((event) => (

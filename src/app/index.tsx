@@ -358,6 +358,7 @@ export default function HomeScreen({
               <EmptyState
                 body={`Live events in ${cityData.name} will appear here during their scheduled time.`}
                 compact
+                icon={Bell}
                 style={{ width: layout.stateCardWidth }}
                 title="Nothing live right now"
               />
@@ -636,6 +637,7 @@ export default function HomeScreen({
                     <EmptyState
                       body="The city map will light up once approved events have activity."
                       compact
+                      icon={Globe}
                       title="No live activity yet"
                       tone="inline"
                     />
@@ -689,6 +691,7 @@ export default function HomeScreen({
                 <EmptyState
                   body={`Universities for ${cityData.name} will appear here when the first members join.`}
                   compact
+                  icon={Users}
                   title="No universities linked yet"
                   tone="inline"
                 />

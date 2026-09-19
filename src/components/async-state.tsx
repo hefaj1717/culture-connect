@@ -6,7 +6,7 @@ import {
   type StyleProp,
   type ViewStyle,
 } from 'react-native';
-import { AlertCircle, Inbox, RefreshCcw } from 'lucide-react-native';
+import { AlertCircle, Inbox, RefreshCcw, type LucideIcon } from 'lucide-react-native';
 
 import { Colors } from '@/constants/theme';
 import { AppSurface } from '@/components/app-surface';
@@ -17,6 +17,8 @@ type AsyncStateProps = {
   actionLabel?: string;
   body?: string;
   compact?: boolean;
+  /** A context-specific symbol explains what this empty space relates to. */
+  icon?: LucideIcon | null;
   onAction?: () => void;
   style?: StyleProp<ViewStyle>;
   title: string;
@@ -75,6 +77,7 @@ export function ErrorState({
   actionLabel,
   body,
   compact,
+  icon: Icon = Inbox,
   onAction,
   style,
   title = 'Something went wrong',
@@ -114,6 +117,7 @@ export function EmptyState({
   actionLabel,
   body,
   compact,
+  icon: Icon = Inbox,
   onAction,
   style,
   title,
@@ -122,20 +126,28 @@ export function EmptyState({
   return (
     <AppSurface
       compact={compact}
-      style={[{ backgroundColor: `${Colors.light.primary}0D`, borderColor: `${Colors.light.primary}26` }, style]}
+      style={[
+        {
+          backgroundColor: Colors.light.backgroundElement,
+          borderColor: `${Colors.light.primary}1F`,
+        },
+        style,
+      ]}
       tone={tone === 'inline' ? 'inline' : 'default'}
     >
-      <View className="flex-row items-start gap-3">
-        <View className="h-9 w-9 items-center justify-center rounded-2xl bg-white">
-          <Inbox color={Colors.light.accentDeep} size={18} strokeWidth={2.4} />
-        </View>
+      <View className="flex-row items-start gap-3.5">
+        {Icon ? (
+          <View className="h-10 w-10 items-center justify-center rounded-full bg-surface">
+            <Icon color={Colors.light.primary} size={19} strokeWidth={2.2} />
+          </View>
+        ) : null}
         <View className="min-w-0 flex-1">
-          <Text className="font-ui text-[14px] font-extrabold text-ink">{title}</Text>
-          {body ? <Text className="mt-1 text-[12px] leading-4 text-muted">{body}</Text> : null}
+          <Text className="font-serifRegular text-[18px] leading-6 text-ink">{title}</Text>
+          {body ? <Text className="mt-1 text-[13px] leading-5 text-muted">{body}</Text> : null}
           {onAction ? (
             <Pressable
               onPress={onAction}
-              className="mt-3 self-start rounded-full bg-primary px-3 py-1.5 active:opacity-80"
+              className="mt-3 self-start rounded-full bg-primary px-3.5 py-2 active:opacity-80"
             >
               <Text className="text-[11px] font-extrabold text-white">{actionLabel}</Text>
             </Pressable>

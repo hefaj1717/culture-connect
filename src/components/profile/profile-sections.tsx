@@ -753,6 +753,7 @@ export function AdminXpAuditModal({
               ) : transactions.length === 0 ? (
                 <EmptyState
                   body="New check-ins, quest completions, and reward redemptions will appear here."
+                  icon={ReceiptText}
                   title="No XP transactions yet"
                 />
               ) : (
@@ -1034,11 +1035,13 @@ export function UserActivityHistoryModal({
               ) : !hasAnyActivity ? (
                 <EmptyState
                   body="Events you mark as Interested, Going, or Attended, plus reward spends and quest awards, will appear here."
+                  icon={Clock}
                   title="No activity yet"
                 />
               ) : filteredHistory.length === 0 && !showXpTransactions ? (
                 <EmptyState
                   body={`No ${getActivityFilterEmptyLabel(activityFilter)} events in your history yet.`}
+                  icon={CalendarDays}
                   title="Nothing here yet"
                 />
               ) : (
@@ -1153,11 +1156,13 @@ export function OrganizerEventHistoryModal({
               {events.length === 0 ? (
                 <EmptyState
                   body="Events you submit for review will appear here with their approval status."
+                  icon={CalendarDays}
                   title="No organizer events yet"
                 />
               ) : filteredEvents.length === 0 ? (
                 <EmptyState
                   body={`No ${getOrganizerFilterEmptyLabel(organizerFilter)} events in your organizer history.`}
+                  icon={CalendarDays}
                   title="Nothing here yet"
                 />
               ) : (
@@ -1245,11 +1250,13 @@ export function OrganizerRewardHistoryModal({
               {rewards.length === 0 ? (
                 <EmptyState
                   body="Rewards you submit for review will appear here with their approval status."
+                  icon={Gift}
                   title="No organizer rewards yet"
                 />
               ) : filteredRewards.length === 0 ? (
                 <EmptyState
                   body={`No ${getOrganizerRewardFilterEmptyLabel(rewardFilter)} rewards in your history.`}
+                  icon={Gift}
                   title="Nothing here yet"
                 />
               ) : (
@@ -2086,6 +2093,7 @@ export function RewardsSection({
       ) : rewards.length === 0 ? (
         <EmptyState
           body={`Approved partner rewards in ${cityName} will appear here after CultureQuest review.`}
+          icon={Gift}
           title="No rewards yet"
         />
       ) : null}

@@ -101,6 +101,7 @@ export default function QuestsScreen({
           ) : quests.length === 0 ? (
             <EmptyState
               body={`CultureQuest-curated paths for ${cityData.name} will appear here after admin review.`}
+              icon={MapPin}
               title="No active quests yet"
             />
           ) : (

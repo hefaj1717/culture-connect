@@ -355,11 +355,13 @@ export function AdminManageEventsModal({
                 events.length === 0 ? (
                   <EmptyState
                     body="Organizer events will appear here after they are submitted."
+                    icon={CalendarDays}
                     title="No events yet"
                   />
                 ) : filteredEvents.length === 0 ? (
                   <EmptyState
                     body="No events match this status filter."
+                    icon={Search}
                     title="Nothing here"
                   />
                 ) : (
@@ -375,11 +377,13 @@ export function AdminManageEventsModal({
               ) : rewards.length === 0 ? (
                 <EmptyState
                   body="Organizer rewards will appear here after they are submitted."
+                  icon={Gift}
                   title="No rewards yet"
                 />
               ) : filteredRewards.length === 0 ? (
                 <EmptyState
                   body="No rewards match this status filter."
+                  icon={Search}
                   title="Nothing here"
                 />
               ) : (
