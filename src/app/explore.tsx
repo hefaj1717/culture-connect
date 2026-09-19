@@ -763,7 +763,7 @@ export default function ExploreScreen({
   );
 }
 
-function EventDetailModal({
+export function EventDetailModal({
   checkedIn,
   event,
   venue,

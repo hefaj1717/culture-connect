@@ -449,8 +449,11 @@ function AuthenticatedTabs() {
           </View>
           <View style={{ width }}>
             <ProfileScreen
+              checkedInEventIds={checkedInEventIds}
               eventsRefreshKey={organizerEventsVersion}
-              onOpenEvent={openDiscoverEvent}
+              eventStatuses={eventStatuses}
+              onEventCheckIn={awardEventCheckInXp}
+              onEventStatusChange={updateEventStatus}
               rewardsRefreshKey={rewardsRefreshKey}
               userEventHistory={userEventHistory}
               userXp={userXp}
