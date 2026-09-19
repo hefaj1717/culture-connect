@@ -35,6 +35,7 @@ type OrganizerProfileModalProps = {
   cityName: string;
   embedded?: boolean;
   events: CultureEvent[];
+  staticPresentation?: boolean;
   onClose: () => void;
   onOpenEvent: (event: CultureEvent) => void;
   profile: OrganizerProfile | null;
@@ -47,12 +48,13 @@ export function OrganizerProfileModal({
   onClose,
   onOpenEvent,
   profile,
+  staticPresentation = false,
 }: OrganizerProfileModalProps) {
   const { user } = useAuth();
   const { width } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const stableTopInset = useStableTopInset();
-  const translateX = useSharedValue(embedded ? width : 0);
+  const translateX = useSharedValue(embedded && !staticPresentation ? width : 0);
   const [followError, setFollowError] = useState<string | null>(null);
   const [followLoading, setFollowLoading] = useState(false);
   const [isFollowing, setIsFollowing] = useState(false);
@@ -60,14 +62,14 @@ export function OrganizerProfileModal({
 
   useEffect(() => {
     if (profile) {
-      if (embedded) {
+      if (embedded && !staticPresentation) {
         translateX.value = width;
         translateX.value = withTiming(0, { duration: 220 });
       } else {
         translateX.value = 0;
       }
     }
-  }, [embedded, profile, translateX, width]);
+  }, [embedded, profile, staticPresentation, translateX, width]);
 
   useEffect(() => {
     let isCurrent = true;
