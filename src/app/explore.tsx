@@ -1087,7 +1087,7 @@ function EventDetailModal({
                 )}
 
                 <View
-                  className="mb-6 rounded-feature border border-primary/10 p-4"
+                  className="mb-6 rounded-feature p-4"
                   style={{ backgroundColor: Colors.light.backgroundElement }}
                 >
                   <InfoRow icon={<MapPin size={17} color={Colors.light.primary} />} label={event.venueName} />
@@ -1127,14 +1127,14 @@ function EventDetailModal({
                 </View>
 
                 <View className="mb-2 flex-row items-center gap-3">
-                  <Text className="font-serifRegular text-[22px] leading-7 text-ink">About</Text>
+                  <Text className="font-serifRegular text-[22px] leading-7 text-primary">About</Text>
                   <View className="h-px flex-1 bg-primary/15" />
                 </View>
                 <Text className="mb-6 text-[14px] leading-6 text-muted">{event.description}</Text>
 
                 <View className="mb-6">
                   <View className="mb-2 flex-row items-center gap-3">
-                    <Text className="font-serifRegular text-[22px] leading-7 text-ink">Hosted by</Text>
+                    <Text className="font-serifRegular text-[22px] leading-7 text-primary">Hosted by</Text>
                     <View className="h-px flex-1 bg-primary/15" />
                   </View>
                   {organizerProfile ? (
