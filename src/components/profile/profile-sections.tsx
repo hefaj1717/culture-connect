@@ -25,6 +25,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import QRCode from 'react-native-qrcode-svg';
 import { captureRef } from 'react-native-view-shot';
 
+import { EventDetailModal, type EventCheckInResult } from '@/app/explore';
 import { EmptyState, ErrorState, LoadingState } from '@/components/async-state';
 import { BrandImage } from '@/components/brand-image';
 import { PassportBadge, type AchievementBadge } from '@/components/profile/badges';
@@ -32,7 +33,11 @@ import { OrganizerStatusCard, OrganizerVerifiedBadge } from '@/components/profil
 import { RankAvatar } from '@/components/profile/profile-avatar';
 import { RewardPartnerRow } from '@/components/profile/reward-partner-row';
 import { CardStyles, Colors, GamificationColors } from '@/constants/theme';
-import { eventCategoryLabels, type CultureEvent, type RewardPartner } from '@/data/culture';
+import {
+  eventCategoryLabels,
+  type CultureEvent,
+  type RewardPartner,
+} from '@/data/culture';
 import type { RedeemedRewardState } from '@/data/profile';
 import { getEventEngagement } from '@/lib/event-engagement';
 import type { UserEventHistoryItem, UserEventStatus } from '@/lib/event-history';
@@ -964,18 +969,35 @@ export function OrganizerRewardHistorySection({
 }
 
 export function UserActivityHistoryModal({
+  checkedInEventIds = [],
+  cityName,
   error,
+  eventStatuses = {},
   history,
   loading = false,
   onClose,
+  onEventCheckIn,
+  onEventStatusChange,
   stableModalTopInset,
   transactions,
   visible,
 }: {
+  checkedInEventIds?: string[];
+  cityName: string;
   error?: string | null;
+  eventStatuses?: Record<string, UserEventStatus>;
   history: UserEventHistoryItem[];
   loading?: boolean;
   onClose: () => void;
+  onEventCheckIn?: (
+    event: CultureEvent,
+    checkInCode: string,
+    location: { latitude: number; longitude: number },
+  ) => Promise<EventCheckInResult>;
+  onEventStatusChange?: (
+    eventId: string,
+    status: UserEventStatus | null,
+  ) => Promise<{ error: string | null }>;
   stableModalTopInset: number;
   transactions: XpTransaction[];
   visible: boolean;
@@ -985,6 +1007,11 @@ export function UserActivityHistoryModal({
   const selectedHistoryItem = selectedEvent
     ? history.find((item) => item.event.id === selectedEvent.id)
     : null;
+  const selectedEventStatus = selectedEvent ? eventStatuses[selectedEvent.id] : undefined;
+  const selectedEventRsvp =
+    selectedEventStatus === 'interested' || selectedEventStatus === 'going'
+      ? selectedEventStatus
+      : undefined;
   const transactionsByEventId = useMemo(
     () => getEventTransactionLookup(transactions),
     [transactions],
@@ -1001,15 +1028,6 @@ export function UserActivityHistoryModal({
     enabled: !selectedEvent,
     onSwipeBack: onClose,
     visible,
-  });
-  const {
-    closeWithAnimation: closeDetailWithAnimation,
-    gesture: detailGesture,
-    swipeStyle: detailSwipeStyle,
-  } = useCardSwipeBack({
-    onSwipeBack: () => setSelectedEvent(null),
-    resetKey: selectedEvent?.id ?? null,
-    visible: visible && !!selectedEvent,
   });
 
   return (
@@ -1083,17 +1101,25 @@ export function UserActivityHistoryModal({
             </ScrollView>
 
             {selectedEvent && (
-              <GestureDetector gesture={detailGesture}>
-                <Animated.View className="absolute inset-0 bg-white" style={detailSwipeStyle}>
-                  <HistoryEventDetail
-                    event={selectedEvent}
-                    onBack={closeDetailWithAnimation}
-                    stableModalTopInset={stableModalTopInset}
-                    status={selectedHistoryItem?.status}
-                    transaction={transactionsByEventId[selectedEvent.id]}
-                  />
-                </Animated.View>
-              </GestureDetector>
+              <EventDetailModal
+                checkedIn={
+                  checkedInEventIds.includes(selectedEvent.id) || selectedHistoryItem?.status === 'attended'
+                }
+                cityName={cityName}
+                event={selectedEvent}
+                onCheckIn={
+                  onEventCheckIn ??
+                  (async () => ({ error: 'Check-in is not available right now.', success: false }))
+                }
+                onClose={() => setSelectedEvent(null)}
+                onToggleStatus={
+                  onEventStatusChange ??
+                  (async () => ({ error: 'RSVP is not available right now.' }))
+                }
+                organizerEvents={history.map((item) => item.event)}
+                status={selectedEventRsvp}
+                venue={null}
+              />
             )}
           </SafeAreaView>
         </Animated.View>
@@ -1103,19 +1129,41 @@ export function UserActivityHistoryModal({
 }
 
 export function OrganizerEventHistoryModal({
+  checkedInEventIds = [],
+  cityName,
   events,
+  eventStatuses = {},
   onClose,
   onEditEvent,
+  onEventCheckIn,
+  onEventStatusChange,
   stableModalTopInset,
   visible,
 }: {
+  checkedInEventIds?: string[];
+  cityName: string;
   events: ManagedOrganizerEvent[];
+  eventStatuses?: Record<string, UserEventStatus>;
   onClose: () => void;
   onEditEvent: (event: ManagedOrganizerEvent) => void;
+  onEventCheckIn?: (
+    event: CultureEvent,
+    checkInCode: string,
+    location: { latitude: number; longitude: number },
+  ) => Promise<EventCheckInResult>;
+  onEventStatusChange?: (
+    eventId: string,
+    status: UserEventStatus | null,
+  ) => Promise<{ error: string | null }>;
   stableModalTopInset: number;
   visible: boolean;
 }) {
   const [selectedEvent, setSelectedEvent] = useState<ManagedOrganizerEvent | null>(null);
+  const selectedEventStatus = selectedEvent ? eventStatuses[selectedEvent.id] : undefined;
+  const selectedEventRsvp =
+    selectedEventStatus === 'interested' || selectedEventStatus === 'going'
+      ? selectedEventStatus
+      : undefined;
   const [organizerFilter, setOrganizerFilter] = useState<OrganizerHistoryFilter>('all');
   const filteredEvents =
     organizerFilter === 'all'
@@ -1129,15 +1177,6 @@ export function OrganizerEventHistoryModal({
     enabled: !selectedEvent,
     onSwipeBack: onClose,
     visible,
-  });
-  const {
-    closeWithAnimation: closeDetailWithAnimation,
-    gesture: detailGesture,
-    swipeStyle: detailSwipeStyle,
-  } = useCardSwipeBack({
-    onSwipeBack: () => setSelectedEvent(null),
-    resetKey: selectedEvent?.id ?? null,
-    visible: visible && !!selectedEvent,
   });
 
   return (
@@ -1193,17 +1232,23 @@ export function OrganizerEventHistoryModal({
             </ScrollView>
 
             {selectedEvent && (
-              <GestureDetector gesture={detailGesture}>
-                <Animated.View className="absolute inset-0 bg-white" style={detailSwipeStyle}>
-                  <HistoryEventDetail
-                    event={selectedEvent}
-                    onBack={closeDetailWithAnimation}
-                    onEditEvent={() => onEditEvent(selectedEvent)}
-                    organizerStatus={selectedEvent.reviewStatus}
-                    stableModalTopInset={stableModalTopInset}
-                  />
-                </Animated.View>
-              </GestureDetector>
+              <EventDetailModal
+                checkedIn={checkedInEventIds.includes(selectedEvent.id)}
+                cityName={cityName}
+                event={selectedEvent}
+                onCheckIn={
+                  onEventCheckIn ??
+                  (async () => ({ error: 'Check-in is not available right now.', success: false }))
+                }
+                onClose={() => setSelectedEvent(null)}
+                onToggleStatus={
+                  onEventStatusChange ??
+                  (async () => ({ error: 'RSVP is not available right now.' }))
+                }
+                organizerEvents={events}
+                status={selectedEventRsvp}
+                venue={null}
+              />
             )}
           </SafeAreaView>
         </Animated.View>
@@ -1585,6 +1630,9 @@ function OrganizerRewardRow({ reward }: { reward: ManagedOrganizerReward }) {
   );
 }
 
+// Retained temporarily for the organizer QR management flow while event details
+// now use the shared Discover presentation above.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function HistoryEventDetail({
   event,
   onBack,

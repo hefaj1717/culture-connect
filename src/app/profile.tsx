@@ -953,22 +953,32 @@ export default function ProfileScreen({
 
       <InlineToast message={notice} onDismiss={() => setNotice(null)} />
       <UserActivityHistoryModal
+        checkedInEventIds={checkedInEventIds}
+        cityName={cityData.name}
         error={xpTransactionsError}
+        eventStatuses={eventStatuses}
         history={userEventHistory}
         loading={xpTransactionsLoading}
         onClose={() => setActivityHistoryOpen(false)}
+        onEventCheckIn={onEventCheckIn}
+        onEventStatusChange={onEventStatusChange}
         stableModalTopInset={stableModalTopInset}
         transactions={xpTransactions}
         visible={activityHistoryOpen}
       />
 
       <OrganizerEventHistoryModal
+        checkedInEventIds={checkedInEventIds}
+        cityName={cityData.name}
         events={myOrganizerEvents}
+        eventStatuses={eventStatuses}
         onClose={() => setOrganizerHistoryOpen(false)}
         onEditEvent={(event) => {
           setOrganizerHistoryOpen(false);
           openEditEvent(event);
         }}
+        onEventCheckIn={onEventCheckIn}
+        onEventStatusChange={onEventStatusChange}
         stableModalTopInset={stableModalTopInset}
         visible={organizerHistoryOpen}
       />
