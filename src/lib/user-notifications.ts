@@ -9,6 +9,7 @@ export type UserNotification = {
   readAt: string | null;
   title: string;
   type:
+    | 'event_details_updated'
     | 'organizer_announcement'
     | 'organizer_event_published'
     | 'organizer_event_updated'
