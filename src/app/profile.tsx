@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { ScrollView, Text, View } from 'react-native';
 
 import { AdminReviewModal } from '@/components/profile/admin-review-modal';
+import type { EventCheckInResult } from '@/app/explore';
 import { InlineToast } from '@/components/inline-toast';
 import { AdminManageEventsModal } from '@/components/profile/admin-manage-events-modal';
 import { CreateEventModal } from '@/components/profile/create-event-modal';
@@ -35,7 +36,7 @@ import { useEditProfileForm } from '@/hooks/profile/use-edit-profile-form';
 import { useRewardRedemption } from '@/hooks/profile/use-reward-redemption';
 import { useCardSwipeBack } from '@/hooks/use-card-swipe-back';
 import { useStableTopInset } from '@/hooks/use-stable-safe-area';
-import type { UserEventHistoryItem } from '@/lib/event-history';
+import type { UserEventHistoryItem, UserEventStatus } from '@/lib/event-history';
 import {
   fetchFollowedOrganizerProfiles,
   unfollowOrganizer,
@@ -55,9 +56,19 @@ import { fetchXpTransactions, type XpTransaction } from '@/lib/xp-transactions';
 import { useAuth } from '@/providers/auth-provider';
 
 type ProfileScreenProps = {
+  checkedInEventIds?: string[];
   eventsRefreshKey?: number;
+  eventStatuses?: Record<string, UserEventStatus>;
   onEventCreated?: () => void;
-  onOpenEvent?: (eventId: string) => void;
+  onEventCheckIn?: (
+    event: CultureEvent,
+    checkInCode: string,
+    location: { latitude: number; longitude: number },
+  ) => Promise<EventCheckInResult>;
+  onEventStatusChange?: (
+    eventId: string,
+    status: UserEventStatus | null,
+  ) => Promise<{ error: string | null }>;
   onQuestCreated?: () => void;
   onRewardCreated?: () => void;
   onUserXpChange?: (nextXp: number) => void;
@@ -68,8 +79,11 @@ type ProfileScreenProps = {
 
 export default function ProfileScreen({
   eventsRefreshKey = 0,
+  checkedInEventIds = [],
+  eventStatuses = {},
   onEventCreated,
-  onOpenEvent,
+  onEventCheckIn,
+  onEventStatusChange,
   onQuestCreated,
   onRewardCreated,
   onUserXpChange,
@@ -617,12 +631,6 @@ export default function ProfileScreen({
     if (!result.error) setFollowedOrganizerEvents(result.events);
   }
 
-  function openFollowedOrganizerEvent(event: CultureEvent) {
-    setSelectedFollowedOrganizer(null);
-    setFollowedOrganizersOpen(false);
-    onOpenEvent?.(event.id);
-  }
-
   return (
     <View className="flex-1 bg-canvas">
       <ScrollView
@@ -703,11 +711,20 @@ export default function ProfileScreen({
       <FollowedOrganizersModal
         activeProfile={selectedFollowedOrganizer}
         activeProfileEvents={followedOrganizerEvents}
+        checkedInEventIds={checkedInEventIds}
         error={followedOrganizersError}
+        eventStatuses={eventStatuses}
         loading={followedOrganizersLoading}
         onClose={() => setFollowedOrganizersOpen(false)}
         onCloseProfile={() => setSelectedFollowedOrganizer(null)}
-        onOpenEvent={openFollowedOrganizerEvent}
+        onEventCheckIn={
+          onEventCheckIn ??
+          (async () => ({ error: 'Check-in is not available right now.', success: false }))
+        }
+        onEventStatusChange={
+          onEventStatusChange ??
+          (async () => ({ error: 'RSVP is not available right now.' }))
+        }
         onOpenProfile={(profile) => void openFollowedOrganizer(profile)}
         onRetry={() => setFollowedOrganizersReloadNonce((current) => current + 1)}
         onUnfollow={removeFollowedOrganizer}

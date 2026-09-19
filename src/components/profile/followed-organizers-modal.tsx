@@ -2,20 +2,32 @@ import { X, UserCheck } from 'lucide-react-native';
 import { useState } from 'react';
 import { Modal, Pressable, ScrollView, Text, View } from 'react-native';
 
+import { EventDetailModal, type EventCheckInResult } from '@/app/explore';
 import { EmptyState, ErrorState, LoadingState } from '@/components/async-state';
 import { OrganizerAvatar, OrganizerProfileModal } from '@/components/organizer-profile-modal';
 import { Colors } from '@/constants/theme';
 import { getCultureCityData, type CultureEvent } from '@/data/culture';
+import type { UserEventStatus } from '@/lib/event-history';
 import type { OrganizerProfile } from '@/lib/organizer-profiles';
 
 type FollowedOrganizersModalProps = {
   activeProfile: OrganizerProfile | null;
   activeProfileEvents: CultureEvent[];
+  checkedInEventIds: string[];
   error: string | null;
+  eventStatuses: Record<string, UserEventStatus>;
   loading: boolean;
   onClose: () => void;
   onCloseProfile: () => void;
-  onOpenEvent: (event: CultureEvent) => void;
+  onEventCheckIn: (
+    event: CultureEvent,
+    checkInCode: string,
+    location: { latitude: number; longitude: number },
+  ) => Promise<EventCheckInResult>;
+  onEventStatusChange: (
+    eventId: string,
+    status: UserEventStatus | null,
+  ) => Promise<{ error: string | null }>;
   onOpenProfile: (profile: OrganizerProfile) => void;
   onRetry: () => void;
   onUnfollow: (organizerId: string) => Promise<{ error: string | null }>;
@@ -27,11 +39,14 @@ type FollowedOrganizersModalProps = {
 export function FollowedOrganizersModal({
   activeProfile,
   activeProfileEvents,
+  checkedInEventIds,
   error,
+  eventStatuses,
   loading,
   onClose,
   onCloseProfile,
-  onOpenEvent,
+  onEventCheckIn,
+  onEventStatusChange,
   onOpenProfile,
   onRetry,
   onUnfollow,
@@ -41,6 +56,12 @@ export function FollowedOrganizersModal({
 }: FollowedOrganizersModalProps) {
   const [unfollowError, setUnfollowError] = useState<string | null>(null);
   const [unfollowingId, setUnfollowingId] = useState<string | null>(null);
+  const [selectedEvent, setSelectedEvent] = useState<CultureEvent | null>(null);
+  const selectedEventStatus = selectedEvent ? eventStatuses[selectedEvent.id] : undefined;
+  const selectedEventRsvp =
+    selectedEventStatus === 'interested' || selectedEventStatus === 'going'
+      ? selectedEventStatus
+      : undefined;
 
   async function handleUnfollow(organizerId: string): Promise<{ error: string | null }> {
     if (unfollowingId) return { error: 'Please wait for the current change to finish.' };
@@ -65,7 +86,7 @@ export function FollowedOrganizersModal({
           embedded
           events={activeProfileEvents}
           onClose={onCloseProfile}
-          onOpenEvent={onOpenEvent}
+          onOpenEvent={setSelectedEvent}
           profile={activeProfile}
         />
       ) : (
@@ -134,6 +155,20 @@ export function FollowedOrganizersModal({
         </ScrollView>
       </View>
       )}
+      {activeProfile && selectedEvent ? (
+        <EventDetailModal
+          checkedIn={checkedInEventIds.includes(selectedEvent.id)}
+          cityName={getCultureCityData(activeProfile.cityId).name}
+          event={selectedEvent}
+          onCheckIn={onEventCheckIn}
+          onClose={() => setSelectedEvent(null)}
+          onToggleStatus={onEventStatusChange}
+          organizerEvents={activeProfileEvents}
+          organizerProfile={activeProfile}
+          status={selectedEventRsvp}
+          venue={null}
+        />
+      ) : null}
     </Modal>
   );
 }
