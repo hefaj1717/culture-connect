@@ -52,7 +52,7 @@ export function OrganizerProfileModal({
   const { width } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const stableTopInset = useStableTopInset();
-  const translateX = useSharedValue(0);
+  const translateX = useSharedValue(embedded ? width : 0);
   const [followError, setFollowError] = useState<string | null>(null);
   const [followLoading, setFollowLoading] = useState(false);
   const [isFollowing, setIsFollowing] = useState(false);
@@ -60,9 +60,14 @@ export function OrganizerProfileModal({
 
   useEffect(() => {
     if (profile) {
-      translateX.value = 0;
+      if (embedded) {
+        translateX.value = width;
+        translateX.value = withTiming(0, { duration: 220 });
+      } else {
+        translateX.value = 0;
+      }
     }
-  }, [profile, translateX]);
+  }, [embedded, profile, translateX, width]);
 
   useEffect(() => {
     let isCurrent = true;
@@ -100,11 +105,6 @@ export function OrganizerProfileModal({
       const shouldClose = translateX.value > width * 0.28 || gestureEvent.velocityX > 700;
 
       if (shouldClose) {
-        if (embedded) {
-          runOnJS(onClose)();
-          return;
-        }
-
         translateX.value = withTiming(width, { duration: 180 }, (finished) => {
           if (finished) {
             runOnJS(onClose)();
@@ -146,11 +146,6 @@ export function OrganizerProfileModal({
     });
   }, [organizerEvents]);
   function closeWithAnimation() {
-    if (embedded) {
-      onClose();
-      return;
-    }
-
     translateX.value = withTiming(width, { duration: 180 }, (finished) => {
       if (finished) {
         runOnJS(onClose)();
@@ -159,11 +154,6 @@ export function OrganizerProfileModal({
   }
 
   function openOrganizerEvent(event: CultureEvent) {
-    if (embedded) {
-      onOpenEvent(event);
-      return;
-    }
-
     translateX.value = withTiming(width, { duration: 180 }, (finished) => {
       if (finished) {
         runOnJS(onOpenEvent)(event);
