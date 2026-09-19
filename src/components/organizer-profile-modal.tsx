@@ -203,7 +203,7 @@ export function OrganizerProfileModal({
                 className="overflow-hidden rounded-feature"
                 style={{ backgroundColor: Colors.light.backgroundElement }}
               >
-                <View className="flex-row items-start justify-between gap-4 p-5">
+                <View className="flex-row items-start justify-between gap-4 px-5 pb-3 pt-5">
                   <View className="min-w-0 flex-1">
                     <View className="self-start flex-row items-center gap-1.5 rounded-full bg-success/15 px-2.5 py-1">
                       <CheckCircle2 size={13} color={Colors.light.background} fill={Colors.light.success} />
@@ -248,7 +248,7 @@ export function OrganizerProfileModal({
                   <OrganizerAvatar profile={profile} size={68} />
                 </View>
 
-                <View className="px-5 pt-5">
+                <View className="px-5 pt-3">
                   <View className="mb-2 flex-row items-center gap-3">
                     <Text className="font-serifRegular text-[20px] leading-6 text-ink">About</Text>
                     <View className="h-px flex-1 bg-primary/15" />
