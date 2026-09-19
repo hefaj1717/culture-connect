@@ -33,11 +33,7 @@ import { OrganizerStatusCard, OrganizerVerifiedBadge } from '@/components/profil
 import { RankAvatar } from '@/components/profile/profile-avatar';
 import { RewardPartnerRow } from '@/components/profile/reward-partner-row';
 import { CardStyles, Colors, GamificationColors } from '@/constants/theme';
-import {
-  eventCategoryLabels,
-  type CultureEvent,
-  type RewardPartner,
-} from '@/data/culture';
+import { eventCategoryLabels, type CultureEvent, type RewardPartner } from '@/data/culture';
 import type { RedeemedRewardState } from '@/data/profile';
 import { getEventEngagement } from '@/lib/event-engagement';
 import type { UserEventHistoryItem, UserEventStatus } from '@/lib/event-history';
@@ -260,10 +256,7 @@ function XpProgressBar({ progressPercent }: { progressPercent: number }) {
       className="relative h-4 overflow-hidden rounded-full"
       style={{ backgroundColor: GamificationColors.progressTrack }}
     >
-      <View
-        className="h-full rounded-full bg-success"
-        style={{ width: `${safeProgress}%` }}
-      />
+      <View className="h-full rounded-full bg-success" style={{ width: `${safeProgress}%` }} />
       {[25, 50, 75].map((tick) => (
         <View
           key={tick}
@@ -418,34 +411,38 @@ export function ProfileHistoryList({
 }: ProfileHistoryListProps) {
   return (
     <View className="mb-7 px-5">
-      {isOrganizer ? <ProfileHistoryRow
+      {isOrganizer ? (
+        <ProfileHistoryRow
           description="Submitted, pending, and past events"
           icon={<CalendarDays color={Colors.light.ink} size={18} strokeWidth={2.2} />}
           label="My events"
           onPress={onOpenEvents}
-        /> : null}
-      {isOrganizer ? <ProfileHistoryRow
+        />
+      ) : null}
+      {isOrganizer ? (
+        <ProfileHistoryRow
           description="Partner rewards you manage"
           icon={<Gift color={Colors.light.ink} size={18} strokeWidth={2.2} />}
           label="My rewards"
           onPress={onOpenRewards}
-        /> : null}
-      <ProfileHistoryRow
-          description="Events, reward spends, and XP changes"
-          icon={<Clock color={Colors.light.ink} size={18} strokeWidth={2.2} />}
-          label="My activity"
-          onPress={onOpenActivity}
         />
+      ) : null}
       <ProfileHistoryRow
-          description={
-            followedOrganizerCount === 1
-              ? '1 organizer followed'
-              : `${followedOrganizerCount.toLocaleString()} organizers followed`
-          }
-          icon={<UserRound color={Colors.light.ink} size={18} strokeWidth={2.2} />}
-          label="Following"
-          onPress={onOpenFollowing}
-        />
+        description="Events, reward spends, and XP changes"
+        icon={<Clock color={Colors.light.ink} size={18} strokeWidth={2.2} />}
+        label="My activity"
+        onPress={onOpenActivity}
+      />
+      <ProfileHistoryRow
+        description={
+          followedOrganizerCount === 1
+            ? '1 organizer followed'
+            : `${followedOrganizerCount.toLocaleString()} organizers followed`
+        }
+        icon={<UserRound color={Colors.light.ink} size={18} strokeWidth={2.2} />}
+        label="Following"
+        onPress={onOpenFollowing}
+      />
       {(eventsError || rewardsError) && (
         <Text className="mt-1 text-[12px] leading-4 text-muted">
           Some organiser history could not be loaded. Open a row to try again.
@@ -467,10 +464,7 @@ function ProfileHistoryRow({
   onPress: () => void;
 }) {
   return (
-    <Pressable
-      className="mb-6 flex-row items-start py-1 active:opacity-70"
-      onPress={onPress}
-    >
+    <Pressable className="mb-6 flex-row items-start py-1 active:opacity-70" onPress={onPress}>
       <View className="mt-1 mr-4">{icon}</View>
       <View className="min-w-0 flex-1">
         <Text className="font-heading text-[20px] leading-6 text-ink">{label}</Text>
@@ -530,35 +524,46 @@ export function DigitalPassportSection({
     <View className="mb-8 mt-2">
       <View className="mb-4 flex-row items-center justify-between px-5">
         <Text className="font-heading text-[22px] font-extrabold text-ink">Digital Passport</Text>
-        {badges.length > 0 && onOpenAll ? <Pressable onPress={onOpenAll} className="active:opacity-75"><Text className="text-[12px] font-semibold text-primary">View all</Text></Pressable> : null}
+        {badges.length > 0 && onOpenAll ? (
+          <Pressable onPress={onOpenAll} className="active:opacity-75">
+            <Text className="text-[12px] font-semibold text-primary">View all</Text>
+          </Pressable>
+        ) : null}
       </View>
       {badges.length === 0 ? (
         <View className="mx-5 rounded-2xl bg-canvas p-4">
-          <Text className="font-ui text-[14px] font-extrabold text-ink">Your passport is waiting</Text>
-          <Text className="mt-1 text-[12px] leading-4 text-muted">Complete events and quests to collect badges when the passport launches.</Text>
+          <Text className="font-ui text-[14px] font-extrabold text-ink">
+            Your passport is waiting
+          </Text>
+          <Text className="mt-1 text-[12px] leading-4 text-muted">
+            Complete events and quests to collect badges when the passport launches.
+          </Text>
         </View>
-      ) : <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{ paddingHorizontal: 20, gap: 10 }}
-      >
-        {badges.slice(0, 8).map((badge) => (
-          <PassportBadge
-            badge={badge}
-            itemWidth={badgeWidth}
-            key={badge.id}
-            onPress={() => {
-              onOpenBadge?.(badge);
-            }}
-          />
-        ))}
-      </ScrollView>}
+      ) : (
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={{ paddingHorizontal: 20, gap: 10 }}
+        >
+          {badges.slice(0, 8).map((badge) => (
+            <PassportBadge
+              badge={badge}
+              itemWidth={badgeWidth}
+              key={badge.id}
+              onPress={() => {
+                onOpenBadge?.(badge);
+              }}
+            />
+          ))}
+        </ScrollView>
+      )}
     </View>
   );
 }
 
 type OrganizerToolsSectionProps = {
   cityName: string;
+  onCreateAnnouncement: () => void;
   onCreateEvent: () => void;
   onCreateReward: () => void;
   status: OrganizerStatus;
@@ -566,6 +571,7 @@ type OrganizerToolsSectionProps = {
 
 export function OrganizerToolsSection({
   cityName,
+  onCreateAnnouncement,
   onCreateEvent,
   onCreateReward,
   status,
@@ -611,6 +617,12 @@ export function OrganizerToolsSection({
               className="h-10 flex-row items-center justify-center rounded-xl border border-primary/25 bg-white active:opacity-85"
             >
               <Text className="text-[14px] font-semibold text-primary">Create reward</Text>
+            </Pressable>
+            <Pressable
+              onPress={onCreateAnnouncement}
+              className="h-10 flex-row items-center justify-center rounded-xl border border-primary/25 bg-white active:opacity-85"
+            >
+              <Text className="text-[14px] font-semibold text-primary">Send announcement</Text>
             </Pressable>
           </View>
         </View>
@@ -789,9 +801,7 @@ export function AdminXpAuditModal({
 function AuditSummaryPill({ label, value }: { label: string; value: number }) {
   return (
     <View className="min-w-0 flex-1 rounded-2xl bg-canvas px-3 py-2">
-      <Text className="text-[10px] font-extrabold uppercase tracking-wide text-muted">
-        {label}
-      </Text>
+      <Text className="text-[10px] font-extrabold uppercase tracking-wide text-muted">{label}</Text>
       <Text className="mt-0.5 font-heading text-[24px] font-extrabold text-ink">
         {value.toLocaleString()}
       </Text>
@@ -837,7 +847,13 @@ function XpTransactionRow({
         >
           <TransactionIcon
             size={20}
-            color={isRewardRedemption ? Colors.light.accent : isSpend ? Colors.light.primary : Colors.light.accentDeep}
+            color={
+              isRewardRedemption
+                ? Colors.light.accent
+                : isSpend
+                  ? Colors.light.primary
+                  : Colors.light.accentDeep
+            }
             strokeWidth={2.4}
           />
         </View>
@@ -1119,7 +1135,8 @@ export function UserActivityHistoryModal({
             {selectedEvent && (
               <EventDetailModal
                 checkedIn={
-                  checkedInEventIds.includes(selectedEvent.id) || selectedHistoryItem?.status === 'attended'
+                  checkedInEventIds.includes(selectedEvent.id) ||
+                  selectedHistoryItem?.status === 'attended'
                 }
                 cityName={cityName}
                 event={selectedEvent}
@@ -1627,7 +1644,10 @@ function OrganizerRewardRow({ reward }: { reward: ManagedOrganizerReward }) {
           </View>
 
           <View className="mt-2 flex-row items-center justify-between gap-3">
-            <Text className="min-w-0 flex-1 text-[14px] font-extrabold text-accent" numberOfLines={1}>
+            <Text
+              className="min-w-0 flex-1 text-[14px] font-extrabold text-accent"
+              numberOfLines={1}
+            >
               {reward.xpCost.toLocaleString()} XP
             </Text>
             <Text className="text-[12px] font-extrabold text-primary">
@@ -1876,57 +1896,57 @@ function OrganizerEventQrModal({
                   title="QR could not load"
                 />
               ) : (
-              <View
-                ref={qrCardRef}
-                collapsable={false}
-                className="overflow-hidden rounded-[30px] bg-ink"
-                style={{ boxShadow: '0 14px 28px rgba(36, 28, 46, 0.14)' }}
-              >
-                <View className="bg-ink p-6">
-                  <Text className="text-[11px] font-extrabold uppercase tracking-[2px] text-white/60">
-                    CultureQuest check-in
-                  </Text>
-                  <Text className="mt-2 font-heading text-[30px] font-extrabold leading-[34px] text-white">
-                    {event.title}
-                  </Text>
-                  <Text
-                    className="mt-2 text-[14px] font-semibold leading-5"
-                    style={{ color: 'rgba(255,255,255,0.78)' }}
-                  >
-                    {event.venueName} · {event.date}, {formatEventTimeRange(event)}
-                  </Text>
-
-                  <View className="mt-7 items-center rounded-[28px] bg-white p-6">
-                    <QRCode
-                      backgroundColor="#FFFFFF"
-                      color={Colors.light.ink}
-                      size={220}
-                      value={checkInCode}
-                    />
-                  <Text className="mt-5 text-center text-[11px] font-extrabold uppercase tracking-[1.8px] text-muted">
-                      Valid for 15 minutes
+                <View
+                  ref={qrCardRef}
+                  collapsable={false}
+                  className="overflow-hidden rounded-[30px] bg-ink"
+                  style={{ boxShadow: '0 14px 28px rgba(36, 28, 46, 0.14)' }}
+                >
+                  <View className="bg-ink p-6">
+                    <Text className="text-[11px] font-extrabold uppercase tracking-[2px] text-white/60">
+                      CultureQuest check-in
                     </Text>
-                    <Text className="mt-1 text-center font-ui text-[22px] font-extrabold tracking-[2px] text-ink">
-                      {checkInCode}
+                    <Text className="mt-2 font-heading text-[30px] font-extrabold leading-[34px] text-white">
+                      {event.title}
+                    </Text>
+                    <Text
+                      className="mt-2 text-[14px] font-semibold leading-5"
+                      style={{ color: 'rgba(255,255,255,0.78)' }}
+                    >
+                      {event.venueName} · {event.date}, {formatEventTimeRange(event)}
+                    </Text>
+
+                    <View className="mt-7 items-center rounded-[28px] bg-white p-6">
+                      <QRCode
+                        backgroundColor="#FFFFFF"
+                        color={Colors.light.ink}
+                        size={220}
+                        value={checkInCode}
+                      />
+                      <Text className="mt-5 text-center text-[11px] font-extrabold uppercase tracking-[1.8px] text-muted">
+                        Valid for 15 minutes
+                      </Text>
+                      <Text className="mt-1 text-center font-ui text-[22px] font-extrabold tracking-[2px] text-ink">
+                        {checkInCode}
+                      </Text>
+                    </View>
+
+                    <Text
+                      className="mt-5 text-center text-[12px] leading-5"
+                      style={{ color: 'rgba(255,255,255,0.72)' }}
+                    >
+                      This QR expires after 15 minutes. Keep this card open at the venue entrance
+                      while students scan it in CultureQuest.
                     </Text>
                   </View>
-
-                  <Text
-                    className="mt-5 text-center text-[12px] leading-5"
-                    style={{ color: 'rgba(255,255,255,0.72)' }}
-                  >
-                    This QR expires after 15 minutes. Keep this card open at the venue entrance
-                    while students scan it in CultureQuest.
-                  </Text>
                 </View>
-              </View>
               )}
 
               <View className="mt-4 rounded-2xl border border-gray-200 bg-white p-4">
                 <Text className="font-ui text-[15px] font-extrabold text-ink">Organizer note</Text>
                 <Text className="mt-1 text-[13px] leading-5 text-muted">
-                  This QR is intentionally short-lived. Show it at the venue instead of printing
-                  or sharing it in advance.
+                  This QR is intentionally short-lived. Show it at the venue instead of printing or
+                  sharing it in advance.
                 </Text>
               </View>
 

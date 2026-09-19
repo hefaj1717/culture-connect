@@ -1,5 +1,14 @@
 import { Image } from 'expo-image';
-import { ArrowLeft, CheckCircle2, ChevronRight, MapPin, UserCheck, UserPlus } from 'lucide-react-native';
+import {
+  Bell,
+  BellOff,
+  ArrowLeft,
+  CheckCircle2,
+  ChevronRight,
+  MapPin,
+  UserCheck,
+  UserPlus,
+} from 'lucide-react-native';
 import { useEffect, useMemo, useState } from 'react';
 import {
   Modal,
@@ -27,6 +36,7 @@ import { useStableTopInset } from '@/hooks/use-stable-safe-area';
 import {
   fetchOrganizerFollowStatus,
   followOrganizer,
+  setOrganizerAnnouncementMuted,
   unfollowOrganizer,
 } from '@/lib/organizer-follows';
 import type { OrganizerProfile } from '@/lib/organizer-profiles';
@@ -59,6 +69,8 @@ export function OrganizerProfileModal({
   const [followError, setFollowError] = useState<string | null>(null);
   const [followLoading, setFollowLoading] = useState(false);
   const [isFollowing, setIsFollowing] = useState(false);
+  const [announcementsMuted, setAnnouncementsMuted] = useState(false);
+  const [announcementPreferenceLoading, setAnnouncementPreferenceLoading] = useState(false);
   const [isUpdatingFollow, setIsUpdatingFollow] = useState(false);
 
   useEffect(() => {
@@ -79,6 +91,7 @@ export function OrganizerProfileModal({
       setFollowError(null);
       setFollowLoading(false);
       setIsFollowing(false);
+      setAnnouncementsMuted(false);
       return () => {
         isCurrent = false;
       };
@@ -86,12 +99,15 @@ export function OrganizerProfileModal({
 
     setFollowLoading(true);
     setFollowError(null);
-    void fetchOrganizerFollowStatus(user.id, profile.id).then(({ error, isFollowing: nextIsFollowing }) => {
-      if (!isCurrent) return;
-      setFollowError(error);
-      setIsFollowing(nextIsFollowing);
-      setFollowLoading(false);
-    });
+    void fetchOrganizerFollowStatus(user.id, profile.id).then(
+      ({ announcementsMuted: nextAnnouncementsMuted, error, isFollowing: nextIsFollowing }) => {
+        if (!isCurrent) return;
+        setFollowError(error);
+        setIsFollowing(nextIsFollowing);
+        setAnnouncementsMuted(nextAnnouncementsMuted);
+        setFollowLoading(false);
+      },
+    );
 
     return () => {
       isCurrent = false;
@@ -181,10 +197,29 @@ export function OrganizerProfileModal({
     if (result.error) {
       setFollowError(result.error);
     } else {
-      setIsFollowing((current) => !current);
+      const nextIsFollowing = !isFollowing;
+      setIsFollowing(nextIsFollowing);
+      if (!nextIsFollowing) {
+        setAnnouncementsMuted(false);
+      }
     }
 
     setIsUpdatingFollow(false);
+  }
+
+  async function toggleAnnouncementPreference() {
+    if (!profile || !isFollowing || announcementPreferenceLoading) return;
+
+    setAnnouncementPreferenceLoading(true);
+    setFollowError(null);
+    const nextMuted = !announcementsMuted;
+    const result = await setOrganizerAnnouncementMuted(profile.id, nextMuted);
+    if (result.error) {
+      setFollowError(result.error);
+    } else {
+      setAnnouncementsMuted(nextMuted);
+    }
+    setAnnouncementPreferenceLoading(false);
   }
 
   if (!profile) return null;
@@ -195,119 +230,154 @@ export function OrganizerProfileModal({
 
   const content = (
     <GestureDetector gesture={swipeGesture}>
-        <Animated.View className="flex-1 bg-canvas" style={swipeStyle}>
-          <ScrollView
-            className="flex-1 bg-canvas"
-            contentContainerStyle={{
-              paddingBottom: insets.bottom + 34,
-              paddingTop: stableTopInset + 8,
-            }}
-            showsVerticalScrollIndicator={false}
-          >
-            <View className="px-5">
-              <Pressable
-                onPress={closeWithAnimation}
-                className="mb-5 h-12 w-12 items-center justify-center rounded-full active:opacity-80"
-                style={{ backgroundColor: Colors.light.backgroundElement }}
-              >
-                <ArrowLeft size={22} color={Colors.light.primary} strokeWidth={2.6} />
-              </Pressable>
+      <Animated.View className="flex-1 bg-canvas" style={swipeStyle}>
+        <ScrollView
+          className="flex-1 bg-canvas"
+          contentContainerStyle={{
+            paddingBottom: insets.bottom + 34,
+            paddingTop: stableTopInset + 8,
+          }}
+          showsVerticalScrollIndicator={false}
+        >
+          <View className="px-5">
+            <Pressable
+              onPress={closeWithAnimation}
+              className="mb-5 h-12 w-12 items-center justify-center rounded-full active:opacity-80"
+              style={{ backgroundColor: Colors.light.backgroundElement }}
+            >
+              <ArrowLeft size={22} color={Colors.light.primary} strokeWidth={2.6} />
+            </Pressable>
 
-              <View
-                className="overflow-hidden rounded-feature"
-                style={{ backgroundColor: Colors.light.backgroundElement }}
-              >
-                <View className="flex-row items-start justify-between gap-4 px-5 pb-3 pt-5">
-                  <View className="min-w-0 flex-1">
-                    <View className="self-start flex-row items-center gap-1.5 rounded-full bg-success/15 px-2.5 py-1">
-                      <CheckCircle2 size={13} color={Colors.light.background} fill={Colors.light.success} />
-                      <Text className="text-[10px] font-bold uppercase tracking-wide text-success">
-                        Verified organizer
-                      </Text>
-                    </View>
-                    <Text className="mt-3 font-heading text-[30px] leading-9 text-ink">
-                      {profile.name}
+            <View
+              className="overflow-hidden rounded-feature"
+              style={{ backgroundColor: Colors.light.backgroundElement }}
+            >
+              <View className="flex-row items-start justify-between gap-4 px-5 pb-3 pt-5">
+                <View className="min-w-0 flex-1">
+                  <View className="self-start flex-row items-center gap-1.5 rounded-full bg-success/15 px-2.5 py-1">
+                    <CheckCircle2
+                      size={13}
+                      color={Colors.light.background}
+                      fill={Colors.light.success}
+                    />
+                    <Text className="text-[10px] font-bold uppercase tracking-wide text-success">
+                      Verified organizer
                     </Text>
-                    {canFollow ? (
-                      <View className="mt-3 self-start">
-                        <Pressable
-                          accessibilityLabel={isFollowing ? `Unfollow ${profile.name}` : `Follow ${profile.name}`}
-                          disabled={followLoading || isUpdatingFollow}
-                          onPress={() => void toggleFollow()}
-                          className={`flex-row items-center gap-1.5 rounded-full px-3 py-2 ${
-                            isFollowing ? 'bg-success/15' : 'bg-primary'
-                          } ${(followLoading || isUpdatingFollow) ? 'opacity-55' : 'active:opacity-80'}`}
+                  </View>
+                  <Text className="mt-3 font-heading text-[30px] leading-9 text-ink">
+                    {profile.name}
+                  </Text>
+                  {canFollow ? (
+                    <View className="mt-3 self-start gap-2">
+                      <Pressable
+                        accessibilityLabel={
+                          isFollowing ? `Unfollow ${profile.name}` : `Follow ${profile.name}`
+                        }
+                        disabled={followLoading || isUpdatingFollow}
+                        onPress={() => void toggleFollow()}
+                        className={`flex-row items-center gap-1.5 rounded-full px-3 py-2 ${
+                          isFollowing ? 'bg-success/15' : 'bg-primary'
+                        } ${followLoading || isUpdatingFollow ? 'opacity-55' : 'active:opacity-80'}`}
+                      >
+                        {isFollowing ? (
+                          <UserCheck size={15} color={Colors.light.success} strokeWidth={2.5} />
+                        ) : (
+                          <UserPlus size={15} color={Colors.light.background} strokeWidth={2.5} />
+                        )}
+                        <Text
+                          className={`text-[12px] font-bold ${
+                            isFollowing ? 'text-success' : 'text-white'
+                          }`}
                         >
-                          {isFollowing ? (
-                            <UserCheck size={15} color={Colors.light.success} strokeWidth={2.5} />
+                          {isUpdatingFollow ? 'Saving…' : isFollowing ? 'Following' : 'Follow'}
+                        </Text>
+                      </Pressable>
+                      {isFollowing ? (
+                        <Pressable
+                          accessibilityLabel={
+                            announcementsMuted
+                              ? `Turn on announcements from ${profile.name}`
+                              : `Mute announcements from ${profile.name}`
+                          }
+                          disabled={announcementPreferenceLoading}
+                          onPress={() => void toggleAnnouncementPreference()}
+                          className={`flex-row items-center gap-1.5 self-start rounded-full border border-primary/20 px-3 py-2 ${
+                            announcementPreferenceLoading ? 'opacity-55' : 'active:opacity-80'
+                          }`}
+                        >
+                          {announcementsMuted ? (
+                            <BellOff size={15} color={Colors.light.primary} strokeWidth={2.3} />
                           ) : (
-                            <UserPlus size={15} color={Colors.light.background} strokeWidth={2.5} />
+                            <Bell size={15} color={Colors.light.success} strokeWidth={2.3} />
                           )}
                           <Text
-                            className={`text-[12px] font-bold ${
-                              isFollowing ? 'text-success' : 'text-white'
-                            }`}
+                            className={`text-[12px] font-bold ${announcementsMuted ? 'text-primary' : 'text-success'}`}
                           >
-                            {isUpdatingFollow ? 'Saving…' : isFollowing ? 'Following' : 'Follow'}
+                            {announcementPreferenceLoading
+                              ? 'Saving…'
+                              : announcementsMuted
+                                ? 'Announcements muted'
+                                : 'Announcements on'}
                           </Text>
                         </Pressable>
-                        {followError ? (
-                          <Text className="mt-1.5 max-w-[210px] text-[11px] leading-4 text-destructive">
-                            {followError}
-                          </Text>
-                        ) : null}
-                      </View>
-                    ) : null}
-                  </View>
-                  <OrganizerAvatar profile={profile} size={68} />
-                </View>
-
-                <View className="px-5 pt-3">
-                  <View className="mb-2 flex-row items-center gap-3">
-                    <Text className="font-serifRegular text-[20px] leading-6 text-ink">About</Text>
-                    <View className="h-px flex-1 bg-primary/15" />
-                  </View>
-                  <Text className="text-[14px] leading-6 text-muted">{organizerBio}</Text>
-                  <View className="mt-5 flex-row items-start gap-3 border-t border-primary/10 pb-5 pt-4">
-                    <View className="h-9 w-9 items-center justify-center rounded-full bg-primary/10">
-                      <MapPin size={17} color={Colors.light.primary} strokeWidth={2.4} />
+                      ) : null}
+                      {followError ? (
+                        <Text className="mt-1.5 max-w-[210px] text-[11px] leading-4 text-destructive">
+                          {followError}
+                        </Text>
+                      ) : null}
                     </View>
-                    <View className="min-w-0 flex-1">
-                      <Text className="text-[13px] font-semibold text-ink" numberOfLines={1}>
-                        {organizerLocation.title}
-                      </Text>
-                      <Text className="mt-0.5 text-[12px] leading-4 text-muted" numberOfLines={2}>
-                        {organizerLocation.subtitle}
-                      </Text>
-                    </View>
-                  </View>
+                  ) : null}
                 </View>
+                <OrganizerAvatar profile={profile} size={68} />
               </View>
 
-              <View className="mt-6">
-                <View className="mb-3 flex-row items-end justify-between">
-                  <Text className="font-heading text-[27px] leading-8 text-ink">Events</Text>
-                  <Text className="pb-1 text-[12px] font-semibold uppercase tracking-wide text-muted">
-                    {organizerEvents.length} total
-                  </Text>
+              <View className="px-5 pt-3">
+                <View className="mb-2 flex-row items-center gap-3">
+                  <Text className="font-serifRegular text-[20px] leading-6 text-ink">About</Text>
+                  <View className="h-px flex-1 bg-primary/15" />
                 </View>
-
-                <OrganizerEventGroup
-                  emptyLabel="No upcoming events yet."
-                  events={upcomingEvents}
-                  onPress={openOrganizerEvent}
-                  title="Upcoming"
-                />
-                <OrganizerEventGroup
-                  emptyLabel="No previous events yet."
-                  events={previousEvents}
-                  onPress={openOrganizerEvent}
-                  title="Previous"
-                />
+                <Text className="text-[14px] leading-6 text-muted">{organizerBio}</Text>
+                <View className="mt-5 flex-row items-start gap-3 border-t border-primary/10 pb-5 pt-4">
+                  <View className="h-9 w-9 items-center justify-center rounded-full bg-primary/10">
+                    <MapPin size={17} color={Colors.light.primary} strokeWidth={2.4} />
+                  </View>
+                  <View className="min-w-0 flex-1">
+                    <Text className="text-[13px] font-semibold text-ink" numberOfLines={1}>
+                      {organizerLocation.title}
+                    </Text>
+                    <Text className="mt-0.5 text-[12px] leading-4 text-muted" numberOfLines={2}>
+                      {organizerLocation.subtitle}
+                    </Text>
+                  </View>
+                </View>
               </View>
             </View>
-          </ScrollView>
-        </Animated.View>
+
+            <View className="mt-6">
+              <View className="mb-3 flex-row items-end justify-between">
+                <Text className="font-heading text-[27px] leading-8 text-ink">Events</Text>
+                <Text className="pb-1 text-[12px] font-semibold uppercase tracking-wide text-muted">
+                  {organizerEvents.length} total
+                </Text>
+              </View>
+
+              <OrganizerEventGroup
+                emptyLabel="No upcoming events yet."
+                events={upcomingEvents}
+                onPress={openOrganizerEvent}
+                title="Upcoming"
+              />
+              <OrganizerEventGroup
+                emptyLabel="No previous events yet."
+                events={previousEvents}
+                onPress={openOrganizerEvent}
+                title="Previous"
+              />
+            </View>
+          </View>
+        </ScrollView>
+      </Animated.View>
     </GestureDetector>
   );
 

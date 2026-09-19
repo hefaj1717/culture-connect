@@ -1,14 +1,6 @@
 import { Image } from 'expo-image';
 import * as Location from 'expo-location';
-import {
-  ArrowRight,
-  Bell,
-  CheckCircle2,
-  Globe,
-  User,
-  Users,
-  X,
-} from 'lucide-react-native';
+import { ArrowRight, Bell, CheckCircle2, Globe, User, Users, X } from 'lucide-react-native';
 import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 import MapView, { Marker } from 'react-native-maps';
@@ -120,10 +112,7 @@ export default function HomeScreen({
     () => notifications.filter((notification) => !notification.readAt).length,
     [notifications],
   );
-  const notificationGroups = useMemo(
-    () => groupNotificationsByAge(notifications),
-    [notifications],
-  );
+  const notificationGroups = useMemo(() => groupNotificationsByAge(notifications), [notifications]);
 
   function openNotifications() {
     setNotificationsOpen(true);
@@ -307,7 +296,11 @@ export default function HomeScreen({
             <View className="flex-row items-center justify-between pt-3">
               <Text
                 className="font-heading text-[23px] font-extrabold text-white"
-                style={{ textShadowColor: 'rgba(30, 30, 36, 0.22)', textShadowOffset: { height: 1, width: 0 }, textShadowRadius: 3 }}
+                style={{
+                  textShadowColor: 'rgba(30, 30, 36, 0.22)',
+                  textShadowOffset: { height: 1, width: 0 },
+                  textShadowRadius: 3,
+                }}
               >
                 CultureQuest
               </Text>
@@ -437,7 +430,9 @@ export default function HomeScreen({
                         value={getEventEngagement(event, eventStatuses[event.id]).interested}
                       />
                       <MiniEngagementStat
-                        icon={<CheckCircle2 size={12} color={Colors.light.primary} strokeWidth={2.4} />}
+                        icon={
+                          <CheckCircle2 size={12} color={Colors.light.primary} strokeWidth={2.4} />
+                        }
                         value={getEventEngagement(event, eventStatuses[event.id]).attended}
                       />
                     </View>
@@ -461,124 +456,136 @@ export default function HomeScreen({
                 </Pressable>
               ))
             )}
-      </ScrollView>
-      <Modal animationType="slide" visible={notificationsOpen} onRequestClose={() => setNotificationsOpen(false)}>
-        <View className="flex-1 bg-canvas" style={{ paddingTop: stableTopInset }}>
-          <View className="px-5 pb-4 pt-3">
-            <View className="flex-row items-center">
-              <Text className="font-heading text-[30px] font-extrabold text-ink">Notifications</Text>
-              <View className="flex-1" />
-              <Pressable
-                onPress={() => setNotificationsOpen(false)}
-                className="ml-4 h-11 w-11 items-center justify-center rounded-full bg-surface active:opacity-75"
-                accessibilityLabel="Close notifications"
-                hitSlop={8}
-              >
-                <X size={22} color={Colors.light.textSecondary} strokeWidth={2.2} />
-              </Pressable>
-            </View>
-            <Text className="mt-1 pr-14 text-[14px] leading-5 text-muted">
-              Important updates about your account and content.
-            </Text>
-          </View>
-
-          <ScrollView
-            className="flex-1"
-            contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 44, paddingTop: 12 }}
-            showsVerticalScrollIndicator={false}
+          </ScrollView>
+          <Modal
+            animationType="slide"
+            visible={notificationsOpen}
+            onRequestClose={() => setNotificationsOpen(false)}
           >
-            {notificationsLoading ? (
-              <LoadingState
-                style={{ marginTop: 20 }}
-                title="Loading notifications"
-                body="Checking for the latest updates."
-              />
-            ) : notificationsError ? (
-              <ErrorState
-                style={{ marginTop: 20 }}
-                title="Notifications could not load"
-                body={notificationsError}
-                onAction={() => void loadNotifications()}
-              />
-            ) : notifications.length === 0 ? (
-              <View className="mt-10 items-center rounded-feature border border-primary/10 bg-surface px-7 py-10">
-                <View className="h-12 w-12 items-center justify-center rounded-full bg-primary/10">
-                  <Bell size={22} color={Colors.light.primary} strokeWidth={2.1} />
+            <View className="flex-1 bg-canvas" style={{ paddingTop: stableTopInset }}>
+              <View className="px-5 pb-4 pt-3">
+                <View className="flex-row items-center">
+                  <Text className="font-heading text-[30px] font-extrabold text-ink">
+                    Notifications
+                  </Text>
+                  <View className="flex-1" />
+                  <Pressable
+                    onPress={() => setNotificationsOpen(false)}
+                    className="ml-4 h-11 w-11 items-center justify-center rounded-full bg-surface active:opacity-75"
+                    accessibilityLabel="Close notifications"
+                    hitSlop={8}
+                  >
+                    <X size={22} color={Colors.light.textSecondary} strokeWidth={2.2} />
+                  </Pressable>
                 </View>
-                <Text className="mt-4 text-center font-heading text-[23px] font-extrabold text-ink">
-                  No new notifications
-                </Text>
-                <Text className="mt-2 text-center text-[14px] leading-5 text-muted">
-                  New events from organizers you follow will appear here.
+                <Text className="mt-1 pr-14 text-[14px] leading-5 text-muted">
+                  Important updates about your account and content.
                 </Text>
               </View>
-            ) : (
-              <View className="mt-3 gap-6">
-                {notificationGroups.map((group) => (
-                  <View key={group.key}>
-                    <View className="mb-2 flex-row items-center gap-3">
-                      <Text className="text-[11px] font-extrabold uppercase tracking-[1.4px] text-primary">
-                        {group.label}
-                      </Text>
-                      <View className="h-px flex-1 bg-primary/20" />
+
+              <ScrollView
+                className="flex-1"
+                contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 44, paddingTop: 12 }}
+                showsVerticalScrollIndicator={false}
+              >
+                {notificationsLoading ? (
+                  <LoadingState
+                    style={{ marginTop: 20 }}
+                    title="Loading notifications"
+                    body="Checking for the latest updates."
+                  />
+                ) : notificationsError ? (
+                  <ErrorState
+                    style={{ marginTop: 20 }}
+                    title="Notifications could not load"
+                    body={notificationsError}
+                    onAction={() => void loadNotifications()}
+                  />
+                ) : notifications.length === 0 ? (
+                  <View className="mt-10 items-center rounded-feature border border-primary/10 bg-surface px-7 py-10">
+                    <View className="h-12 w-12 items-center justify-center rounded-full bg-primary/10">
+                      <Bell size={22} color={Colors.light.primary} strokeWidth={2.1} />
                     </View>
-                    <View className="gap-1">
-                      {group.notifications.map((notification) => {
-                        const unread = !notification.readAt;
-                        return (
-                          <Pressable
-                            key={notification.id}
-                            onPress={() => {
-                              markNotificationRead(notification);
-                              if (notification.eventId) {
-                                setNotificationsOpen(false);
-                                onOpenEvent?.(`organizer-${notification.eventId}`);
-                              }
-                            }}
-                            className="flex-row gap-3 rounded-2xl px-4 py-4 active:opacity-75"
-                            style={unread ? { backgroundColor: Colors.light.backgroundSelected } : undefined}
-                          >
-                            <View
-                              className={`mt-0.5 h-9 w-9 items-center justify-center rounded-full ${unread ? 'bg-accent/10' : 'bg-primary/10'}`}
-                            >
-                              <Bell
-                                size={17}
-                                color={unread ? Colors.light.accent : Colors.light.primary}
-                                strokeWidth={2.2}
-                              />
-                            </View>
-                            <View className="min-w-0 flex-1">
-                              <View className="flex-row items-start gap-3">
-                                <View className="min-w-0 flex-1 flex-row items-center gap-2">
-                                  {unread ? <View className="h-2 w-2 rounded-full bg-accent" /> : null}
+                    <Text className="mt-4 text-center font-heading text-[23px] font-extrabold text-ink">
+                      No new notifications
+                    </Text>
+                    <Text className="mt-2 text-center text-[14px] leading-5 text-muted">
+                      New events and announcements from organizers you follow will appear here.
+                    </Text>
+                  </View>
+                ) : (
+                  <View className="mt-3 gap-6">
+                    {notificationGroups.map((group) => (
+                      <View key={group.key}>
+                        <View className="mb-2 flex-row items-center gap-3">
+                          <Text className="text-[11px] font-extrabold uppercase tracking-[1.4px] text-primary">
+                            {group.label}
+                          </Text>
+                          <View className="h-px flex-1 bg-primary/20" />
+                        </View>
+                        <View className="gap-1">
+                          {group.notifications.map((notification) => {
+                            const unread = !notification.readAt;
+                            return (
+                              <Pressable
+                                key={notification.id}
+                                onPress={() => {
+                                  markNotificationRead(notification);
+                                  if (notification.eventId) {
+                                    setNotificationsOpen(false);
+                                    onOpenEvent?.(`organizer-${notification.eventId}`);
+                                  }
+                                }}
+                                className="flex-row gap-3 rounded-2xl px-4 py-4 active:opacity-75"
+                                style={
+                                  unread
+                                    ? { backgroundColor: Colors.light.backgroundSelected }
+                                    : undefined
+                                }
+                              >
+                                <View
+                                  className={`mt-0.5 h-9 w-9 items-center justify-center rounded-full ${unread ? 'bg-accent/10' : 'bg-primary/10'}`}
+                                >
+                                  <Bell
+                                    size={17}
+                                    color={unread ? Colors.light.accent : Colors.light.primary}
+                                    strokeWidth={2.2}
+                                  />
+                                </View>
+                                <View className="min-w-0 flex-1">
+                                  <View className="flex-row items-start gap-3">
+                                    <View className="min-w-0 flex-1 flex-row items-center gap-2">
+                                      {unread ? (
+                                        <View className="h-2 w-2 rounded-full bg-accent" />
+                                      ) : null}
+                                      <Text
+                                        className={`shrink text-[14px] ${unread ? 'font-extrabold text-ink' : 'font-semibold text-ink'}`}
+                                      >
+                                        {notification.title}
+                                      </Text>
+                                    </View>
+                                    <Text className="text-[11px] font-medium text-muted">
+                                      {formatNotificationDate(notification.createdAt)}
+                                    </Text>
+                                  </View>
                                   <Text
-                                    className={`shrink text-[14px] ${unread ? 'font-extrabold text-ink' : 'font-semibold text-ink'}`}
+                                    className={`mt-1 text-[13px] leading-5 ${unread ? 'text-primary' : 'text-muted'}`}
                                   >
-                                    {notification.title}
+                                    {notification.body}
                                   </Text>
                                 </View>
-                                <Text className="text-[11px] font-medium text-muted">
-                                  {formatNotificationDate(notification.createdAt)}
-                                </Text>
-                              </View>
-                              <Text
-                                className={`mt-1 text-[13px] leading-5 ${unread ? 'text-primary' : 'text-muted'}`}
-                              >
-                                {notification.body}
-                              </Text>
-                            </View>
-                          </Pressable>
-                        );
-                      })}
-                    </View>
+                              </Pressable>
+                            );
+                          })}
+                        </View>
+                      </View>
+                    ))}
                   </View>
-                ))}
-              </View>
-            )}
-          </ScrollView>
+                )}
+              </ScrollView>
+            </View>
+          </Modal>
         </View>
-      </Modal>
-    </View>
 
         <View className="bg-canvas px-5 pb-8">
           <View className="mb-3 flex-row items-center justify-between">
@@ -784,7 +791,10 @@ export default function HomeScreen({
                         className="h-9 w-9 items-center justify-center rounded-full"
                         style={{ backgroundColor: rankColors.background }}
                       >
-                        <Text className="text-[13px] font-extrabold" style={{ color: rankColors.text }}>
+                        <Text
+                          className="text-[13px] font-extrabold"
+                          style={{ color: rankColors.text }}
+                        >
                           #{row.rank}
                         </Text>
                       </View>
@@ -807,7 +817,6 @@ export default function HomeScreen({
           </View>
         </View>
       </ScrollView>
-
     </View>
   );
 }
@@ -977,10 +986,7 @@ function getEventActivityForecast(
   const predictedAttendance =
     engagement.attended * 1.25 + engagement.going * 0.75 + engagement.interested * 0.15;
   const crowdReference = getExpectedEventCrowd(activityBaseline);
-  const crowdWeight = Math.min(
-    1,
-    Math.log1p(predictedAttendance) / Math.log1p(crowdReference),
-  );
+  const crowdWeight = Math.min(1, Math.log1p(predictedAttendance) / Math.log1p(crowdReference));
 
   return {
     heatWeight: Number((timingWeight * crowdWeight).toFixed(3)),
