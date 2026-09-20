@@ -194,6 +194,20 @@ export default function HomeScreen({
     },
     [],
   );
+
+  useEffect(() => {
+    if (!notificationsOpen || notificationsLoading) return;
+
+    // Opening the inbox acknowledges its current contents. Each write retains the
+    // existing optimistic rollback, so an unavailable network restores only the
+    // notifications that could not be saved.
+    notifications
+      .filter((notification) => !notification.readAt)
+      .forEach((notification) => {
+        void markNotificationRead(notification);
+      });
+  }, [markNotificationRead, notifications, notificationsLoading, notificationsOpen]);
+
   const happeningNow = useMemo(
     () =>
       events
