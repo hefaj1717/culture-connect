@@ -605,8 +605,8 @@ export default function ExploreScreen({
                                 </Text>
                               </View>
                             ) : (
-                              <View className="rounded-full bg-primary/15 px-2.5 py-1">
-                                <Text className="text-[10px] font-bold uppercase tracking-wide text-primary">
+                              <View className="rounded-full bg-primary/10 px-2 py-0.5">
+                                <Text className="text-[10px] font-semibold uppercase text-primary">
                                   {event.date}
                                 </Text>
                               </View>
