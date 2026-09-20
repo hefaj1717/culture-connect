@@ -9,35 +9,29 @@ export type PlaceSuggestion = {
   source: 'google' | 'local';
 };
 
+export type PlaceSearchError = {
+  code: 'configuration' | 'network' | 'quota' | 'service';
+  message: string;
+};
+
+export type PlaceSearchResult = {
+  error: PlaceSearchError | null;
+  suggestions: PlaceSuggestion[];
+};
+
 type GoogleAutocompleteResponse = {
-  suggestions?: {
-    placePrediction?: {
-      placeId?: string;
-      text?: {
-        text?: string;
-      };
-      structuredFormat?: {
-        mainText?: {
-          text?: string;
-        };
-        secondaryText?: {
-          text?: string;
-        };
-      };
-    };
-  }[];
+  suggestions?: { placePrediction?: { placeId?: string } }[];
+};
+
+type GoogleApiErrorResponse = {
+  error?: { code?: number; message?: string; status?: string };
 };
 
 type GooglePlaceDetailsResponse = {
   id?: string;
   formattedAddress?: string;
-  displayName?: {
-    text?: string;
-  };
-  location?: {
-    latitude?: number;
-    longitude?: number;
-  };
+  displayName?: { text?: string };
+  location?: { latitude?: number; longitude?: number };
 };
 
 const GOOGLE_PLACES_API_KEY = process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY;
@@ -52,109 +46,137 @@ const citySearchContext: Record<
   lublin: { countryCode: 'pl', latitude: 51.2465, longitude: 22.5684 },
 };
 
-export async function searchPlaces(query: string, cityId: CityId) {
+const errors = {
+  configuration: {
+    code: 'configuration',
+    message: 'Place search is unavailable because Google Places is not configured for this app.',
+  },
+  network: {
+    code: 'network',
+    message: "Can't reach Google Places. Check your connection and try again.",
+  },
+  quota: {
+    code: 'quota',
+    message: 'Place search has reached its current limit. Please try again later.',
+  },
+  service: {
+    code: 'service',
+    message: 'Place search is temporarily unavailable. Please try again.',
+  },
+} as const satisfies Record<PlaceSearchError['code'], PlaceSearchError>;
+
+export async function searchPlaces(query: string, cityId: CityId): Promise<PlaceSearchResult> {
   const normalizedQuery = query.trim();
 
-  if (normalizedQuery.length < 2) {
-    return [];
-  }
-
-  if (!GOOGLE_PLACES_API_KEY) {
-    return [];
-  }
+  if (normalizedQuery.length < 2) return { error: null, suggestions: [] };
+  if (!GOOGLE_PLACES_API_KEY) return { error: errors.configuration, suggestions: [] };
 
   return searchGooglePlaces(normalizedQuery, cityId);
 }
 
-async function searchGooglePlaces(query: string, cityId: CityId): Promise<PlaceSuggestion[]> {
+async function searchGooglePlaces(query: string, cityId: CityId): Promise<PlaceSearchResult> {
   const cityContext = citySearchContext[cityId];
-
-  try {
-    const response = await fetch('https://places.googleapis.com/v1/places:autocomplete', {
+  const autocomplete = await requestGoogle<GoogleAutocompleteResponse>(
+    'https://places.googleapis.com/v1/places:autocomplete',
+    {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'X-Goog-Api-Key': GOOGLE_PLACES_API_KEY ?? '',
-        'X-Goog-FieldMask':
-          'suggestions.placePrediction.placeId,suggestions.placePrediction.text,suggestions.placePrediction.structuredFormat',
+        'X-Goog-FieldMask': 'suggestions.placePrediction.placeId',
       },
       body: JSON.stringify({
         input: query,
         includedRegionCodes: [cityContext.countryCode],
         locationBias: {
           circle: {
-            center: {
-              latitude: cityContext.latitude,
-              longitude: cityContext.longitude,
-            },
+            center: { latitude: cityContext.latitude, longitude: cityContext.longitude },
             radius: 12000,
           },
         },
       }),
-    });
+    },
+  );
 
-    if (!response.ok) {
-      return [];
-    }
+  if (autocomplete.error) return { error: autocomplete.error, suggestions: [] };
 
-    const data = (await response.json()) as GoogleAutocompleteResponse;
-    const predictions = data.suggestions
-      ?.map((suggestion) => suggestion.placePrediction)
-      .filter((prediction) => prediction?.placeId)
-      .slice(0, 5);
+  const placeIds = (autocomplete.data?.suggestions ?? [])
+    .map((suggestion) => suggestion.placePrediction?.placeId)
+    .filter((placeId): placeId is string => !!placeId)
+    .slice(0, 5);
 
-    if (!predictions?.length) {
-      return [];
-    }
+  // An empty successful response is an empty state, not a technical failure.
+  if (placeIds.length === 0) return { error: null, suggestions: [] };
 
-    const details = await Promise.all(
-      predictions.map((prediction) => fetchGooglePlaceDetails(prediction?.placeId ?? '')),
-    );
+  const detailResults = await Promise.all(placeIds.map(fetchGooglePlaceDetails));
+  const suggestions = detailResults.flatMap((result) => (result.suggestion ? [result.suggestion] : []));
+  const detailError = detailResults.find((result) => result.error)?.error ?? null;
 
-    return details.filter((place): place is PlaceSuggestion => !!place);
-  } catch {
-    return [];
-  }
+  return { error: suggestions.length === 0 ? detailError ?? errors.service : null, suggestions };
 }
 
-async function fetchGooglePlaceDetails(placeId: string): Promise<PlaceSuggestion | null> {
-  if (!GOOGLE_PLACES_API_KEY || !placeId) {
-    return null;
-  }
-
-  try {
-    const response = await fetch(`https://places.googleapis.com/v1/places/${placeId}`, {
+async function fetchGooglePlaceDetails(placeId: string): Promise<{
+  error: PlaceSearchError | null;
+  suggestion: PlaceSuggestion | null;
+}> {
+  const result = await requestGoogle<GooglePlaceDetailsResponse>(
+    `https://places.googleapis.com/v1/places/${placeId}`,
+    {
       headers: {
         'Content-Type': 'application/json',
-        'X-Goog-Api-Key': GOOGLE_PLACES_API_KEY,
+        'X-Goog-Api-Key': GOOGLE_PLACES_API_KEY ?? '',
         'X-Goog-FieldMask': 'id,displayName,formattedAddress,location',
       },
-    });
+    },
+  );
 
-    if (!response.ok) {
-      return null;
-    }
+  if (result.error) return { error: result.error, suggestion: null };
 
-    const data = (await response.json()) as GooglePlaceDetailsResponse;
-    if (
-      !data.id ||
-      !data.displayName?.text ||
-      !data.formattedAddress ||
-      typeof data.location?.latitude !== 'number' ||
-      typeof data.location?.longitude !== 'number'
-    ) {
-      return null;
-    }
+  const data = result.data;
+  if (
+    !data?.id ||
+    !data.displayName?.text ||
+    !data.formattedAddress ||
+    typeof data.location?.latitude !== 'number' ||
+    typeof data.location?.longitude !== 'number'
+  ) {
+    return { error: errors.service, suggestion: null };
+  }
 
-    return {
+  return {
+    error: null,
+    suggestion: {
       id: data.id,
       name: data.displayName.text,
       address: data.formattedAddress,
       latitude: data.location.latitude,
       longitude: data.location.longitude,
       source: 'google',
-    };
+    },
+  };
+}
+
+async function requestGoogle<T>(
+  url: string,
+  options: RequestInit,
+): Promise<{ data: T | null; error: PlaceSearchError | null }> {
+  try {
+    const response = await fetch(url, options);
+    if (!response.ok) {
+      const body = (await response.json().catch(() => null)) as GoogleApiErrorResponse | null;
+      return { data: null, error: mapGoogleError(response.status, body?.error?.status) };
+    }
+
+    return { data: (await response.json()) as T, error: null };
   } catch {
-    return null;
+    return { data: null, error: errors.network };
   }
+}
+
+function mapGoogleError(httpStatus: number, status?: string): PlaceSearchError {
+  if (httpStatus === 401 || httpStatus === 403 || status === 'PERMISSION_DENIED') {
+    return errors.configuration;
+  }
+  if (httpStatus === 429 || status === 'RESOURCE_EXHAUSTED') return errors.quota;
+  return errors.service;
 }

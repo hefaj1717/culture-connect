@@ -46,7 +46,11 @@ import {
   getCultureCityData,
 } from '@/data/culture';
 import { textLimits } from '@/constants/text-limits';
-import { hasGooglePlacesApiKey, type PlaceSuggestion } from '@/lib/place-search';
+import {
+  hasGooglePlacesApiKey,
+  type PlaceSearchError,
+  type PlaceSuggestion,
+} from '@/lib/place-search';
 
 type CreateEventModalProps = {
   calendarMonth: Date;
@@ -88,6 +92,7 @@ type CreateEventModalProps = {
   onOpenTimePicker: (target: 'end' | 'start') => void;
   onPickEventImage: () => void;
   onRemoveEventImage: () => void;
+  onRetryPlaceSearch: () => void;
   onSelectDate: (value: string) => void;
   onSelectDateValue: (value: Date) => void;
   onSelectEndDate: (value: string) => void;
@@ -95,6 +100,7 @@ type CreateEventModalProps = {
   onSelectPlace: (place: PlaceSuggestion) => void;
   onSubmit: () => void;
   placeQuery: string;
+  placeSearchError: PlaceSearchError | null;
   placeSuggestions: PlaceSuggestion[];
   searchingPlaces: boolean;
   selectedEndHour: number;
@@ -150,6 +156,7 @@ export function CreateEventModal({
   onOpenTimePicker,
   onPickEventImage,
   onRemoveEventImage,
+  onRetryPlaceSearch,
   onSelectDate,
   onSelectDateValue,
   onSelectEndDate,
@@ -157,6 +164,7 @@ export function CreateEventModal({
   onSelectPlace,
   onSubmit,
   placeQuery,
+  placeSearchError,
   placeSuggestions,
   searchingPlaces,
   selectedEndHour,
@@ -309,6 +317,21 @@ export function CreateEventModal({
                       ? 'Powered by Google Places suggestions.'
                       : 'Google Places key is missing, so place suggestions are unavailable.'}
                   </Text>
+
+                  {placeSearchError ? (
+                    <View className="mt-2 flex-row items-center gap-3 rounded-xl bg-accent/10 px-3 py-2.5">
+                      <Text className="min-w-0 flex-1 text-[11px] leading-4 text-ink">
+                        {placeSearchError.message}
+                      </Text>
+                      <Pressable
+                        onPress={onRetryPlaceSearch}
+                        className="rounded-lg bg-accent px-2.5 py-1.5 active:opacity-75"
+                        accessibilityLabel="Retry place search"
+                      >
+                        <Text className="text-[11px] font-bold text-white">Retry</Text>
+                      </Pressable>
+                    </View>
+                  ) : null}
 
                   {selectedPlace && (
                     <View className="mt-2 flex-row gap-3 rounded-xl border border-primary/25 bg-primary/10 p-3">

@@ -5,7 +5,7 @@ import { limitText, textLimits } from '@/constants/text-limits';
 import { type CityId } from '@/data/culture';
 import { OFFLINE_ERROR_MESSAGE } from '@/lib/network-errors';
 import { createOrganizerReward } from '@/lib/organizer-rewards';
-import { type PlaceSuggestion, searchPlaces } from '@/lib/place-search';
+import { type PlaceSearchError, type PlaceSuggestion, searchPlaces } from '@/lib/place-search';
 import {
   getIsoDaysInDateRange,
   getDefaultRewardAvailability,
@@ -32,6 +32,8 @@ export function useCreateRewardForm({
   const [rewardPlaceSuggestions, setRewardPlaceSuggestions] = useState<PlaceSuggestion[]>([]);
   const [selectedRewardPlace, setSelectedRewardPlace] = useState<PlaceSuggestion | null>(null);
   const [searchingRewardPlaces, setSearchingRewardPlaces] = useState(false);
+  const [rewardPlaceSearchError, setRewardPlaceSearchError] = useState<PlaceSearchError | null>(null);
+  const [rewardPlaceSearchRetryKey, setRewardPlaceSearchRetryKey] = useState(0);
   const [rewardDescription, setRewardDescription] = useState('');
   const [rewardXp, setRewardXp] = useState('100');
   const [rewardAvailability, setRewardAvailability] = useState(getDefaultRewardAvailability);
@@ -46,27 +48,31 @@ export function useCreateRewardForm({
     async function loadRewardPlaceSuggestions() {
       if (selectedRewardPlace && rewardPlaceQuery === selectedRewardPlace.name) {
         setRewardPlaceSuggestions([]);
+        setRewardPlaceSearchError(null);
         setSearchingRewardPlaces(false);
         return;
       }
 
       if (rewardPlaceQuery.trim().length < 2) {
         setRewardPlaceSuggestions([]);
+        setRewardPlaceSearchError(null);
         setSearchingRewardPlaces(false);
         return;
       }
 
       if (isOffline) {
         setRewardPlaceSuggestions([]);
+        setRewardPlaceSearchError({ code: 'network', message: OFFLINE_ERROR_MESSAGE });
         setSearchingRewardPlaces(false);
         return;
       }
 
       setSearchingRewardPlaces(true);
-      const suggestions = await searchPlaces(rewardPlaceQuery, savedCityId);
+      const result = await searchPlaces(rewardPlaceQuery, savedCityId);
       if (!active) return;
 
-      setRewardPlaceSuggestions(suggestions);
+      setRewardPlaceSuggestions(result.suggestions);
+      setRewardPlaceSearchError(result.error);
       setSearchingRewardPlaces(false);
     }
 
@@ -75,12 +81,13 @@ export function useCreateRewardForm({
     return () => {
       active = false;
     };
-  }, [isOffline, rewardPlaceQuery, savedCityId, selectedRewardPlace]);
+  }, [isOffline, rewardPlaceQuery, rewardPlaceSearchRetryKey, savedCityId, selectedRewardPlace]);
 
   function resetRewardForm() {
     setRewardTitle('');
     setRewardPlaceQuery('');
     setRewardPlaceSuggestions([]);
+    setRewardPlaceSearchError(null);
     setSelectedRewardPlace(null);
     setSearchingRewardPlaces(false);
     setRewardDescription('');
@@ -98,6 +105,7 @@ export function useCreateRewardForm({
     setSelectedRewardPlace(place);
     setRewardPlaceQuery(place.name);
     setRewardPlaceSuggestions([]);
+    setRewardPlaceSearchError(null);
   }
 
   function changeRewardTitle(value: string) {
@@ -110,6 +118,11 @@ export function useCreateRewardForm({
 
   function changeRewardPlaceQuery(value: string) {
     setRewardPlaceQuery(limitText(value, textLimits.placeSearch));
+    setRewardPlaceSearchError(null);
+  }
+
+  function retryRewardPlaceSearch() {
+    setRewardPlaceSearchRetryKey((current) => current + 1);
   }
 
   function changeRewardXp(value: string) {
@@ -228,12 +241,14 @@ export function useCreateRewardForm({
     rewardDescription,
     rewardAvailability,
     rewardPlaceQuery,
+    rewardPlaceSearchError,
     rewardPlaceSuggestions,
     rewardTitle,
     rewardXp,
     searchingRewardPlaces,
     selectedRewardPlace,
     selectRewardPlace,
+    retryRewardPlaceSearch,
     setCreateRewardOpen,
     setRewardDescription: changeRewardDescription,
     setRewardPlaceQuery: changeRewardPlaceQuery,

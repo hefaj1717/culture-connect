@@ -23,7 +23,7 @@ import type { CityId } from '@/data/culture';
 import { getUniversitiesForCity } from '@/data/universities';
 import { useCardSwipeBack } from '@/hooks/use-card-swipe-back';
 import { useStableTopInset } from '@/hooks/use-stable-safe-area';
-import type { PlaceSuggestion } from '@/lib/place-search';
+import type { PlaceSearchError, PlaceSuggestion } from '@/lib/place-search';
 
 type EditProfileModalProps = {
   avatarInitials: string | null;
@@ -42,11 +42,13 @@ type EditProfileModalProps = {
   onChangeStudentEmail: (email: string) => void;
   onChangeUniversity: (universityId: string) => void;
   onClose: () => void;
+  onRetryOrganizerLocationSearch?: () => void;
   onSave: () => void;
   onSelectOrganizerLocation?: (place: PlaceSuggestion) => void;
   onToggleStudent: (isStudent: boolean) => void;
   organizerBio?: string;
   organizerLocationQuery?: string;
+  organizerLocationSearchError?: PlaceSearchError | null;
   organizerLocationSuggestions?: PlaceSuggestion[];
   profileError: string | null;
   searchingOrganizerLocation?: boolean;
@@ -74,11 +76,13 @@ export function EditProfileModal({
   onChangeStudentEmail,
   onChangeUniversity,
   onClose,
+  onRetryOrganizerLocationSearch,
   onSave,
   onSelectOrganizerLocation,
   onToggleStudent,
   organizerBio = '',
   organizerLocationQuery = '',
+  organizerLocationSearchError = null,
   organizerLocationSuggestions = [],
   profileError,
   searchingOrganizerLocation = false,
@@ -348,6 +352,23 @@ export function EditProfileModal({
                           </Text>
                         </View>
                       )}
+
+                      {organizerLocationSearchError ? (
+                        <View className="mt-3 flex-row items-center gap-3 rounded-xl bg-accent/10 px-3 py-2.5">
+                          <Text className="min-w-0 flex-1 text-[11px] leading-4 text-ink">
+                            {organizerLocationSearchError.message}
+                          </Text>
+                          {onRetryOrganizerLocationSearch ? (
+                            <Pressable
+                              onPress={onRetryOrganizerLocationSearch}
+                              className="rounded-lg bg-accent px-2.5 py-1.5 active:opacity-75"
+                              accessibilityLabel="Retry place search"
+                            >
+                              <Text className="text-[11px] font-bold text-white">Retry</Text>
+                            </Pressable>
+                          ) : null}
+                        </View>
+                      ) : null}
 
                       {organizerLocationSuggestions.length > 0 && (
                         <View className="mt-3 overflow-hidden rounded-xl border border-gray-200">
