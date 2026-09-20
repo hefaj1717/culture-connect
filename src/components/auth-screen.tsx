@@ -152,24 +152,6 @@ export function AuthScreen() {
     }, 80);
   }
 
-  useEffect(() => {
-    const timeout = setTimeout(() => {
-      if (mode === 'signUp') {
-        firstNameRef.current?.focus();
-        return;
-      }
-
-      if (mode === 'confirmSignUp') {
-        confirmationCodeRef.current?.focus();
-        return;
-      }
-
-      emailRef.current?.focus();
-    }, 280);
-
-    return () => clearTimeout(timeout);
-  }, [mode]);
-
   async function handleSubmit() {
     clearAuthError();
     setError(null);
