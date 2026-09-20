@@ -2,7 +2,7 @@ import { Image } from 'expo-image';
 import * as Location from 'expo-location';
 import { ArrowRight, Bell, CheckCircle2, Globe, User, Users, X } from 'lucide-react-native';
 import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import MapView, { Marker } from 'react-native-maps';
 
 import { CardListSkeleton, EmptyState, ErrorState, LoadingState } from '@/components/async-state';
@@ -28,6 +28,7 @@ import {
   markUserNotificationsRead,
   type UserNotification,
 } from '@/lib/user-notifications';
+import { markNotificationReadWithRollback } from '@/lib/notification-read-mutation';
 import { useResponsiveLayout } from '@/hooks/use-responsive-layout';
 import { useStableTopInset } from '@/hooks/use-stable-safe-area';
 import type { UniversityLeaderboardRow } from '@/lib/university-leaderboard';
@@ -79,6 +80,13 @@ export default function HomeScreen({
   const [notifications, setNotifications] = useState<UserNotification[]>([]);
   const [notificationsError, setNotificationsError] = useState<string | null>(null);
   const [notificationsLoading, setNotificationsLoading] = useState(false);
+  const [notificationReadError, setNotificationReadError] = useState<{
+    eventId: string | null;
+    notificationId: string;
+    message: string;
+  } | null>(null);
+  const [notificationReadPendingIds, setNotificationReadPendingIds] = useState<string[]>([]);
+  const notificationReadPendingIdsRef = useRef(new Set<string>());
   const [activityNow, setActivityNow] = useState(() => Date.now());
   const [activityBaseline, setActivityBaseline] = useState<CityActivityBaseline>(
     EMPTY_CITY_ACTIVITY_BASELINE,
@@ -118,18 +126,56 @@ export default function HomeScreen({
     setNotificationsOpen(true);
   }
 
-  function markNotificationRead(notification: UserNotification) {
-    if (notification.readAt) return;
-    const readAt = new Date().toISOString();
-    setNotifications((current) =>
-      current.map((currentNotification) =>
-        currentNotification.id === notification.id
-          ? { ...currentNotification, readAt }
-          : currentNotification,
-      ),
-    );
-    void markUserNotificationsRead([notification.id]);
-  }
+  const markNotificationRead = useCallback(
+    async (notification: UserNotification) => {
+      if (notification.readAt) return true;
+      if (notificationReadPendingIdsRef.current.has(notification.id)) return false;
+
+      setNotificationReadError(null);
+      notificationReadPendingIdsRef.current.add(notification.id);
+      setNotificationReadPendingIds((current) => [...current, notification.id]);
+
+      const result = await markNotificationReadWithRollback({
+        notification,
+        persist: markUserNotificationsRead,
+        applyOptimisticRead: (readAt) => {
+          setNotifications((current) =>
+            current.map((currentNotification) =>
+              currentNotification.id === notification.id
+                ? { ...currentNotification, readAt }
+                : currentNotification,
+            ),
+          );
+        },
+        rollback: () => {
+          setNotifications((current) =>
+            current.map((currentNotification) =>
+              currentNotification.id === notification.id
+                ? { ...currentNotification, readAt: notification.readAt }
+                : currentNotification,
+            ),
+          );
+        },
+      });
+
+      notificationReadPendingIdsRef.current.delete(notification.id);
+      setNotificationReadPendingIds((current) =>
+        current.filter((notificationId) => notificationId !== notification.id),
+      );
+
+      if (result.error) {
+        setNotificationReadError({
+          eventId: notification.eventId,
+          notificationId: notification.id,
+          message: result.error,
+        });
+        return false;
+      }
+
+      return true;
+    },
+    [],
+  );
   const happeningNow = useMemo(
     () =>
       events
@@ -515,6 +561,32 @@ export default function HomeScreen({
                   </View>
                 ) : (
                   <View className="mt-3 gap-6">
+                    {notificationReadError ? (
+                      <View className="flex-row items-center gap-3 rounded-2xl bg-accent/10 px-4 py-3">
+                        <Text className="min-w-0 flex-1 text-[13px] leading-5 text-ink">
+                          {notificationReadError.message}
+                        </Text>
+                        <Pressable
+                          onPress={() => {
+                            const notification = notifications.find(
+                              (item) => item.id === notificationReadError.notificationId,
+                            );
+                            if (!notification) return;
+                            void (async () => {
+                              const didMarkRead = await markNotificationRead(notification);
+                              if (didMarkRead && notificationReadError.eventId) {
+                                setNotificationsOpen(false);
+                                onOpenEvent?.(`organizer-${notificationReadError.eventId}`);
+                              }
+                            })();
+                          }}
+                          className="rounded-full bg-accent px-3 py-2 active:opacity-75"
+                          accessibilityLabel="Retry marking notification as read"
+                        >
+                          <Text className="text-[12px] font-extrabold text-white">Retry</Text>
+                        </Pressable>
+                      </View>
+                    ) : null}
                     {notificationGroups.map((group) => (
                       <View key={group.key}>
                         <View className="mb-2 flex-row items-center gap-3">
@@ -530,12 +602,15 @@ export default function HomeScreen({
                               <Pressable
                                 key={notification.id}
                                 onPress={() => {
-                                  markNotificationRead(notification);
-                                  if (notification.eventId) {
-                                    setNotificationsOpen(false);
-                                    onOpenEvent?.(`organizer-${notification.eventId}`);
-                                  }
+                                  void (async () => {
+                                    const didMarkRead = await markNotificationRead(notification);
+                                    if (didMarkRead && notification.eventId) {
+                                      setNotificationsOpen(false);
+                                      onOpenEvent?.(`organizer-${notification.eventId}`);
+                                    }
+                                  })();
                                 }}
+                                disabled={notificationReadPendingIds.includes(notification.id)}
                                 className="flex-row gap-3 rounded-2xl px-4 py-4 active:opacity-75"
                                 style={
                                   unread
