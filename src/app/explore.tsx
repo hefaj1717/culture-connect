@@ -612,9 +612,7 @@ export default function ExploreScreen({
                               </View>
                             )}
                             {event.isFree && (
-                              <View className="rounded-full bg-success/15 px-2.5 py-1">
-                                <Text className="text-[11px] font-extrabold text-success">Free</Text>
-                              </View>
+                              <Text className="text-[11px] font-extrabold text-accent">Free</Text>
                             )}
                           </View>
                           <Text
