@@ -217,6 +217,10 @@ export async function createOrganizerEvent(userId: string, input: CreateOrganize
     status: 'pending',
   });
 
+  if (error && uploadedImage?.path) {
+    await removeOrganizerEventImage(uploadedImage.path);
+  }
+
   return { error: getNetworkAwareErrorMessage(error?.message, '') || null };
 }
 
@@ -260,6 +264,9 @@ export async function updateOrganizerEvent(userId: string, input: UpdateOrganize
     .select('id,status');
 
   if (error) {
+    if (nextImageUrl.path) {
+      await removeOrganizerEventImage(nextImageUrl.path);
+    }
     return {
       error: getNetworkAwareErrorMessage(getOrganizerEventUpdateErrorMessage(error.message)),
     };
@@ -268,6 +275,9 @@ export async function updateOrganizerEvent(userId: string, input: UpdateOrganize
   const updatedEvent = data?.[0];
 
   if (!updatedEvent || updatedEvent.status !== 'pending') {
+    if (nextImageUrl.path) {
+      await removeOrganizerEventImage(nextImageUrl.path);
+    }
     return {
       error:
         'Event changes could not be submitted right now. Please try again.',
@@ -370,13 +380,21 @@ async function uploadOrganizerEventImage(userId: string, imageUri: string) {
     });
 
     if (error) {
-      return { url: null, error: getNetworkAwareErrorMessage(error.message) };
+      return { path: null, url: null, error: getNetworkAwareErrorMessage(error.message) };
     }
 
     const { data } = supabase.storage.from(EVENT_IMAGES_BUCKET).getPublicUrl(path);
-    return { url: data.publicUrl, error: null };
+    return { path, url: data.publicUrl, error: null };
   } catch {
-    return { url: null, error: 'Could not upload the event photo.' };
+    return { path: null, url: null, error: 'Could not upload the event photo.' };
+  }
+}
+
+async function removeOrganizerEventImage(path: string) {
+  try {
+    await supabase.storage.from(EVENT_IMAGES_BUCKET).remove([path]);
+  } catch {
+    // The original write error is more useful to the organizer than cleanup failure.
   }
 }
 
@@ -385,20 +403,20 @@ async function resolveOrganizerEventImageUrl(
   input: Pick<UpdateOrganizerEventInput, 'currentImageUrl' | 'imageUri'>,
 ) {
   if (!input.imageUri) {
-    return { error: null, url: null };
+    return { error: null, path: null, url: null };
   }
 
   if (input.currentImageUrl && input.imageUri === input.currentImageUrl) {
-    return { error: null, url: input.currentImageUrl };
+    return { error: null, path: null, url: input.currentImageUrl };
   }
 
   const uploadedImage = await uploadOrganizerEventImage(userId, input.imageUri);
 
   if (uploadedImage.error) {
-    return { error: uploadedImage.error, url: null };
+    return { error: uploadedImage.error, path: null, url: null };
   }
 
-  return { error: null, url: uploadedImage.url };
+  return { error: null, path: uploadedImage.path, url: uploadedImage.url };
 }
 
 function getOrganizerEventDatabaseId(eventId: string) {
