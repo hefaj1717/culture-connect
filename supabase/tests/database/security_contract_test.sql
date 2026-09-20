@@ -1,6 +1,6 @@
 begin;
 
-select plan(15);
+select plan(16);
 
 select ok(
   (select relrowsecurity from pg_class where oid = 'public.user_notifications'::regclass),
@@ -120,6 +120,11 @@ select is(
   ),
   false,
   'anonymous callers cannot execute the retired reward RPC'
+);
+
+select ok(
+  to_regprocedure('public.check_in_at_event(uuid,double precision,double precision)') is null,
+  'the retired legacy event check-in RPC is removed'
 );
 
 select * from finish();
