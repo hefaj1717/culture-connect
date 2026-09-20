@@ -26,6 +26,28 @@ type UserNotificationRow = {
   type: UserNotification['type'];
 };
 
+type UserNotificationRealtimeRow = UserNotificationRow & {
+  user_id: string;
+};
+
+type RealtimeNotificationSubscription = {
+  onInsert: (notification: UserNotification) => void;
+  onStatus?: (status: string) => void;
+  userId: string;
+};
+
+function toUserNotification(notification: UserNotificationRow): UserNotification {
+  return {
+    body: notification.body,
+    createdAt: notification.created_at,
+    eventId: notification.event_id,
+    id: notification.id,
+    readAt: notification.read_at,
+    title: notification.title,
+    type: notification.type,
+  };
+}
+
 export async function fetchUserNotifications() {
   const { data, error } = await supabase
     .from('user_notifications')
@@ -42,15 +64,37 @@ export async function fetchUserNotifications() {
 
   return {
     error: null,
-    notifications: ((data ?? []) as UserNotificationRow[]).map((notification) => ({
-      body: notification.body,
-      createdAt: notification.created_at,
-      eventId: notification.event_id,
-      id: notification.id,
-      readAt: notification.read_at,
-      title: notification.title,
-      type: notification.type,
-    })),
+    notifications: ((data ?? []) as UserNotificationRow[]).map(toUserNotification),
+  };
+}
+
+/**
+ * Keeps the in-app inbox fresh while the user is signed in. The database RLS
+ * policy and `user_id` filter mean this channel can only receive that user's rows.
+ */
+export function subscribeToUserNotifications({
+  onInsert,
+  onStatus,
+  userId,
+}: RealtimeNotificationSubscription) {
+  const channel = supabase
+    .channel(`user-notifications:${userId}`)
+    .on(
+      'postgres_changes',
+      {
+        event: 'INSERT',
+        filter: `user_id=eq.${userId}`,
+        schema: 'public',
+        table: 'user_notifications',
+      },
+      (payload) => {
+        onInsert(toUserNotification(payload.new as UserNotificationRealtimeRow));
+      },
+    )
+    .subscribe((status) => onStatus?.(status));
+
+  return () => {
+    void supabase.removeChannel(channel);
   };
 }
 
