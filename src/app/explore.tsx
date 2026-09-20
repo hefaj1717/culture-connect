@@ -605,14 +605,16 @@ export default function ExploreScreen({
                                 </Text>
                               </View>
                             ) : (
-                              <View className="rounded-full bg-primary/10 px-2 py-0.5">
-                                <Text className="text-[10px] font-semibold uppercase text-primary">
+                              <View className="rounded-full bg-primary/15 px-2.5 py-1">
+                                <Text className="text-[10px] font-bold uppercase tracking-wide text-primary">
                                   {event.date}
                                 </Text>
                               </View>
                             )}
                             {event.isFree && (
-                              <Text className="text-[11px] font-bold text-success">Free</Text>
+                              <View className="rounded-full bg-success/15 px-2.5 py-1">
+                                <Text className="text-[11px] font-extrabold text-success">Free</Text>
+                              </View>
                             )}
                           </View>
                           <Text
@@ -626,8 +628,8 @@ export default function ExploreScreen({
                           </Text>
                           <View className="flex-row flex-wrap items-center gap-2.5">
                             <View className="flex-row items-center gap-1">
-                              <Clock size={12} color={Colors.light.textSecondary} />
-                              <Text className="text-[12px] text-muted">
+                              <Clock size={13} color={Colors.light.primary} strokeWidth={2.4} />
+                              <Text className="text-[12px] font-semibold text-primary">
                                 {formatEventTimeRange(event)}
                               </Text>
                             </View>
