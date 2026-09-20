@@ -26,6 +26,7 @@ import type { UserEventStatus } from '@/lib/event-history';
 import {
   fetchUserNotifications,
   markUserNotificationsRead,
+  subscribeToUserNotifications,
   type UserNotification,
 } from '@/lib/user-notifications';
 import { markNotificationReadWithRollback } from '@/lib/notification-read-mutation';
@@ -109,6 +110,23 @@ export default function HomeScreen({
   useEffect(() => {
     void loadNotifications();
   }, [loadNotifications]);
+
+  useEffect(() => {
+    if (!user?.id) return;
+
+    return subscribeToUserNotifications({
+      userId: user.id,
+      onInsert: (incomingNotification) => {
+        setNotificationsError(null);
+        setNotifications((current) =>
+          [incomingNotification, ...current.filter((notification) => notification.id !== incomingNotification.id)].sort(
+            (first, second) =>
+              new Date(second.createdAt).getTime() - new Date(first.createdAt).getTime(),
+          ),
+        );
+      },
+    });
+  }, [user?.id]);
 
   useEffect(() => {
     if (notificationsOpen) {
