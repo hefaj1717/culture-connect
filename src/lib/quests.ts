@@ -197,6 +197,9 @@ export async function createQuest(input: CreateQuestInput) {
     .single();
 
   if (questError) {
+    if (uploadedImage?.path) {
+      await removeQuestImage(uploadedImage.path);
+    }
     return { error: getNetworkAwareErrorMessage(questError.message), questId: null };
   }
 
@@ -218,6 +221,9 @@ export async function createQuest(input: CreateQuestInput) {
 
   if (stopsError) {
     await supabase.from('quests').delete().eq('id', questId);
+    if (uploadedImage?.path) {
+      await removeQuestImage(uploadedImage.path);
+    }
     return { error: getNetworkAwareErrorMessage(stopsError.message), questId: null };
   }
 
@@ -253,13 +259,21 @@ async function uploadQuestImage(userId: string, imageUri: string) {
     });
 
     if (error) {
-      return { url: null, error: getNetworkAwareErrorMessage(error.message) };
+      return { path: null, url: null, error: getNetworkAwareErrorMessage(error.message) };
     }
 
     const { data } = supabase.storage.from(QUEST_IMAGES_BUCKET).getPublicUrl(path);
-    return { url: data.publicUrl, error: null };
+    return { path, url: data.publicUrl, error: null };
   } catch {
-    return { url: null, error: 'Could not upload the quest photo.' };
+    return { path: null, url: null, error: 'Could not upload the quest photo.' };
+  }
+}
+
+async function removeQuestImage(path: string) {
+  try {
+    await supabase.storage.from(QUEST_IMAGES_BUCKET).remove([path]);
+  } catch {
+    // Keep the original failed create error; cleanup is best effort.
   }
 }
 
