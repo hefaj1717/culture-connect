@@ -1,6 +1,6 @@
 begin;
 
-select plan(9);
+select plan(15);
 
 select ok(
   (select relrowsecurity from pg_class where oid = 'public.user_notifications'::regclass),
@@ -44,6 +44,52 @@ select ok(
 select ok(
   to_regprocedure('public.redeem_organizer_reward(uuid)') is not null,
   'reward redemption RPC exists'
+);
+
+select ok(
+  (select reloptions @> array['security_invoker=true']
+   from pg_class
+   where oid = 'public.quest_completion_stats'::regclass),
+  'quest completion stats view uses the caller security context'
+);
+
+select ok(
+  to_regprocedure('public.get_approved_quest_completion_stats(uuid[])') is not null,
+  'approved quest completion totals are exposed only through a narrow RPC'
+);
+
+select is(
+  has_function_privilege(
+    'anon',
+    'public.get_approved_quest_completion_stats(uuid[])'::regprocedure,
+    'EXECUTE'
+  ),
+  false,
+  'anonymous callers cannot read quest completion totals'
+);
+
+select is(
+  (
+    select count(*)::integer
+    from pg_policies
+    where schemaname = 'public'
+      and tablename in ('organizer_event_checkin_secrets', 'quest_completion_secrets')
+      and policyname like 'Deny direct access to % secrets'
+  ),
+  2,
+  'QR secret tables have explicit deny-all policies'
+);
+
+select is(
+  has_table_privilege('authenticated', 'public.organizer_event_checkin_secrets', 'SELECT'),
+  false,
+  'authenticated callers cannot read event check-in secrets directly'
+);
+
+select is(
+  has_table_privilege('authenticated', 'public.quest_completion_secrets', 'SELECT'),
+  false,
+  'authenticated callers cannot read quest completion secrets directly'
 );
 
 select is(

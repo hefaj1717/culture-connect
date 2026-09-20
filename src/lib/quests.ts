@@ -107,10 +107,11 @@ export async function fetchApprovedQuests(cityId: CityId) {
   }
 
   const questIds = quests.map((quest) => quest.id);
-  const { data: completionStatsRows } = await supabase
-    .from('quest_completion_stats')
-    .select('quest_id, completion_count')
-    .in('quest_id', questIds);
+  // Completion totals are deliberately exposed through a narrow aggregate RPC.
+  // The underlying completion rows remain private to the user who completed them.
+  const { data: completionStatsRows } = await supabase.rpc('get_approved_quest_completion_stats', {
+    _quest_ids: questIds,
+  });
   const { data: stopRows, error: stopsError } = await supabase
     .from('quest_stops')
     .select('id, quest_id, title, description, eta, position')
