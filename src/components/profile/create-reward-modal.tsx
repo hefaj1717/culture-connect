@@ -28,7 +28,11 @@ import {
 import { textLimits } from '@/constants/text-limits';
 import { type CityId, getCultureCityData } from '@/data/culture';
 import { useCardSwipeBack } from '@/hooks/use-card-swipe-back';
-import { hasGooglePlacesApiKey, type PlaceSuggestion } from '@/lib/place-search';
+import {
+  hasGooglePlacesApiKey,
+  type PlaceSearchError,
+  type PlaceSuggestion,
+} from '@/lib/place-search';
 import { type RewardAvailabilityInput } from '@/lib/reward-availability';
 
 type CreateRewardModalProps = {
@@ -43,11 +47,13 @@ type CreateRewardModalProps = {
   onChangeRewardAvailableStartTime: (value: string) => void;
   onChangeRewardAvailableUntil: (value: string) => void;
   onClose: () => void;
+  onRetryRewardPlaceSearch: () => void;
   onSelectRewardPlace: (place: PlaceSuggestion) => void;
   onSubmit: () => void;
   rewardAvailability: RewardAvailabilityInput;
   rewardDescription: string;
   rewardPlaceQuery: string;
+  rewardPlaceSearchError: PlaceSearchError | null;
   rewardPlaceSuggestions: PlaceSuggestion[];
   rewardTitle: string;
   rewardXp: string;
@@ -74,6 +80,7 @@ export function CreateRewardModal({
   onChangeRewardTitle,
   onChangeRewardXp,
   onClose,
+  onRetryRewardPlaceSearch,
   onSelectRewardPlace,
   onSubmit,
   organizerAvatarUrl,
@@ -82,6 +89,7 @@ export function CreateRewardModal({
   rewardDescription,
   rewardAvailability,
   rewardPlaceQuery,
+  rewardPlaceSearchError,
   rewardPlaceSuggestions,
   rewardTitle,
   rewardXp,
@@ -249,6 +257,21 @@ export function CreateRewardModal({
                       ? 'Powered by Google Places suggestions.'
                       : 'Google Places key is missing, so place suggestions are unavailable.'}
                   </Text>
+
+                  {rewardPlaceSearchError ? (
+                    <View className="mt-2 flex-row items-center gap-3 rounded-xl bg-accent/10 px-3 py-2.5">
+                      <Text className="min-w-0 flex-1 text-[11px] leading-4 text-ink">
+                        {rewardPlaceSearchError.message}
+                      </Text>
+                      <Pressable
+                        onPress={onRetryRewardPlaceSearch}
+                        className="rounded-lg bg-accent px-2.5 py-1.5 active:opacity-75"
+                        accessibilityLabel="Retry place search"
+                      >
+                        <Text className="text-[11px] font-bold text-white">Retry</Text>
+                      </Pressable>
+                    </View>
+                  ) : null}
 
                   {selectedRewardPlace && (
                     <View className="mt-2 flex-row gap-3 rounded-xl border border-accent/25 bg-accent/10 p-3">

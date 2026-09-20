@@ -11,7 +11,7 @@ import {
   type ManagedOrganizerEvent,
 } from '@/lib/organizer-events';
 import { OFFLINE_ERROR_MESSAGE } from '@/lib/network-errors';
-import { type PlaceSuggestion, searchPlaces } from '@/lib/place-search';
+import { type PlaceSearchError, type PlaceSuggestion, searchPlaces } from '@/lib/place-search';
 import { useNetworkStatus } from '@/providers/network-provider';
 
 type UseCreateEventFormInput = {
@@ -32,6 +32,8 @@ export function useCreateEventForm({
   const [placeSuggestions, setPlaceSuggestions] = useState<PlaceSuggestion[]>([]);
   const [selectedPlace, setSelectedPlace] = useState<PlaceSuggestion | null>(null);
   const [searchingPlaces, setSearchingPlaces] = useState(false);
+  const [placeSearchError, setPlaceSearchError] = useState<PlaceSearchError | null>(null);
+  const [placeSearchRetryKey, setPlaceSearchRetryKey] = useState(0);
   const [eventCategory, setEventCategory] = useState<EventCategory>('workshop');
   const [eventDate, setEventDate] = useState('');
   const [eventDateValue, setEventDateValue] = useState<Date | null>(null);
@@ -62,27 +64,31 @@ export function useCreateEventForm({
     async function loadPlaceSuggestions() {
       if (selectedPlace && placeQuery === selectedPlace.name) {
         setPlaceSuggestions([]);
+        setPlaceSearchError(null);
         setSearchingPlaces(false);
         return;
       }
 
       if (placeQuery.trim().length < 2) {
         setPlaceSuggestions([]);
+        setPlaceSearchError(null);
         setSearchingPlaces(false);
         return;
       }
 
       if (isOffline) {
         setPlaceSuggestions([]);
+        setPlaceSearchError({ code: 'network', message: OFFLINE_ERROR_MESSAGE });
         setSearchingPlaces(false);
         return;
       }
 
       setSearchingPlaces(true);
-      const suggestions = await searchPlaces(placeQuery, savedCityId);
+      const result = await searchPlaces(placeQuery, savedCityId);
       if (!active) return;
 
-      setPlaceSuggestions(suggestions);
+      setPlaceSuggestions(result.suggestions);
+      setPlaceSearchError(result.error);
       setSearchingPlaces(false);
     }
 
@@ -91,13 +97,14 @@ export function useCreateEventForm({
     return () => {
       active = false;
     };
-  }, [isOffline, placeQuery, savedCityId, selectedPlace]);
+  }, [isOffline, placeQuery, placeSearchRetryKey, savedCityId, selectedPlace]);
 
   function resetEventForm() {
     setEditingEvent(null);
     setEventTitle('');
     setPlaceQuery('');
     setPlaceSuggestions([]);
+    setPlaceSearchError(null);
     setSelectedPlace(null);
     setEventCategory('workshop');
     setEventDate('');
@@ -168,6 +175,7 @@ export function useCreateEventForm({
     setSelectedPlace(place);
     setPlaceQuery(place.name);
     setPlaceSuggestions([]);
+    setPlaceSearchError(null);
   }
 
   function changeEventTitle(value: string) {
@@ -180,6 +188,11 @@ export function useCreateEventForm({
 
   function changePlaceQuery(value: string) {
     setPlaceQuery(limitText(value, textLimits.placeSearch));
+    setPlaceSearchError(null);
+  }
+
+  function retryPlaceSearch() {
+    setPlaceSearchRetryKey((current) => current + 1);
   }
 
   async function submitEvent() {
@@ -316,6 +329,7 @@ export function useCreateEventForm({
     openEditEvent,
     pickEventImage,
     placeQuery,
+    placeSearchError,
     placeSuggestions,
     resetEventForm,
     searchingPlaces,
@@ -325,6 +339,7 @@ export function useCreateEventForm({
     selectedEndMinute,
     selectedPlace,
     selectPlace,
+    retryPlaceSearch,
     setCalendarMonth,
     setCreateEventOpen,
     setDatePickerOpen,

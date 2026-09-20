@@ -229,6 +229,7 @@ export default function ProfileScreen({
     openEditProfile,
     organizerBio,
     organizerLocationQuery,
+    organizerLocationSearchError,
     organizerLocationSuggestions,
     pickAvatar,
     profileError,
@@ -236,6 +237,7 @@ export default function ProfileScreen({
     searchingOrganizerLocation,
     selectedOrganizerLocation,
     selectOrganizerLocation,
+    retryOrganizerLocationSearch,
     savingProfile,
     setIsStudent,
     setCityId,
@@ -270,7 +272,9 @@ export default function ProfileScreen({
     openEditEvent,
     pickEventImage,
     placeQuery,
+    placeSearchError,
     placeSuggestions,
+    retryPlaceSearch,
     searchingPlaces,
     selectedHour,
     selectedMinute,
@@ -314,7 +318,9 @@ export default function ProfileScreen({
     rewardDescription,
     rewardAvailability,
     rewardPlaceQuery,
+    rewardPlaceSearchError,
     rewardPlaceSuggestions,
+    retryRewardPlaceSearch,
     rewardTitle,
     rewardXp,
     searchingRewardPlaces,
@@ -777,11 +783,13 @@ export default function ProfileScreen({
         onChangeStudentEmail={setStudentEmail}
         onChangeUniversity={setUniversityId}
         onClose={() => setEditOpen(false)}
+        onRetryOrganizerLocationSearch={retryOrganizerLocationSearch}
         onSave={saveProfile}
         onSelectOrganizerLocation={selectOrganizerLocation}
         onToggleStudent={setIsStudent}
         organizerBio={organizerBio}
         organizerLocationQuery={organizerLocationQuery}
+        organizerLocationSearchError={organizerLocationSearchError}
         organizerLocationSuggestions={organizerLocationSuggestions}
         profileError={profileError}
         searchingOrganizerLocation={searchingOrganizerLocation}
@@ -851,7 +859,9 @@ export default function ProfileScreen({
         onSelectPlace={selectPlace}
         onSubmit={submitEvent}
         placeQuery={placeQuery}
+        placeSearchError={placeSearchError}
         placeSuggestions={placeSuggestions}
+        onRetryPlaceSearch={retryPlaceSearch}
         searchingPlaces={searchingPlaces}
         selectedHour={selectedHour}
         selectedMinute={selectedMinute}
@@ -888,12 +898,14 @@ export default function ProfileScreen({
         onClose={() => setCreateRewardOpen(false)}
         onSelectRewardPlace={selectRewardPlace}
         onSubmit={submitReward}
+        onRetryRewardPlaceSearch={retryRewardPlaceSearch}
         organizerAvatarUrl={savedAvatarUrl}
         organizerInitials={avatarInitials || 'CQ'}
         organizerName={fullName || 'CultureQuest organiser'}
         rewardAvailability={rewardAvailability}
         rewardDescription={rewardDescription}
         rewardPlaceQuery={rewardPlaceQuery}
+        rewardPlaceSearchError={rewardPlaceSearchError}
         rewardPlaceSuggestions={rewardPlaceSuggestions}
         rewardTitle={rewardTitle}
         rewardXp={rewardXp}

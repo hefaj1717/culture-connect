@@ -6,7 +6,7 @@ import { limitText, textLimits } from '@/constants/text-limits';
 import { type CityId, defaultCityId } from '@/data/culture';
 import { getUniversityById } from '@/data/universities';
 import { OFFLINE_ERROR_MESSAGE } from '@/lib/network-errors';
-import { type PlaceSuggestion, searchPlaces } from '@/lib/place-search';
+import { type PlaceSearchError, type PlaceSuggestion, searchPlaces } from '@/lib/place-search';
 import {
   upsertMyUniversityMembership,
   type UserUniversityMembership,
@@ -68,6 +68,9 @@ export function useEditProfileForm({
     PlaceSuggestion[]
   >([]);
   const [searchingOrganizerLocation, setSearchingOrganizerLocation] = useState(false);
+  const [organizerLocationSearchError, setOrganizerLocationSearchError] =
+    useState<PlaceSearchError | null>(null);
+  const [organizerLocationSearchRetryKey, setOrganizerLocationSearchRetryKey] = useState(0);
   const [selectedOrganizerLocation, setSelectedOrganizerLocation] =
     useState<PlaceSuggestion | null>(null);
   const [profileError, setProfileError] = useState<string | null>(null);
@@ -118,28 +121,32 @@ export function useEditProfileForm({
 
     if (normalizedQuery.length < 2) {
       setOrganizerLocationSuggestions([]);
+      setOrganizerLocationSearchError(null);
       setSearchingOrganizerLocation(false);
       return;
     }
 
     if (selectedOrganizerLocation?.name === normalizedQuery) {
       setOrganizerLocationSuggestions([]);
+      setOrganizerLocationSearchError(null);
       setSearchingOrganizerLocation(false);
       return;
     }
 
     if (isOffline) {
       setOrganizerLocationSuggestions([]);
+      setOrganizerLocationSearchError({ code: 'network', message: OFFLINE_ERROR_MESSAGE });
       setSearchingOrganizerLocation(false);
       return;
     }
 
     setSearchingOrganizerLocation(true);
     const searchTimer = setTimeout(async () => {
-      const suggestions = await searchPlaces(normalizedQuery, cityId);
+      const result = await searchPlaces(normalizedQuery, cityId);
 
       if (!active) return;
-      setOrganizerLocationSuggestions(suggestions);
+      setOrganizerLocationSuggestions(result.suggestions);
+      setOrganizerLocationSearchError(result.error);
       setSearchingOrganizerLocation(false);
     }, 250);
 
@@ -147,7 +154,13 @@ export function useEditProfileForm({
       active = false;
       clearTimeout(searchTimer);
     };
-  }, [cityId, isOffline, organizerLocationQuery, selectedOrganizerLocation?.name]);
+  }, [
+    cityId,
+    isOffline,
+    organizerLocationQuery,
+    organizerLocationSearchRetryKey,
+    selectedOrganizerLocation?.name,
+  ]);
 
   function openEditProfile() {
     setProfileError(null);
@@ -161,6 +174,7 @@ export function useEditProfileForm({
     setUniversityId(savedUniversityMembership?.universityId ?? '');
     setOrganizerLocationQuery(savedOrganizerLocationName ?? '');
     setOrganizerLocationSuggestions([]);
+    setOrganizerLocationSearchError(null);
     setSelectedOrganizerLocation(
       savedOrganizerLocationName &&
         savedOrganizerLocationAddress &&
@@ -182,6 +196,7 @@ export function useEditProfileForm({
   function changeOrganizerLocationQuery(query: string) {
     const nextQuery = limitText(query, textLimits.organizerLocationSearch);
     setOrganizerLocationQuery(nextQuery);
+    setOrganizerLocationSearchError(null);
     if (selectedOrganizerLocation && selectedOrganizerLocation.name !== nextQuery.trim()) {
       setSelectedOrganizerLocation(null);
     }
@@ -215,6 +230,11 @@ export function useEditProfileForm({
     setSelectedOrganizerLocation(place);
     setOrganizerLocationQuery(place.name);
     setOrganizerLocationSuggestions([]);
+    setOrganizerLocationSearchError(null);
+  }
+
+  function retryOrganizerLocationSearch() {
+    setOrganizerLocationSearchRetryKey((current) => current + 1);
   }
 
   async function pickAvatar() {
@@ -332,6 +352,7 @@ export function useEditProfileForm({
     lastName,
     organizerBio,
     organizerLocationQuery,
+    organizerLocationSearchError,
     organizerLocationSuggestions,
     pickAvatar,
     profileError,
@@ -339,6 +360,7 @@ export function useEditProfileForm({
     searchingOrganizerLocation,
     selectedOrganizerLocation,
     selectOrganizerLocation,
+    retryOrganizerLocationSearch,
     savingProfile,
     setAvatarUrl,
     setCityId: changeCity,
