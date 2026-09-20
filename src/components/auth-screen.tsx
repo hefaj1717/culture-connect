@@ -27,6 +27,7 @@ import {
   validateAuthField,
   validateAuthForm,
 } from '@/lib/auth-validation';
+import { retainAuthDraft } from '@/lib/auth-form-draft';
 import { OFFLINE_ERROR_MESSAGE } from '@/lib/network-errors';
 import { useAuth } from '@/providers/auth-provider';
 import { useNetworkStatus } from '@/providers/network-provider';
@@ -195,10 +196,17 @@ export function AuthScreen() {
     setLoading(true);
 
     if (mode === 'signIn') {
+      const submittedEmail = email;
+      const submittedPassword = password;
       const result = await signIn(normalizedEmail, password);
       setLoading(false);
 
       if (result.error) {
+        // Some native password managers clear a secure TextInput after a rejected
+        // sign-in. Keep the user's draft so they can correct it instead of typing
+        // both fields again. Never overwrite a value changed while the request ran.
+        setEmail((currentEmail) => retainAuthDraft(currentEmail, submittedEmail));
+        setPassword((currentPassword) => retainAuthDraft(currentPassword, submittedPassword));
         setError(result.error);
       }
       return;
