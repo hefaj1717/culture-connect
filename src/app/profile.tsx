@@ -81,9 +81,11 @@ type ProfileScreenProps = {
   onQuestCreated?: () => void;
   onRewardCreated?: () => void;
   onUserXpChange?: (nextXp: number) => void;
+  onUserQcChange?: (nextQc: number) => void;
   rewardsRefreshKey?: number;
   userEventHistory?: UserEventHistoryItem[];
   userXp?: number;
+  userQc?: number;
 };
 
 export default function ProfileScreen({
@@ -96,9 +98,11 @@ export default function ProfileScreen({
   onQuestCreated,
   onRewardCreated,
   onUserXpChange,
+  onUserQcChange,
   rewardsRefreshKey = 0,
   userEventHistory = [],
   userXp = 0,
+  userQc = 0,
 }: ProfileScreenProps = {}) {
   const [notice, setNotice] = useState<string | null>(null);
   const stableModalTopInset = useStableTopInset();
@@ -214,9 +218,11 @@ export default function ProfileScreen({
   });
   const rewardRedemption = useRewardRedemption({
     onUserXpChange,
+    onUserQcChange,
     rewards: approvedRewards,
     userId: session?.user.id,
     userXp,
+    userQc,
   });
   const {
     avatarUrl,
@@ -680,6 +686,7 @@ export default function ProfileScreen({
           onOpenSettings={() => setAccountActionsOpen(true)}
           organizerStatus={organizerApplicationStatus}
           userXp={userXp}
+          userQc={userQc}
         />
 
         <UniversityAffiliationSection
@@ -697,6 +704,7 @@ export default function ProfileScreen({
           redeemedRewards={redeemedRewards}
           rewards={approvedRewards}
           userXp={userXp}
+          userQc={userQc}
         />
 
         <DigitalPassportSection badges={[]} />
@@ -1041,6 +1049,7 @@ export default function ProfileScreen({
         rewards={approvedRewards}
         stableModalTopInset={stableModalTopInset}
         userXp={userXp}
+        userQc={userQc}
         visible={rewardsListOpen}
       />
 
@@ -1061,8 +1070,10 @@ export default function ProfileScreen({
         rewardIsUsed={selectedRewardIsUsed}
         rewardStateExists={!!selectedRewardState}
         rewardXpNeeded={selectedRewardXpNeeded}
+        rewardQcNeeded={rewardRedemption.selectedRewardQcNeeded}
         swipeStyle={rewardSwipeStyle}
         userXp={userXp}
+        userQc={userQc}
       />
     </View>
   );

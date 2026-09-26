@@ -7,6 +7,8 @@ type AwardXpResponse = {
   success?: boolean;
   total_xp?: number;
   xp_earned?: number;
+  qc_earned?: number;
+  total_qc?: number;
 };
 
 type ConfirmEventAttendanceResponse = AwardXpResponse & {
@@ -16,15 +18,15 @@ type ConfirmEventAttendanceResponse = AwardXpResponse & {
 export async function fetchUserXp(userId: string) {
   const { data, error } = await supabase
     .from('profiles')
-    .select('total_xp')
+    .select('total_xp, total_qc')
     .eq('id', userId)
     .maybeSingle();
 
   if (error) {
-    return { error: getNetworkAwareErrorMessage(error.message), totalXp: 0 };
+    return { error: getNetworkAwareErrorMessage(error.message), totalXp: 0, totalQc: 0 };
   }
 
-  return { error: null, totalXp: Number(data?.total_xp ?? 0) };
+  return { error: null, totalXp: Number(data?.total_xp ?? 0), totalQc: Number(data?.total_qc ?? 0) };
 }
 
 export async function awardUserXp({
@@ -87,7 +89,7 @@ export async function confirmOrganizerEventAttendance({
   });
 
   if (error) {
-    return { duplicate: false, error: getNetworkAwareErrorMessage(error.message), totalXp: null };
+    return { duplicate: false, error: getNetworkAwareErrorMessage(error.message), totalXp: null, totalQc: null };
   }
 
   const result = data as ConfirmEventAttendanceResponse;
@@ -97,7 +99,9 @@ export async function confirmOrganizerEventAttendance({
       duplicate: false,
       error: getAttendanceErrorMessage(result.error, result.distance_m),
       xpEarned: 0,
+      qcEarned: 0,
       totalXp: typeof result.total_xp === 'number' ? result.total_xp : null,
+      totalQc: typeof result.total_qc === 'number' ? result.total_qc : null,
     };
   }
 
@@ -105,7 +109,9 @@ export async function confirmOrganizerEventAttendance({
     duplicate: !!result.duplicate,
     error: null,
     xpEarned: typeof result.xp_earned === 'number' ? result.xp_earned : 0,
+    qcEarned: typeof result.qc_earned === 'number' ? result.qc_earned : 0,
     totalXp: typeof result.total_xp === 'number' ? result.total_xp : null,
+    totalQc: typeof result.total_qc === 'number' ? result.total_qc : null,
   };
 }
 

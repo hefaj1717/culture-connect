@@ -1,6 +1,35 @@
 begin;
 
-select plan(16);
+select plan(20);
+
+select ok(
+  exists (
+    select 1 from information_schema.columns
+    where table_schema = 'public' and table_name = 'profiles' and column_name = 'total_qc'
+  ),
+  'profiles maintain a spendable QC balance separately from permanent XP'
+);
+
+select ok(
+  (select relrowsecurity from pg_class where oid = 'public.qc_transactions'::regclass),
+  'QC transaction ledger has RLS enabled'
+);
+
+select is(
+  has_table_privilege('authenticated', 'public.qc_transactions', 'INSERT'),
+  false,
+  'clients cannot write QC ledger entries directly'
+);
+
+select is(
+  has_function_privilege(
+    'anon',
+    'public.award_qc_for_xp_earn()'::regprocedure,
+    'EXECUTE'
+  ),
+  false,
+  'anonymous callers cannot invoke the QC award trigger function'
+);
 
 select ok(
   (select relrowsecurity from pg_class where oid = 'public.user_notifications'::regclass),

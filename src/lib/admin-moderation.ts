@@ -58,6 +58,7 @@ export type PendingAdminReward = {
   placeName: string;
   title: string;
   xpCost: number;
+  qcCost: number;
 };
 
 export type AdminManagedEvent = CultureEvent & {
@@ -96,6 +97,7 @@ export type AdminManagedReward = {
   reviewStatus: RewardPartnerStatus;
   title: string;
   xpCost: number;
+  qcCost: number;
 };
 
 export type RewardPartnerStatus = 'draft' | 'pending' | 'approved' | 'rejected' | 'archived';
@@ -146,6 +148,7 @@ type AdminManagedEventRow = PendingEventRow & {
   venue_latitude: number | null;
   venue_longitude: number | null;
   xp_bonus: number | null;
+  qc_bonus?: number | null;
 };
 
 type PendingRewardRow = {
@@ -164,6 +167,7 @@ type PendingRewardRow = {
   place_name: string;
   title: string;
   xp_cost: number;
+  qc_cost?: number | null;
 };
 
 type AdminManagedRewardRow = PendingRewardRow & {
@@ -186,7 +190,7 @@ type ProfileSummaryRow = {
 };
 
 const ADMIN_EVENT_SELECT =
-  'id, organizer_user_id, city_key, venue_key, venue_name, venue_address, venue_latitude, venue_longitude, title, description, category, date_label, time_label, end_time_label, starts_at, ends_at, xp_bonus, language, is_free, is_international, interested_count, going_count, attendee_count, image_kind, image_url, status, created_at, updated_at, review_requested_at, review_previous_snapshot';
+  'id, organizer_user_id, city_key, venue_key, venue_name, venue_address, venue_latitude, venue_longitude, title, description, category, date_label, time_label, end_time_label, starts_at, ends_at, xp_bonus, qc_bonus, language, is_free, is_international, interested_count, going_count, attendee_count, image_kind, image_url, status, created_at, updated_at, review_requested_at, review_previous_snapshot';
 const ADMIN_EVENT_LEGACY_GOING_SELECT =
   'id, organizer_user_id, city_key, venue_key, venue_name, venue_address, venue_latitude, venue_longitude, title, description, category, date_label, time_label, end_time_label, starts_at, ends_at, xp_bonus, language, is_free, is_international, interested_count, attendee_count, image_kind, image_url, status, created_at';
 const ADMIN_EVENT_LEGACY_COUNTER_SELECT =
@@ -198,7 +202,7 @@ const PENDING_EVENT_SELECT =
 const PENDING_EVENT_LEGACY_SELECT =
   'id, organizer_user_id, city_key, venue_name, venue_address, title, description, category, date_label, time_label, end_time_label, image_url, created_at, updated_at';
 const ADMIN_REWARD_SELECT =
-  'id, organizer_user_id, city_key, place_name, place_address, place_latitude, place_longitude, title, description, xp_cost, category, image_url, status, created_at, available_from, available_until, available_days, available_start_time, available_end_time';
+  'id, organizer_user_id, city_key, place_name, place_address, place_latitude, place_longitude, title, description, xp_cost, qc_cost, category, image_url, status, created_at, available_from, available_until, available_days, available_start_time, available_end_time';
 
 export async function fetchPendingAdminContent() {
   const [eventsResult, rewardsResult] = await Promise.all([
@@ -374,6 +378,7 @@ export async function updateAdminManagedEvent({
     venueAddress?: string | null;
     venueName: string;
     xpBonus: number;
+    qcBonus: number;
   };
 }) {
   const { error } = await supabase
@@ -394,6 +399,7 @@ export async function updateAdminManagedEvent({
       venue_address: input.venueAddress,
       venue_name: input.venueName,
       xp_bonus: input.xpBonus,
+      qc_bonus: input.qcBonus,
     })
     .eq('id', eventId);
 
@@ -439,6 +445,7 @@ export async function updateAdminManagedReward({
     status: RewardPartnerStatus;
     title: string;
     xpCost: number;
+    qcCost: number;
   };
   rewardId: string;
 }) {
@@ -460,6 +467,7 @@ export async function updateAdminManagedReward({
       status: input.status,
       title: input.title,
       xp_cost: input.xpCost,
+      qc_cost: input.qcCost,
     })
     .eq('id', rewardId);
 
@@ -647,6 +655,7 @@ function mapPendingReward(
     placeName: row.place_name,
     title: row.title,
     xpCost: row.xp_cost,
+    qcCost: row.qc_cost ?? 5,
   };
 }
 
@@ -710,6 +719,7 @@ function mapAdminManagedEvent(
     venueId: row.venue_key,
     venueName: row.venue_name,
     xpBonus: row.xp_bonus ?? 50,
+    qcBonus: row.qc_bonus ?? 5,
   };
 }
 
@@ -752,6 +762,7 @@ function mapAdminManagedReward(
     reviewStatus: row.status,
     title: row.title,
     xpCost: row.xp_cost,
+    qcCost: row.qc_cost ?? 5,
   };
 }
 

@@ -186,6 +186,7 @@ function QuestCard({ onPress, quest }: { onPress: () => void; quest: Quest }) {
 
         <View className="mb-3 flex-row items-center justify-between">
           <Text className="text-[13px] font-extrabold text-primary">+{quest.totalXp} XP</Text>
+          <Text className="text-[13px] font-extrabold text-accent">+{quest.totalQc} QC</Text>
           <Text className="text-[12px] font-semibold text-muted">
             {quest.completedStops} of {totalStops} stops completed
           </Text>
@@ -358,6 +359,7 @@ function QuestDetailModal({
               <View className="mb-5 flex-row items-center justify-between rounded-2xl bg-primary/10 p-4">
                 <Text className="text-[15px] font-extrabold text-primary">
                   {quest.totalXp} XP total
+                  {' · '}{quest.totalQc} QC
                 </Text>
                 <Text className="text-[13px] font-semibold text-muted">
                   {quest.completedStops}/{quest.stops.length} stops
@@ -407,7 +409,7 @@ function QuestDetailModal({
                   {questCompleted
                     ? 'Quest completed'
                     : questHasStops
-                      ? `Scan finish QR +${quest.totalXp} XP`
+                      ? `Scan finish QR +${quest.totalXp} XP · +${quest.totalQc} QC`
                       : 'Stops coming soon'}
                 </Text>
               </Pressable>

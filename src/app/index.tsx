@@ -518,6 +518,7 @@ export default function HomeScreen({
                       <Text className="text-[12px] font-bold text-primary">
                         +{event.xpBonus} XP
                       </Text>
+                      <Text className="text-[12px] font-extrabold text-accent">+{event.qcBonus} QC</Text>
                       {event.isFree && (
                         <View className="rounded-full bg-success/10 px-1.5 py-0.5">
                           <Text className="text-[10px] font-bold text-success">Free</Text>

@@ -181,7 +181,7 @@ export function CreateRewardModal({
                 </Pressable>
 
                 <ScreenHeader
-                  subtitle="Add a partner reward students can unlock with CultureQuest XP."
+                  subtitle="Set an XP unlock threshold. Each reward costs 5 QC by default."
                   title="Create reward"
                 />
 
@@ -320,7 +320,7 @@ export function CreateRewardModal({
                   )}
                 </View>
 
-                <Text className="mb-2 text-[13px] font-semibold text-ink">XP required</Text>
+                <Text className="mb-2 text-[13px] font-semibold text-ink">XP required to unlock</Text>
                 <TextInput
                   value={rewardXp}
                   onChangeText={onChangeRewardXp}
@@ -331,6 +331,7 @@ export function CreateRewardModal({
                   maxLength={textLimits.rewardXp}
                   className="mb-4 rounded-xl border border-gray-300 px-4 py-3 text-[15px] text-ink"
                 />
+                <Text className="mt-2 text-[12px] font-extrabold text-accent">5 QC spent on redemption</Text>
 
                 <Text className="mb-2 text-[13px] font-semibold text-ink">
                   Redeem availability

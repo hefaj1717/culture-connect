@@ -217,6 +217,7 @@ export function useCreateQuestForm({
         theme: normalizedTheme,
         title: normalizedTitle,
         totalXp: normalizedXp,
+        totalQc: 5,
       });
     } finally {
       questSubmissionInFlight.current = false;
