@@ -7,6 +7,8 @@ type CompleteQuestResponse = {
   success?: boolean;
   total_xp?: number;
   xp_earned?: number;
+  total_qc?: number;
+  qc_earned?: number;
 };
 
 export async function fetchCompletedQuestIds() {
@@ -49,6 +51,8 @@ export async function completeQuest(questId: string, completionCode: string) {
     duplicate: !!result.duplicate,
     error: null,
     totalXp: typeof result.total_xp === 'number' ? result.total_xp : null,
+    totalQc: typeof result.total_qc === 'number' ? result.total_qc : null,
+    qcEarned: typeof result.qc_earned === 'number' ? result.qc_earned : 0,
   };
 }
 

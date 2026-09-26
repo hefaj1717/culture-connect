@@ -19,6 +19,7 @@ export type Quest = {
   theme: string;
   description: string;
   totalXp: number;
+  totalQc?: number;
   completedStops: number;
   image: 'museum' | 'cafe' | 'theater';
   imageUrl?: string;
@@ -46,6 +47,7 @@ export type CreateQuestInput = {
   theme: string;
   title: string;
   totalXp: number;
+  totalQc?: number;
 };
 
 type QuestRow = {
@@ -56,6 +58,7 @@ type QuestRow = {
   theme: string;
   description: string;
   total_xp: number;
+  total_qc?: number | null;
   image_kind: Quest['image'];
   image_url?: string | null;
 };
@@ -76,7 +79,7 @@ type QuestStopRow = {
 
 const QUEST_IMAGES_BUCKET = 'quest-images';
 const QUEST_SELECT =
-  'id, title, theme, description, total_xp, image_kind, image_url, available_from, available_until';
+  'id, title, theme, description, total_xp, total_qc, image_kind, image_url, available_from, available_until';
 const LEGACY_QUEST_SELECT =
   'id, title, theme, description, total_xp, image_kind, available_from, available_until';
 
@@ -154,6 +157,7 @@ export async function fetchApprovedQuests(cityId: CityId) {
       theme: quest.theme,
       description: quest.description,
       totalXp: quest.total_xp,
+      totalQc: quest.total_qc ?? 5,
       completedStops: 0,
       image: quest.image_kind,
       imageUrl: quest.image_url ?? undefined,
@@ -193,6 +197,7 @@ export async function createQuest(input: CreateQuestInput) {
       theme: input.theme,
       title: input.title,
       total_xp: input.totalXp,
+      total_qc: input.totalQc ?? 5,
     })
     .select('id')
     .single();

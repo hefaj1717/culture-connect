@@ -39,6 +39,7 @@ type OrganizerRewardRow = {
   title: string;
   description: string;
   xp_cost: number;
+  qc_cost?: number;
   category: RewardPartner['category'];
   image_url: string | null;
   rejection_reason?: string | null;
@@ -53,7 +54,7 @@ export type ManagedOrganizerReward = RewardPartner & {
 };
 
 const ORGANIZER_REWARD_SELECT =
-  'id, organizer_user_id, city_key, place_key, place_name, place_address, title, description, xp_cost, category, image_url, available_from, available_until, available_days, available_start_time, available_end_time';
+  'id, organizer_user_id, city_key, place_key, place_name, place_address, title, description, xp_cost, qc_cost, category, image_url, available_from, available_until, available_days, available_start_time, available_end_time';
 const ORGANIZER_REWARD_WITH_STATUS_SELECT = `${ORGANIZER_REWARD_SELECT}, status, rejection_reason, created_at`;
 
 export async function fetchOrganizerRewards(cityId: CityId) {
@@ -123,6 +124,7 @@ export async function createOrganizerReward(userId: string, input: CreateOrganiz
     title: input.title,
     description: input.description,
     xp_cost: input.xpCost,
+    qc_cost: 5,
     category: inferRewardCategory(input.place.name, input.title),
     available_from: input.availableFrom,
     available_until: input.availableUntil ?? null,
@@ -161,8 +163,9 @@ function mapOrganizerRewardRow(
     location: row.place_address,
     discount: row.title,
     description: row.description,
-    condition: `Unlock at ${row.xp_cost} XP`,
+    condition: `Unlock at ${row.xp_cost} XP · costs ${row.qc_cost ?? 5} QC`,
     xpCost: row.xp_cost,
+    qcCost: row.qc_cost ?? 5,
     isPopular: false,
     badge: 'Partner',
     color: Colors.light.primary,

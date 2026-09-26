@@ -19,6 +19,8 @@ type RedeemOrganizerRewardResponse = {
   redemption_id?: string;
   success?: boolean;
   total_xp?: number;
+  total_qc?: number;
+  qc_needed?: number;
   used_at?: string | null;
   xp_needed?: number;
   xp_spent?: number;
@@ -71,7 +73,9 @@ export async function redeemOrganizerReward(rewardId: string) {
       error: getNetworkAwareErrorMessage(error.message),
       redemption: null,
       totalXp: null,
+      totalQc: null,
       xpNeeded: null,
+      qcNeeded: null,
     };
   }
 
@@ -79,10 +83,12 @@ export async function redeemOrganizerReward(rewardId: string) {
 
   if (!result.success) {
     return {
-      error: getRedeemErrorMessage(result.error, result.xp_needed),
+      error: getRedeemErrorMessage(result.error, result.xp_needed, result.qc_needed),
       redemption: null,
       totalXp: typeof result.total_xp === 'number' ? result.total_xp : null,
       xpNeeded: typeof result.xp_needed === 'number' ? result.xp_needed : null,
+      totalQc: typeof result.total_qc === 'number' ? result.total_qc : null,
+      qcNeeded: typeof result.qc_needed === 'number' ? result.qc_needed : null,
     };
   }
 
@@ -92,6 +98,8 @@ export async function redeemOrganizerReward(rewardId: string) {
       redemption: null,
       totalXp: typeof result.total_xp === 'number' ? result.total_xp : null,
       xpNeeded: null,
+      totalQc: typeof result.total_qc === 'number' ? result.total_qc : null,
+      qcNeeded: null,
     };
   }
 
@@ -106,6 +114,8 @@ export async function redeemOrganizerReward(rewardId: string) {
     } satisfies RedeemedRewardState,
     totalXp: typeof result.total_xp === 'number' ? result.total_xp : null,
     xpNeeded: null,
+    totalQc: typeof result.total_qc === 'number' ? result.total_qc : null,
+    qcNeeded: null,
   };
 }
 
@@ -123,9 +133,12 @@ function isRedemptionUsed(expiresAt: string, usedAt: string | null) {
   return !!usedAt || Date.parse(expiresAt) <= Date.now();
 }
 
-function getRedeemErrorMessage(error?: string, xpNeeded?: number) {
+function getRedeemErrorMessage(error?: string, xpNeeded?: number, qcNeeded?: number) {
   if (error === 'insufficient_xp') {
     return `You need ${Math.max(0, xpNeeded ?? 0).toLocaleString()} more XP to redeem this reward.`;
+  }
+  if (error === 'insufficient_qc') {
+    return `You need ${Math.max(0, qcNeeded ?? 0).toLocaleString()} more QC to redeem this reward.`;
   }
   if (error === 'not_authenticated') {
     return 'Log in again to redeem this reward.';

@@ -74,7 +74,9 @@ export type EventCheckInResult = {
   error?: string | null;
   success: boolean;
   totalXp?: number | null;
+  totalQc?: number | null;
   xpEarned?: number;
+  qcEarned?: number;
 };
 
 type ExploreScreenProps = {
@@ -1191,6 +1193,7 @@ export function EventDetailModal({
                     </View>
                     <View className="rounded-full bg-accent/10 px-3 py-1.5">
                       <Text className="text-[12px] font-semibold text-accent">+{activeEvent.xpBonus} XP</Text>
+                      <Text className="text-[12px] font-semibold text-accentDeep">+{activeEvent.qcBonus} QC</Text>
                     </View>
                   </View>
                 </View>
@@ -1242,7 +1245,7 @@ export function EventDetailModal({
                       Attendance confirmed
                     </Text>
                     <Text className="mt-1 text-[13px] leading-5 text-ink/75">
-                      You earned {activeEvent.xpBonus} XP for this event.
+                      You earned {activeEvent.xpBonus} XP and {activeEvent.qcBonus} QC for this event.
                     </Text>
                   </View>
                 ) : (
@@ -1466,7 +1469,7 @@ function getCheckInResultMessage(event: CultureEvent, result: EventCheckInResult
     const balanceLabel =
       typeof result.totalXp === 'number' ? ` New balance: ${result.totalXp.toLocaleString()} XP.` : '';
 
-    return `Attendance verified. +${xpEarned.toLocaleString()} XP for ${event.title}.${balanceLabel}`;
+    return `Attendance verified. +${xpEarned.toLocaleString()} XP and +${event.qcBonus.toLocaleString()} QC for ${event.title}.${balanceLabel}`;
   }
 
   return result.error || 'Attendance could not be confirmed. Try again.';

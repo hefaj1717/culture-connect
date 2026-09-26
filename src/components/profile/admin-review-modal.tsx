@@ -396,7 +396,7 @@ function PendingRewardCard({
             <Text className="min-w-0 flex-1 font-heading text-[22px] font-extrabold leading-[25px] text-ink">
               {reward.title}
             </Text>
-            <Text className="text-[13px] font-extrabold text-primary">{reward.xpCost} XP</Text>
+            <Text className="text-[13px] font-extrabold text-primary">{reward.xpCost} XP <Text className="text-accent">· {reward.qcCost} QC</Text></Text>
           </View>
           <Text className="text-[13px] font-semibold text-muted" numberOfLines={1}>
             {reward.placeName} · {city.name}

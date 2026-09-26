@@ -9,14 +9,18 @@ import { useNetworkStatus } from '@/providers/network-provider';
 
 export function useRewardRedemption({
   onUserXpChange,
+  onUserQcChange,
   rewards,
   userId,
   userXp,
+  userQc,
 }: {
   onUserXpChange?: (nextXp: number) => void;
+  onUserQcChange?: (nextQc: number) => void;
   rewards: RewardPartner[];
   userId?: string;
   userXp: number;
+  userQc: number;
 }) {
   const [selectedReward, setSelectedReward] = useState<RewardPartner | null>(null);
   const [rewardDetailsExpanded, setRewardDetailsExpanded] = useState(false);
@@ -89,8 +93,10 @@ export function useRewardRedemption({
     !!selectedReward &&
     !selectedRewardState &&
     userXp >= selectedReward.xpCost &&
+    userQc >= selectedReward.qcCost &&
     selectedRewardIsAvailableNow;
   const selectedRewardXpNeeded = selectedReward ? Math.max(0, selectedReward.xpCost - userXp) : 0;
+  const selectedRewardQcNeeded = selectedReward ? Math.max(0, selectedReward.qcCost - userQc) : 0;
   const selectedRewardRemainingMs =
     selectedRewardState && !selectedRewardIsUsed
       ? Math.max(0, selectedRewardState.expiresAt - rewardNow)
@@ -110,6 +116,10 @@ export function useRewardRedemption({
       );
       return;
     }
+    if (userQc < selectedReward.qcCost) {
+      setRewardRedeemError(`You need ${selectedRewardQcNeeded.toLocaleString()} more QC to redeem this reward.`);
+      return;
+    }
     if (!isRewardCurrentlyAvailable(selectedReward)) {
       setRewardRedeemError('This reward is not available at this time.');
       return;
@@ -125,6 +135,7 @@ export function useRewardRedemption({
       if (typeof result.totalXp === 'number') {
         onUserXpChange?.(result.totalXp);
       }
+      if (typeof result.totalQc === 'number') onUserQcChange?.(result.totalQc);
       return;
     }
 
@@ -136,6 +147,7 @@ export function useRewardRedemption({
     if (typeof result.totalXp === 'number') {
       onUserXpChange?.(result.totalXp);
     }
+    if (typeof result.totalQc === 'number') onUserQcChange?.(result.totalQc);
   }
 
   function resetRewardDetailState() {
@@ -160,6 +172,7 @@ export function useRewardRedemption({
     selectedRewardRemainingMs,
     selectedRewardState,
     selectedRewardXpNeeded,
+    selectedRewardQcNeeded,
     setRewardDetailsExpanded,
     setSelectedReward,
   };

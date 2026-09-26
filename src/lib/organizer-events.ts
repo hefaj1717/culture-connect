@@ -5,6 +5,7 @@ import {
   type EventLanguage,
   type VenueCategory,
   defaultEventXp,
+  defaultEventQc,
 } from '@/data/culture';
 import type { PlaceSuggestion } from '@/lib/place-search';
 import { getNetworkAwareErrorMessage } from '@/lib/network-errors';
@@ -52,6 +53,7 @@ type OrganizerEventRow = {
   time_label: string;
   starts_at?: string | null;
   xp_bonus: number;
+  qc_bonus?: number | null;
   language: EventLanguage;
   is_free: boolean;
   is_international: boolean;
@@ -65,7 +67,7 @@ type OrganizerEventRow = {
 
 const EVENT_IMAGES_BUCKET = 'event-images';
 const ORGANIZER_EVENT_SELECT =
-  'id, organizer_user_id, city_key, venue_key, venue_name, venue_address, venue_latitude, venue_longitude, title, description, category, date_label, end_date_label, time_label, end_time_label, starts_at, ends_at, xp_bonus, language, is_free, is_international, interested_count, going_count, attendee_count, image_kind, image_url';
+  'id, organizer_user_id, city_key, venue_key, venue_name, venue_address, venue_latitude, venue_longitude, title, description, category, date_label, end_date_label, time_label, end_time_label, starts_at, ends_at, xp_bonus, qc_bonus, language, is_free, is_international, interested_count, going_count, attendee_count, image_kind, image_url';
 const LEGACY_ORGANIZER_EVENT_SELECT_WITH_INTERESTED =
   'id, organizer_user_id, city_key, venue_key, venue_name, venue_address, venue_latitude, venue_longitude, title, description, category, date_label, time_label, end_time_label, starts_at, ends_at, xp_bonus, language, is_free, is_international, interested_count, attendee_count, image_kind, image_url';
 const LEGACY_ORGANIZER_EVENT_SELECT =
@@ -209,6 +211,7 @@ export async function createOrganizerEvent(userId: string, input: CreateOrganize
     time_label: input.time,
     starts_at: input.startsAt,
     xp_bonus: defaultEventXp,
+    qc_bonus: defaultEventQc,
     language: input.language,
     is_free: input.isFree,
     is_international: input.language !== 'pl',
@@ -314,6 +317,7 @@ function mapOrganizerEventRow(
     startsAt: row.starts_at ?? undefined,
     description: row.description,
     xpBonus: row.xp_bonus ?? defaultEventXp,
+    qcBonus: row.qc_bonus ?? defaultEventQc,
     isFeatured: false,
     isFlashQuest: false,
     language: row.language,

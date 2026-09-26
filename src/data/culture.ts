@@ -70,6 +70,7 @@ export type CultureEvent = {
   startsAt?: string;
   description: string;
   xpBonus: number;
+  qcBonus: number;
   isFeatured: boolean;
   isFlashQuest: boolean;
   spotsLeft?: number;
@@ -114,6 +115,7 @@ export type RewardPartner = {
   description?: string;
   condition: string;
   xpCost: number;
+  qcCost: number;
   isPopular: boolean;
   badge?: string;
   color: string;
@@ -135,6 +137,7 @@ export const cultureCities: CultureCity[] = [
 
 export const defaultCityId: CityId = 'leuven';
 export const defaultEventXp = 50;
+export const defaultEventQc = 5;
 
 export const cultureByCity: Record<CityId, CultureCityData> = {
   leuven: {

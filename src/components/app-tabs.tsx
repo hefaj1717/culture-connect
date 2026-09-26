@@ -82,6 +82,7 @@ function AuthenticatedTabs() {
   const [approvedEventsError, setApprovedEventsError] = useState<string | null>(null);
   const [approvedEventsLoading, setApprovedEventsLoading] = useState(true);
   const [userXp, setUserXp] = useState(0);
+  const [userQc, setUserQc] = useState(0);
   const [universityLeaderboard, setUniversityLeaderboard] = useState<UniversityLeaderboardRow[]>(
     [],
   );
@@ -169,6 +170,7 @@ function AuthenticatedTabs() {
     if (!userId) {
       setEventStatuses({});
       setUserXp(0);
+      setUserQc(0);
       setUserStateError(null);
       setUserStateLoading(false);
       return;
@@ -203,6 +205,7 @@ function AuthenticatedTabs() {
 
       if (!xpResult.error) {
         setUserXp(xpResult.totalXp);
+        setUserQc(xpResult.totalQc);
       }
 
       if (!questsResult.error) {
@@ -247,7 +250,7 @@ function AuthenticatedTabs() {
     }
 
     if (checkedInEventIdsRef.current.has(event.id)) {
-      return { duplicate: true, success: true, totalXp: userXp, xpEarned: 0 };
+      return { duplicate: true, success: true, totalXp: userXp, totalQc: userQc, xpEarned: 0, qcEarned: 0 };
     }
 
     const databaseEventId = getOrganizerEventDatabaseId(event.id);
@@ -265,14 +268,27 @@ function AuthenticatedTabs() {
     if (result.totalXp !== null) {
       setUserXp(result.totalXp);
     }
+    if (result.totalQc !== null) setUserQc(result.totalQc);
 
     if (result.error && !result.duplicate) {
       return {
         error: result.error,
         success: false,
         totalXp: result.totalXp,
+        totalQc: result.totalQc,
         xpEarned: result.xpEarned ?? 0,
+        qcEarned: result.qcEarned ?? 0,
       };
+    }
+
+    // QC is awarded by a database trigger after the secured XP transaction.
+    // Reload the balance because legacy check-in RPC responses only include XP.
+    if (user?.id && result.totalQc === null) {
+      const balance = await fetchUserXp(user.id);
+      if (!balance.error) {
+        setUserXp(balance.totalXp);
+        setUserQc(balance.totalQc);
+      }
     }
 
     const previousStatus = eventStatuses[event.id] ?? null;
@@ -286,7 +302,9 @@ function AuthenticatedTabs() {
       duplicate: result.duplicate,
       success: true,
       totalXp: result.totalXp,
+      totalQc: result.totalQc,
       xpEarned: result.xpEarned ?? 0,
+      qcEarned: result.qcEarned ?? 0,
     };
   }
 
@@ -342,6 +360,14 @@ function AuthenticatedTabs() {
     setCompletedQuestIds([...completedQuestIdsRef.current]);
     if (result.totalXp !== null) {
       setUserXp(result.totalXp);
+    }
+    if (typeof result.totalQc === 'number') setUserQc(result.totalQc);
+    if (user?.id && typeof result.totalQc !== 'number') {
+      const balance = await fetchUserXp(user.id);
+      if (!balance.error) {
+        setUserXp(balance.totalXp);
+        setUserQc(balance.totalQc);
+      }
     }
 
     return { success: true };
@@ -453,6 +479,7 @@ function AuthenticatedTabs() {
               rewardsRefreshKey={rewardsRefreshKey}
               userEventHistory={userEventHistory}
               userXp={userXp}
+              userQc={userQc}
               onEventCreated={() => {
                 setOrganizerEventsVersion((version) => version + 1);
               }}
@@ -463,6 +490,7 @@ function AuthenticatedTabs() {
                 setQuestsRefreshKey((version) => version + 1);
               }}
               onUserXpChange={setUserXp}
+              onUserQcChange={setUserQc}
             />
           </View>
         </Animated.View>

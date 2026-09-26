@@ -121,6 +121,7 @@ type AdminManageEventsModalProps = {
       venueAddress?: string | null;
       venueName: string;
       xpBonus: number;
+      qcBonus: number;
     },
   ) => Promise<{ success: boolean }>;
   onSaveReward: (
@@ -138,6 +139,7 @@ type AdminManageEventsModalProps = {
       status: RewardPartnerStatus;
       title: string;
       xpCost: number;
+      qcCost: number;
     },
   ) => Promise<{ success: boolean }>;
   rewards: AdminManagedReward[];
@@ -653,6 +655,7 @@ function AdminManagedEventCard({
           <MiniStat label="Going" value={event.goingCount ?? 0} />
           <MiniStat label="Attended" value={event.attendeeCount} />
           <MiniStat label="XP" value={event.xpBonus} />
+          <MiniStat label="QC" value={event.qcBonus} />
         </View>
         {event.changes.length > 0 && (
           <Text className="mt-3 text-[11px] font-semibold text-accentDeep">
@@ -697,7 +700,7 @@ function AdminManagedRewardCard({
           {reward.title}
         </Text>
         <Text className="mt-1 text-[13px] font-medium text-muted" numberOfLines={1}>
-          {reward.placeName} · {reward.xpCost.toLocaleString()} XP
+          {reward.placeName} · {reward.xpCost.toLocaleString()} XP · {reward.qcCost.toLocaleString()} QC
         </Text>
         <Text className="mt-1 text-[12px] font-semibold text-muted" numberOfLines={1}>
           {formatRewardAvailability(reward)}
@@ -751,6 +754,7 @@ function AdminEventEditor({
   const [venueAddress, setVenueAddress] = useState(event.venueAddress ?? '');
   const [venueName, setVenueName] = useState(event.venueName);
   const [xpBonus, setXpBonus] = useState(String(event.xpBonus));
+  const [qcBonus, setQcBonus] = useState(String(event.qcBonus));
 
   useEffect(() => {
     setCategory(event.category);
@@ -764,17 +768,19 @@ function AdminEventEditor({
     setVenueAddress(event.venueAddress ?? '');
     setVenueName(event.venueName);
     setXpBonus(String(event.xpBonus));
+    setQcBonus(String(event.qcBonus));
   }, [event]);
 
   async function save() {
     const parsedXp = Number.parseInt(xpBonus, 10);
+    const parsedQc = Number.parseInt(qcBonus, 10);
 
     if (!title.trim() || !venueName.trim() || !date.trim() || !time.trim()) {
       Alert.alert('Missing details', 'Title, venue, date, and start time are required.');
       return;
     }
 
-    if (!Number.isFinite(parsedXp) || parsedXp < 0 || parsedXp > 5000) {
+    if (!Number.isFinite(parsedXp) || parsedXp < 0 || parsedXp > 5000 || !Number.isFinite(parsedQc) || parsedQc < 0 || parsedQc > 500) {
       Alert.alert('Invalid XP', 'XP must be a number between 0 and 5000.');
       return;
     }
@@ -791,6 +797,7 @@ function AdminEventEditor({
       venueAddress: venueAddress.trim() || null,
       venueName: venueName.trim(),
       xpBonus: parsedXp,
+      qcBonus: parsedQc,
     });
 
     if (result.success) {
@@ -833,6 +840,7 @@ function AdminEventEditor({
               <AdminEventStatusPill status={event.reviewStatus} />
               <View className="rounded-full bg-white/90 px-2.5 py-1">
                 <Text className="text-[10px] font-extrabold text-primary">{event.xpBonus} XP</Text>
+                <Text className="text-[10px] font-extrabold text-accent">+{event.qcBonus} QC</Text>
               </View>
             </View>
             <Text className="font-heading text-[30px] font-extrabold leading-[34px] text-white">
@@ -879,6 +887,7 @@ function AdminEventEditor({
             onChangeText={setXpBonus}
             value={xpBonus}
           />
+          <AdminTextField keyboardType="number-pad" label="QC awarded" onChangeText={setQcBonus} value={qcBonus} />
           <AdminTextField
             label="Description"
             multiline
@@ -945,6 +954,7 @@ function AdminEventEditor({
           <View className="mt-3 flex-row gap-2">
             <MiniStat label="City" valueText={event.cityId} />
             <MiniStat label="XP" value={Number.parseInt(xpBonus, 10) || 0} />
+            <MiniStat label="QC" value={Number.parseInt(qcBonus, 10) || 0} />
           </View>
         </View>
 
@@ -1005,6 +1015,7 @@ function AdminRewardEditor({
   const [status, setStatus] = useState<RewardPartnerStatus>(reward.reviewStatus);
   const [title, setTitle] = useState(reward.title);
   const [xpCost, setXpCost] = useState(String(reward.xpCost));
+  const [qcCost, setQcCost] = useState(String(reward.qcCost));
   const [datePickerOpen, setDatePickerOpen] = useState(false);
   const [datePickerTarget, setDatePickerTarget] = useState<'from' | 'until'>('from');
   const [calendarMonth, setCalendarMonth] = useState(
@@ -1028,6 +1039,7 @@ function AdminRewardEditor({
     setStatus(reward.reviewStatus);
     setTitle(reward.title);
     setXpCost(String(reward.xpCost));
+    setQcCost(String(reward.qcCost));
   }, [reward]);
 
   function updateAvailableFrom(value: string) {
@@ -1068,13 +1080,14 @@ function AdminRewardEditor({
 
   async function save() {
     const parsedXp = Number.parseInt(xpCost, 10);
+    const parsedQc = Number.parseInt(qcCost, 10);
 
     if (!title.trim() || !placeName.trim() || !placeAddress.trim()) {
       Alert.alert('Missing details', 'Reward title, place, and address are required.');
       return;
     }
 
-    if (!Number.isFinite(parsedXp) || parsedXp <= 0 || parsedXp > 5000) {
+    if (!Number.isFinite(parsedXp) || parsedXp <= 0 || parsedXp > 5000 || !Number.isFinite(parsedQc) || parsedQc <= 0 || parsedQc > 5000) {
       Alert.alert('Invalid XP', 'Reward XP cost must be between 1 and 5000.');
       return;
     }
@@ -1103,6 +1116,7 @@ function AdminRewardEditor({
       status,
       title: title.trim(),
       xpCost: parsedXp,
+      qcCost: parsedQc,
     });
 
     if (result.success) {
@@ -1146,6 +1160,7 @@ function AdminRewardEditor({
               <View className="rounded-full bg-white/90 px-2.5 py-1">
                 <Text className="text-[10px] font-extrabold text-primary">
                   {reward.xpCost.toLocaleString()} XP
+                  {' · '}{reward.qcCost.toLocaleString()} QC
                 </Text>
               </View>
             </View>
@@ -1179,6 +1194,12 @@ function AdminRewardEditor({
             label="XP cost"
             onChangeText={(value) => setXpCost(value.replace(/\D/g, ''))}
             value={xpCost}
+          />
+          <AdminTextField
+            keyboardType="number-pad"
+            label="QC cost"
+            onChangeText={(value) => setQcCost(value.replace(/\D/g, ''))}
+            value={qcCost}
           />
           <AdminTextField
             label="Description"
@@ -1291,6 +1312,7 @@ function AdminRewardEditor({
           <View className="mt-3 flex-row gap-2">
             <MiniStat label="City" valueText={reward.cityId} />
             <MiniStat label="XP cost" value={Number.parseInt(xpCost, 10) || 0} />
+            <MiniStat label="QC cost" value={Number.parseInt(qcCost, 10) || 0} />
           </View>
         </View>
 

@@ -95,6 +95,7 @@ type ProfileRankCardProps = {
   onOpenSettings: () => void;
   organizerStatus: OrganizerStatus;
   userXp: number;
+  userQc: number;
 };
 
 export function ProfileRankCard({
@@ -106,6 +107,7 @@ export function ProfileRankCard({
   onOpenSettings,
   organizerStatus,
   userXp,
+  userQc,
 }: ProfileRankCardProps) {
   const layout = useResponsiveLayout();
   const displayName = fullName.replace(/\s+/g, ' ').trim();
@@ -165,6 +167,7 @@ export function ProfileRankCard({
             <Text className="font-heading text-[54px] font-extrabold leading-[58px] text-ink">
               {userXp.toLocaleString()}
             </Text>
+            <Text className="mt-1 text-[15px] font-extrabold text-accent">{userQc.toLocaleString()} QC available</Text>
           </View>
           <View className="items-end">
             <Text className="text-right text-[12px] font-semibold leading-4 text-muted">
@@ -2151,6 +2154,7 @@ type RewardsSectionProps = {
   redeemedRewards: Record<string, RedeemedRewardState>;
   rewards: RewardPartner[];
   userXp: number;
+  userQc: number;
 };
 
 export function RewardsSection({
@@ -2162,6 +2166,7 @@ export function RewardsSection({
   redeemedRewards,
   rewards,
   userXp,
+  userQc,
 }: RewardsSectionProps) {
   const featuredReward = getFeaturedReward(rewards, userXp, redeemedRewards);
   const hasMoreRewards = rewards.length > 1;
@@ -2207,6 +2212,7 @@ export function RewardsSection({
             onPress={() => onSelectReward(featuredReward.reward)}
             redemption={redeemedRewards[featuredReward.reward.id]}
             userXp={userXp}
+            userQc={userQc}
           />
         </View>
       )}
@@ -2222,6 +2228,7 @@ export function RewardsListModal({
   rewards,
   stableModalTopInset,
   userXp,
+  userQc,
   visible,
 }: {
   cityName: string;
@@ -2231,6 +2238,7 @@ export function RewardsListModal({
   rewards: RewardPartner[];
   stableModalTopInset: number;
   userXp: number;
+  userQc: number;
   visible: boolean;
 }) {
   const { closeWithAnimation, gesture, swipeStyle } = useCardSwipeBack({
@@ -2283,6 +2291,7 @@ export function RewardsListModal({
                   redemption={redeemedRewards[reward.id]}
                   reward={reward}
                   userXp={userXp}
+                  userQc={userQc}
                 />
               ))}
             </ScrollView>

@@ -250,6 +250,7 @@ export function useAdminModeration({
       venueAddress?: string | null;
       venueName: string;
       xpBonus: number;
+      qcBonus: number;
     },
   ) {
     if (!userId) {
@@ -292,6 +293,7 @@ export function useAdminModeration({
       status: RewardPartnerStatus;
       title: string;
       xpCost: number;
+      qcCost: number;
     },
   ) {
     if (!userId) {
