@@ -1,4 +1,4 @@
-import { ArrowLeft, Award, Trophy, Users } from 'lucide-react-native';
+import { ArrowLeft } from 'lucide-react-native';
 import { Modal, Pressable, ScrollView, Text, View } from 'react-native';
 import { GestureDetector } from 'react-native-gesture-handler';
 import Animated from 'react-native-reanimated';
@@ -97,7 +97,10 @@ function UniversityProfileContent({
 
   return (
     <>
-      <View className="overflow-hidden rounded-feature bg-surface" style={CardStyles.elevated}>
+      <View
+        className="overflow-hidden rounded-feature"
+        style={[CardStyles.elevated, { backgroundColor: Colors.light.backgroundElement }]}
+      >
         <View className="flex-row items-start justify-between gap-4 px-5 pb-4 pt-5">
           <View className="min-w-0 flex-1">
             <View className="self-start rounded-full bg-success/15 px-2.5 py-1">
@@ -121,11 +124,11 @@ function UniversityProfileContent({
 
       <View className="mt-6">
         <Text className="mb-3 font-heading text-[27px] leading-8 text-ink">Campus standing</Text>
-        <View className="flex-row gap-2">
-          <StatTile icon={Users} label="Students" value={university.memberCount.toLocaleString()} />
-          <StatTile icon={Award} label="Campus XP" value={university.totalXp.toLocaleString()} />
-          <StatTile icon={Trophy} label="Rank" value={university.rank ? `#${university.rank}` : '—'} />
-        </View>
+        <CampusStanding
+          memberCount={university.memberCount}
+          rank={university.rank}
+          totalXp={university.totalXp}
+        />
       </View>
 
       <View className="mt-7">
@@ -150,7 +153,7 @@ function UniversityProfileContent({
             <EmptyState
               body="Finished academic years with a top-three campus rank will be recorded here."
               compact
-              icon={Trophy}
+              icon={null}
               title="No podium finishes yet"
             />
           )
@@ -175,24 +178,51 @@ function UniversityMonogram({ shortName, size }: { shortName: string; size: numb
   );
 }
 
-function StatTile({
-  icon: Icon,
+function CampusStanding({
+  memberCount,
+  rank,
+  totalXp,
+}: {
+  memberCount: number;
+  rank: number;
+  totalXp: number;
+}) {
+  const rankColor = rank >= 1 && rank <= 3 ? getPodiumColors(rank as 1 | 2 | 3).text : Colors.light.primary;
+
+  return (
+    <View
+      className="flex-row items-center rounded-card border border-primary/10 px-4 py-4"
+      style={{ backgroundColor: Colors.light.backgroundElement }}
+    >
+      <CampusMetric label="students" value={memberCount.toLocaleString()} />
+      <View className="h-8 w-px bg-primary/15" />
+      <CampusMetric accent label="XP" value={totalXp.toLocaleString()} />
+      <View className="h-8 w-px bg-primary/15" />
+      <CampusMetric label="rank" value={rank ? `#${rank}` : '—'} valueColor={rankColor} />
+    </View>
+  );
+}
+
+function CampusMetric({
+  accent = false,
   label,
   value,
+  valueColor,
 }: {
-  icon: typeof Users;
+  accent?: boolean;
   label: string;
   value: string;
+  valueColor?: string;
 }) {
   return (
-    <View className="min-w-0 flex-1 rounded-2xl bg-surface p-3">
-      <Icon color={Colors.light.primary} size={17} strokeWidth={2.4} />
-      <Text className="mt-3 font-heading text-[20px] leading-6 text-ink" numberOfLines={1}>
+    <View className="min-w-0 flex-1 flex-row items-baseline justify-center gap-1.5">
+      <Text
+        className="font-heading text-[22px] leading-7"
+        style={{ color: valueColor ?? (accent ? Colors.light.accent : Colors.light.ink) }}
+      >
         {value}
       </Text>
-      <Text className="mt-0.5 text-[10px] font-bold uppercase tracking-wide text-muted" numberOfLines={1}>
-        {label}
-      </Text>
+      <Text className="text-[11px] font-bold text-muted">{label}</Text>
     </View>
   );
 }
