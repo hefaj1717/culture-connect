@@ -1,4 +1,4 @@
-import { ArrowLeft, Users } from 'lucide-react-native';
+import { ArrowLeft } from 'lucide-react-native';
 import { Modal, Pressable, ScrollView, Text, View } from 'react-native';
 import { GestureDetector } from 'react-native-gesture-handler';
 import Animated from 'react-native-reanimated';
@@ -186,39 +186,34 @@ function CampusStanding({
 
   return (
     <View
-      className="flex-row items-center rounded-card border border-primary/10 px-4 py-4"
+      className="overflow-hidden rounded-card border border-primary/10"
       style={{ backgroundColor: Colors.light.backgroundElement }}
     >
-      <CampusMetric icon={Users} value={memberCount.toLocaleString()} />
-      <View className="h-8 w-px bg-primary/15" />
-      <CampusMetric accent label="XP" value={totalXp.toLocaleString()} />
-      <View className="h-8 w-px bg-primary/15" />
-      <CampusMetric label="RANK" uiValue value={rank ? `#${rank}` : '—'} valueColor={rankColor} />
+      <CampusStandingRow label="Members" value={memberCount.toLocaleString()} />
+      <CampusStandingRow accent label="Campus XP" value={`${totalXp.toLocaleString()} XP`} />
+      <CampusStandingRow label="Lublin rank" last value={rank ? `#${rank}` : '—'} valueColor={rankColor} />
     </View>
   );
 }
 
-function CampusMetric({
+function CampusStandingRow({
   accent = false,
-  icon: Icon,
   label,
-  uiValue = false,
+  last = false,
   value,
   valueColor,
 }: {
   accent?: boolean;
-  icon?: typeof Users;
   label?: string;
-  uiValue?: boolean;
+  last?: boolean;
   value: string;
   valueColor?: string;
 }) {
   return (
-    <View className="min-w-0 flex-1 flex-row items-baseline justify-center gap-1.5">
-      {Icon ? <Icon color={Colors.light.primary} size={18} strokeWidth={2.3} /> : null}
-      {label ? <Text className="text-[11px] font-bold text-muted">{label}</Text> : null}
+    <View className={`flex-row items-center justify-between px-4 py-3.5 ${last ? '' : 'border-b border-primary/10'}`}>
+      <Text className="text-[14px] font-semibold text-muted">{label}</Text>
       <Text
-        className={`${uiValue ? 'font-ui font-extrabold' : 'font-heading'} text-[22px] leading-7`}
+        className="font-ui text-[17px] font-extrabold leading-6"
         style={{ color: valueColor ?? (accent ? Colors.light.accent : Colors.light.ink) }}
       >
         {value}
