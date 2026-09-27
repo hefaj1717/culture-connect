@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { AppState, InteractionManager, ScrollView, Text, View } from 'react-native';
+import { AppState, ScrollView, Text, View } from 'react-native';
 
 import { AdminReviewModal } from '@/components/profile/admin-review-modal';
 import { BadgesModal } from '@/components/profile/badges-modal';
@@ -163,6 +163,8 @@ export default function ProfileScreen({
   const [, setMyOrganizerRewardsLoading] = useState(false);
   const [organizerContentRefreshNonce, setOrganizerContentRefreshNonce] = useState(0);
   const [organizerAnnouncementOpen, setOrganizerAnnouncementOpen] = useState(false);
+  const [organizerHistoryOpen, setOrganizerHistoryOpen] = useState(false);
+  const [eventQueuedForEdit, setEventQueuedForEdit] = useState<ManagedOrganizerEvent | null>(null);
   const [rewardsError, setRewardsError] = useState<string | null>(null);
   const [rewardsLoading, setRewardsLoading] = useState(true);
   const [universityMembership, setUniversityMembership] = useState<UserUniversityMembership | null>(
@@ -340,6 +342,17 @@ export default function ProfileScreen({
     timePickerTarget,
     isEditingEvent,
   } = createEventForm;
+
+  useEffect(() => {
+    if (organizerHistoryOpen || !eventQueuedForEdit) return;
+
+    // Wait for React to commit the history modal dismissal before mounting the
+    // editor. This avoids two native modals fighting for the responder chain.
+    const event = eventQueuedForEdit;
+    setEventQueuedForEdit(null);
+    requestAnimationFrame(() => openEditEvent(event));
+  }, [eventQueuedForEdit, openEditEvent, organizerHistoryOpen]);
+
   const {
     createRewardError,
     createRewardOpen,
@@ -450,7 +463,6 @@ export default function ProfileScreen({
   } = rewardRedemption;
   const [activityHistoryOpen, setActivityHistoryOpen] = useState(false);
   const [accountActionsOpen, setAccountActionsOpen] = useState(false);
-  const [organizerHistoryOpen, setOrganizerHistoryOpen] = useState(false);
   const [organizerRewardsHistoryOpen, setOrganizerRewardsHistoryOpen] = useState(false);
   const [rewardsListOpen, setRewardsListOpen] = useState(false);
   const {
@@ -1181,13 +1193,10 @@ export default function ProfileScreen({
         eventStatuses={eventStatuses}
         onClose={() => setOrganizerHistoryOpen(false)}
         onEditEvent={(event) => {
-          // Do not mount the editor while the nested event modal and its parent
-          // history modal are still dismissing. iOS can otherwise keep an
-          // invisible modal responder above the form and make the app feel frozen.
+          // Closing the parent first is essential: the editor mounts only from
+          // the effect above, after this history modal has left the tree.
+          setEventQueuedForEdit(event);
           setOrganizerHistoryOpen(false);
-          InteractionManager.runAfterInteractions(() => {
-            setTimeout(() => openEditEvent(event), 220);
-          });
         }}
         onEventCheckIn={onEventCheckIn}
         onEventStatusChange={onEventStatusChange}
