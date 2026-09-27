@@ -2,6 +2,9 @@ import { useEffect, useState } from 'react';
 import { ScrollView, Text, View } from 'react-native';
 
 import { AdminReviewModal } from '@/components/profile/admin-review-modal';
+import { BadgesModal } from '@/components/profile/badges-modal';
+import { type AchievementBadge } from '@/components/profile/badges';
+import { buildPassportAchievements } from '@/components/profile/passport-achievements';
 import type { EventCheckInResult } from '@/app/explore';
 import { InlineToast } from '@/components/inline-toast';
 import { AdminManageEventsModal } from '@/components/profile/admin-manage-events-modal';
@@ -42,6 +45,10 @@ import { useCreateRewardForm } from '@/hooks/profile/use-create-reward-form';
 import { useEditProfileForm } from '@/hooks/profile/use-edit-profile-form';
 import { useRewardRedemption } from '@/hooks/profile/use-reward-redemption';
 import { useCardSwipeBack } from '@/hooks/use-card-swipe-back';
+import {
+  emptyDigitalPassportProgress,
+  fetchMyDigitalPassportProgress,
+} from '@/lib/digital-passport';
 import { useStableTopInset } from '@/hooks/use-stable-safe-area';
 import type { UserEventHistoryItem, UserEventStatus } from '@/lib/event-history';
 import { fetchFollowedOrganizerProfiles, unfollowOrganizer } from '@/lib/organizer-follows';
@@ -173,8 +180,13 @@ export default function ProfileScreen({
   const [adminXpTransactions, setAdminXpTransactions] = useState<XpTransaction[]>([]);
   const [adminXpTransactionsError, setAdminXpTransactionsError] = useState<string | null>(null);
   const [adminXpTransactionsLoading, setAdminXpTransactionsLoading] = useState(false);
+  const [passportProgress, setPassportProgress] = useState(emptyDigitalPassportProgress);
+  const [passportError, setPassportError] = useState<string | null>(null);
+  const [passportOpen, setPassportOpen] = useState(false);
+  const [selectedPassportBadge, setSelectedPassportBadge] = useState<AchievementBadge | null>(null);
   const savedAvatarUrl = session?.user.user_metadata?.avatar_url || null;
   const levelProgress = getXpLevelProgress(userXp);
+  const passportBadges = buildPassportAchievements(passportProgress);
   const editProfileForm = useEditProfileForm({
     onUniversityMembershipSaved: setUniversityMembership,
     savedAvatarUrl,
@@ -435,6 +447,18 @@ export default function ProfileScreen({
     visible: createEventOpen,
   });
   const {
+    closeWithAnimation: closePassportWithAnimation,
+    gesture: passportSwipeGesture,
+    swipeStyle: passportSwipeStyle,
+  } = useCardSwipeBack({
+    enabled: !selectedPassportBadge,
+    onSwipeBack: () => {
+      setSelectedPassportBadge(null);
+      setPassportOpen(false);
+    },
+    visible: passportOpen,
+  });
+  const {
     closeWithAnimation: closeCreateQuestWithAnimation,
     gesture: createQuestSwipeGesture,
     swipeStyle: createQuestSwipeStyle,
@@ -543,6 +567,28 @@ export default function ProfileScreen({
 
     loadXpTransactions();
 
+    return () => {
+      active = false;
+    };
+  }, [session?.user.id, userXp]);
+
+  useEffect(() => {
+    let active = true;
+
+    async function loadPassportProgress() {
+      if (!session?.user.id) {
+        setPassportProgress(emptyDigitalPassportProgress);
+        setPassportError(null);
+        return;
+      }
+
+      const result = await fetchMyDigitalPassportProgress();
+      if (!active) return;
+      setPassportProgress(result.progress);
+      setPassportError(result.error);
+    }
+
+    void loadPassportProgress();
     return () => {
       active = false;
     };
@@ -707,7 +753,15 @@ export default function ProfileScreen({
           userQc={userQc}
         />
 
-        <DigitalPassportSection badges={[]} />
+        <DigitalPassportSection
+          badges={passportBadges}
+          error={passportError}
+          onOpenAll={() => setPassportOpen(true)}
+          onOpenBadge={(badge) => {
+            setSelectedPassportBadge(badge);
+            setPassportOpen(true);
+          }}
+        />
 
         <OrganizerToolsSection
           cityName={cityData.name}
@@ -772,6 +826,19 @@ export default function ProfileScreen({
         profiles={followedOrganizers}
         stableModalTopInset={stableModalTopInset}
         visible={followedOrganizersOpen}
+      />
+
+      <BadgesModal
+        badges={passportBadges}
+        gesture={passportSwipeGesture}
+        itemWidth={112}
+        onClose={closePassportWithAnimation}
+        onSelectBadge={setSelectedPassportBadge}
+        selectedBadge={selectedPassportBadge}
+        stableModalTopInset={stableModalTopInset}
+        swipeStyle={passportSwipeStyle}
+        unlockedBadgeCount={passportBadges.filter((badge) => badge.unlocked).length}
+        visible={passportOpen}
       />
 
       <EditProfileModal

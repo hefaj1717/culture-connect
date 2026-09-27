@@ -1,6 +1,21 @@
 begin;
 
-select plan(20);
+select plan(22);
+
+select ok(
+  to_regprocedure('public.get_my_digital_passport_progress()') is not null,
+  'passport progress is calculated by a server-side RPC'
+);
+
+select is(
+  has_function_privilege(
+    'anon',
+    'public.get_my_digital_passport_progress()'::regprocedure,
+    'EXECUTE'
+  ),
+  false,
+  'anonymous callers cannot read passport progress'
+);
 
 select ok(
   exists (

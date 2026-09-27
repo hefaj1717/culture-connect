@@ -511,12 +511,14 @@ export function UserActivitySection({
 
 type DigitalPassportSectionProps = {
   badges?: AchievementBadge[];
+  error?: string | null;
   onOpenAll?: () => void;
   onOpenBadge?: (badge: AchievementBadge) => void;
 };
 
 export function DigitalPassportSection({
   badges = [],
+  error,
   onOpenAll,
   onOpenBadge,
 }: DigitalPassportSectionProps) {
@@ -533,13 +535,19 @@ export function DigitalPassportSection({
           </Pressable>
         ) : null}
       </View>
-      {badges.length === 0 ? (
+      {error ? (
+        <ErrorState
+          compact
+          title="Passport could not load"
+          body="Your achievements will be available again when the connection is restored."
+        />
+      ) : badges.length === 0 ? (
         <View className="mx-5 rounded-2xl bg-canvas p-4">
           <Text className="font-ui text-[14px] font-extrabold text-ink">
             Your passport is waiting
           </Text>
           <Text className="mt-1 text-[12px] leading-4 text-muted">
-            Complete events and quests to collect badges when the passport launches.
+            Attend events and complete quests to collect your first badges.
           </Text>
         </View>
       ) : (

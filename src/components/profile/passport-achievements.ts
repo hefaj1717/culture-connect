@@ -1,0 +1,92 @@
+import { CalendarCheck2, HeartHandshake, Route, Sparkles } from 'lucide-react-native';
+
+import type { AchievementBadge } from '@/components/profile/badges';
+import type { DigitalPassportProgress } from '@/lib/digital-passport';
+
+const eventMilestones = [
+  [5, 'City Regular', 'Attend 5 verified events.'],
+  [20, 'Culture Collector', 'Attend 20 verified events.'],
+  [50, 'City Fixture', 'Attend 50 verified events.'],
+  [100, 'Culture Champion', 'Attend 100 verified events.'],
+  [500, 'Culture Legend', 'Attend 500 verified events.'],
+] as const;
+
+const questMilestones = [
+  [3, 'Trail Starter', 'Complete 3 city quests.'],
+  [10, 'Route Rover', 'Complete 10 city quests.'],
+  [30, 'Quest Seeker', 'Complete 30 city quests.'],
+  [50, 'Trailblazer', 'Complete 50 city quests.'],
+] as const;
+
+export function buildPassportAchievements(
+  progress: DigitalPassportProgress,
+): AchievementBadge[] {
+  return [
+    {
+      category: 'status',
+      color: '#3E8989',
+      description: 'Joined CultureQuest during the founding beta period in 2026.',
+      icon: Sparkles,
+      id: 'beta-explorer',
+      progress: progress.betaUser ? 'Unlocked' : 'Available until 31 Dec 2026',
+      title: 'Founding Explorer',
+      unlocked: progress.betaUser,
+    },
+    ...eventMilestones.map(([target, title, description]) =>
+      createMilestoneBadge({
+        category: 'culture',
+        color: '#A63446',
+        current: progress.eventsCompleted,
+        description,
+        icon: CalendarCheck2,
+        id: `events-${target}`,
+        target,
+        title,
+      }),
+    ),
+    ...questMilestones.map(([target, title, description]) =>
+      createMilestoneBadge({
+        category: 'quest',
+        color: '#3E8989',
+        current: progress.questsCompleted,
+        description,
+        icon: Route,
+        id: `quests-${target}`,
+        target,
+        title,
+      }),
+    ),
+    createMilestoneBadge({
+      category: 'social',
+      color: '#6B818C',
+      current: progress.sameOrganizerEvents,
+      description: 'Attend 5 verified events from the same organizer.',
+      icon: HeartHandshake,
+      id: 'organizer-loyalist',
+      target: 5,
+      title: 'Local Loyalist',
+    }),
+  ];
+}
+
+function createMilestoneBadge({
+  category,
+  color,
+  current,
+  description,
+  icon,
+  id,
+  target,
+  title,
+}: Omit<AchievementBadge, 'progress' | 'unlocked'> & { current: number; target: number }): AchievementBadge {
+  return {
+    category,
+    color,
+    description,
+    icon,
+    id,
+    progress: `${Math.min(current, target)} / ${target}`,
+    title,
+    unlocked: current >= target,
+  };
+}
