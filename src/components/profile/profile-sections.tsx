@@ -1207,12 +1207,6 @@ export function OrganizerEventHistoryModal({
   stableModalTopInset: number;
   visible: boolean;
 }) {
-  const [selectedEvent, setSelectedEvent] = useState<ManagedOrganizerEvent | null>(null);
-  const selectedEventStatus = selectedEvent ? eventStatuses[selectedEvent.id] : undefined;
-  const selectedEventRsvp =
-    selectedEventStatus === 'interested' || selectedEventStatus === 'going'
-      ? selectedEventStatus
-      : undefined;
   const [organizerFilter, setOrganizerFilter] = useState<OrganizerHistoryFilter>('all');
   const filteredEvents =
     organizerFilter === 'all'
@@ -1223,7 +1217,7 @@ export function OrganizerEventHistoryModal({
             : event.reviewStatus === organizerFilter,
         );
   const { closeWithAnimation, gesture, swipeStyle } = useCardSwipeBack({
-    enabled: !selectedEvent,
+    enabled: true,
     onSwipeBack: onClose,
     visible,
   });
@@ -1274,36 +1268,11 @@ export function OrganizerEventHistoryModal({
                   <OrganizerEventRow
                     event={event}
                     key={`${event.id}-full`}
-                    onPress={() => setSelectedEvent(event)}
+                    onPress={() => onEditEvent(event)}
                   />
                 ))
               )}
             </ScrollView>
-
-            {selectedEvent && (
-              <EventDetailModal
-                checkedIn={checkedInEventIds.includes(selectedEvent.id)}
-                cityName={cityName}
-                event={selectedEvent}
-                onCheckIn={
-                  onEventCheckIn ??
-                  (async () => ({ error: 'Check-in is not available right now.', success: false }))
-                }
-                onClose={() => setSelectedEvent(null)}
-                onEditEvent={(event) => {
-                  setSelectedEvent(null);
-                  onEditEvent(event as ManagedOrganizerEvent);
-                }}
-                onToggleStatus={
-                  onEventStatusChange ??
-                  (async () => ({ error: 'RSVP is not available right now.' }))
-                }
-                organizerEvents={events}
-                organizerProfile={organizerProfileFromEvent(selectedEvent)}
-                status={selectedEventRsvp}
-                venue={null}
-              />
-            )}
           </SafeAreaView>
         </Animated.View>
       </GestureDetector>
