@@ -164,7 +164,6 @@ export default function ProfileScreen({
   const [organizerContentRefreshNonce, setOrganizerContentRefreshNonce] = useState(0);
   const [organizerAnnouncementOpen, setOrganizerAnnouncementOpen] = useState(false);
   const [organizerHistoryOpen, setOrganizerHistoryOpen] = useState(false);
-  const [eventQueuedForEdit, setEventQueuedForEdit] = useState<ManagedOrganizerEvent | null>(null);
   const [rewardsError, setRewardsError] = useState<string | null>(null);
   const [rewardsLoading, setRewardsLoading] = useState(true);
   const [universityMembership, setUniversityMembership] = useState<UserUniversityMembership | null>(
@@ -342,18 +341,6 @@ export default function ProfileScreen({
     timePickerTarget,
     isEditingEvent,
   } = createEventForm;
-
-  useEffect(() => {
-    if (organizerHistoryOpen || !eventQueuedForEdit) return;
-
-    // React has already committed the history modal dismissal for this render,
-    // so it is safe to mount the editor now. Keeping this synchronous avoids
-    // relying on requestAnimationFrame, which can be delayed while a native
-    // modal is being dismissed on a device.
-    const event = eventQueuedForEdit;
-    setEventQueuedForEdit(null);
-    openEditEvent(event);
-  }, [eventQueuedForEdit, openEditEvent, organizerHistoryOpen]);
 
   const {
     createRewardError,
@@ -1196,10 +1183,7 @@ export default function ProfileScreen({
         eventStatuses={eventStatuses}
         onClose={() => setOrganizerHistoryOpen(false)}
         onEditEvent={(event) => {
-          // Closing the parent first is essential: the editor mounts only from
-          // the effect above, after this history modal has left the tree.
-          setEventQueuedForEdit(event);
-          setOrganizerHistoryOpen(false);
+          openEditEvent(event);
         }}
         onEventCheckIn={onEventCheckIn}
         onEventStatusChange={onEventStatusChange}
