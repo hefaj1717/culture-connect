@@ -65,6 +65,7 @@ type CreateEventModalProps = {
   eventEndDate: string;
   eventEndDateValue: Date | null;
   eventDescription: string;
+  eventUpdateMessage: string;
   eventEndTime: string;
   eventImageUri: string | null;
   eventIsFree: boolean;
@@ -75,6 +76,7 @@ type CreateEventModalProps = {
   onChangeCalendarMonth: (date: Date) => void;
   onChangeEventCategory: (category: EventCategory) => void;
   onChangeEventDescription: (value: string) => void;
+  onChangeEventUpdateMessage: (value: string) => void;
   onChangeEventEndTime: (value: string) => void;
   onChangeEventIsFree: (value: boolean) => void;
   onChangeEventTime: (value: string) => void;
@@ -129,6 +131,7 @@ export function CreateEventModal({
   eventEndDate,
   eventEndDateValue,
   eventDescription,
+  eventUpdateMessage,
   eventEndTime,
   eventImageUri,
   eventIsFree,
@@ -139,6 +142,7 @@ export function CreateEventModal({
   onChangeCalendarMonth,
   onChangeEventCategory,
   onChangeEventDescription,
+  onChangeEventUpdateMessage,
   onChangeEventEndTime,
   onChangeEventIsFree,
   onChangeEventTime,
@@ -485,6 +489,27 @@ export function CreateEventModal({
                 <Text className="-mt-3 mb-4 text-right text-[11px] text-muted">
                   {eventDescription.length}/{textLimits.eventDescription}
                 </Text>
+
+                {isEditingEvent && (
+                  <View className="mb-4 rounded-xl bg-primary/5 p-3">
+                    <Text className="text-[13px] font-semibold text-ink">Note for attendees (optional)</Text>
+                    <Text className="mt-1 text-[12px] leading-4 text-muted">
+                      This is sent to people who saved the event only after CultureQuest approves the update.
+                    </Text>
+                    <TextInput
+                      value={eventUpdateMessage}
+                      onChangeText={onChangeEventUpdateMessage}
+                      placeholder="For example: the time changed because the venue opens later."
+                      placeholderTextColor="#8B9BA4"
+                      multiline
+                      maxLength={textLimits.organizerNote}
+                      className="mt-3 min-h-[76px] rounded-xl border border-primary/15 bg-white px-3 py-2 text-[14px] leading-5 text-ink"
+                    />
+                    <Text className="mt-1 text-right text-[11px] text-muted">
+                      {eventUpdateMessage.length}/{textLimits.organizerNote}
+                    </Text>
+                  </View>
+                )}
 
                 {createEventError && (
                   <Text className="mb-4 text-[13px] font-medium text-destructive">

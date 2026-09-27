@@ -23,6 +23,11 @@ export type CreateOrganizerRewardInput = {
   title: string;
 };
 
+export type UpdateOrganizerRewardInput = Omit<CreateOrganizerRewardInput, 'qcCost'> & {
+  organizerUpdateMessage?: string | null;
+  rewardId: string;
+};
+
 type OrganizerRewardRow = {
   available_days?: number[] | null;
   available_end_time?: string | null;
@@ -36,6 +41,8 @@ type OrganizerRewardRow = {
   place_key: string;
   place_name: string;
   place_address: string;
+  place_latitude?: number | null;
+  place_longitude?: number | null;
   title: string;
   description: string;
   xp_cost: number;
@@ -49,12 +56,15 @@ type OrganizerRewardRow = {
 export type OrganizerRewardStatus = 'draft' | 'pending' | 'approved' | 'rejected' | 'archived';
 export type ManagedOrganizerReward = RewardPartner & {
   createdAt: string;
+  placeKey: string;
+  placeLatitude?: number | null;
+  placeLongitude?: number | null;
   reviewStatus: OrganizerRewardStatus;
   rejectionReason?: string | null;
 };
 
 const ORGANIZER_REWARD_SELECT =
-  'id, organizer_user_id, city_key, place_key, place_name, place_address, title, description, xp_cost, qc_cost, category, image_url, available_from, available_until, available_days, available_start_time, available_end_time';
+  'id, organizer_user_id, city_key, place_key, place_name, place_address, place_latitude, place_longitude, title, description, xp_cost, qc_cost, category, image_url, available_from, available_until, available_days, available_start_time, available_end_time';
 const ORGANIZER_REWARD_WITH_STATUS_SELECT = `${ORGANIZER_REWARD_SELECT}, status, rejection_reason, created_at`;
 
 export async function fetchOrganizerRewards(cityId: CityId) {
@@ -137,6 +147,33 @@ export async function createOrganizerReward(userId: string, input: CreateOrganiz
   return { error: getNetworkAwareErrorMessage(error?.message, '') || null };
 }
 
+export async function updateOrganizerReward(userId: string, input: UpdateOrganizerRewardInput) {
+  const { error } = await supabase
+    .from('organizer_rewards')
+    .update({
+      city_key: input.cityId,
+      place_key: input.place.id,
+      place_name: input.place.name,
+      place_address: input.place.address,
+      place_latitude: input.place.latitude,
+      place_longitude: input.place.longitude,
+      title: input.title,
+      description: input.description,
+      category: inferRewardCategory(input.place.name, input.title),
+      available_from: input.availableFrom,
+      available_until: input.availableUntil ?? null,
+      available_days: input.availableDays,
+      available_start_time: input.availableStartTime,
+      available_end_time: input.availableEndTime,
+      organizer_update_message: input.organizerUpdateMessage?.trim() || null,
+      status: 'pending',
+    })
+    .eq('id', input.rewardId)
+    .eq('organizer_user_id', userId);
+
+  return { error: getNetworkAwareErrorMessage(error?.message, '') || null };
+}
+
 async function fetchOrganizerProfileLookup(rows: OrganizerRewardRow[]) {
   const result = await fetchOrganizerProfilesByIds(rows.map((row) => row.organizer_user_id));
 
@@ -149,7 +186,7 @@ async function fetchOrganizerProfileLookup(rows: OrganizerRewardRow[]) {
 function mapOrganizerRewardRow(
   row: OrganizerRewardRow,
   organizerProfile?: OrganizerProfile,
-): RewardPartner {
+): RewardPartner & Pick<ManagedOrganizerReward, 'placeKey' | 'placeLatitude' | 'placeLongitude'> {
   return {
     id: `organizer-reward-${row.id}`,
     availableDays: row.available_days ?? defaultRewardAvailabilityDays,
@@ -178,6 +215,9 @@ function mapOrganizerRewardRow(
     organizerLocationAddress: organizerProfile?.locationAddress ?? null,
     organizerLocationCoordinates: organizerProfile?.locationCoordinates ?? null,
     organizerLocationName: organizerProfile?.locationName ?? null,
+    placeKey: row.place_key,
+    placeLatitude: row.place_latitude ?? null,
+    placeLongitude: row.place_longitude ?? null,
   };
 }
 
