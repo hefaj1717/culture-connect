@@ -1,4 +1,4 @@
-import { ArrowLeft } from 'lucide-react-native';
+import { ArrowLeft, Users } from 'lucide-react-native';
 import { Modal, Pressable, ScrollView, Text, View } from 'react-native';
 import { GestureDetector } from 'react-native-gesture-handler';
 import Animated from 'react-native-reanimated';
@@ -189,35 +189,40 @@ function CampusStanding({
       className="flex-row items-center rounded-card border border-primary/10 px-4 py-4"
       style={{ backgroundColor: Colors.light.backgroundElement }}
     >
-      <CampusMetric label="students" value={memberCount.toLocaleString()} />
+      <CampusMetric icon={Users} value={memberCount.toLocaleString()} />
       <View className="h-8 w-px bg-primary/15" />
       <CampusMetric accent label="XP" value={totalXp.toLocaleString()} />
       <View className="h-8 w-px bg-primary/15" />
-      <CampusMetric label="rank" value={rank ? `#${rank}` : '—'} valueColor={rankColor} />
+      <CampusMetric label="RANK" uiValue value={rank ? `#${rank}` : '—'} valueColor={rankColor} />
     </View>
   );
 }
 
 function CampusMetric({
   accent = false,
+  icon: Icon,
   label,
+  uiValue = false,
   value,
   valueColor,
 }: {
   accent?: boolean;
-  label: string;
+  icon?: typeof Users;
+  label?: string;
+  uiValue?: boolean;
   value: string;
   valueColor?: string;
 }) {
   return (
     <View className="min-w-0 flex-1 flex-row items-baseline justify-center gap-1.5">
       <Text
-        className="font-heading text-[22px] leading-7"
+        className={`${uiValue ? 'font-ui font-extrabold' : 'font-heading'} text-[22px] leading-7`}
         style={{ color: valueColor ?? (accent ? Colors.light.accent : Colors.light.ink) }}
       >
         {value}
       </Text>
-      <Text className="text-[11px] font-bold text-muted">{label}</Text>
+      {Icon ? <Icon color={Colors.light.primary} size={18} strokeWidth={2.3} /> : null}
+      {label ? <Text className="text-[11px] font-bold text-muted">{label}</Text> : null}
     </View>
   );
 }
