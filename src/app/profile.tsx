@@ -723,6 +723,11 @@ export default function ProfileScreen({
     const profile = organizerProfileFromReward(reward, savedCityId);
     if (!profile) return;
 
+    // A native modal stays above every modal rendered after it. Dismiss the
+    // reward first, otherwise the organizer profile opens underneath it and
+    // looks like the tap had no effect.
+    resetRewardDetailState();
+    setSelectedReward(null);
     setRewardOrganizerProfile(profile);
     setRewardOrganizerEvents([]);
     void fetchOrganizerEvents(profile.cityId).then((result) => {
