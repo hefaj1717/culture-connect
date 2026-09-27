@@ -1,4 +1,4 @@
-import { UserCheck } from 'lucide-react-native';
+import { ArrowLeft, UserCheck } from 'lucide-react-native';
 import { useState } from 'react';
 import { Modal, Pressable, ScrollView, Text, View } from 'react-native';
 import { GestureDetector } from 'react-native-gesture-handler';
@@ -65,7 +65,7 @@ export function FollowedOrganizersModal({
     selectedEventStatus === 'interested' || selectedEventStatus === 'going'
       ? selectedEventStatus
       : undefined;
-  const { gesture, swipeStyle } = useCardSwipeBack({
+  const { closeWithAnimation, gesture, swipeStyle } = useCardSwipeBack({
     enabled: !activeProfile && !selectedEvent,
     onSwipeBack: onClose,
     visible,
@@ -101,6 +101,14 @@ export function FollowedOrganizersModal({
       <GestureDetector gesture={gesture}>
       <Animated.View className="flex-1 bg-canvas" style={[{ paddingTop: stableModalTopInset }, swipeStyle]}>
         <View className="px-5 pb-4 pt-3">
+          <Pressable
+            accessibilityLabel="Back to profile"
+            className="mb-3 h-10 w-10 items-center justify-center rounded-full bg-surface active:opacity-80"
+            hitSlop={8}
+            onPress={closeWithAnimation}
+          >
+            <ArrowLeft size={21} color={Colors.light.primary} strokeWidth={2.6} />
+          </Pressable>
           <Text className="font-heading text-[30px] leading-9 text-ink">Following</Text>
           <Text className="mt-1 text-[14px] leading-5 text-muted">
             New approved events from these organizers appear in Notifications.
