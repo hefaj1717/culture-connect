@@ -346,11 +346,13 @@ export default function ProfileScreen({
   useEffect(() => {
     if (organizerHistoryOpen || !eventQueuedForEdit) return;
 
-    // Wait for React to commit the history modal dismissal before mounting the
-    // editor. This avoids two native modals fighting for the responder chain.
+    // React has already committed the history modal dismissal for this render,
+    // so it is safe to mount the editor now. Keeping this synchronous avoids
+    // relying on requestAnimationFrame, which can be delayed while a native
+    // modal is being dismissed on a device.
     const event = eventQueuedForEdit;
     setEventQueuedForEdit(null);
-    requestAnimationFrame(() => openEditEvent(event));
+    openEditEvent(event);
   }, [eventQueuedForEdit, openEditEvent, organizerHistoryOpen]);
 
   const {
