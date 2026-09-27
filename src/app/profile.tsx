@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ScrollView, Text, View } from 'react-native';
+import { AppState, ScrollView, Text, View } from 'react-native';
 
 import { AdminReviewModal } from '@/components/profile/admin-review-modal';
 import { BadgesModal } from '@/components/profile/badges-modal';
@@ -69,6 +69,7 @@ import {
   type UserUniversityMembership,
 } from '@/lib/university-leaderboard';
 import { fetchXpTransactions, type XpTransaction } from '@/lib/xp-transactions';
+import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/providers/auth-provider';
 
 type ProfileScreenProps = {
@@ -175,7 +176,9 @@ export default function ProfileScreen({
   const [selectedFollowedOrganizer, setSelectedFollowedOrganizer] =
     useState<OrganizerProfile | null>(null);
   const [followedOrganizerEvents, setFollowedOrganizerEvents] = useState<CultureEvent[]>([]);
-  const [rewardOrganizerProfile, setRewardOrganizerProfile] = useState<OrganizerProfile | null>(null);
+  const [rewardOrganizerProfile, setRewardOrganizerProfile] = useState<OrganizerProfile | null>(
+    null,
+  );
   const [rewardOrganizerEvents, setRewardOrganizerEvents] = useState<CultureEvent[]>([]);
   const [rewardOrganizerEvent, setRewardOrganizerEvent] = useState<CultureEvent | null>(null);
   const [rewardOrganizerEventProfile, setRewardOrganizerEventProfile] =
@@ -600,8 +603,8 @@ export default function ProfileScreen({
   useEffect(() => {
     let active = true;
 
-    async function loadApprovedRewards() {
-      setRewardsLoading(true);
+    async function loadApprovedRewards({ showLoading = false } = {}) {
+      if (showLoading) setRewardsLoading(true);
       const result = await fetchOrganizerRewards(savedCityId);
       if (!active) return;
 
@@ -610,12 +613,38 @@ export default function ProfileScreen({
       setRewardsLoading(false);
     }
 
-    loadApprovedRewards();
+    void loadApprovedRewards({ showLoading: true });
+
+    // A reward can be moderated from another account while this screen stays mounted.
+    // Refresh both on a database change and after the app returns to the foreground so
+    // availability times never remain stale in an already-open client.
+    const channel = supabase
+      .channel(`approved-organizer-rewards:${savedCityId}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'organizer_rewards' }, () => {
+        void loadApprovedRewards();
+        setOrganizerContentRefreshNonce((current) => current + 1);
+      })
+      .subscribe();
+    const appStateSubscription = AppState.addEventListener('change', (state) => {
+      if (state === 'active') void loadApprovedRewards();
+    });
 
     return () => {
       active = false;
+      appStateSubscription.remove();
+      void supabase.removeChannel(channel);
     };
   }, [rewardsRefreshKey, savedCityId]);
+
+  useEffect(() => {
+    setSelectedReward((current) => {
+      if (!current) return current;
+
+      // Keep an open reward detail sheet in sync too, rather than waiting for it
+      // to be closed and opened again after an administrator edits availability.
+      return approvedRewards.find((reward) => reward.id === current.id) ?? null;
+    });
+  }, [approvedRewards, setSelectedReward]);
 
   useEffect(() => {
     const userId = session?.user.id;

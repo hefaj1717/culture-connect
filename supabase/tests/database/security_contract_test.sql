@@ -1,6 +1,6 @@
 begin;
 
-select plan(30);
+select plan(31);
 
 select ok(
   to_regprocedure('public.get_my_digital_passport_progress()') is not null,
@@ -103,6 +103,17 @@ select ok(
       and not tgisinternal
   ),
   'admin reward updates trigger organizer notifications'
+);
+
+select ok(
+  exists (
+    select 1
+    from pg_publication_tables
+    where pubname = 'supabase_realtime'
+      and schemaname = 'public'
+      and tablename = 'organizer_rewards'
+  ),
+  'approved rewards can be refreshed in real time after moderation'
 );
 
 select is(
