@@ -105,7 +105,9 @@ export function useRewardRedemption({
       return;
     }
     if (userQc < selectedReward.qcCost) {
-      setRewardRedeemError(`You need ${selectedRewardQcNeeded.toLocaleString()} more QC to redeem this reward.`);
+      setRewardRedeemError(
+        `You need ${selectedRewardQcNeeded.toLocaleString()} more CultureQuest Credits to redeem this reward.`,
+      );
       return;
     }
     if (!isRewardCurrentlyAvailable(selectedReward)) {

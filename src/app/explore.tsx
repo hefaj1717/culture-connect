@@ -1256,7 +1256,7 @@ export function EventDetailModal({
                       Attendance confirmed
                     </Text>
                     <Text className="mt-1 text-[13px] leading-5 text-ink/75">
-                      You earned {activeEvent.xpBonus} XP and {activeEvent.qcBonus} QC for this event.
+                      You earned {activeEvent.xpBonus} XP and {activeEvent.qcBonus} CultureQuest Credits for this event.
                     </Text>
                   </View>
                 ) : (
@@ -1480,7 +1480,7 @@ function getCheckInResultMessage(event: CultureEvent, result: EventCheckInResult
     const balanceLabel =
       typeof result.totalXp === 'number' ? ` New balance: ${result.totalXp.toLocaleString()} XP.` : '';
 
-    return `Attendance verified. +${xpEarned.toLocaleString()} XP and +${event.qcBonus.toLocaleString()} QC for ${event.title}.${balanceLabel}`;
+    return `Attendance verified. +${xpEarned.toLocaleString()} XP and +${event.qcBonus.toLocaleString()} CultureQuest Credits for ${event.title}.${balanceLabel}`;
   }
 
   return result.error || 'Attendance could not be confirmed. Try again.';

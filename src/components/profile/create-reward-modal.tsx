@@ -181,7 +181,7 @@ export function CreateRewardModal({
                 </Pressable>
 
                 <ScreenHeader
-                  subtitle="Set how many QC students need to unlock this reward. XP remains permanent progress."
+                  subtitle="Set how many CultureQuest Credits students need to unlock this reward. XP remains permanent progress."
                   title="Create reward"
                 />
 
@@ -320,7 +320,9 @@ export function CreateRewardModal({
                   )}
                 </View>
 
-                <Text className="mb-2 text-[13px] font-semibold text-ink">QC required to unlock</Text>
+                <Text className="mb-2 text-[13px] font-semibold text-ink">
+                  CultureQuest Credits required to unlock
+                </Text>
                 <TextInput
                   value={rewardQc}
                   onChangeText={onChangeRewardQc}

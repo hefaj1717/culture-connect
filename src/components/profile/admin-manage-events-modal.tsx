@@ -1084,7 +1084,10 @@ function AdminRewardEditor({
     }
 
     if (!Number.isFinite(parsedQc) || parsedQc <= 0 || parsedQc > 5000) {
-      Alert.alert('Invalid QC', 'Reward QC cost must be between 1 and 5000.');
+      Alert.alert(
+        'Invalid CultureQuest Credits amount',
+        'Reward CultureQuest Credits cost must be between 1 and 5000.',
+      );
       return;
     }
     const availabilityError = validateRewardAvailability({

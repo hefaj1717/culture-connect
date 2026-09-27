@@ -190,7 +190,7 @@ export function useCreateRewardForm({
       return;
     }
     if (!Number.isFinite(normalizedQc) || normalizedQc <= 0 || normalizedQc > 5000) {
-      setCreateRewardError('Enter a QC amount between 1 and 5000.');
+      setCreateRewardError('Enter an amount of CultureQuest Credits between 1 and 5000.');
       return;
     }
     const availabilityError = validateRewardAvailability(rewardAvailability);

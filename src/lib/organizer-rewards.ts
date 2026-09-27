@@ -163,7 +163,7 @@ function mapOrganizerRewardRow(
     location: row.place_address,
     discount: row.title,
     description: row.description,
-    condition: `Costs ${row.qc_cost ?? 5} QC`,
+    condition: `Costs ${row.qc_cost ?? 5} CultureQuest Credits`,
     xpCost: 0,
     qcCost: row.qc_cost ?? 5,
     isPopular: false,
