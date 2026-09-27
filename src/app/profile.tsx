@@ -51,7 +51,11 @@ import {
 } from '@/lib/digital-passport';
 import { useStableTopInset } from '@/hooks/use-stable-safe-area';
 import type { UserEventHistoryItem, UserEventStatus } from '@/lib/event-history';
-import { fetchFollowedOrganizerProfiles, unfollowOrganizer } from '@/lib/organizer-follows';
+import {
+  fetchFollowedOrganizerProfiles,
+  subscribeToOrganizerFollows,
+  unfollowOrganizer,
+} from '@/lib/organizer-follows';
 import { publishOrganizerAnnouncement } from '@/lib/organizer-announcements';
 import {
   fetchMyOrganizerEvents,
@@ -554,6 +558,24 @@ export default function ProfileScreen({
       active = false;
     };
   }, [followedOrganizersReloadNonce, session?.user.id]);
+
+  useEffect(() => {
+    // A profile can be followed from Discover, an event, or a reward while the
+    // Profile tab stays mounted in the background. Refetch as soon as that
+    // mutation succeeds, instead of making the user restart the app.
+    return subscribeToOrganizerFollows(() => {
+      setFollowedOrganizersReloadNonce((current) => current + 1);
+    });
+  }, []);
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', (state) => {
+      if (state === 'active') {
+        setFollowedOrganizersReloadNonce((current) => current + 1);
+      }
+    });
+    return () => subscription.remove();
+  }, []);
 
   useEffect(() => {
     const userId = session?.user.id;
