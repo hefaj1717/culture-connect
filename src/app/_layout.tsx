@@ -9,9 +9,11 @@ import {
   useFonts as useInterFonts,
 } from '@expo-google-fonts/inter';
 import {
-  DMSerifDisplay_400Regular,
-  useFonts as useDMSerifDisplayFonts,
-} from '@expo-google-fonts/dm-serif-display';
+  Lora_400Regular,
+  Lora_500Medium,
+  Lora_600SemiBold,
+  useFonts as useLoraFonts,
+} from '@expo-google-fonts/lora';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import { Text, TextInput } from 'react-native';
@@ -31,10 +33,12 @@ export default function TabLayout() {
     Inter_700Bold,
     Inter_800ExtraBold,
   });
-  const [dmSerifDisplayLoaded] = useDMSerifDisplayFonts({
-    DMSerifDisplay_400Regular,
+  const [loraLoaded] = useLoraFonts({
+    Lora_400Regular,
+    Lora_500Medium,
+    Lora_600SemiBold,
   });
-  const fontsLoaded = interLoaded && dmSerifDisplayLoaded;
+  const fontsLoaded = interLoaded && loraLoaded;
 
   useEffect(() => {
     if (fontsLoaded) {
