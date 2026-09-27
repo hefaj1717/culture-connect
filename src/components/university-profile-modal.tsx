@@ -188,8 +188,8 @@ function CampusStanding({
       style={{ backgroundColor: Colors.light.backgroundElement }}
     >
       <CampusStandingRow label="Members" value={memberCount.toLocaleString()} />
-      <CampusStandingRow accent label="Campus XP" value={`${totalXp.toLocaleString()} XP`} />
-      <CampusStandingRow label="Lublin rank" last value={rank ? `#${rank}` : '—'} valueColor={rankColor} />
+      <CampusStandingRow accent label="XP" value={`${totalXp.toLocaleString()} XP`} />
+      <CampusStandingRow label="Rank" last value={rank ? `#${rank}` : '—'} valueColor={rankColor} />
     </View>
   );
 }
