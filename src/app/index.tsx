@@ -543,7 +543,10 @@ export default function HomeScreen({
                     <View className="mb-2 flex-row gap-1.5">
                       <MiniEngagementStat
                         icon={<Users size={12} color={Colors.light.primary} strokeWidth={2.4} />}
-                        value={getEventEngagement(event, eventStatuses[event.id]).interested}
+                        value={
+                          getEventEngagement(event, eventStatuses[event.id]).interested +
+                          getEventEngagement(event, eventStatuses[event.id]).going
+                        }
                       />
                       <MiniEngagementStat
                         icon={

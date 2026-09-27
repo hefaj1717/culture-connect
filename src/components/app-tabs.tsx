@@ -327,29 +327,43 @@ function AuthenticatedTabs() {
 
     if (!user?.id) return { error: 'Log in again before changing your RSVP.' };
 
+    const previousStatus = eventStatusesRef.current[eventId] ?? null;
+    applyLocalEventStatus(eventId, previousStatus, status);
+
     const result = status
       ? await setUserEventResponse(user.id, eventId, status)
       : await removeUserEventResponse(user.id, eventId);
 
-    if (result.error) return result;
+    if (result.error) {
+      // Restore the last confirmed state only if another RSVP action has not
+      // already replaced this optimistic update.
+      if ((eventStatusesRef.current[eventId] ?? null) === status) {
+        applyLocalEventStatus(eventId, status, previousStatus);
+      }
+      return result;
+    }
 
-    const previousStatus = eventStatusesRef.current[eventId] ?? null;
+    return { error: null };
+  }
+
+  function applyLocalEventStatus(
+    eventId: string,
+    previousStatus: UserEventStatus | null,
+    nextStatus: UserEventStatus | null,
+  ) {
     setApprovedEvents((current) =>
-      updateEventEngagementCounts(current, eventId, previousStatus, status),
+      updateEventEngagementCounts(current, eventId, previousStatus, nextStatus),
     );
-
     const nextStatuses = { ...eventStatusesRef.current };
 
-    if (!status) {
+    if (!nextStatus) {
       delete nextStatuses[eventId];
     } else {
-      nextStatuses[eventId] = status;
+      nextStatuses[eventId] = nextStatus;
     }
 
     eventStatusesRef.current = nextStatuses;
     setEventStatuses(nextStatuses);
-
-    return { error: null };
   }
 
   async function awardQuestCompletionXp(questId: string, completionCode: string) {

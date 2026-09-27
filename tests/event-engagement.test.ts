@@ -1,4 +1,4 @@
-import { updateEventEngagementCounts } from '@/lib/event-engagement';
+import { getEventEngagement, updateEventEngagementCounts } from '@/lib/event-engagement';
 import type { CultureEvent } from '@/data/culture';
 
 const event: CultureEvent = {
@@ -31,5 +31,13 @@ describe('updateEventEngagementCounts', () => {
 
     expect(interested[0]).toMatchObject({ interestedCount: 1, goingCount: 0 });
     expect(going[0]).toMatchObject({ interestedCount: 0, goingCount: 1 });
+    expect(getEventEngagement(going[0], 'going')).toMatchObject({ going: 1, interested: 0 });
+  });
+
+  it('can roll an optimistic RSVP back to the prior count', () => {
+    const optimistic = updateEventEngagementCounts([event], event.id, null, 'going');
+    const rolledBack = updateEventEngagementCounts(optimistic, event.id, 'going', null);
+
+    expect(rolledBack[0]).toMatchObject({ interestedCount: 0, goingCount: 0 });
   });
 });

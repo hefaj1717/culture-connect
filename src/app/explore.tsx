@@ -1189,7 +1189,8 @@ export function EventDetailModal({
                           </Text>
                           <Text className="text-[13px] text-muted">·</Text>
                           <Text className="text-[13px] text-muted">
-                            {detailEngagement.interested.toLocaleString()} interested
+                            {(detailEngagement.interested + detailEngagement.going).toLocaleString()}{' '}
+                            planning to attend
                           </Text>
                         </>
                       ) : (
@@ -1434,7 +1435,7 @@ function EventEngagementPills({
           },
           {
             icon: <Users size={12} color={Colors.light.primary} strokeWidth={2.4} />,
-            value: interested,
+            value: interested + going,
           },
         ]
       : [
@@ -1535,26 +1536,79 @@ function formatEventTimeRange(event: CultureEvent) {
 }
 
 function getEventStartTimestamp(event: CultureEvent) {
-  if (!event.startsAt) return Number.POSITIVE_INFINITY;
+  if (event.startsAt) {
+    const startsAt = Date.parse(event.startsAt);
+    if (!Number.isNaN(startsAt)) return startsAt;
+  }
 
-  const startsAt = Date.parse(event.startsAt);
-  return Number.isNaN(startsAt) ? Number.POSITIVE_INFINITY : startsAt;
+  const dateMatch = event.date.match(/\b([A-Z][a-z]{2,8})\s+(\d{1,2})\b/);
+  if (!dateMatch) return Number.POSITIVE_INFINITY;
+
+  const monthIndex = [
+    'jan',
+    'feb',
+    'mar',
+    'apr',
+    'may',
+    'jun',
+    'jul',
+    'aug',
+    'sep',
+    'oct',
+    'nov',
+    'dec',
+  ].indexOf(dateMatch[1].slice(0, 3).toLowerCase());
+  if (monthIndex < 0) return Number.POSITIVE_INFINITY;
+
+  const startTime = getFirstTime(event.time);
+  const start = new Date(new Date().getFullYear(), monthIndex, Number(dateMatch[2]));
+  if (startTime) start.setHours(startTime.hours, startTime.minutes, 0, 0);
+
+  return start.getTime();
 }
 
 function getCheckInWindowState(event: CultureEvent) {
   const now = Date.now();
-  const startsAt = event.startsAt ? Date.parse(event.startsAt) : null;
-  const endsAt = event.endsAt ? Date.parse(event.endsAt) : null;
+  const startsAt = getEventStartTimestamp(event);
+  const endsAt = getEventEndTimestamp(event, startsAt);
 
-  if (startsAt && !Number.isNaN(startsAt) && now < startsAt) {
+  if (Number.isFinite(startsAt) && now < startsAt) {
     return 'not-started';
   }
 
-  if (endsAt && !Number.isNaN(endsAt) && now > endsAt) {
+  if (Number.isFinite(endsAt) && now > endsAt) {
     return 'ended';
   }
 
   return 'open';
+}
+
+function getEventEndTimestamp(event: CultureEvent, startTimestamp: number) {
+  if (event.endsAt) {
+    const endsAt = Date.parse(event.endsAt);
+    if (!Number.isNaN(endsAt)) return endsAt;
+  }
+
+  if (!Number.isFinite(startTimestamp)) return Number.NaN;
+
+  const endTime = getLastTime(event.endTime ?? event.time);
+  if (!endTime) return Number.NaN;
+
+  const end = new Date(startTimestamp);
+  end.setHours(endTime.hours, endTime.minutes, 0, 0);
+  if (end.getTime() <= startTimestamp) end.setDate(end.getDate() + 1);
+  return end.getTime();
+}
+
+function getFirstTime(value?: string) {
+  const match = value?.match(/\b(\d{1,2}):(\d{2})\b/);
+  return match ? { hours: Number(match[1]), minutes: Number(match[2]) } : null;
+}
+
+function getLastTime(value?: string) {
+  const matches = [...(value?.matchAll(/\b(\d{1,2}):(\d{2})\b/g) ?? [])];
+  const match = matches.at(-1);
+  return match ? { hours: Number(match[1]), minutes: Number(match[2]) } : null;
 }
 
 function getDistanceMeters(
