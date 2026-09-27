@@ -98,6 +98,7 @@ function AuthenticatedTabs() {
   const [universityLeaderboardLoading, setUniversityLeaderboardLoading] = useState(true);
   const [checkedInEventIds, setCheckedInEventIds] = useState<string[]>([]);
   const [eventStatuses, setEventStatuses] = useState<Record<string, UserEventStatus>>({});
+  const eventStatusesRef = useRef<Record<string, UserEventStatus>>({});
   const [completedQuestIds, setCompletedQuestIds] = useState<string[]>([]);
   const [userStateError, setUserStateError] = useState<string | null>(null);
   const [userStateLoading, setUserStateLoading] = useState(false);
@@ -176,6 +177,7 @@ function AuthenticatedTabs() {
     const userId = user?.id;
 
     if (!userId) {
+      eventStatusesRef.current = {};
       setEventStatuses({});
       setUserXp(0);
       setUserQc(0);
@@ -203,6 +205,7 @@ function AuthenticatedTabs() {
       setUserStateLoading(false);
 
       if (!responsesResult.error) {
+        eventStatusesRef.current = responsesResult.responses;
         setEventStatuses(responsesResult.responses);
         const attendedEventIds = Object.entries(responsesResult.responses)
           .filter(([, status]) => status === 'attended')
@@ -299,13 +302,14 @@ function AuthenticatedTabs() {
       }
     }
 
-    const previousStatus = eventStatuses[event.id] ?? null;
+    const previousStatus = eventStatusesRef.current[event.id] ?? null;
     checkedInEventIdsRef.current.add(event.id);
     setCheckedInEventIds([...checkedInEventIdsRef.current]);
     setApprovedEvents((current) =>
       updateEventEngagementCounts(current, event.id, previousStatus, 'attended'),
     );
-    setEventStatuses((current) => ({ ...current, [event.id]: 'attended' }));
+    eventStatusesRef.current = { ...eventStatusesRef.current, [event.id]: 'attended' };
+    setEventStatuses(eventStatusesRef.current);
     return {
       duplicate: result.duplicate,
       success: true,
@@ -329,22 +333,21 @@ function AuthenticatedTabs() {
 
     if (result.error) return result;
 
-    const previousStatus = eventStatuses[eventId] ?? null;
+    const previousStatus = eventStatusesRef.current[eventId] ?? null;
     setApprovedEvents((current) =>
       updateEventEngagementCounts(current, eventId, previousStatus, status),
     );
 
-    setEventStatuses((current) => {
-      const nextStatuses = { ...current };
+    const nextStatuses = { ...eventStatusesRef.current };
 
-      if (!status) {
-        delete nextStatuses[eventId];
-      } else {
-        nextStatuses[eventId] = status;
-      }
+    if (!status) {
+      delete nextStatuses[eventId];
+    } else {
+      nextStatuses[eventId] = status;
+    }
 
-      return nextStatuses;
-    });
+    eventStatusesRef.current = nextStatuses;
+    setEventStatuses(nextStatuses);
 
     return { error: null };
   }
