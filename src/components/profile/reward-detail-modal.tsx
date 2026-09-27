@@ -76,7 +76,7 @@ export function RewardDetailModal({
       ? 'Show this screen'
       : rewardCanRedeem
         ? 'Ready to redeem'
-      : 'Keep earning QC';
+      : 'Keep earning CultureQuest Credits';
   const redeemButtonLabel = rewardIsUsed
     ? 'Coupon already used'
     : rewardIsActive
@@ -87,7 +87,7 @@ export function RewardDetailModal({
           ? 'Redeem'
           : reward && userQc >= reward.qcCost && !rewardIsAvailableNow
             ? 'Not available now'
-          : `Need ${rewardQcNeeded.toLocaleString()} more QC`;
+          : `Need ${rewardQcNeeded.toLocaleString()} more CultureQuest Credits`;
   const venueName = formatVenueName(reward?.name);
   const redeemDisabled = rewardStateExists || rewardRedeeming || !rewardCanRedeem;
 
@@ -277,7 +277,7 @@ export function RewardDetailModal({
                     )}
                     {!rewardStateExists && !rewardCanRedeem && (
                       <Text className="mt-5 text-center text-[16px] font-extrabold text-ink">
-                        {`You need ${rewardQcNeeded.toLocaleString()} more QC`}
+                        {`You need ${rewardQcNeeded.toLocaleString()} more CultureQuest Credits`}
                       </Text>
                     )}
                     {rewardIsUsed && (

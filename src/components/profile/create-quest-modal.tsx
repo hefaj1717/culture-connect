@@ -289,7 +289,9 @@ export function CreateQuestModal({
                       maxLength={textLimits.rewardXp}
                       className="rounded-xl border border-gray-300 px-4 py-3 text-[15px] text-ink"
                     />
-                    <Text className="mt-2 text-[12px] font-extrabold text-accent">+5 QC awarded automatically</Text>
+                    <Text className="mt-2 text-[12px] font-extrabold text-accent">
+                      +5 CultureQuest Credits awarded automatically
+                    </Text>
                   </View>
                   <View className="flex-1">
                     <Text className="mb-2 text-[13px] font-semibold text-ink">Status</Text>

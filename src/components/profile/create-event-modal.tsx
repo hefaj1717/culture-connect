@@ -466,7 +466,7 @@ export function CreateEventModal({
                 </View>
                 <View className="mb-4 rounded-2xl bg-primary/5 px-3 py-2.5">
                   <Text className="flex-1 text-[12px] font-semibold leading-4 text-muted">
-                    Attendees earn {defaultEventXp} XP and 5 QC for this event.
+                    Attendees earn {defaultEventXp} XP and 5 CultureQuest Credits for this event.
                   </Text>
                 </View>
 

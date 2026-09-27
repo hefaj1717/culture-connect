@@ -138,7 +138,7 @@ function getRedeemErrorMessage(error?: string, xpNeeded?: number, qcNeeded?: num
     return `You need ${Math.max(0, xpNeeded ?? 0).toLocaleString()} more XP to redeem this reward.`;
   }
   if (error === 'insufficient_qc') {
-    return `You need ${Math.max(0, qcNeeded ?? 0).toLocaleString()} more QC to redeem this reward.`;
+    return `You need ${Math.max(0, qcNeeded ?? 0).toLocaleString()} more CultureQuest Credits to redeem this reward.`;
   }
   if (error === 'not_authenticated') {
     return 'Log in again to redeem this reward.';

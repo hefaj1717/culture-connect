@@ -49,7 +49,7 @@ describe('critical Supabase RPC clients', () => {
     });
 
     await expect(redeemOrganizerReward('organizer-reward-reward-1')).resolves.toMatchObject({
-      error: 'You need 2 more QC to redeem this reward.',
+      error: 'You need 2 more CultureQuest Credits to redeem this reward.',
       redemption: null,
       totalQc: 3,
       qcNeeded: 2,
