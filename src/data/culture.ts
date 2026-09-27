@@ -120,8 +120,17 @@ export type RewardPartner = {
   badge?: string;
   color: string;
   imageUrl?: string | null;
+  organizerId?: string | null;
   organizerName?: string | null;
   organizerAvatarUrl?: string | null;
+  organizerBio?: string | null;
+  organizerCityId?: CityId | null;
+  organizerLocationAddress?: string | null;
+  organizerLocationCoordinates?: {
+    latitude: number;
+    longitude: number;
+  } | null;
+  organizerLocationName?: string | null;
 };
 
 export type CultureCityData = CultureCity & {

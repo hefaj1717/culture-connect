@@ -170,8 +170,14 @@ function mapOrganizerRewardRow(
     badge: 'Partner',
     color: Colors.light.primary,
     imageUrl: row.image_url,
+    organizerId: row.organizer_user_id,
     organizerName: organizerProfile?.name ?? 'Verified CultureQuest partner',
     organizerAvatarUrl: organizerProfile?.avatarUrl ?? null,
+    organizerBio: organizerProfile?.bio ?? null,
+    organizerCityId: organizerProfile?.cityId ?? row.city_key,
+    organizerLocationAddress: organizerProfile?.locationAddress ?? null,
+    organizerLocationCoordinates: organizerProfile?.locationCoordinates ?? null,
+    organizerLocationName: organizerProfile?.locationName ?? null,
   };
 }
 
