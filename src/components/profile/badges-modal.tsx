@@ -5,6 +5,7 @@ import {
   ScrollView,
   Text,
   View,
+  useWindowDimensions,
   type ViewStyle,
 } from 'react-native';
 import { GestureDetector, type GestureType } from 'react-native-gesture-handler';
@@ -20,7 +21,6 @@ import {
 type BadgesModalProps = {
   badges: AchievementBadge[];
   gesture: GestureType;
-  itemWidth: number;
   onClose: () => void;
   onSelectBadge: (badge: AchievementBadge | null) => void;
   selectedBadge: AchievementBadge | null;
@@ -33,7 +33,6 @@ type BadgesModalProps = {
 export function BadgesModal({
   badges,
   gesture,
-  itemWidth,
   onClose,
   onSelectBadge,
   selectedBadge,
@@ -42,6 +41,11 @@ export function BadgesModal({
   unlockedBadgeCount,
   visible,
 }: BadgesModalProps) {
+  const { width } = useWindowDimensions();
+  const horizontalPadding = 20;
+  const columnGap = 12;
+  const itemWidth = Math.max(84, (width - horizontalPadding * 2 - columnGap * 2) / 3);
+
   return (
     <Modal animationType="slide" transparent onRequestClose={onClose} visible={visible}>
       <GestureDetector gesture={gesture}>
