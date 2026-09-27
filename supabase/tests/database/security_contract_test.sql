@@ -1,6 +1,6 @@
 begin;
 
-select plan(25);
+select plan(27);
 
 select ok(
   to_regprocedure('public.get_my_digital_passport_progress()') is not null,
@@ -35,6 +35,17 @@ select is(
 select ok(
   (select relrowsecurity from pg_class where oid = 'public.user_university_leaderboard_awards'::regclass),
   'university ranking awards have RLS enabled'
+);
+
+select ok(
+  to_regprocedure('public.get_university_profile_summary(text)') is not null,
+  'university profiles use an aggregate-only RPC'
+);
+
+select is(
+  has_function_privilege('anon', 'public.get_university_profile_summary(text)'::regprocedure, 'EXECUTE'),
+  false,
+  'anonymous callers cannot read university profile aggregates'
 );
 
 select ok(
