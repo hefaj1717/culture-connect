@@ -183,21 +183,18 @@ function CampusStanding({
   const rankColor = rank >= 1 && rank <= 3 ? getPodiumColors(rank as 1 | 2 | 3).text : Colors.light.primary;
 
   return (
-    <View
-      className="flex-row items-center rounded-card border border-primary/10 px-4 py-3.5"
-      style={{ backgroundColor: Colors.light.backgroundElement }}
-    >
+    <View className="flex-row items-center py-2">
       <View className="min-w-0 flex-1 flex-row items-center justify-center gap-2">
         <Users color={Colors.light.primary} size={19} strokeWidth={2.25} />
-        <Text className="font-heading text-[21px] leading-6 text-ink">{memberCount.toLocaleString()}</Text>
+        <Text className="font-heading text-[20px] leading-6 text-ink">{memberCount.toLocaleString()}</Text>
       </View>
       <View className="h-7 w-px bg-primary/15" />
       <View className="min-w-0 flex-1 items-center">
-        <Text className="font-heading text-[21px] leading-6 text-accent">{totalXp.toLocaleString()} XP</Text>
+        <Text className="font-ui text-[16px] font-extrabold leading-6 text-accent">{totalXp.toLocaleString()} XP</Text>
       </View>
       <View className="h-7 w-px bg-primary/15" />
       <View className="min-w-0 flex-1 items-center">
-        <Text className="font-heading text-[21px] leading-6" style={{ color: rankColor }}>
+        <Text className="font-heading text-[20px] leading-6" style={{ color: rankColor }}>
           {rank ? `#${rank}` : '—'}
         </Text>
       </View>
