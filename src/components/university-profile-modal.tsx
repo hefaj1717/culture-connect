@@ -1,4 +1,4 @@
-import { ArrowLeft } from 'lucide-react-native';
+import { ArrowLeft, Users } from 'lucide-react-native';
 import { Modal, Pressable, ScrollView, Text, View } from 'react-native';
 import { GestureDetector } from 'react-native-gesture-handler';
 import Animated from 'react-native-reanimated';
@@ -184,38 +184,23 @@ function CampusStanding({
 
   return (
     <View
-      className="overflow-hidden rounded-card border border-primary/10"
+      className="flex-row items-center rounded-card border border-primary/10 px-4 py-3.5"
       style={{ backgroundColor: Colors.light.backgroundElement }}
     >
-      <CampusStandingRow label="Members" value={memberCount.toLocaleString()} />
-      <CampusStandingRow accent label="XP" value={`${totalXp.toLocaleString()} XP`} />
-      <CampusStandingRow label="Rank" last value={rank ? `#${rank}` : '—'} valueColor={rankColor} />
-    </View>
-  );
-}
-
-function CampusStandingRow({
-  accent = false,
-  label,
-  last = false,
-  value,
-  valueColor,
-}: {
-  accent?: boolean;
-  label?: string;
-  last?: boolean;
-  value: string;
-  valueColor?: string;
-}) {
-  return (
-    <View className={`flex-row items-center justify-between px-4 py-3.5 ${last ? '' : 'border-b border-primary/10'}`}>
-      <Text className="text-[14px] font-semibold text-muted">{label}</Text>
-      <Text
-        className="font-ui text-[17px] font-extrabold leading-6"
-        style={{ color: valueColor ?? (accent ? Colors.light.accent : Colors.light.ink) }}
-      >
-        {value}
-      </Text>
+      <View className="min-w-0 flex-1 flex-row items-center justify-center gap-2">
+        <Users color={Colors.light.primary} size={19} strokeWidth={2.25} />
+        <Text className="font-heading text-[21px] leading-6 text-ink">{memberCount.toLocaleString()}</Text>
+      </View>
+      <View className="h-7 w-px bg-primary/15" />
+      <View className="min-w-0 flex-1 items-center">
+        <Text className="font-heading text-[21px] leading-6 text-accent">{totalXp.toLocaleString()} XP</Text>
+      </View>
+      <View className="h-7 w-px bg-primary/15" />
+      <View className="min-w-0 flex-1 items-center">
+        <Text className="font-heading text-[21px] leading-6" style={{ color: rankColor }}>
+          {rank ? `#${rank}` : '—'}
+        </Text>
+      </View>
     </View>
   );
 }
