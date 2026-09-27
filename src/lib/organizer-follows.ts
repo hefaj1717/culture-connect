@@ -2,6 +2,21 @@ import { getNetworkAwareErrorMessage } from '@/lib/network-errors';
 import { fetchOrganizerProfilesByIds, type OrganizerProfile } from '@/lib/organizer-profiles';
 import { supabase } from '@/lib/supabase';
 
+type OrganizerFollowsListener = () => void;
+const organizerFollowsListeners = new Set<OrganizerFollowsListener>();
+
+/** Keeps mounted profile surfaces in sync immediately after a local follow mutation. */
+export function subscribeToOrganizerFollows(listener: OrganizerFollowsListener) {
+  organizerFollowsListeners.add(listener);
+  return () => {
+    organizerFollowsListeners.delete(listener);
+  };
+}
+
+function notifyOrganizerFollowsChanged() {
+  organizerFollowsListeners.forEach((listener) => listener());
+}
+
 export async function fetchFollowedOrganizerProfiles() {
   const { data, error } = await supabase
     .from('organizer_follows')
@@ -61,7 +76,9 @@ export async function setOrganizerAnnouncementMuted(organizerId: string, muted: 
     p_organizer_user_id: organizerId,
   });
 
-  return { error: error ? getNetworkAwareErrorMessage(error.message) : null };
+  const normalizedError = error ? getNetworkAwareErrorMessage(error.message) : null;
+  if (!normalizedError) notifyOrganizerFollowsChanged();
+  return { error: normalizedError };
 }
 
 export async function followOrganizer(userId: string, organizerId: string) {
@@ -80,7 +97,9 @@ export async function followOrganizer(userId: string, organizerId: string) {
     },
   );
 
-  return { error: error ? getNetworkAwareErrorMessage(error.message) : null };
+  const normalizedError = error ? getNetworkAwareErrorMessage(error.message) : null;
+  if (!normalizedError) notifyOrganizerFollowsChanged();
+  return { error: normalizedError };
 }
 
 export async function unfollowOrganizer(userId: string, organizerId: string) {
@@ -90,5 +109,7 @@ export async function unfollowOrganizer(userId: string, organizerId: string) {
     .eq('follower_user_id', userId)
     .eq('organizer_user_id', organizerId);
 
-  return { error: error ? getNetworkAwareErrorMessage(error.message) : null };
+  const normalizedError = error ? getNetworkAwareErrorMessage(error.message) : null;
+  if (!normalizedError) notifyOrganizerFollowsChanged();
+  return { error: normalizedError };
 }
