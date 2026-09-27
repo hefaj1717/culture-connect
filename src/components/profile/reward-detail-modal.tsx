@@ -11,22 +11,29 @@ import { GestureDetector, type GestureType } from 'react-native-gesture-handler'
 import Animated, { type AnimatedStyle } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { OrganizerProfileModal } from '@/components/organizer-profile-modal';
 import { Colors } from '@/constants/theme';
-import type { RewardPartner } from '@/data/culture';
+import type { CultureEvent, RewardPartner } from '@/data/culture';
 import { formatRewardTime } from '@/data/profile';
 import { useStableTopInset } from '@/hooks/use-stable-safe-area';
 import { formatRewardAvailability } from '@/lib/reward-availability';
+import type { OrganizerProfile } from '@/lib/organizer-profiles';
 
 type RewardDetailModalProps = {
+  cityName: string;
   detailsExpanded: boolean;
   gesture: GestureType;
   onClose: () => void;
+  onCloseOrganizer: () => void;
   onOpenOrganizer: (reward: RewardPartner) => void;
+  onOpenOrganizerEvent: (event: CultureEvent) => void;
   onRedeem: () => void;
   onToggleDetails: () => void;
   pickupCode: string | null;
   remainingMs: number;
   reward: RewardPartner | null;
+  organizerEvents: CultureEvent[];
+  organizerProfile: OrganizerProfile | null;
   rewardCanRedeem: boolean;
   rewardIsAvailableNow: boolean;
   rewardRedeemError: string | null;
@@ -40,15 +47,20 @@ type RewardDetailModalProps = {
 };
 
 export function RewardDetailModal({
+  cityName,
   detailsExpanded,
   gesture,
   onClose,
+  onCloseOrganizer,
   onOpenOrganizer,
+  onOpenOrganizerEvent,
   onRedeem,
   onToggleDetails,
   pickupCode,
   remainingMs,
   reward,
+  organizerEvents,
+  organizerProfile,
   rewardCanRedeem,
   rewardIsAvailableNow,
   rewardRedeemError,
@@ -326,6 +338,18 @@ export function RewardDetailModal({
                 </Pressable>
               </ScrollView>
             </SafeAreaView>
+            {organizerProfile ? (
+              <View className="absolute inset-0">
+                <OrganizerProfileModal
+                  cityName={cityName}
+                  embedded
+                  events={organizerEvents}
+                  onClose={onCloseOrganizer}
+                  onOpenEvent={onOpenOrganizerEvent}
+                  profile={organizerProfile}
+                />
+              </View>
+            ) : null}
           </Animated.View>
         </GestureDetector>
       )}
