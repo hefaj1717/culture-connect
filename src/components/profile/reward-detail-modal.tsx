@@ -153,6 +153,22 @@ export function RewardDetailModal({
                       'Redeem this reward with CultureQuest Credits, then show the pickup screen to staff before ordering or paying.'}
                   </Text>
 
+                  <View className="mt-5 flex-row items-center gap-3 rounded-2xl bg-surface px-4 py-3.5">
+                    <View className="h-10 w-10 items-center justify-center rounded-full bg-primary/10">
+                      <Text className="text-[13px] font-extrabold text-primary">
+                        {getOrganizerInitials(reward.organizerName)}
+                      </Text>
+                    </View>
+                    <View className="min-w-0 flex-1">
+                      <Text className="text-[10px] font-bold uppercase tracking-[1.3px] text-muted">
+                        Offered by
+                      </Text>
+                      <Text className="mt-0.5 text-[14px] font-extrabold text-ink" numberOfLines={1}>
+                        {reward.organizerName ?? 'Verified CultureQuest partner'}
+                      </Text>
+                    </View>
+                  </View>
+
                   <View className="mt-6 rounded-2xl border border-primary/15 bg-surface p-4">
                     <Pressable
                       onPress={onToggleDetails}
@@ -319,4 +335,16 @@ function formatVenueName(value?: string | null) {
     .replace(/\bHeca\s*café\b/gi, 'Heca Café')
     .replace(/\s+/g, ' ')
     .trim();
+}
+
+function getOrganizerInitials(value?: string | null) {
+  const normalized = value?.trim();
+  if (!normalized) return 'CQ';
+
+  return normalized
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((part) => part[0])
+    .join('')
+    .toUpperCase();
 }
