@@ -807,18 +807,13 @@ export default function HomeScreen({
                 </Text>
               </View>
               <Pressable
-                disabled={eventsLoading || activitySpots.length === 0}
                 onPress={() => setIsMapInteractive((current) => !current)}
                 className="absolute bottom-3 right-3 rounded-full bg-white/90 px-3 py-1 active:opacity-80"
+                accessibilityLabel={isMapInteractive ? 'Lock map' : 'Unlock map'}
+                accessibilityRole="button"
               >
                 <Text className="text-[10px] font-bold text-muted">
-                  {eventsLoading
-                    ? 'Loading events'
-                    : activitySpots.length === 0
-                      ? 'No live events'
-                      : isMapInteractive
-                        ? 'Lock map'
-                        : 'Move map'}
+                  {isMapInteractive ? 'Lock map' : 'Move map'}
                 </Text>
               </Pressable>
             </View>
