@@ -1071,6 +1071,13 @@ export function UserActivityHistoryModal({
         <Animated.View className="flex-1 bg-white" style={swipeStyle}>
           <SafeAreaView className="flex-1 bg-white" edges={['bottom']}>
             <View className="bg-white px-5 pb-2" style={{ paddingTop: stableModalTopInset + 6 }}>
+              <Pressable
+                accessibilityLabel="Back to profile"
+                onPress={closeWithAnimation}
+                className="mb-3 h-10 w-10 items-center justify-center rounded-full bg-gray-100 active:opacity-80"
+              >
+                <ArrowLeft size={21} color="#6B818C" strokeWidth={2.6} />
+              </Pressable>
               <Text className="font-heading text-[28px] font-extrabold text-ink">My activity</Text>
             </View>
             <HistoryFilterBar
