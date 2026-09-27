@@ -113,7 +113,7 @@ function UniversityProfileContent({
           <UniversityMonogram shortName={university.shortName} size={68} />
         </View>
 
-        <View className="border-t border-primary/10 px-5 pb-5 pt-4">
+        <View className="px-5 pb-5 pt-4">
           <View className="mb-2 flex-row items-center gap-3">
             <Text className="font-serifRegular text-[20px] leading-6 text-ink">About</Text>
             <View className="h-px flex-1 bg-primary/15" />
