@@ -215,14 +215,14 @@ function CampusMetric({
 }) {
   return (
     <View className="min-w-0 flex-1 flex-row items-baseline justify-center gap-1.5">
+      {Icon ? <Icon color={Colors.light.primary} size={18} strokeWidth={2.3} /> : null}
+      {label ? <Text className="text-[11px] font-bold text-muted">{label}</Text> : null}
       <Text
         className={`${uiValue ? 'font-ui font-extrabold' : 'font-heading'} text-[22px] leading-7`}
         style={{ color: valueColor ?? (accent ? Colors.light.accent : Colors.light.ink) }}
       >
         {value}
       </Text>
-      {Icon ? <Icon color={Colors.light.primary} size={18} strokeWidth={2.3} /> : null}
-      {label ? <Text className="text-[11px] font-bold text-muted">{label}</Text> : null}
     </View>
   );
 }
