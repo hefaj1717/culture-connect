@@ -14,7 +14,6 @@ import { CreateRewardModal } from '@/components/profile/create-reward-modal';
 import { OrganizerAnnouncementModal } from '@/components/profile/organizer-announcement-modal';
 import { EditProfileModal } from '@/components/profile/edit-profile-modal';
 import { FollowedOrganizersModal } from '@/components/profile/followed-organizers-modal';
-import { OrganizerProfileModal } from '@/components/organizer-profile-modal';
 import {
   AccountActionsModal,
   AdminXpAuditModal,
@@ -482,6 +481,7 @@ export default function ProfileScreen({
     gesture: rewardSwipeGesture,
     swipeStyle: rewardSwipeStyle,
   } = useCardSwipeBack({
+    enabled: !rewardOrganizerProfile,
     onSwipeBack: () => {
       resetRewardDetailState();
       setSelectedReward(null);
@@ -723,11 +723,9 @@ export default function ProfileScreen({
     const profile = organizerProfileFromReward(reward, savedCityId);
     if (!profile) return;
 
-    // A native modal stays above every modal rendered after it. Dismiss the
-    // reward first, otherwise the organizer profile opens underneath it and
-    // looks like the tap had no effect.
-    resetRewardDetailState();
-    setSelectedReward(null);
+    // Keep the reward open underneath the profile. The profile is rendered as
+    // an embedded layer, so back returns to this exact reward without flashing
+    // the Profile tab in between.
     setRewardOrganizerProfile(profile);
     setRewardOrganizerEvents([]);
     void fetchOrganizerEvents(profile.cityId).then((result) => {
@@ -1097,7 +1095,11 @@ export default function ProfileScreen({
       <InlineToast message={notice} onDismiss={() => setNotice(null)} />
       <UserActivityHistoryModal
         checkedInEventIds={checkedInEventIds}
-        cityName={cityData.name}
+        cityName={
+          rewardOrganizerProfile
+            ? getCultureCityData(rewardOrganizerProfile.cityId).name
+            : cityData.name
+        }
         error={xpTransactionsError}
         eventStatuses={eventStatuses}
         history={userEventHistory}
@@ -1145,15 +1147,26 @@ export default function ProfileScreen({
       />
 
       <RewardDetailModal
+        cityName={cityData.name}
         detailsExpanded={rewardDetailsExpanded}
         gesture={rewardSwipeGesture}
         onClose={closeRewardWithAnimation}
+        onCloseOrganizer={() => setRewardOrganizerProfile(null)}
         onOpenOrganizer={openRewardOrganizer}
+        onOpenOrganizerEvent={(event) => {
+          if (!rewardOrganizerProfile) return;
+
+          setRewardOrganizerEventProfile(rewardOrganizerProfile);
+          setRewardOrganizerProfile(null);
+          setRewardOrganizerEvent(event);
+        }}
         onRedeem={redeemSelectedReward}
         onToggleDetails={() => setRewardDetailsExpanded((current) => !current)}
         pickupCode={selectedRewardPickupCode}
         remainingMs={selectedRewardRemainingMs}
         reward={selectedReward}
+        organizerEvents={rewardOrganizerEvents}
+        organizerProfile={rewardOrganizerProfile}
         rewardCanRedeem={selectedRewardCanRedeem}
         rewardIsAvailableNow={selectedRewardIsAvailableNow}
         rewardRedeemError={rewardRedeemError}
@@ -1165,20 +1178,6 @@ export default function ProfileScreen({
         swipeStyle={rewardSwipeStyle}
         userQc={userQc}
       />
-
-      {rewardOrganizerProfile ? (
-        <OrganizerProfileModal
-          cityName={getCultureCityData(rewardOrganizerProfile.cityId).name}
-          events={rewardOrganizerEvents}
-          onClose={() => setRewardOrganizerProfile(null)}
-          onOpenEvent={(event) => {
-            setRewardOrganizerEventProfile(rewardOrganizerProfile);
-            setRewardOrganizerProfile(null);
-            setRewardOrganizerEvent(event);
-          }}
-          profile={rewardOrganizerProfile}
-        />
-      ) : null}
 
       {rewardOrganizerEvent && rewardOrganizerEventProfile ? (
         <EventDetailModal
