@@ -21,6 +21,7 @@ type RewardDetailModalProps = {
   detailsExpanded: boolean;
   gesture: GestureType;
   onClose: () => void;
+  onOpenOrganizer: (reward: RewardPartner) => void;
   onRedeem: () => void;
   onToggleDetails: () => void;
   pickupCode: string | null;
@@ -42,6 +43,7 @@ export function RewardDetailModal({
   detailsExpanded,
   gesture,
   onClose,
+  onOpenOrganizer,
   onRedeem,
   onToggleDetails,
   pickupCode,
@@ -133,7 +135,15 @@ export function RewardDetailModal({
                       >
                         {reward.location}
                       </Text>
-                      <View className="mt-3 flex-row items-center gap-2">
+                      <Pressable
+                        accessibilityLabel={`Open ${reward.organizerName ?? 'organizer'} profile`}
+                        accessibilityRole="button"
+                        className={`mt-3 flex-row items-center gap-2 ${
+                          reward.organizerId ? 'active:opacity-70' : ''
+                        }`}
+                        disabled={!reward.organizerId}
+                        onPress={() => onOpenOrganizer(reward)}
+                      >
                         <View className="h-6 w-6 items-center justify-center rounded-full bg-primary/10">
                           <Text className="text-[9px] font-extrabold text-primary">
                             {getOrganizerInitials(reward.organizerName)}
@@ -145,7 +155,7 @@ export function RewardDetailModal({
                             {reward.organizerName ?? 'Verified CultureQuest partner'}
                           </Text>
                         </Text>
-                      </View>
+                      </Pressable>
                     </View>
                     <View className="rounded-full border border-primary/40 px-3 py-1.5">
                       <Text className="text-[10px] font-extrabold uppercase tracking-wide text-primary">

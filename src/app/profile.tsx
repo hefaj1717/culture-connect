@@ -5,7 +5,7 @@ import { AdminReviewModal } from '@/components/profile/admin-review-modal';
 import { BadgesModal } from '@/components/profile/badges-modal';
 import { type AchievementBadge } from '@/components/profile/badges';
 import { buildPassportAchievements } from '@/components/profile/passport-achievements';
-import type { EventCheckInResult } from '@/app/explore';
+import { EventDetailModal, type EventCheckInResult } from '@/app/explore';
 import { InlineToast } from '@/components/inline-toast';
 import { AdminManageEventsModal } from '@/components/profile/admin-manage-events-modal';
 import { CreateEventModal } from '@/components/profile/create-event-modal';
@@ -14,6 +14,7 @@ import { CreateRewardModal } from '@/components/profile/create-reward-modal';
 import { OrganizerAnnouncementModal } from '@/components/profile/organizer-announcement-modal';
 import { EditProfileModal } from '@/components/profile/edit-profile-modal';
 import { FollowedOrganizersModal } from '@/components/profile/followed-organizers-modal';
+import { OrganizerProfileModal } from '@/components/organizer-profile-modal';
 import {
   AccountActionsModal,
   AdminXpAuditModal,
@@ -175,6 +176,11 @@ export default function ProfileScreen({
   const [selectedFollowedOrganizer, setSelectedFollowedOrganizer] =
     useState<OrganizerProfile | null>(null);
   const [followedOrganizerEvents, setFollowedOrganizerEvents] = useState<CultureEvent[]>([]);
+  const [rewardOrganizerProfile, setRewardOrganizerProfile] = useState<OrganizerProfile | null>(null);
+  const [rewardOrganizerEvents, setRewardOrganizerEvents] = useState<CultureEvent[]>([]);
+  const [rewardOrganizerEvent, setRewardOrganizerEvent] = useState<CultureEvent | null>(null);
+  const [rewardOrganizerEventProfile, setRewardOrganizerEventProfile] =
+    useState<OrganizerProfile | null>(null);
   const [followedOrganizersReloadNonce, setFollowedOrganizersReloadNonce] = useState(0);
   const [adminXpAuditOpen, setAdminXpAuditOpen] = useState(false);
   const [adminXpTransactions, setAdminXpTransactions] = useState<XpTransaction[]>([]);
@@ -713,6 +719,25 @@ export default function ProfileScreen({
     if (!result.error) setFollowedOrganizerEvents(result.events);
   }
 
+  function openRewardOrganizer(reward: RewardPartner) {
+    const profile = organizerProfileFromReward(reward, savedCityId);
+    if (!profile) return;
+
+    setRewardOrganizerProfile(profile);
+    setRewardOrganizerEvents([]);
+    void fetchOrganizerEvents(profile.cityId).then((result) => {
+      if (!result.error) setRewardOrganizerEvents(result.events);
+    });
+  }
+
+  const rewardOrganizerEventStatus = rewardOrganizerEvent
+    ? eventStatuses[rewardOrganizerEvent.id]
+    : undefined;
+  const rewardOrganizerEventRsvp =
+    rewardOrganizerEventStatus === 'interested' || rewardOrganizerEventStatus === 'going'
+      ? rewardOrganizerEventStatus
+      : undefined;
+
   return (
     <View className="flex-1 bg-canvas">
       <ScrollView
@@ -1118,6 +1143,7 @@ export default function ProfileScreen({
         detailsExpanded={rewardDetailsExpanded}
         gesture={rewardSwipeGesture}
         onClose={closeRewardWithAnimation}
+        onOpenOrganizer={openRewardOrganizer}
         onRedeem={redeemSelectedReward}
         onToggleDetails={() => setRewardDetailsExpanded((current) => !current)}
         pickupCode={selectedRewardPickupCode}
@@ -1134,8 +1160,64 @@ export default function ProfileScreen({
         swipeStyle={rewardSwipeStyle}
         userQc={userQc}
       />
+
+      {rewardOrganizerProfile ? (
+        <OrganizerProfileModal
+          cityName={getCultureCityData(rewardOrganizerProfile.cityId).name}
+          events={rewardOrganizerEvents}
+          onClose={() => setRewardOrganizerProfile(null)}
+          onOpenEvent={(event) => {
+            setRewardOrganizerEventProfile(rewardOrganizerProfile);
+            setRewardOrganizerProfile(null);
+            setRewardOrganizerEvent(event);
+          }}
+          profile={rewardOrganizerProfile}
+        />
+      ) : null}
+
+      {rewardOrganizerEvent && rewardOrganizerEventProfile ? (
+        <EventDetailModal
+          checkedIn={checkedInEventIds.includes(rewardOrganizerEvent.id)}
+          cityName={getCultureCityData(rewardOrganizerEventProfile.cityId).name}
+          event={rewardOrganizerEvent}
+          onCheckIn={
+            onEventCheckIn ??
+            (async () => ({ error: 'Check-in is not available right now.', success: false }))
+          }
+          onClose={() => {
+            setRewardOrganizerEvent(null);
+            setRewardOrganizerProfile(rewardOrganizerEventProfile);
+            setRewardOrganizerEventProfile(null);
+          }}
+          onToggleStatus={
+            onEventStatusChange ?? (async () => ({ error: 'RSVP is not available right now.' }))
+          }
+          organizerEvents={rewardOrganizerEvents}
+          organizerProfile={rewardOrganizerEventProfile}
+          status={rewardOrganizerEventRsvp}
+          venue={null}
+        />
+      ) : null}
     </View>
   );
+}
+
+function organizerProfileFromReward(
+  reward: RewardPartner,
+  fallbackCityId: CityId,
+): OrganizerProfile | null {
+  if (!reward.organizerId) return null;
+
+  return {
+    avatarUrl: reward.organizerAvatarUrl ?? null,
+    bio: reward.organizerBio?.trim() || 'Verified CultureQuest organiser.',
+    cityId: reward.organizerCityId ?? fallbackCityId,
+    id: reward.organizerId,
+    locationAddress: reward.organizerLocationAddress ?? null,
+    locationCoordinates: reward.organizerLocationCoordinates ?? null,
+    locationName: reward.organizerLocationName ?? null,
+    name: reward.organizerName?.trim() || 'Verified CultureQuest partner',
+  };
 }
 
 function getUserInitials(value?: string | null) {
