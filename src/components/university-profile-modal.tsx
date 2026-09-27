@@ -186,7 +186,7 @@ function CampusStanding({
     <View className="flex-row items-center py-2">
       <View className="min-w-0 flex-1 flex-row items-center justify-center gap-2">
         <Users color={Colors.light.primary} size={19} strokeWidth={2.25} />
-        <Text className="font-heading text-[20px] leading-6 text-ink">{memberCount.toLocaleString()}</Text>
+        <Text className="font-ui text-[16px] font-extrabold leading-6 text-ink">{memberCount.toLocaleString()}</Text>
       </View>
       <View className="h-7 w-px bg-primary/15" />
       <View className="min-w-0 flex-1 items-center">
@@ -194,7 +194,7 @@ function CampusStanding({
       </View>
       <View className="h-7 w-px bg-primary/15" />
       <View className="min-w-0 flex-1 items-center">
-        <Text className="font-heading text-[20px] leading-6" style={{ color: rankColor }}>
+        <Text className="font-ui text-[16px] font-extrabold leading-6" style={{ color: rankColor }}>
           {rank ? `#${rank}` : '—'}
         </Text>
       </View>
