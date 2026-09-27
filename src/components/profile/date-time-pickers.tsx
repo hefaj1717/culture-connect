@@ -186,7 +186,7 @@ export function TimePickerModal({
 }
 
 export function startOfMonth(date: Date) {
-  return new Date(date.getFullYear(), date.getMonth(), 1);
+  return createCalendarDate(date.getFullYear(), date.getMonth(), 1);
 }
 
 export function formatEventDate(date: Date) {
@@ -207,14 +207,20 @@ function getCalendarDays(month: Date) {
   const days: (Date | null)[] = Array.from({ length: startOffset }, () => null);
 
   for (let day = 1; day <= daysInMonth; day += 1) {
-    days.push(new Date(firstDay.getFullYear(), firstDay.getMonth(), day));
+    days.push(createCalendarDate(firstDay.getFullYear(), firstDay.getMonth(), day));
   }
 
   return days;
 }
 
 function addMonths(date: Date, amount: number) {
-  return new Date(date.getFullYear(), date.getMonth() + amount, 1);
+  return createCalendarDate(date.getFullYear(), date.getMonth() + amount, 1);
+}
+
+// A calendar day is not an instant in UTC. Keeping picker values at local noon
+// prevents an ISO/time-zone conversion from moving a chosen day backwards.
+function createCalendarDate(year: number, month: number, day: number) {
+  return new Date(year, month, day, 12, 0, 0, 0);
 }
 
 function isBeforeToday(date: Date) {
