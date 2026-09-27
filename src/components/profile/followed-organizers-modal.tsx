@@ -86,6 +86,7 @@ export function FollowedOrganizersModal({
     <Modal
       animationType="slide"
       onRequestClose={activeProfile ? onCloseProfile : onClose}
+      transparent
       visible={visible}
     >
       {activeProfile ? (
