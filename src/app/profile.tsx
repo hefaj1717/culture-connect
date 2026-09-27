@@ -229,11 +229,9 @@ export default function ProfileScreen({
     userId: session?.user.id,
   });
   const rewardRedemption = useRewardRedemption({
-    onUserXpChange,
     onUserQcChange,
     rewards: approvedRewards,
     userId: session?.user.id,
-    userXp,
     userQc,
   });
   const {
@@ -340,7 +338,7 @@ export default function ProfileScreen({
     rewardPlaceSuggestions,
     retryRewardPlaceSearch,
     rewardTitle,
-    rewardXp,
+    rewardQc,
     searchingRewardPlaces,
     selectedRewardPlace,
     selectRewardPlace,
@@ -348,7 +346,7 @@ export default function ProfileScreen({
     setRewardDescription,
     setRewardPlaceQuery,
     setRewardTitle,
-    setRewardXp,
+    setRewardQc,
     setSelectedRewardPlace,
     setRewardAvailableEndTime,
     setRewardAvailableFrom,
@@ -429,7 +427,6 @@ export default function ProfileScreen({
     selectedRewardPickupCode,
     selectedRewardRemainingMs,
     selectedRewardState,
-    selectedRewardXpNeeded,
     setRewardDetailsExpanded,
     setSelectedReward,
   } = rewardRedemption;
@@ -749,7 +746,6 @@ export default function ProfileScreen({
           onSelectReward={setSelectedReward}
           redeemedRewards={redeemedRewards}
           rewards={approvedRewards}
-          userXp={userXp}
           userQc={userQc}
         />
 
@@ -968,7 +964,7 @@ export default function ProfileScreen({
         onChangeRewardDescription={setRewardDescription}
         onChangeRewardPlaceQuery={setRewardPlaceQuery}
         onChangeRewardTitle={setRewardTitle}
-        onChangeRewardXp={setRewardXp}
+        onChangeRewardQc={setRewardQc}
         onClose={() => setCreateRewardOpen(false)}
         onSelectRewardPlace={selectRewardPlace}
         onSubmit={submitReward}
@@ -982,7 +978,7 @@ export default function ProfileScreen({
         rewardPlaceSearchError={rewardPlaceSearchError}
         rewardPlaceSuggestions={rewardPlaceSuggestions}
         rewardTitle={rewardTitle}
-        rewardXp={rewardXp}
+        rewardQc={rewardQc}
         savedCityId={savedCityId}
         searchingRewardPlaces={searchingRewardPlaces}
         selectedRewardPlace={selectedRewardPlace}
@@ -1114,7 +1110,6 @@ export default function ProfileScreen({
         redeemedRewards={redeemedRewards}
         rewards={approvedRewards}
         stableModalTopInset={stableModalTopInset}
-        userXp={userXp}
         userQc={userQc}
         visible={rewardsListOpen}
       />
@@ -1135,10 +1130,8 @@ export default function ProfileScreen({
         rewardIsActive={selectedRewardIsActive}
         rewardIsUsed={selectedRewardIsUsed}
         rewardStateExists={!!selectedRewardState}
-        rewardXpNeeded={selectedRewardXpNeeded}
         rewardQcNeeded={rewardRedemption.selectedRewardQcNeeded}
         swipeStyle={rewardSwipeStyle}
-        userXp={userXp}
         userQc={userQc}
       />
     </View>

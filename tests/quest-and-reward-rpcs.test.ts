@@ -42,17 +42,17 @@ describe('critical Supabase RPC clients', () => {
     expect(result.error).toContain('pickup code could not be loaded');
   });
 
-  it('returns the remaining XP when the database rejects redemption', async () => {
+  it('returns the remaining QC when the database rejects redemption', async () => {
     mockRpc.mockResolvedValue({
-      data: { error: 'insufficient_xp', success: false, total_xp: 30, xp_needed: 170 },
+      data: { error: 'insufficient_qc', success: false, total_qc: 3, qc_needed: 2 },
       error: null,
     });
 
     await expect(redeemOrganizerReward('organizer-reward-reward-1')).resolves.toMatchObject({
-      error: 'You need 170 more XP to redeem this reward.',
+      error: 'You need 2 more QC to redeem this reward.',
       redemption: null,
-      totalXp: 30,
-      xpNeeded: 170,
+      totalQc: 3,
+      qcNeeded: 2,
     });
   });
 });

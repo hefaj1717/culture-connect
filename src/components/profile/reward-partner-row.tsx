@@ -11,7 +11,6 @@ type RewardPartnerRowProps = {
   onPress: () => void;
   redemption?: RedeemedRewardState;
   reward: RewardPartner;
-  userXp: number;
   userQc: number;
 };
 
@@ -19,17 +18,14 @@ export function RewardPartnerRow({
   onPress,
   redemption,
   reward,
-  userXp,
   userQc,
 }: RewardPartnerRowProps) {
   const isUsed = !!redemption?.used;
   const isActive = !!redemption && !isUsed;
   const isAvailableNow = isRewardCurrentlyAvailable(reward);
-  const hasEnoughXp = userXp >= reward.xpCost;
   const hasEnoughQc = userQc >= reward.qcCost;
-  const isUnlocked = hasEnoughXp && hasEnoughQc && isAvailableNow && !isUsed && !isActive;
-  const isClosed = hasEnoughXp && hasEnoughQc && !isAvailableNow && !isUsed && !isActive;
-  const xpRemaining = Math.max(0, reward.xpCost - userXp);
+  const isUnlocked = hasEnoughQc && isAvailableNow && !isUsed && !isActive;
+  const isClosed = hasEnoughQc && !isAvailableNow && !isUsed && !isActive;
   const rowState = isUsed
     ? 'used'
     : isActive
@@ -91,9 +87,7 @@ export function RewardPartnerRow({
                     ? 'Available now'
                     : rowState === 'closed'
                       ? formatRewardAvailability(reward)
-                    : !hasEnoughXp
-                      ? `${xpRemaining.toLocaleString()} XP left`
-                      : `${Math.max(0, reward.qcCost - userQc).toLocaleString()} QC left`}
+                    : `${Math.max(0, reward.qcCost - userQc).toLocaleString()} QC left`}
             </Text>
             <View
               className={`rounded-full px-3 py-1.5 ${

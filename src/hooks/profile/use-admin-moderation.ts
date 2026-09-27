@@ -292,7 +292,6 @@ export function useAdminModeration({
       placeName: string;
       status: RewardPartnerStatus;
       title: string;
-      xpCost: number;
       qcCost: number;
     },
   ) {

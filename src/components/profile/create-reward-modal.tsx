@@ -41,7 +41,7 @@ type CreateRewardModalProps = {
   onChangeRewardDescription: (value: string) => void;
   onChangeRewardPlaceQuery: (value: string) => void;
   onChangeRewardTitle: (value: string) => void;
-  onChangeRewardXp: (value: string) => void;
+  onChangeRewardQc: (value: string) => void;
   onChangeRewardAvailableEndTime: (value: string) => void;
   onChangeRewardAvailableFrom: (value: string) => void;
   onChangeRewardAvailableStartTime: (value: string) => void;
@@ -56,7 +56,7 @@ type CreateRewardModalProps = {
   rewardPlaceSearchError: PlaceSearchError | null;
   rewardPlaceSuggestions: PlaceSuggestion[];
   rewardTitle: string;
-  rewardXp: string;
+  rewardQc: string;
   organizerAvatarUrl?: string | null;
   organizerInitials: string;
   organizerName: string;
@@ -78,7 +78,7 @@ export function CreateRewardModal({
   onChangeRewardAvailableUntil,
   onChangeRewardPlaceQuery,
   onChangeRewardTitle,
-  onChangeRewardXp,
+  onChangeRewardQc,
   onClose,
   onRetryRewardPlaceSearch,
   onSelectRewardPlace,
@@ -92,7 +92,7 @@ export function CreateRewardModal({
   rewardPlaceSearchError,
   rewardPlaceSuggestions,
   rewardTitle,
-  rewardXp,
+  rewardQc,
   savedCityId,
   searchingRewardPlaces,
   selectedRewardPlace,
@@ -181,7 +181,7 @@ export function CreateRewardModal({
                 </Pressable>
 
                 <ScreenHeader
-                  subtitle="Set an XP unlock threshold. Each reward costs 5 QC by default."
+                  subtitle="Set how many QC students need to unlock this reward. XP remains permanent progress."
                   title="Create reward"
                 />
 
@@ -320,18 +320,17 @@ export function CreateRewardModal({
                   )}
                 </View>
 
-                <Text className="mb-2 text-[13px] font-semibold text-ink">XP required to unlock</Text>
+                <Text className="mb-2 text-[13px] font-semibold text-ink">QC required to unlock</Text>
                 <TextInput
-                  value={rewardXp}
-                  onChangeText={onChangeRewardXp}
+                  value={rewardQc}
+                  onChangeText={onChangeRewardQc}
                   onFocus={() => focusFormArea(420)}
                   keyboardType="number-pad"
                   placeholder="100"
                   placeholderTextColor="#8B909A"
-                  maxLength={textLimits.rewardXp}
+                  maxLength={textLimits.rewardQc}
                   className="mb-4 rounded-xl border border-gray-300 px-4 py-3 text-[15px] text-ink"
                 />
-                <Text className="mt-2 text-[12px] font-extrabold text-accent">5 QC spent on redemption</Text>
 
                 <Text className="mb-2 text-[13px] font-semibold text-ink">
                   Redeem availability

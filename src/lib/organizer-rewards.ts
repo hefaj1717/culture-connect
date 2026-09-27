@@ -19,8 +19,8 @@ export type CreateOrganizerRewardInput = {
   cityId: CityId;
   description: string;
   place: PlaceSuggestion;
+  qcCost: number;
   title: string;
-  xpCost: number;
 };
 
 type OrganizerRewardRow = {
@@ -123,8 +123,8 @@ export async function createOrganizerReward(userId: string, input: CreateOrganiz
     place_longitude: input.place.longitude,
     title: input.title,
     description: input.description,
-    xp_cost: input.xpCost,
-    qc_cost: 5,
+    xp_cost: 0,
+    qc_cost: input.qcCost,
     category: inferRewardCategory(input.place.name, input.title),
     available_from: input.availableFrom,
     available_until: input.availableUntil ?? null,
@@ -163,8 +163,8 @@ function mapOrganizerRewardRow(
     location: row.place_address,
     discount: row.title,
     description: row.description,
-    condition: `Unlock at ${row.xp_cost} XP · costs ${row.qc_cost ?? 5} QC`,
-    xpCost: row.xp_cost,
+    condition: `Costs ${row.qc_cost ?? 5} QC`,
+    xpCost: 0,
     qcCost: row.qc_cost ?? 5,
     isPopular: false,
     badge: 'Partner',

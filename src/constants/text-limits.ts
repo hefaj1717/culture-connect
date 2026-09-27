@@ -19,8 +19,9 @@ export const textLimits = {
   questTheme: 40,
   questTitle: 80,
   rewardDescription: 700,
-  rewardTitle: 80,
   rewardXp: 5,
+  rewardTitle: 80,
+  rewardQc: 5,
   websiteUrl: 140,
 };
 
