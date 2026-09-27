@@ -927,9 +927,15 @@ export default function HomeScreen({
                     <Pressable
                       accessibilityLabel={`Open ${row.name} university profile`}
                       accessibilityRole="button"
+                      hitSlop={8}
                       key={row.universityId}
-                      className="flex-row items-center gap-3 rounded-2xl bg-canvas px-3 py-3 active:opacity-75"
-                      onPress={() => setSelectedUniversity(row)}
+                      pressRetentionOffset={14}
+                      className="min-h-[64px] w-full flex-row items-center gap-3 self-stretch rounded-2xl bg-canvas px-3 py-3 active:opacity-75"
+                      onPress={() => {
+                        setSelectedUniversityProfile(null);
+                        setSelectedUniversityError(null);
+                        setSelectedUniversity(row);
+                      }}
                     >
                       <View
                         className="h-9 w-9 items-center justify-center rounded-full"
