@@ -1183,6 +1183,7 @@ export function OrganizerEventHistoryModal({
   events,
   eventStatuses = {},
   onClose,
+  onDismiss,
   onEditEvent,
   onEventCheckIn,
   onEventStatusChange,
@@ -1194,6 +1195,7 @@ export function OrganizerEventHistoryModal({
   events: ManagedOrganizerEvent[];
   eventStatuses?: Record<string, UserEventStatus>;
   onClose: () => void;
+  onDismiss?: () => void;
   onEditEvent: (event: ManagedOrganizerEvent) => void;
   onEventCheckIn?: (
     event: CultureEvent,
@@ -1223,7 +1225,13 @@ export function OrganizerEventHistoryModal({
   });
 
   return (
-    <Modal animationType="slide" transparent onRequestClose={closeWithAnimation} visible={visible}>
+    <Modal
+      animationType="slide"
+      onDismiss={onDismiss}
+      onRequestClose={closeWithAnimation}
+      transparent
+      visible={visible}
+    >
       <GestureDetector gesture={gesture}>
         <Animated.View className="flex-1 bg-white" style={swipeStyle}>
           <SafeAreaView className="flex-1 bg-white" edges={['bottom']}>

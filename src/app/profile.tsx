@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { AppState, ScrollView, Text, View } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { AppState, Platform, ScrollView, Text, View } from 'react-native';
 
 import { AdminReviewModal } from '@/components/profile/admin-review-modal';
 import { BadgesModal } from '@/components/profile/badges-modal';
@@ -164,6 +164,7 @@ export default function ProfileScreen({
   const [organizerContentRefreshNonce, setOrganizerContentRefreshNonce] = useState(0);
   const [organizerAnnouncementOpen, setOrganizerAnnouncementOpen] = useState(false);
   const [organizerHistoryOpen, setOrganizerHistoryOpen] = useState(false);
+  const queuedOrganizerEventEditRef = useRef<ManagedOrganizerEvent | null>(null);
   const [rewardsError, setRewardsError] = useState<string | null>(null);
   const [rewardsLoading, setRewardsLoading] = useState(true);
   const [universityMembership, setUniversityMembership] = useState<UserUniversityMembership | null>(
@@ -1182,8 +1183,30 @@ export default function ProfileScreen({
         events={myOrganizerEvents}
         eventStatuses={eventStatuses}
         onClose={() => setOrganizerHistoryOpen(false)}
+        onDismiss={() => {
+          const queuedEvent = queuedOrganizerEventEditRef.current;
+          queuedOrganizerEventEditRef.current = null;
+
+          if (queuedEvent) {
+            openEditEvent(queuedEvent);
+          }
+        }}
         onEditEvent={(event) => {
-          openEditEvent(event);
+          queuedOrganizerEventEditRef.current = event;
+          setOrganizerHistoryOpen(false);
+
+          // React Native only exposes Modal.onDismiss on iOS. Give Android's
+          // native modal time to unmount before presenting the editor.
+          if (Platform.OS !== 'ios') {
+            setTimeout(() => {
+              const queuedEvent = queuedOrganizerEventEditRef.current;
+              queuedOrganizerEventEditRef.current = null;
+
+              if (queuedEvent) {
+                openEditEvent(queuedEvent);
+              }
+            }, 250);
+          }
         }}
         onEventCheckIn={onEventCheckIn}
         onEventStatusChange={onEventStatusChange}
