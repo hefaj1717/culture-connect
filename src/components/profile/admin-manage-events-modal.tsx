@@ -138,7 +138,6 @@ type AdminManageEventsModalProps = {
       placeName: string;
       status: RewardPartnerStatus;
       title: string;
-      xpCost: number;
       qcCost: number;
     },
   ) => Promise<{ success: boolean }>;
@@ -700,7 +699,7 @@ function AdminManagedRewardCard({
           {reward.title}
         </Text>
         <Text className="mt-1 text-[13px] font-medium text-muted" numberOfLines={1}>
-          {reward.placeName} · {reward.xpCost.toLocaleString()} XP · {reward.qcCost.toLocaleString()} QC
+          {reward.placeName} · {reward.qcCost.toLocaleString()} QC
         </Text>
         <Text className="mt-1 text-[12px] font-semibold text-muted" numberOfLines={1}>
           {formatRewardAvailability(reward)}
@@ -1014,7 +1013,6 @@ function AdminRewardEditor({
   const [placeName, setPlaceName] = useState(reward.placeName);
   const [status, setStatus] = useState<RewardPartnerStatus>(reward.reviewStatus);
   const [title, setTitle] = useState(reward.title);
-  const [xpCost, setXpCost] = useState(String(reward.xpCost));
   const [qcCost, setQcCost] = useState(String(reward.qcCost));
   const [datePickerOpen, setDatePickerOpen] = useState(false);
   const [datePickerTarget, setDatePickerTarget] = useState<'from' | 'until'>('from');
@@ -1038,7 +1036,6 @@ function AdminRewardEditor({
     setPlaceName(reward.placeName);
     setStatus(reward.reviewStatus);
     setTitle(reward.title);
-    setXpCost(String(reward.xpCost));
     setQcCost(String(reward.qcCost));
   }, [reward]);
 
@@ -1079,7 +1076,6 @@ function AdminRewardEditor({
   }
 
   async function save() {
-    const parsedXp = Number.parseInt(xpCost, 10);
     const parsedQc = Number.parseInt(qcCost, 10);
 
     if (!title.trim() || !placeName.trim() || !placeAddress.trim()) {
@@ -1087,8 +1083,8 @@ function AdminRewardEditor({
       return;
     }
 
-    if (!Number.isFinite(parsedXp) || parsedXp <= 0 || parsedXp > 5000 || !Number.isFinite(parsedQc) || parsedQc <= 0 || parsedQc > 5000) {
-      Alert.alert('Invalid XP', 'Reward XP cost must be between 1 and 5000.');
+    if (!Number.isFinite(parsedQc) || parsedQc <= 0 || parsedQc > 5000) {
+      Alert.alert('Invalid QC', 'Reward QC cost must be between 1 and 5000.');
       return;
     }
     const availabilityError = validateRewardAvailability({
@@ -1115,7 +1111,6 @@ function AdminRewardEditor({
       placeName: placeName.trim(),
       status,
       title: title.trim(),
-      xpCost: parsedXp,
       qcCost: parsedQc,
     });
 
@@ -1159,8 +1154,7 @@ function AdminRewardEditor({
               <AdminRewardStatusPill status={reward.reviewStatus} />
               <View className="rounded-full bg-white/90 px-2.5 py-1">
                 <Text className="text-[10px] font-extrabold text-primary">
-                  {reward.xpCost.toLocaleString()} XP
-                  {' · '}{reward.qcCost.toLocaleString()} QC
+                  {reward.qcCost.toLocaleString()} QC
                 </Text>
               </View>
             </View>
@@ -1191,13 +1185,7 @@ function AdminRewardEditor({
           />
           <AdminTextField
             keyboardType="number-pad"
-            label="XP cost"
-            onChangeText={(value) => setXpCost(value.replace(/\D/g, ''))}
-            value={xpCost}
-          />
-          <AdminTextField
-            keyboardType="number-pad"
-            label="QC cost"
+            label="QC required to unlock"
             onChangeText={(value) => setQcCost(value.replace(/\D/g, ''))}
             value={qcCost}
           />
@@ -1311,8 +1299,7 @@ function AdminRewardEditor({
           <InfoRow icon={<MapPin size={16} color={Colors.light.primary} />} text={placeName} />
           <View className="mt-3 flex-row gap-2">
             <MiniStat label="City" valueText={reward.cityId} />
-            <MiniStat label="XP cost" value={Number.parseInt(xpCost, 10) || 0} />
-            <MiniStat label="QC cost" value={Number.parseInt(qcCost, 10) || 0} />
+            <MiniStat label="QC required" value={Number.parseInt(qcCost, 10) || 0} />
           </View>
         </View>
 

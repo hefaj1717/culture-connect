@@ -8,18 +8,14 @@ import { isRewardCurrentlyAvailable } from '@/lib/reward-availability';
 import { useNetworkStatus } from '@/providers/network-provider';
 
 export function useRewardRedemption({
-  onUserXpChange,
   onUserQcChange,
   rewards,
   userId,
-  userXp,
   userQc,
 }: {
-  onUserXpChange?: (nextXp: number) => void;
   onUserQcChange?: (nextQc: number) => void;
   rewards: RewardPartner[];
   userId?: string;
-  userXp: number;
   userQc: number;
 }) {
   const [selectedReward, setSelectedReward] = useState<RewardPartner | null>(null);
@@ -92,10 +88,8 @@ export function useRewardRedemption({
   const selectedRewardCanRedeem =
     !!selectedReward &&
     !selectedRewardState &&
-    userXp >= selectedReward.xpCost &&
     userQc >= selectedReward.qcCost &&
     selectedRewardIsAvailableNow;
-  const selectedRewardXpNeeded = selectedReward ? Math.max(0, selectedReward.xpCost - userXp) : 0;
   const selectedRewardQcNeeded = selectedReward ? Math.max(0, selectedReward.qcCost - userQc) : 0;
   const selectedRewardRemainingMs =
     selectedRewardState && !selectedRewardIsUsed
@@ -108,12 +102,6 @@ export function useRewardRedemption({
     if (selectedRewardState) return;
     if (isOffline) {
       setRewardRedeemError(OFFLINE_ERROR_MESSAGE);
-      return;
-    }
-    if (userXp < selectedReward.xpCost) {
-      setRewardRedeemError(
-        `You need ${selectedRewardXpNeeded.toLocaleString()} more XP to redeem this reward.`,
-      );
       return;
     }
     if (userQc < selectedReward.qcCost) {
@@ -132,9 +120,6 @@ export function useRewardRedemption({
 
     if (result.error || !result.redemption) {
       setRewardRedeemError(result.error);
-      if (typeof result.totalXp === 'number') {
-        onUserXpChange?.(result.totalXp);
-      }
       if (typeof result.totalQc === 'number') onUserQcChange?.(result.totalQc);
       return;
     }
@@ -144,9 +129,6 @@ export function useRewardRedemption({
       ...current,
       [selectedReward.id]: result.redemption,
     }));
-    if (typeof result.totalXp === 'number') {
-      onUserXpChange?.(result.totalXp);
-    }
     if (typeof result.totalQc === 'number') onUserQcChange?.(result.totalQc);
   }
 
@@ -171,7 +153,6 @@ export function useRewardRedemption({
     selectedRewardPickupCode,
     selectedRewardRemainingMs,
     selectedRewardState,
-    selectedRewardXpNeeded,
     selectedRewardQcNeeded,
     setRewardDetailsExpanded,
     setSelectedReward,

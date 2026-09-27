@@ -35,7 +35,7 @@ export function useCreateRewardForm({
   const [rewardPlaceSearchError, setRewardPlaceSearchError] = useState<PlaceSearchError | null>(null);
   const [rewardPlaceSearchRetryKey, setRewardPlaceSearchRetryKey] = useState(0);
   const [rewardDescription, setRewardDescription] = useState('');
-  const [rewardXp, setRewardXp] = useState('100');
+  const [rewardQc, setRewardQc] = useState('5');
   const [rewardAvailability, setRewardAvailability] = useState(getDefaultRewardAvailability);
   const [createRewardError, setCreateRewardError] = useState<string | null>(null);
   const [creatingReward, setCreatingReward] = useState(false);
@@ -91,7 +91,7 @@ export function useCreateRewardForm({
     setSelectedRewardPlace(null);
     setSearchingRewardPlaces(false);
     setRewardDescription('');
-    setRewardXp('100');
+    setRewardQc('5');
     setRewardAvailability(getDefaultRewardAvailability());
     setCreateRewardError(null);
   }
@@ -125,8 +125,8 @@ export function useCreateRewardForm({
     setRewardPlaceSearchRetryKey((current) => current + 1);
   }
 
-  function changeRewardXp(value: string) {
-    setRewardXp(limitText(value.replace(/\D/g, ''), textLimits.rewardXp));
+  function changeRewardQc(value: string) {
+    setRewardQc(limitText(value.replace(/\D/g, ''), textLimits.rewardQc));
   }
 
   function setRewardAvailableFrom(value: string) {
@@ -171,7 +171,7 @@ export function useCreateRewardForm({
 
     const normalizedTitle = limitText(rewardTitle.trim(), textLimits.rewardTitle);
     const normalizedDescription = limitText(rewardDescription.trim(), textLimits.rewardDescription);
-    const normalizedXp = Number.parseInt(rewardXp.trim(), 10);
+    const normalizedQc = Number.parseInt(rewardQc.trim(), 10);
 
     if (!userId) {
       setCreateRewardError('Log in again before submitting a reward.');
@@ -189,8 +189,8 @@ export function useCreateRewardForm({
       setCreateRewardError('Select a suggested place for this reward.');
       return;
     }
-    if (!Number.isFinite(normalizedXp) || normalizedXp <= 0) {
-      setCreateRewardError('Enter a valid XP amount.');
+    if (!Number.isFinite(normalizedQc) || normalizedQc <= 0 || normalizedQc > 5000) {
+      setCreateRewardError('Enter a QC amount between 1 and 5000.');
       return;
     }
     const availabilityError = validateRewardAvailability(rewardAvailability);
@@ -214,7 +214,7 @@ export function useCreateRewardForm({
         description: normalizedDescription,
         place: selectedRewardPlace,
         title: normalizedTitle,
-        xpCost: normalizedXp,
+        qcCost: normalizedQc,
       });
     } finally {
       rewardSubmissionInFlight.current = false;
@@ -244,7 +244,7 @@ export function useCreateRewardForm({
     rewardPlaceSearchError,
     rewardPlaceSuggestions,
     rewardTitle,
-    rewardXp,
+    rewardQc,
     searchingRewardPlaces,
     selectedRewardPlace,
     selectRewardPlace,
@@ -253,7 +253,7 @@ export function useCreateRewardForm({
     setRewardDescription: changeRewardDescription,
     setRewardPlaceQuery: changeRewardPlaceQuery,
     setRewardTitle: changeRewardTitle,
-    setRewardXp: changeRewardXp,
+    setRewardQc: changeRewardQc,
     setSelectedRewardPlace,
     submitReward,
     setRewardAvailableEndTime,

@@ -1661,7 +1661,7 @@ function OrganizerRewardRow({ reward }: { reward: ManagedOrganizerReward }) {
               className="min-w-0 flex-1 text-[14px] font-extrabold text-accent"
               numberOfLines={1}
             >
-              {reward.xpCost.toLocaleString()} XP
+              {reward.qcCost.toLocaleString()} QC
             </Text>
             <Text className="text-[12px] font-extrabold text-primary">
               {reward.reviewStatus === 'approved' ? 'Live' : 'Review'}
@@ -2163,7 +2163,6 @@ type RewardsSectionProps = {
   onSelectReward: (reward: RewardPartner) => void;
   redeemedRewards: Record<string, RedeemedRewardState>;
   rewards: RewardPartner[];
-  userXp: number;
   userQc: number;
 };
 
@@ -2175,10 +2174,9 @@ export function RewardsSection({
   onSelectReward,
   redeemedRewards,
   rewards,
-  userXp,
   userQc,
 }: RewardsSectionProps) {
-  const featuredReward = getFeaturedReward(rewards, userXp, redeemedRewards);
+  const featuredReward = getFeaturedReward(rewards, userQc, redeemedRewards);
   const hasMoreRewards = rewards.length > 1;
 
   return (
@@ -2221,7 +2219,6 @@ export function RewardsSection({
             reward={featuredReward.reward}
             onPress={() => onSelectReward(featuredReward.reward)}
             redemption={redeemedRewards[featuredReward.reward.id]}
-            userXp={userXp}
             userQc={userQc}
           />
         </View>
@@ -2237,7 +2234,6 @@ export function RewardsListModal({
   redeemedRewards,
   rewards,
   stableModalTopInset,
-  userXp,
   userQc,
   visible,
 }: {
@@ -2247,7 +2243,6 @@ export function RewardsListModal({
   redeemedRewards: Record<string, RedeemedRewardState>;
   rewards: RewardPartner[];
   stableModalTopInset: number;
-  userXp: number;
   userQc: number;
   visible: boolean;
 }) {
@@ -2291,7 +2286,7 @@ export function RewardsListModal({
               }}
               showsVerticalScrollIndicator={false}
             >
-              {getRewardDisplayOrder(rewards, userXp, redeemedRewards).map(({ index, reward }) => (
+              {getRewardDisplayOrder(rewards, userQc, redeemedRewards).map(({ index, reward }) => (
                 <RewardPartnerRow
                   key={reward.id}
                   onPress={() => {
@@ -2300,7 +2295,6 @@ export function RewardsListModal({
                   }}
                   redemption={redeemedRewards[reward.id]}
                   reward={reward}
-                  userXp={userXp}
                   userQc={userQc}
                 />
               ))}
@@ -2314,15 +2308,15 @@ export function RewardsListModal({
 
 function getFeaturedReward(
   rewards: RewardPartner[],
-  userXp: number,
+  userQc: number,
   redeemedRewards: Record<string, RedeemedRewardState>,
 ) {
-  return getRewardDisplayOrder(rewards, userXp, redeemedRewards)[0] ?? null;
+  return getRewardDisplayOrder(rewards, userQc, redeemedRewards)[0] ?? null;
 }
 
 function getRewardDisplayOrder(
   rewards: RewardPartner[],
-  userXp: number,
+  userQc: number,
   redeemedRewards: Record<string, RedeemedRewardState>,
 ) {
   return rewards
@@ -2330,12 +2324,12 @@ function getRewardDisplayOrder(
     .sort((first, second) => {
       const firstPriority = getRewardSortPriority(
         first.reward,
-        userXp,
+        userQc,
         redeemedRewards[first.reward.id],
       );
       const secondPriority = getRewardSortPriority(
         second.reward,
-        userXp,
+        userQc,
         redeemedRewards[second.reward.id],
       );
 
@@ -2349,11 +2343,11 @@ function getRewardDisplayOrder(
 
 function getRewardSortPriority(
   reward: RewardPartner,
-  userXp: number,
+  userQc: number,
   redemption?: RedeemedRewardState,
 ) {
   if (redemption?.used) return 3;
-  if (userXp >= reward.xpCost && !redemption) return 0;
+  if (userQc >= reward.qcCost && !redemption) return 0;
   if (redemption) return 1;
   return 2;
 }

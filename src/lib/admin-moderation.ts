@@ -444,7 +444,6 @@ export async function updateAdminManagedReward({
     placeName: string;
     status: RewardPartnerStatus;
     title: string;
-    xpCost: number;
     qcCost: number;
   };
   rewardId: string;
@@ -466,7 +465,7 @@ export async function updateAdminManagedReward({
       reviewed_by: adminUserId,
       status: input.status,
       title: input.title,
-      xp_cost: input.xpCost,
+      xp_cost: 0,
       qc_cost: input.qcCost,
     })
     .eq('id', rewardId);
