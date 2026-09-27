@@ -473,6 +473,7 @@ export default function ProfileScreen({
     swipeStyle: createEventSwipeStyle,
   } = useCardSwipeBack({
     onSwipeBack: () => setCreateEventOpen(false),
+    resetKey: isEditingEvent,
     visible: createEventOpen,
   });
   const {

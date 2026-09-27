@@ -205,7 +205,13 @@ export function CreateEventModal({
   return (
     <Modal animationType="slide" transparent onRequestClose={onClose} visible={visible}>
       <GestureDetector gesture={gesture}>
-        <Animated.View className="flex-1 bg-canvas" style={swipeStyle}>
+        <Animated.View
+          className="flex-1 bg-canvas"
+          // An edit is opened after another native modal closes. Keep it at
+          // its resting position instead of inheriting a stale swipe offset
+          // from the previously dismissed create sheet.
+          style={isEditingEvent ? undefined : swipeStyle}
+        >
           <SafeAreaView className="flex-1 bg-canvas" edges={['bottom']}>
             <KeyboardAvoidingView
               behavior={Platform.OS === 'ios' ? 'padding' : undefined}
