@@ -66,6 +66,16 @@ export function buildPassportAchievements(
       target: 5,
       title: 'Local Loyalist',
     }),
+    ...progress.universityRankingAwards.map((award) => ({
+      category: 'culture' as const,
+      color: getRankingAwardColor(award.rank),
+      description: `${award.universityName} finished ${getOrdinal(award.rank)} in the ${award.academicYear} campus ranking.`,
+      icon: award.rank === 1 ? Sparkles : CalendarCheck2,
+      id: `campus-ranking-${award.academicYear}-${award.cityKey}-${award.rank}`,
+      progress: `${award.academicYear} · ${getRankingPlace(award.rank)}`,
+      title: getRankingAwardTitle(award.rank),
+      unlocked: true,
+    })),
   ];
 }
 
@@ -89,4 +99,24 @@ function createMilestoneBadge({
     title,
     unlocked: current >= target,
   };
+}
+
+function getRankingAwardTitle(rank: 1 | 2 | 3) {
+  if (rank === 1) return 'Campus Champions';
+  if (rank === 2) return 'Campus Silver';
+  return 'Campus Bronze';
+}
+
+function getRankingPlace(rank: 1 | 2 | 3) {
+  return rank === 1 ? '1st place' : rank === 2 ? '2nd place' : '3rd place';
+}
+
+function getOrdinal(rank: 1 | 2 | 3) {
+  return rank === 1 ? '1st' : rank === 2 ? '2nd' : '3rd';
+}
+
+function getRankingAwardColor(rank: 1 | 2 | 3) {
+  if (rank === 1) return '#B8872E';
+  if (rank === 2) return '#71858E';
+  return '#A76E45';
 }

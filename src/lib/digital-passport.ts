@@ -6,6 +6,14 @@ export type DigitalPassportProgress = {
   eventsCompleted: number;
   questsCompleted: number;
   sameOrganizerEvents: number;
+  universityRankingAwards: UniversityRankingAward[];
+};
+
+export type UniversityRankingAward = {
+  academicYear: string;
+  cityKey: string;
+  rank: 1 | 2 | 3;
+  universityName: string;
 };
 
 type PassportProgressResponse = {
@@ -15,6 +23,12 @@ type PassportProgressResponse = {
   quests_completed?: number;
   same_organizer_events?: number;
   success?: boolean;
+  university_ranking_awards?: {
+    academic_year?: string;
+    city_key?: string;
+    rank?: number;
+    university_name?: string;
+  }[];
 };
 
 export const emptyDigitalPassportProgress: DigitalPassportProgress = {
@@ -22,6 +36,7 @@ export const emptyDigitalPassportProgress: DigitalPassportProgress = {
   eventsCompleted: 0,
   questsCompleted: 0,
   sameOrganizerEvents: 0,
+  universityRankingAwards: [],
 };
 
 export async function fetchMyDigitalPassportProgress() {
@@ -42,6 +57,14 @@ export async function fetchMyDigitalPassportProgress() {
       eventsCompleted: Number(result.events_completed ?? 0),
       questsCompleted: Number(result.quests_completed ?? 0),
       sameOrganizerEvents: Number(result.same_organizer_events ?? 0),
+      universityRankingAwards: (result.university_ranking_awards ?? [])
+        .filter((award) => award.rank === 1 || award.rank === 2 || award.rank === 3)
+        .map((award) => ({
+          academicYear: award.academic_year ?? 'Academic year',
+          cityKey: award.city_key ?? '',
+          rank: award.rank as 1 | 2 | 3,
+          universityName: award.university_name ?? 'Your university',
+        })),
     } satisfies DigitalPassportProgress,
   };
 }

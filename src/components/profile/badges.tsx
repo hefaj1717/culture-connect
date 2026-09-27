@@ -180,7 +180,7 @@ function BadgeIcon({
   iconSize: number;
 }) {
   const Icon = badge.icon;
-  const categoryColor = GamificationColors.badges[badge.category] ?? badge.color;
+  const categoryColor = badge.color ?? GamificationColors.badges[badge.category];
 
   return (
     <View
