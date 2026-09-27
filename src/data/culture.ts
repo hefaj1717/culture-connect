@@ -120,6 +120,7 @@ export type RewardPartner = {
   badge?: string;
   color: string;
   imageUrl?: string | null;
+  organizerName?: string | null;
   organizerAvatarUrl?: string | null;
 };
 
