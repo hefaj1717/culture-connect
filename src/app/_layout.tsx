@@ -21,7 +21,7 @@ import { Text, TextInput } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import AppTabs from '@/components/app-tabs';
-import { AuthProvider } from '@/providers/auth-provider';
+import { AuthProvider, useAuth } from '@/providers/auth-provider';
 import { NetworkProvider } from '@/providers/network-provider';
 
 SplashScreen.preventAutoHideAsync();
@@ -59,7 +59,6 @@ export default function TabLayout() {
         { fontFamily: 'Inter_400Regular' },
         textInputComponent.defaultProps.style,
       ];
-      SplashScreen.hideAsync();
     }
   }, [fontsLoaded]);
 
@@ -70,10 +69,25 @@ export default function TabLayout() {
       <ThemeProvider value={DefaultTheme}>
         <NetworkProvider>
           <AuthProvider>
-            <AppTabs />
+            <AppContent />
           </AuthProvider>
         </NetworkProvider>
       </ThemeProvider>
     </GestureHandlerRootView>
   );
+}
+
+function AppContent() {
+  const { loading } = useAuth();
+
+  useEffect(() => {
+    // Keep the native CultureQuest splash visible until the stored session has
+    // resolved. This prevents the old React loading view from flashing between
+    // the native splash and the first real screen.
+    if (!loading) {
+      void SplashScreen.hideAsync();
+    }
+  }, [loading]);
+
+  return <AppTabs />;
 }

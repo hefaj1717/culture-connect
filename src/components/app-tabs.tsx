@@ -1,7 +1,7 @@
 import { StatusBar } from 'expo-status-bar';
 import { Compass, Home, Route, User, WifiOff } from 'lucide-react-native';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, Alert, Pressable, Text, useWindowDimensions, View } from 'react-native';
+import { Alert, Pressable, Text, useWindowDimensions, View } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
   runOnJS,
@@ -48,20 +48,9 @@ export default function AppTabs() {
   const { loading, session } = useAuth();
 
   if (loading) {
-    return (
-      <View className="flex-1 items-center justify-center bg-canvas">
-        <StatusBar style="dark" />
-        <View className="items-center gap-4" accessibilityLabel="Loading CultureQuest">
-          <Text
-            style={{ fontFamily: FontTokens.heading, fontSize: 36, letterSpacing: -2 }}
-            className="text-ink"
-          >
-            Culture<Text className="text-accent">Quest</Text>
-          </Text>
-          <ActivityIndicator color={Colors.light.accent} size="small" />
-        </View>
-      </View>
-    );
+    // The native CultureQuest splash remains visible until authentication has
+    // hydrated in the root layout, so rendering another loader would flash.
+    return null;
   }
 
   if (!session) {
