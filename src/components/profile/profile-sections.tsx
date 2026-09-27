@@ -168,7 +168,7 @@ export function ProfileRankCard({
               {userXp.toLocaleString()}
             </Text>
             <Text className="mt-1 text-[15px] font-extrabold text-accent">
-              {userQc.toLocaleString()} CultureQuest Credits available
+              {userQc.toLocaleString()} QC available
             </Text>
           </View>
           <View className="items-end">
