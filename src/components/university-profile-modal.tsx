@@ -119,16 +119,14 @@ function UniversityProfileContent({
             <View className="h-px flex-1 bg-primary/15" />
           </View>
           <Text className="text-[14px] leading-6 text-muted">{description}</Text>
+          <View className="mt-5">
+            <CampusStanding
+              memberCount={university.memberCount}
+              rank={university.rank}
+              totalXp={university.totalXp}
+            />
+          </View>
         </View>
-      </View>
-
-      <View className="mt-6">
-        <Text className="mb-3 font-heading text-[27px] leading-8 text-ink">Campus standing</Text>
-        <CampusStanding
-          memberCount={university.memberCount}
-          rank={university.rank}
-          totalXp={university.totalXp}
-        />
       </View>
 
       <View className="mt-7">
