@@ -49,9 +49,17 @@ export default function AppTabs() {
 
   if (loading) {
     return (
-      <View className="flex-1 items-center justify-center bg-ink">
-        <StatusBar style="light" />
-        <ActivityIndicator accessibilityLabel="Loading CultureQuest" color="white" />
+      <View className="flex-1 items-center justify-center bg-canvas">
+        <StatusBar style="dark" />
+        <View className="items-center gap-4" accessibilityLabel="Loading CultureQuest">
+          <Text
+            style={{ fontFamily: FontTokens.heading, fontSize: 36, letterSpacing: -2 }}
+            className="text-ink"
+          >
+            Culture<Text className="text-accent">Quest</Text>
+          </Text>
+          <ActivityIndicator color={Colors.light.accent} size="small" />
+        </View>
       </View>
     );
   }

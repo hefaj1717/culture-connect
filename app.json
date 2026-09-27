@@ -48,9 +48,9 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#6B818C",
-          "image": "./assets/images/splash-icon.png",
-          "imageWidth": 76
+          "backgroundColor": "#FFF8F0",
+          "image": "./assets/images/culturequest-splash.png",
+          "imageWidth": 280
         }
       ],
       "expo-font",
