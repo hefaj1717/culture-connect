@@ -8,6 +8,7 @@ import MapView, { Marker } from 'react-native-maps';
 import { CardListSkeleton, EmptyState, ErrorState, LoadingState } from '@/components/async-state';
 import { ActivityHeatLayer } from '@/components/activity-heat-layer';
 import { BrandImage } from '@/components/brand-image';
+import { UniversityProfileModal } from '@/components/university-profile-modal';
 import { CardStyles, Colors } from '@/constants/theme';
 import { cultureMapStyle } from '@/constants/map-style';
 import {
@@ -33,6 +34,10 @@ import { markNotificationReadWithRollback } from '@/lib/notification-read-mutati
 import { useResponsiveLayout } from '@/hooks/use-responsive-layout';
 import { useStableTopInset } from '@/hooks/use-stable-safe-area';
 import type { UniversityLeaderboardRow } from '@/lib/university-leaderboard';
+import {
+  fetchUniversityProfileSummary,
+  type UniversityProfileSummary,
+} from '@/lib/university-profiles';
 import { useAuth } from '@/providers/auth-provider';
 
 type HomeScreenProps = {
@@ -92,6 +97,11 @@ export default function HomeScreen({
   const [activityBaseline, setActivityBaseline] = useState<CityActivityBaseline>(
     EMPTY_CITY_ACTIVITY_BASELINE,
   );
+  const [selectedUniversity, setSelectedUniversity] = useState<UniversityLeaderboardRow | null>(null);
+  const [selectedUniversityProfile, setSelectedUniversityProfile] =
+    useState<UniversityProfileSummary | null>(null);
+  const [selectedUniversityError, setSelectedUniversityError] = useState<string | null>(null);
+  const [selectedUniversityLoading, setSelectedUniversityLoading] = useState(false);
 
   const loadNotifications = useCallback(async () => {
     if (!user) {
@@ -127,6 +137,34 @@ export default function HomeScreen({
       },
     });
   }, [user?.id]);
+
+  useEffect(() => {
+    let active = true;
+
+    async function loadUniversityProfile() {
+      if (!selectedUniversity) {
+        setSelectedUniversityProfile(null);
+        setSelectedUniversityError(null);
+        setSelectedUniversityLoading(false);
+        return;
+      }
+
+      setSelectedUniversityLoading(true);
+      setSelectedUniversityError(null);
+      setSelectedUniversityProfile(null);
+      const result = await fetchUniversityProfileSummary(selectedUniversity.universityId);
+      if (!active) return;
+
+      setSelectedUniversityProfile(result.profile);
+      setSelectedUniversityError(result.error);
+      setSelectedUniversityLoading(false);
+    }
+
+    void loadUniversityProfile();
+    return () => {
+      active = false;
+    };
+  }, [selectedUniversity]);
 
   useEffect(() => {
     if (notificationsOpen) {
@@ -891,9 +929,12 @@ export default function HomeScreen({
                   const rankColors = getLeaderboardRankColors(row.rank);
 
                   return (
-                    <View
+                    <Pressable
+                      accessibilityLabel={`Open ${row.name} university profile`}
+                      accessibilityRole="button"
                       key={row.universityId}
-                      className="flex-row items-center gap-3 rounded-2xl bg-canvas px-3 py-3"
+                      className="flex-row items-center gap-3 rounded-2xl bg-canvas px-3 py-3 active:opacity-75"
+                      onPress={() => setSelectedUniversity(row)}
                     >
                       <View
                         className="h-9 w-9 items-center justify-center rounded-full"
@@ -917,7 +958,7 @@ export default function HomeScreen({
                       <Text className="font-heading text-[20px] leading-[24px] text-accentDeep">
                         {row.totalXp.toLocaleString()}
                       </Text>
-                    </View>
+                    </Pressable>
                   );
                 })
               )}
@@ -925,6 +966,24 @@ export default function HomeScreen({
           </View>
         </View>
       </ScrollView>
+      <UniversityProfileModal
+        error={selectedUniversityError}
+        fallback={
+          selectedUniversity
+            ? {
+                memberCount: selectedUniversity.memberCount,
+                name: selectedUniversity.name,
+                rank: selectedUniversity.rank,
+                shortName: selectedUniversity.shortName,
+                totalXp: selectedUniversity.totalXp,
+              }
+            : null
+        }
+        loading={selectedUniversityLoading}
+        onClose={() => setSelectedUniversity(null)}
+        profile={selectedUniversityProfile}
+        visible={!!selectedUniversity}
+      />
     </View>
   );
 }
