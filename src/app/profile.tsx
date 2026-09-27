@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { AppState, ScrollView, Text, View } from 'react-native';
+import { AppState, InteractionManager, ScrollView, Text, View } from 'react-native';
 
 import { AdminReviewModal } from '@/components/profile/admin-review-modal';
 import { BadgesModal } from '@/components/profile/badges-modal';
@@ -1181,8 +1181,13 @@ export default function ProfileScreen({
         eventStatuses={eventStatuses}
         onClose={() => setOrganizerHistoryOpen(false)}
         onEditEvent={(event) => {
+          // Do not mount the editor while the nested event modal and its parent
+          // history modal are still dismissing. iOS can otherwise keep an
+          // invisible modal responder above the form and make the app feel frozen.
           setOrganizerHistoryOpen(false);
-          openEditEvent(event);
+          InteractionManager.runAfterInteractions(() => {
+            setTimeout(() => openEditEvent(event), 220);
+          });
         }}
         onEventCheckIn={onEventCheckIn}
         onEventStatusChange={onEventStatusChange}
