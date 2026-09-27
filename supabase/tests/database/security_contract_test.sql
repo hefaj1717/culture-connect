@@ -1,6 +1,6 @@
 begin;
 
-select plan(22);
+select plan(25);
 
 select ok(
   to_regprocedure('public.get_my_digital_passport_progress()') is not null,
@@ -15,6 +15,26 @@ select is(
   ),
   false,
   'anonymous callers cannot read passport progress'
+);
+
+select ok(
+  to_regprocedure('public.finalize_university_leaderboard_season(text,text)') is not null,
+  'an admin-only RPC finalizes an immutable university ranking season'
+);
+
+select is(
+  has_function_privilege(
+    'anon',
+    'public.finalize_university_leaderboard_season(text,text)'::regprocedure,
+    'EXECUTE'
+  ),
+  false,
+  'anonymous callers cannot finalize a university ranking season'
+);
+
+select ok(
+  (select relrowsecurity from pg_class where oid = 'public.user_university_leaderboard_awards'::regclass),
+  'university ranking awards have RLS enabled'
 );
 
 select ok(
