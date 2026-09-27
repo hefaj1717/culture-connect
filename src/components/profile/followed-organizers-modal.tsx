@@ -1,6 +1,8 @@
-import { X, UserCheck } from 'lucide-react-native';
+import { UserCheck } from 'lucide-react-native';
 import { useState } from 'react';
 import { Modal, Pressable, ScrollView, Text, View } from 'react-native';
+import { GestureDetector } from 'react-native-gesture-handler';
+import Animated from 'react-native-reanimated';
 
 import { EventDetailModal, type EventCheckInResult } from '@/app/explore';
 import { EmptyState, ErrorState, LoadingState } from '@/components/async-state';
@@ -9,6 +11,7 @@ import { Colors } from '@/constants/theme';
 import { getCultureCityData, type CultureEvent } from '@/data/culture';
 import type { UserEventStatus } from '@/lib/event-history';
 import type { OrganizerProfile } from '@/lib/organizer-profiles';
+import { useCardSwipeBack } from '@/hooks/use-card-swipe-back';
 
 type FollowedOrganizersModalProps = {
   activeProfile: OrganizerProfile | null;
@@ -62,6 +65,11 @@ export function FollowedOrganizersModal({
     selectedEventStatus === 'interested' || selectedEventStatus === 'going'
       ? selectedEventStatus
       : undefined;
+  const { gesture, swipeStyle } = useCardSwipeBack({
+    enabled: !activeProfile && !selectedEvent,
+    onSwipeBack: onClose,
+    visible,
+  });
 
   async function handleUnfollow(organizerId: string): Promise<{ error: string | null }> {
     if (unfollowingId) return { error: 'Please wait for the current change to finish.' };
@@ -90,22 +98,13 @@ export function FollowedOrganizersModal({
           profile={activeProfile}
         />
       ) : (
-      <View className="flex-1 bg-canvas" style={{ paddingTop: stableModalTopInset }}>
-        <View className="flex-row items-center px-5 pb-4 pt-3">
-          <View className="min-w-0 flex-1">
-            <Text className="font-heading text-[30px] leading-9 text-ink">Following</Text>
-            <Text className="mt-1 text-[14px] leading-5 text-muted">
-              New approved events from these organizers appear in Notifications.
-            </Text>
-          </View>
-          <Pressable
-            accessibilityLabel="Close following"
-            className="ml-4 h-11 w-11 items-center justify-center rounded-full bg-surface active:opacity-75"
-            hitSlop={8}
-            onPress={onClose}
-          >
-            <X size={22} color={Colors.light.textSecondary} strokeWidth={2.2} />
-          </Pressable>
+      <GestureDetector gesture={gesture}>
+      <Animated.View className="flex-1 bg-canvas" style={[{ paddingTop: stableModalTopInset }, swipeStyle]}>
+        <View className="px-5 pb-4 pt-3">
+          <Text className="font-heading text-[30px] leading-9 text-ink">Following</Text>
+          <Text className="mt-1 text-[14px] leading-5 text-muted">
+            New approved events from these organizers appear in Notifications.
+          </Text>
         </View>
 
         <ScrollView
@@ -153,7 +152,8 @@ export function FollowedOrganizersModal({
             </View>
           )}
         </ScrollView>
-      </View>
+      </Animated.View>
+      </GestureDetector>
       )}
       {activeProfile && selectedEvent ? (
         <EventDetailModal
