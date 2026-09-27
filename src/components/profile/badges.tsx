@@ -1,4 +1,4 @@
-import { LockKeyhole, X } from 'lucide-react-native';
+import { X } from 'lucide-react-native';
 import type { ComponentType } from 'react';
 import { Pressable, Text, View } from 'react-native';
 
@@ -193,11 +193,6 @@ function BadgeIcon({
         strokeWidth={2.4}
         fill={badge.unlocked ? 'rgba(255,255,255,0.16)' : 'transparent'}
       />
-      {!badge.unlocked && (
-        <View className="absolute -right-1 -top-1 h-6 w-6 items-center justify-center rounded-full border-2 border-white bg-ink">
-          <LockKeyhole size={11} color="white" strokeWidth={2.8} />
-        </View>
-      )}
     </View>
   );
 }
