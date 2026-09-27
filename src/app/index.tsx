@@ -1,6 +1,6 @@
 import { Image } from 'expo-image';
 import * as Location from 'expo-location';
-import { ArrowRight, Bell, CheckCircle2, Globe, User, Users, X } from 'lucide-react-native';
+import { ArrowRight, Bell, CheckCircle2, Globe, LockKeyhole, Move, User, Users, X } from 'lucide-react-native';
 import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import MapView, { Marker } from 'react-native-maps';
@@ -808,11 +808,23 @@ export default function HomeScreen({
               </View>
               <Pressable
                 onPress={() => setIsMapInteractive((current) => !current)}
-                className="absolute bottom-3 right-3 rounded-full bg-white/90 px-3 py-1 active:opacity-80"
+                className={`absolute bottom-3 right-3 h-11 flex-row items-center gap-2 rounded-full border px-4 active:opacity-80 ${
+                  isMapInteractive ? 'border-white/80 bg-white/95' : 'border-primary bg-primary'
+                }`}
                 accessibilityLabel={isMapInteractive ? 'Lock map' : 'Unlock map'}
                 accessibilityRole="button"
+                hitSlop={8}
               >
-                <Text className="text-[10px] font-bold text-muted">
+                {isMapInteractive ? (
+                  <LockKeyhole color={Colors.light.primary} size={15} strokeWidth={2.5} />
+                ) : (
+                  <Move color={Colors.light.onPrimary} size={16} strokeWidth={2.5} />
+                )}
+                <Text
+                  className={`text-[12px] font-extrabold ${
+                    isMapInteractive ? 'text-ink' : 'text-white'
+                  }`}
+                >
                   {isMapInteractive ? 'Lock map' : 'Move map'}
                 </Text>
               </Pressable>
