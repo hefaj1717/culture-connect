@@ -345,20 +345,25 @@ export default function ExploreScreen({
   }
 
   const selectedEventStatus = selectedEvent ? eventStatuses[selectedEvent.id] : undefined;
+  const selectedEventFromStore = useMemo(() => {
+    if (!selectedEvent) return null;
+
+    return allEvents.find((event) => event.id === selectedEvent.id) ?? selectedEvent;
+  }, [allEvents, selectedEvent]);
   const selectedDetailStatus =
     selectedEventStatus === 'interested' || selectedEventStatus === 'going'
       ? selectedEventStatus
       : undefined;
   const selectedEventOrganizerProfile = useMemo(() => {
-    if (!selectedEvent) {
+    if (!selectedEventFromStore) {
       return null;
     }
 
     return (
-      displayedOrganizerProfiles.find((profile) => profile.id === selectedEvent.organizerId) ??
-      organizerProfileFromEvent(selectedEvent)
+      displayedOrganizerProfiles.find((profile) => profile.id === selectedEventFromStore.organizerId) ??
+      organizerProfileFromEvent(selectedEventFromStore)
     );
-  }, [displayedOrganizerProfiles, selectedEvent]);
+  }, [displayedOrganizerProfiles, selectedEventFromStore]);
 
   return (
     <View className="flex-1 bg-canvas">
@@ -720,7 +725,7 @@ export default function ExploreScreen({
             (confirmedCheckIns[selectedEvent.id] || checkedInEventIds.includes(selectedEvent.id))
           )
         }
-        event={selectedEvent}
+        event={selectedEventFromStore}
         venue={null}
         onCheckIn={async (event, checkInCode, location) => {
           const checkInResult = (await onEventCheckIn?.(event, checkInCode, location)) ?? {
@@ -821,7 +826,13 @@ export function EventDetailModal({
   const translateX = useSharedValue(0);
 
   useEffect(() => {
-    if (event?.id === rootEventIdRef.current) return;
+    if (event?.id === rootEventIdRef.current) {
+      // The parent refreshes the event object after an RSVP. Keep the currently
+      // displayed root event in sync, but never replace an event opened from an
+      // embedded organizer profile.
+      setDetailEvent((current) => (current?.id === event?.id ? event : current));
+      return;
+    }
 
     rootEventIdRef.current = event?.id ?? null;
     translateX.value = 0;
