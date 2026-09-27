@@ -5,6 +5,7 @@ export type UserNotification = {
   body: string;
   createdAt: string;
   eventId: string | null;
+  rewardId: string | null;
   id: string;
   readAt: string | null;
   title: string;
@@ -13,13 +14,16 @@ export type UserNotification = {
     | 'organizer_announcement'
     | 'organizer_event_published'
     | 'organizer_event_updated'
-    | 'organizer_event_deleted';
+    | 'organizer_event_deleted'
+    | 'organizer_reward_reviewed'
+    | 'organizer_reward_updated';
 };
 
 type UserNotificationRow = {
   body: string;
   created_at: string;
   event_id: string | null;
+  reward_id: string | null;
   id: string;
   read_at: string | null;
   title: string;
@@ -41,6 +45,7 @@ function toUserNotification(notification: UserNotificationRow): UserNotification
     body: notification.body,
     createdAt: notification.created_at,
     eventId: notification.event_id,
+    rewardId: notification.reward_id,
     id: notification.id,
     readAt: notification.read_at,
     title: notification.title,
@@ -51,7 +56,7 @@ function toUserNotification(notification: UserNotificationRow): UserNotification
 export async function fetchUserNotifications() {
   const { data, error } = await supabase
     .from('user_notifications')
-    .select('id, type, title, body, event_id, read_at, created_at')
+    .select('id, type, title, body, event_id, reward_id, read_at, created_at')
     .order('created_at', { ascending: false })
     .limit(50);
 

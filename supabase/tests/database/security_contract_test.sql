@@ -1,6 +1,6 @@
 begin;
 
-select plan(27);
+select plan(30);
 
 select ok(
   to_regprocedure('public.get_my_digital_passport_progress()') is not null,
@@ -80,6 +80,29 @@ select is(
 select ok(
   (select relrowsecurity from pg_class where oid = 'public.user_notifications'::regclass),
   'user_notifications has RLS enabled'
+);
+
+select ok(
+  exists (
+    select 1 from information_schema.columns
+    where table_schema = 'public' and table_name = 'user_notifications' and column_name = 'reward_id'
+  ),
+  'notifications can retain a reference to the moderated reward'
+);
+
+select ok(
+  to_regprocedure('public.notify_organizer_of_admin_reward_update()') is not null,
+  'reward moderation notifications are generated server-side'
+);
+
+select ok(
+  exists (
+    select 1 from pg_trigger
+    where tgrelid = 'public.organizer_rewards'::regclass
+      and tgname = 'organizer_rewards_notify_admin_update'
+      and not tgisinternal
+  ),
+  'admin reward updates trigger organizer notifications'
 );
 
 select is(
