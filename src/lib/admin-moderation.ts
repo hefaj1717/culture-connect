@@ -21,6 +21,7 @@ export type PendingAdminEvent = {
   createdAt: string;
   date: string;
   description: string;
+  endDate?: string | null;
   endTime?: string | null;
   id: string;
   imageUrl?: string | null;
@@ -108,6 +109,7 @@ type PendingEventRow = {
   created_at: string;
   date_label: string;
   description: string;
+  end_date_label?: string | null;
   end_time_label?: string | null;
   id: string;
   image_url: string | null;
@@ -125,6 +127,7 @@ type PendingEventPreviousSnapshot = {
   category?: string | null;
   date_label?: string | null;
   description?: string | null;
+  end_date_label?: string | null;
   end_time_label?: string | null;
   image_url?: string | null;
   time_label?: string | null;
@@ -190,7 +193,7 @@ type ProfileSummaryRow = {
 };
 
 const ADMIN_EVENT_SELECT =
-  'id, organizer_user_id, city_key, venue_key, venue_name, venue_address, venue_latitude, venue_longitude, title, description, category, date_label, time_label, end_time_label, starts_at, ends_at, xp_bonus, qc_bonus, language, is_free, is_international, interested_count, going_count, attendee_count, image_kind, image_url, status, created_at, updated_at, review_requested_at, review_previous_snapshot';
+  'id, organizer_user_id, city_key, venue_key, venue_name, venue_address, venue_latitude, venue_longitude, title, description, category, date_label, end_date_label, time_label, end_time_label, starts_at, ends_at, xp_bonus, qc_bonus, language, is_free, is_international, interested_count, going_count, attendee_count, image_kind, image_url, status, created_at, updated_at, review_requested_at, review_previous_snapshot';
 const ADMIN_EVENT_LEGACY_GOING_SELECT =
   'id, organizer_user_id, city_key, venue_key, venue_name, venue_address, venue_latitude, venue_longitude, title, description, category, date_label, time_label, end_time_label, starts_at, ends_at, xp_bonus, language, is_free, is_international, interested_count, attendee_count, image_kind, image_url, status, created_at';
 const ADMIN_EVENT_LEGACY_COUNTER_SELECT =
@@ -198,7 +201,7 @@ const ADMIN_EVENT_LEGACY_COUNTER_SELECT =
 const ADMIN_EVENT_LEGACY_TIME_SELECT =
   'id, organizer_user_id, city_key, venue_key, venue_name, venue_address, venue_latitude, venue_longitude, title, description, category, date_label, time_label, xp_bonus, language, is_free, is_international, attendee_count, image_kind, image_url, status, created_at';
 const PENDING_EVENT_SELECT =
-  'id, organizer_user_id, city_key, venue_name, venue_address, title, description, category, date_label, time_label, end_time_label, image_url, created_at, updated_at, review_requested_at, review_previous_snapshot';
+  'id, organizer_user_id, city_key, venue_name, venue_address, title, description, category, date_label, end_date_label, time_label, end_time_label, image_url, created_at, updated_at, review_requested_at, review_previous_snapshot';
 const PENDING_EVENT_LEGACY_SELECT =
   'id, organizer_user_id, city_key, venue_name, venue_address, title, description, category, date_label, time_label, end_time_label, image_url, created_at, updated_at';
 const ADMIN_REWARD_SELECT =
@@ -568,6 +571,7 @@ function mapPendingEvent(
     changes: buildPendingEventChanges(row),
     date: row.date_label,
     description: row.description,
+    endDate: row.end_date_label ?? row.date_label,
     endTime: row.end_time_label ?? undefined,
     id: row.id,
     imageUrl: row.image_url,
@@ -582,7 +586,7 @@ function mapPendingEvent(
   };
 }
 
-function buildPendingEventChanges(row: PendingEventRow): PendingAdminEventChange[] {
+export function buildPendingEventChanges(row: PendingEventRow): PendingAdminEventChange[] {
   const snapshot = row.review_previous_snapshot;
   if (!snapshot) return [];
 
@@ -592,7 +596,8 @@ function buildPendingEventChanges(row: PendingEventRow): PendingAdminEventChange
   addEventChange(changes, 'Venue', snapshot.venue_name, row.venue_name);
   addEventChange(changes, 'Address', snapshot.venue_address, row.venue_address);
   addEventChange(changes, 'Category', snapshot.category, row.category);
-  addEventChange(changes, 'Date', snapshot.date_label, row.date_label);
+  addEventChange(changes, 'Start date', snapshot.date_label, row.date_label);
+  addEventChange(changes, 'End date', snapshot.end_date_label, row.end_date_label);
   addEventChange(changes, 'Start time', snapshot.time_label, row.time_label);
   addEventChange(changes, 'End time', snapshot.end_time_label, row.end_time_label);
   addEventChange(changes, 'Description', snapshot.description, row.description);
@@ -677,6 +682,7 @@ function mapAdminManagedEvent(
     databaseId: row.id,
     date: row.date_label,
     description: row.description,
+    endDate: row.end_date_label ?? row.date_label,
     endTime: row.end_time_label ?? undefined,
     endsAt: row.ends_at ?? undefined,
     id: `organizer-${row.id}`,
