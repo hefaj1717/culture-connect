@@ -16,32 +16,32 @@ export type ThemeColor = keyof typeof Colors.light & keyof typeof Colors.dark;
 export const Fonts = Platform.select({
   ios: {
     sans: 'Inter_400Regular',
-    serif: 'Fraunces_700Bold',
+    serif: 'DMSerifDisplay_400Regular',
     rounded: 'Inter_600SemiBold',
     mono: 'ui-monospace',
   },
   default: {
     sans: 'Inter_400Regular',
-    serif: 'Fraunces_700Bold',
+    serif: 'DMSerifDisplay_400Regular',
     rounded: 'Inter_600SemiBold',
     mono: 'monospace',
   },
   web: {
     sans: 'Inter, var(--font-display)',
-    serif: 'Fraunces, var(--font-serif)',
+    serif: 'DM Serif Display, var(--font-serif)',
     rounded: 'Inter, var(--font-rounded)',
     mono: 'var(--font-mono)',
   },
 });
 
 export const FontTokens = {
-  serifRegular: 'Fraunces_400Regular',
-  heading: 'Fraunces_700Bold',
-  display: 'Fraunces_900Black',
+  serifRegular: 'DMSerifDisplay_400Regular',
+  heading: 'DMSerifDisplay_400Regular',
+  display: 'DMSerifDisplay_400Regular',
   body: 'Inter_400Regular',
   ui: 'Inter_600SemiBold',
   caption: 'Inter_500Medium',
-  numeric: 'Fraunces_800ExtraBold',
+  numeric: 'DMSerifDisplay_400Regular',
 } as const;
 
 export const GamificationColors = {

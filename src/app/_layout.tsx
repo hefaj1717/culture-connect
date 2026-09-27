@@ -9,12 +9,9 @@ import {
   useFonts as useInterFonts,
 } from '@expo-google-fonts/inter';
 import {
-  Fraunces_400Regular,
-  Fraunces_700Bold,
-  Fraunces_800ExtraBold,
-  Fraunces_900Black,
-  useFonts as useFrauncesFonts,
-} from '@expo-google-fonts/fraunces';
+  DMSerifDisplay_400Regular,
+  useFonts as useDMSerifDisplayFonts,
+} from '@expo-google-fonts/dm-serif-display';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import { Text, TextInput } from 'react-native';
@@ -34,13 +31,10 @@ export default function TabLayout() {
     Inter_700Bold,
     Inter_800ExtraBold,
   });
-  const [frauncesLoaded] = useFrauncesFonts({
-    Fraunces_400Regular,
-    Fraunces_700Bold,
-    Fraunces_800ExtraBold,
-    Fraunces_900Black,
+  const [dmSerifDisplayLoaded] = useDMSerifDisplayFonts({
+    DMSerifDisplay_400Regular,
   });
-  const fontsLoaded = interLoaded && frauncesLoaded;
+  const fontsLoaded = interLoaded && dmSerifDisplayLoaded;
 
   useEffect(() => {
     if (fontsLoaded) {
