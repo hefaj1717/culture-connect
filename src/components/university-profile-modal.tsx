@@ -132,12 +132,7 @@ function UniversityProfileContent({
       </View>
 
       <View className="mt-7">
-        <View className="mb-3 flex-row items-end justify-between">
-          <Text className="font-heading text-[27px] leading-8 text-ink">Podium history</Text>
-          <Text className="pb-1 text-[11px] font-semibold uppercase tracking-wide text-muted">
-            Finalized years
-          </Text>
-        </View>
+        <Text className="mb-3 font-heading text-[27px] leading-8 text-ink">Podium history</Text>
         {profile ? (
           history.length ? (
             <View className="overflow-hidden rounded-feature border border-primary/10 bg-surface px-4">
