@@ -32,6 +32,7 @@ export type CreateOrganizerEventInput = {
 export type UpdateOrganizerEventInput = CreateOrganizerEventInput & {
   currentImageUrl?: string | null;
   eventId: string;
+  organizerUpdateMessage?: string | null;
 };
 
 type OrganizerEventRow = {
@@ -254,6 +255,7 @@ export async function updateOrganizerEvent(userId: string, input: UpdateOrganize
       starts_at: input.startsAt,
       language: input.language,
       is_free: input.isFree,
+      organizer_update_message: input.organizerUpdateMessage?.trim() || null,
       is_international: input.language !== 'pl',
       image_kind: getImageKind(input.category),
       image_url: nextImageUrl.url,

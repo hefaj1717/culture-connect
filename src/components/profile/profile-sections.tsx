@@ -1290,6 +1290,10 @@ export function OrganizerEventHistoryModal({
                   (async () => ({ error: 'Check-in is not available right now.', success: false }))
                 }
                 onClose={() => setSelectedEvent(null)}
+                onEditEvent={(event) => {
+                  setSelectedEvent(null);
+                  onEditEvent(event as ManagedOrganizerEvent);
+                }}
                 onToggleStatus={
                   onEventStatusChange ??
                   (async () => ({ error: 'RSVP is not available right now.' }))
@@ -1309,11 +1313,13 @@ export function OrganizerEventHistoryModal({
 
 export function OrganizerRewardHistoryModal({
   onClose,
+  onEditReward,
   rewards,
   stableModalTopInset,
   visible,
 }: {
   onClose: () => void;
+  onEditReward: (reward: ManagedOrganizerReward) => void;
   rewards: ManagedOrganizerReward[];
   stableModalTopInset: number;
   visible: boolean;
@@ -1372,7 +1378,11 @@ export function OrganizerRewardHistoryModal({
                 />
               ) : (
                 filteredRewards.map((reward) => (
-                  <OrganizerRewardRow key={`${reward.id}-organizer`} reward={reward} />
+                  <OrganizerRewardRow
+                    key={`${reward.id}-organizer`}
+                    onPress={() => onEditReward(reward)}
+                    reward={reward}
+                  />
                 ))
               )}
             </ScrollView>
@@ -1620,9 +1630,16 @@ function OrganizerEventRow({
   );
 }
 
-function OrganizerRewardRow({ reward }: { reward: ManagedOrganizerReward }) {
+function OrganizerRewardRow({
+  onPress,
+  reward,
+}: {
+  onPress: () => void;
+  reward: ManagedOrganizerReward;
+}) {
   return (
-    <View
+    <Pressable
+      onPress={onPress}
       className="overflow-hidden rounded-3xl border border-primary/10 bg-surface"
       style={CardStyles.compact}
     >
@@ -1679,7 +1696,7 @@ function OrganizerRewardRow({ reward }: { reward: ManagedOrganizerReward }) {
           </Text>
         </View>
       )}
-    </View>
+    </Pressable>
   );
 }
 

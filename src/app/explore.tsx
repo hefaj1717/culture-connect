@@ -6,6 +6,7 @@ import {
   CheckCircle2,
   ChevronRight,
   Clock,
+  Edit3,
   MapPin,
   QrCode,
   Search,
@@ -776,6 +777,7 @@ export function EventDetailModal({
   venue,
   onCheckIn,
   onClose,
+  onEditEvent,
   cityName,
   organizerEvents,
   organizerProfile,
@@ -791,6 +793,7 @@ export function EventDetailModal({
     location: { latitude: number; longitude: number },
   ) => Promise<EventCheckInResult>;
   onClose: () => void;
+  onEditEvent?: (event: CultureEvent) => void;
   cityName: string;
   organizerEvents: CultureEvent[];
   organizerProfile?: OrganizerProfile | null;
@@ -1250,6 +1253,16 @@ export function EventDetailModal({
                     </View>
                   )}
                 </View>
+
+                {onEditEvent && (
+                  <Pressable
+                    onPress={() => onEditEvent(activeEvent)}
+                    className="mb-5 h-[48px] flex-row items-center justify-center gap-2 rounded-xl border border-primary/20 bg-primary/5 active:opacity-80"
+                  >
+                    <Edit3 size={17} color={Colors.light.primary} strokeWidth={2.3} />
+                    <Text className="text-[14px] font-bold text-primary">Edit event</Text>
+                  </Pressable>
+                )}
 
                 {checkedIn ? (
                   <View className="rounded-2xl bg-success/10 p-4">

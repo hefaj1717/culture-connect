@@ -38,7 +38,9 @@ import { type RewardAvailabilityInput } from '@/lib/reward-availability';
 type CreateRewardModalProps = {
   createRewardError: string | null;
   creatingReward: boolean;
+  isEditingReward?: boolean;
   onChangeRewardDescription: (value: string) => void;
+  onChangeRewardUpdateMessage: (value: string) => void;
   onChangeRewardPlaceQuery: (value: string) => void;
   onChangeRewardTitle: (value: string) => void;
   onChangeRewardQc: (value: string) => void;
@@ -52,6 +54,7 @@ type CreateRewardModalProps = {
   onSubmit: () => void;
   rewardAvailability: RewardAvailabilityInput;
   rewardDescription: string;
+  rewardUpdateMessage: string;
   rewardPlaceQuery: string;
   rewardPlaceSearchError: PlaceSearchError | null;
   rewardPlaceSuggestions: PlaceSuggestion[];
@@ -71,7 +74,9 @@ type CreateRewardModalProps = {
 export function CreateRewardModal({
   createRewardError,
   creatingReward,
+  isEditingReward = false,
   onChangeRewardDescription,
+  onChangeRewardUpdateMessage,
   onChangeRewardAvailableEndTime,
   onChangeRewardAvailableFrom,
   onChangeRewardAvailableStartTime,
@@ -87,6 +92,7 @@ export function CreateRewardModal({
   organizerInitials,
   organizerName,
   rewardDescription,
+  rewardUpdateMessage,
   rewardAvailability,
   rewardPlaceQuery,
   rewardPlaceSearchError,
@@ -181,8 +187,12 @@ export function CreateRewardModal({
                 </Pressable>
 
                 <ScreenHeader
-                  subtitle="Set how many CultureQuest Credits students need to unlock this reward. XP remains permanent progress."
-                  title="Create reward"
+                  subtitle={
+                    isEditingReward
+                      ? 'Changes are sent to CultureQuest for approval before students see them.'
+                      : 'Set how many CultureQuest Credits students need to unlock this reward. XP remains permanent progress.'
+                  }
+                  title={isEditingReward ? 'Edit reward' : 'Create reward'}
                 />
 
                 <View className="mb-5 rounded-[26px] border border-primary/10 bg-canvas p-4">
@@ -331,8 +341,16 @@ export function CreateRewardModal({
                   placeholder="100"
                   placeholderTextColor="#8B909A"
                   maxLength={textLimits.rewardQc}
-                  className="mb-4 rounded-xl border border-gray-300 px-4 py-3 text-[15px] text-ink"
+                  editable={!isEditingReward}
+                  className={`mb-4 rounded-xl border border-gray-300 px-4 py-3 text-[15px] text-ink ${
+                    isEditingReward ? 'bg-gray-100 text-muted' : ''
+                  }`}
                 />
+                {isEditingReward && (
+                  <Text className="-mt-3 mb-4 text-[11px] leading-4 text-muted">
+                    Credit cost is kept unchanged while a reward is being reviewed.
+                  </Text>
+                )}
 
                 <Text className="mb-2 text-[13px] font-semibold text-ink">
                   Redeem availability
@@ -411,6 +429,24 @@ export function CreateRewardModal({
                   {rewardDescription.length}/{textLimits.rewardDescription}
                 </Text>
 
+                {isEditingReward && (
+                  <View className="mb-4 rounded-xl bg-primary/5 p-3">
+                    <Text className="text-[13px] font-semibold text-ink">Note for review (optional)</Text>
+                    <Text className="mt-1 text-[12px] leading-4 text-muted">
+                      Tell CultureQuest why the reward changed. This note is included in the review record.
+                    </Text>
+                    <TextInput
+                      value={rewardUpdateMessage}
+                      onChangeText={onChangeRewardUpdateMessage}
+                      placeholder="For example: redemption hours changed for the new semester."
+                      placeholderTextColor="#8B909A"
+                      multiline
+                      maxLength={textLimits.organizerNote}
+                      className="mt-3 min-h-[76px] rounded-xl border border-primary/15 bg-white px-3 py-2 text-[14px] leading-5 text-ink"
+                    />
+                  </View>
+                )}
+
                 {createRewardError && (
                   <Text className="mb-4 text-[13px] font-medium text-destructive">
                     {createRewardError}
@@ -428,7 +464,9 @@ export function CreateRewardModal({
                   {creatingReward ? (
                     <ActivityIndicator color="white" />
                   ) : (
-                    <Text className="text-[15px] font-semibold text-white">Submit for review</Text>
+                    <Text className="text-[15px] font-semibold text-white">
+                      {isEditingReward ? 'Submit changes' : 'Submit for review'}
+                    </Text>
                   )}
                 </Pressable>
               </ScrollView>

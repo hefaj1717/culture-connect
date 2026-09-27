@@ -4,7 +4,11 @@ import { Alert } from 'react-native';
 import { limitText, textLimits } from '@/constants/text-limits';
 import { type CityId } from '@/data/culture';
 import { OFFLINE_ERROR_MESSAGE } from '@/lib/network-errors';
-import { createOrganizerReward } from '@/lib/organizer-rewards';
+import {
+  createOrganizerReward,
+  type ManagedOrganizerReward,
+  updateOrganizerReward,
+} from '@/lib/organizer-rewards';
 import { type PlaceSearchError, type PlaceSuggestion, searchPlaces } from '@/lib/place-search';
 import {
   getIsoDaysInDateRange,
@@ -27,6 +31,7 @@ export function useCreateRewardForm({
   userId,
 }: UseCreateRewardFormInput) {
   const [createRewardOpen, setCreateRewardOpen] = useState(false);
+  const [editingReward, setEditingReward] = useState<ManagedOrganizerReward | null>(null);
   const [rewardTitle, setRewardTitle] = useState('');
   const [rewardPlaceQuery, setRewardPlaceQuery] = useState('');
   const [rewardPlaceSuggestions, setRewardPlaceSuggestions] = useState<PlaceSuggestion[]>([]);
@@ -35,6 +40,7 @@ export function useCreateRewardForm({
   const [rewardPlaceSearchError, setRewardPlaceSearchError] = useState<PlaceSearchError | null>(null);
   const [rewardPlaceSearchRetryKey, setRewardPlaceSearchRetryKey] = useState(0);
   const [rewardDescription, setRewardDescription] = useState('');
+  const [rewardUpdateMessage, setRewardUpdateMessage] = useState('');
   const [rewardQc, setRewardQc] = useState('5');
   const [rewardAvailability, setRewardAvailability] = useState(getDefaultRewardAvailability);
   const [createRewardError, setCreateRewardError] = useState<string | null>(null);
@@ -84,6 +90,7 @@ export function useCreateRewardForm({
   }, [isOffline, rewardPlaceQuery, rewardPlaceSearchRetryKey, savedCityId, selectedRewardPlace]);
 
   function resetRewardForm() {
+    setEditingReward(null);
     setRewardTitle('');
     setRewardPlaceQuery('');
     setRewardPlaceSuggestions([]);
@@ -91,6 +98,7 @@ export function useCreateRewardForm({
     setSelectedRewardPlace(null);
     setSearchingRewardPlaces(false);
     setRewardDescription('');
+    setRewardUpdateMessage('');
     setRewardQc('5');
     setRewardAvailability(getDefaultRewardAvailability());
     setCreateRewardError(null);
@@ -98,6 +106,35 @@ export function useCreateRewardForm({
 
   function openCreateReward() {
     resetRewardForm();
+    setCreateRewardOpen(true);
+  }
+
+  function openEditReward(reward: ManagedOrganizerReward) {
+    const place: PlaceSuggestion = {
+      address: reward.location,
+      id: reward.placeKey,
+      latitude: reward.placeLatitude ?? 0,
+      longitude: reward.placeLongitude ?? 0,
+      name: reward.name,
+      source: 'local',
+    };
+    setEditingReward(reward);
+    setRewardTitle(reward.discount ?? '');
+    setRewardDescription(reward.description ?? '');
+    setRewardQc(String(reward.qcCost));
+    setRewardUpdateMessage('');
+    setSelectedRewardPlace(place);
+    setRewardPlaceQuery(place.name);
+    setRewardPlaceSuggestions([]);
+    setRewardPlaceSearchError(null);
+    setRewardAvailability({
+      availableDays: reward.availableDays ?? getDefaultRewardAvailability().availableDays,
+      availableEndTime: reward.availableEndTime ?? getDefaultRewardAvailability().availableEndTime,
+      availableFrom: reward.availableFrom ?? new Date().toISOString().slice(0, 10),
+      availableStartTime: reward.availableStartTime ?? getDefaultRewardAvailability().availableStartTime,
+      availableUntil: reward.availableUntil ?? reward.availableFrom ?? new Date().toISOString().slice(0, 10),
+    });
+    setCreateRewardError(null);
     setCreateRewardOpen(true);
   }
 
@@ -171,6 +208,7 @@ export function useCreateRewardForm({
 
     const normalizedTitle = limitText(rewardTitle.trim(), textLimits.rewardTitle);
     const normalizedDescription = limitText(rewardDescription.trim(), textLimits.rewardDescription);
+    const normalizedUpdateMessage = limitText(rewardUpdateMessage.trim(), textLimits.organizerNote);
     const normalizedQc = Number.parseInt(rewardQc.trim(), 10);
 
     if (!userId) {
@@ -189,7 +227,7 @@ export function useCreateRewardForm({
       setCreateRewardError('Select a suggested place for this reward.');
       return;
     }
-    if (!Number.isFinite(normalizedQc) || normalizedQc <= 0 || normalizedQc > 5000) {
+    if (!editingReward && (!Number.isFinite(normalizedQc) || normalizedQc <= 0 || normalizedQc > 5000)) {
       setCreateRewardError('Enter an amount of CultureQuest Credits between 1 and 5000.');
       return;
     }
@@ -204,7 +242,7 @@ export function useCreateRewardForm({
     setCreatingReward(true);
     let result;
     try {
-      result = await createOrganizerReward(userId, {
+      const input = {
         cityId: savedCityId,
         availableDays: rewardAvailability.availableDays,
         availableEndTime: rewardAvailability.availableEndTime,
@@ -215,7 +253,14 @@ export function useCreateRewardForm({
         place: selectedRewardPlace,
         title: normalizedTitle,
         qcCost: normalizedQc,
-      });
+      };
+      result = editingReward
+        ? await updateOrganizerReward(userId, {
+            ...input,
+            organizerUpdateMessage: normalizedUpdateMessage || null,
+            rewardId: editingReward.id.replace('organizer-reward-', ''),
+          })
+        : await createOrganizerReward(userId, input);
     } finally {
       rewardSubmissionInFlight.current = false;
       setCreatingReward(false);
@@ -229,16 +274,25 @@ export function useCreateRewardForm({
     onRewardCreated?.();
     setCreateRewardOpen(false);
     resetRewardForm();
-    Alert.alert('Reward submitted', 'CultureQuest will review it before students can see it.');
+    Alert.alert(
+      editingReward ? 'Reward changes submitted' : 'Reward submitted',
+      editingReward
+        ? 'Your changes are back in CultureQuest review before students can see the updated reward.'
+        : 'CultureQuest will review it before students can see it.',
+    );
   }
 
   return {
     createRewardError,
     createRewardOpen,
+    editingReward,
+    isEditingReward: !!editingReward,
     creatingReward,
     openCreateReward,
+    openEditReward,
     resetRewardForm,
     rewardDescription,
+    rewardUpdateMessage,
     rewardAvailability,
     rewardPlaceQuery,
     rewardPlaceSearchError,
@@ -251,6 +305,7 @@ export function useCreateRewardForm({
     retryRewardPlaceSearch,
     setCreateRewardOpen,
     setRewardDescription: changeRewardDescription,
+    setRewardUpdateMessage: (value: string) => setRewardUpdateMessage(limitText(value, textLimits.organizerNote)),
     setRewardPlaceQuery: changeRewardPlaceQuery,
     setRewardTitle: changeRewardTitle,
     setRewardQc: changeRewardQc,

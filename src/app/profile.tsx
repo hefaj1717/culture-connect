@@ -287,6 +287,7 @@ export default function ProfileScreen({
     eventEndDate,
     eventEndDateValue,
     eventDescription,
+    eventUpdateMessage,
     eventEndTime,
     eventImageUri,
     eventIsFree,
@@ -316,6 +317,7 @@ export default function ProfileScreen({
     setEventEndDate,
     setEventEndDateValue,
     setEventDescription,
+    setEventUpdateMessage,
     setEventEndTime,
     setEventImageUri,
     setEventIsFree,
@@ -338,8 +340,11 @@ export default function ProfileScreen({
     createRewardError,
     createRewardOpen,
     creatingReward,
+    isEditingReward,
     openCreateReward,
+    openEditReward,
     rewardDescription,
+    rewardUpdateMessage,
     rewardAvailability,
     rewardPlaceQuery,
     rewardPlaceSearchError,
@@ -352,6 +357,7 @@ export default function ProfileScreen({
     selectRewardPlace,
     setCreateRewardOpen,
     setRewardDescription,
+    setRewardUpdateMessage,
     setRewardPlaceQuery,
     setRewardTitle,
     setRewardQc,
@@ -940,6 +946,7 @@ export default function ProfileScreen({
         eventEndDate={eventEndDate}
         eventEndDateValue={eventEndDateValue}
         eventDescription={eventDescription}
+        eventUpdateMessage={eventUpdateMessage}
         eventEndTime={eventEndTime}
         eventImageUri={eventImageUri}
         eventIsFree={eventIsFree}
@@ -950,6 +957,7 @@ export default function ProfileScreen({
         onChangeCalendarMonth={setCalendarMonth}
         onChangeEventCategory={setEventCategory}
         onChangeEventDescription={setEventDescription}
+        onChangeEventUpdateMessage={setEventUpdateMessage}
         onChangeEventEndTime={setEventEndTime}
         onChangeEventIsFree={setEventIsFree}
         onChangeEventTime={setEventTime}
@@ -1014,11 +1022,13 @@ export default function ProfileScreen({
       <CreateRewardModal
         createRewardError={createRewardError}
         creatingReward={creatingReward}
+        isEditingReward={isEditingReward}
         onChangeRewardAvailableEndTime={setRewardAvailableEndTime}
         onChangeRewardAvailableFrom={setRewardAvailableFrom}
         onChangeRewardAvailableStartTime={setRewardAvailableStartTime}
         onChangeRewardAvailableUntil={setRewardAvailableUntil}
         onChangeRewardDescription={setRewardDescription}
+        onChangeRewardUpdateMessage={setRewardUpdateMessage}
         onChangeRewardPlaceQuery={setRewardPlaceQuery}
         onChangeRewardTitle={setRewardTitle}
         onChangeRewardQc={setRewardQc}
@@ -1031,6 +1041,7 @@ export default function ProfileScreen({
         organizerName={fullName || 'CultureQuest organiser'}
         rewardAvailability={rewardAvailability}
         rewardDescription={rewardDescription}
+        rewardUpdateMessage={rewardUpdateMessage}
         rewardPlaceQuery={rewardPlaceQuery}
         rewardPlaceSearchError={rewardPlaceSearchError}
         rewardPlaceSuggestions={rewardPlaceSuggestions}
@@ -1159,6 +1170,10 @@ export default function ProfileScreen({
 
       <OrganizerRewardHistoryModal
         onClose={() => setOrganizerRewardsHistoryOpen(false)}
+        onEditReward={(reward) => {
+          setOrganizerRewardsHistoryOpen(false);
+          openEditReward(reward);
+        }}
         rewards={myOrganizerRewards}
         stableModalTopInset={stableModalTopInset}
         visible={organizerRewardsHistoryOpen}

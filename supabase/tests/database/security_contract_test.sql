@@ -1,6 +1,6 @@
 begin;
 
-select plan(31);
+select plan(34);
 
 select ok(
   to_regprocedure('public.get_my_digital_passport_progress()') is not null,
@@ -234,6 +234,36 @@ select is(
 select ok(
   to_regprocedure('public.check_in_at_event(uuid,double precision,double precision)') is null,
   'the retired legacy event check-in RPC is removed'
+);
+
+select ok(
+  exists (
+    select 1 from information_schema.columns
+    where table_schema = 'public'
+      and table_name = 'organizer_events'
+      and column_name = 'organizer_update_message'
+  ),
+  'event revisions can retain an organizer message until approval'
+);
+
+select ok(
+  exists (
+    select 1 from information_schema.columns
+    where table_schema = 'public'
+      and table_name = 'organizer_rewards'
+      and column_name = 'review_previous_snapshot'
+  ),
+  'reward revisions retain a review snapshot'
+);
+
+select ok(
+  exists (
+    select 1 from pg_trigger
+    where tgrelid = 'public.organizer_rewards'::regclass
+      and tgname = 'organizer_rewards_force_review_on_owner_update'
+      and not tgisinternal
+  ),
+  'organizer reward updates are forced back into review'
 );
 
 select * from finish();

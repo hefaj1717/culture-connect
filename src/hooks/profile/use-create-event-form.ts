@@ -42,6 +42,7 @@ export function useCreateEventForm({
   const [eventEndTime, setEventEndTime] = useState('');
   const [eventTime, setEventTime] = useState('');
   const [eventDescription, setEventDescription] = useState('');
+  const [eventUpdateMessage, setEventUpdateMessage] = useState('');
   const [eventImageUri, setEventImageUri] = useState<string | null>(null);
   const [eventIsFree, setEventIsFree] = useState(true);
   const [createEventError, setCreateEventError] = useState<string | null>(null);
@@ -114,6 +115,7 @@ export function useCreateEventForm({
     setEventEndTime('');
     setEventTime('');
     setEventDescription('');
+    setEventUpdateMessage('');
     setEventImageUri(null);
     setEventIsFree(true);
     setCreateEventError(null);
@@ -157,6 +159,7 @@ export function useCreateEventForm({
     setEventEndTime(event.endTime ?? '');
     setEventTime(event.time);
     setEventDescription(event.description);
+    setEventUpdateMessage('');
     setEventImageUri(event.imageUrl ?? null);
     setEventIsFree(event.isFree);
     setCreateEventError(null);
@@ -204,6 +207,7 @@ export function useCreateEventForm({
     const normalizedEndTime = eventEndTime.trim();
     const normalizedTime = eventTime.trim();
     const normalizedDescription = limitText(eventDescription.trim(), textLimits.eventDescription);
+    const normalizedUpdateMessage = limitText(eventUpdateMessage.trim(), textLimits.organizerNote);
     const startsAt = eventDateValue ? buildLocalEventDate(eventDateValue, normalizedTime) : null;
     const endsAt = eventEndDateValue ? buildLocalEventDate(eventEndDateValue, normalizedEndTime) : null;
 
@@ -262,6 +266,7 @@ export function useCreateEventForm({
             ...input,
             currentImageUrl: editingEvent.imageUrl ?? null,
             eventId: editingEvent.id,
+            organizerUpdateMessage: normalizedUpdateMessage || null,
           })
         : await createOrganizerEvent(userId, input);
     } finally {
@@ -319,6 +324,7 @@ export function useCreateEventForm({
     eventEndDate,
     eventEndDateValue,
     eventDescription,
+    eventUpdateMessage,
     eventImageUri,
     eventIsFree,
     eventTime,
@@ -350,6 +356,7 @@ export function useCreateEventForm({
     setEventEndDate,
     setEventEndDateValue,
     setEventDescription: changeEventDescription,
+    setEventUpdateMessage: (value: string) => setEventUpdateMessage(limitText(value, textLimits.organizerNote)),
     setEventEndTime,
     setEventImageUri,
     setEventIsFree,
