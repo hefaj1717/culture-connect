@@ -831,7 +831,7 @@ export default function ProfileScreen({
       <BadgesModal
         badges={passportBadges}
         gesture={passportSwipeGesture}
-        itemWidth={112}
+        itemWidth={100}
         onClose={closePassportWithAnimation}
         onSelectBadge={setSelectedPassportBadge}
         selectedBadge={selectedPassportBadge}
