@@ -50,6 +50,7 @@ import type {
   AdminManagedReward,
   RewardPartnerStatus,
 } from '@/lib/admin-moderation';
+import { buildEditedEventTimestamp } from '@/lib/event-date-time';
 import type { OrganizerEventStatus } from '@/lib/organizer-events';
 import { organizerProfileFromEvent, type OrganizerProfile } from '@/lib/organizer-profiles';
 import {
@@ -113,6 +114,7 @@ type AdminManageEventsModalProps = {
       category: EventCategory;
       date: string;
       description: string;
+      endDate: string;
       endTime?: string | null;
       organizerMessage?: string | null;
       status: OrganizerEventStatus;
@@ -122,6 +124,8 @@ type AdminManageEventsModalProps = {
       venueName: string;
       xpBonus: number;
       qcBonus: number;
+      startsAt: string;
+      endsAt: string;
     },
   ) => Promise<{ success: boolean }>;
   onSaveReward: (
@@ -406,7 +410,9 @@ export function AdminManageEventsModal({
                   <AdminEventEditor
                     event={visibleSelectedEvent}
                     onBack={closeDetailWithAnimation}
-                    onDelete={(organizerMessage) => onDeleteEvent(visibleSelectedEvent.databaseId, organizerMessage)}
+                    onDelete={(organizerMessage) =>
+                      onDeleteEvent(visibleSelectedEvent.databaseId, organizerMessage)
+                    }
                     onOpenOrganizer={() => openOrganizerProfile(visibleSelectedEvent)}
                     onSave={onSaveEvent}
                     saving={savingEventId === visibleSelectedEvent.databaseId}
@@ -745,6 +751,7 @@ function AdminEventEditor({
   const [category, setCategory] = useState<EventCategory>(event.category);
   const [date, setDate] = useState(event.date);
   const [description, setDescription] = useState(event.description);
+  const [endDate, setEndDate] = useState(event.endDate ?? event.date);
   const [endTime, setEndTime] = useState(event.endTime ?? '');
   const [organizerMessage, setOrganizerMessage] = useState('');
   const [status, setStatus] = useState<OrganizerEventStatus>(event.reviewStatus);
@@ -759,6 +766,7 @@ function AdminEventEditor({
     setCategory(event.category);
     setDate(event.date);
     setDescription(event.description);
+    setEndDate(event.endDate ?? event.date);
     setEndTime(event.endTime ?? '');
     setOrganizerMessage('');
     setStatus(event.reviewStatus);
@@ -774,13 +782,40 @@ function AdminEventEditor({
     const parsedXp = Number.parseInt(xpBonus, 10);
     const parsedQc = Number.parseInt(qcBonus, 10);
 
-    if (!title.trim() || !venueName.trim() || !date.trim() || !time.trim()) {
-      Alert.alert('Missing details', 'Title, venue, date, and start time are required.');
+    if (
+      !title.trim() ||
+      !venueName.trim() ||
+      !date.trim() ||
+      !endDate.trim() ||
+      !time.trim() ||
+      !endTime.trim()
+    ) {
+      Alert.alert(
+        'Missing details',
+        'Title, venue, start and end dates, and both times are required.',
+      );
       return;
     }
 
-    if (!Number.isFinite(parsedXp) || parsedXp < 0 || parsedXp > 5000 || !Number.isFinite(parsedQc) || parsedQc < 0 || parsedQc > 500) {
-      Alert.alert('Invalid XP', 'XP must be a number between 0 and 5000.');
+    if (
+      !Number.isFinite(parsedXp) ||
+      parsedXp < 0 ||
+      parsedXp > 500 ||
+      !Number.isFinite(parsedQc) ||
+      parsedQc < 0 ||
+      parsedQc > 500
+    ) {
+      Alert.alert('Invalid rewards', 'XP and QC must each be between 0 and 500.');
+      return;
+    }
+
+    const startsAt = buildEditedEventTimestamp(date, time, event.startsAt);
+    const endsAt = buildEditedEventTimestamp(endDate, endTime, event.endsAt ?? event.startsAt);
+    if (!startsAt || !endsAt || Date.parse(endsAt) <= Date.parse(startsAt)) {
+      Alert.alert(
+        'Invalid schedule',
+        'Use dates like “Fri, Sep 18” and make the end later than the start.',
+      );
       return;
     }
 
@@ -788,7 +823,9 @@ function AdminEventEditor({
       category,
       date: date.trim(),
       description: description.trim(),
+      endDate: endDate.trim(),
       endTime: endTime.trim() || null,
+      endsAt,
       organizerMessage: organizerMessage.trim() || null,
       status,
       time: time.trim(),
@@ -797,6 +834,7 @@ function AdminEventEditor({
       venueName: venueName.trim(),
       xpBonus: parsedXp,
       qcBonus: parsedQc,
+      startsAt,
     });
 
     if (result.success) {
@@ -879,14 +917,32 @@ function AdminEventEditor({
               value={time}
             />
           </View>
-          <AdminTextField label="End time" onChangeText={setEndTime} value={endTime} />
+          <View className="flex-row gap-3">
+            <AdminTextField
+              containerClassName="flex-1"
+              label="End date"
+              onChangeText={setEndDate}
+              value={endDate}
+            />
+            <AdminTextField
+              containerClassName="flex-1"
+              label="End time"
+              onChangeText={setEndTime}
+              value={endTime}
+            />
+          </View>
           <AdminTextField
             keyboardType="number-pad"
             label="XP awarded"
             onChangeText={setXpBonus}
             value={xpBonus}
           />
-          <AdminTextField keyboardType="number-pad" label="QC awarded" onChangeText={setQcBonus} value={qcBonus} />
+          <AdminTextField
+            keyboardType="number-pad"
+            label="QC awarded"
+            onChangeText={setQcBonus}
+            value={qcBonus}
+          />
           <AdminTextField
             label="Description"
             multiline

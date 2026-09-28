@@ -242,7 +242,9 @@ export function useAdminModeration({
       category: EventCategory;
       date: string;
       description: string;
+      endDate: string;
       endTime?: string | null;
+      endsAt: string;
       organizerMessage?: string | null;
       status: OrganizerEventStatus;
       time: string;
@@ -251,6 +253,7 @@ export function useAdminModeration({
       venueName: string;
       xpBonus: number;
       qcBonus: number;
+      startsAt: string;
     },
   ) {
     if (!userId) {
