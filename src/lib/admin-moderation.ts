@@ -373,7 +373,9 @@ export async function updateAdminManagedEvent({
     category: EventCategory;
     date: string;
     description: string;
+    endDate: string;
     endTime?: string | null;
+    endsAt: string;
     organizerMessage?: string | null;
     status: OrganizerEventStatus;
     time: string;
@@ -382,6 +384,7 @@ export async function updateAdminManagedEvent({
     venueName: string;
     xpBonus: number;
     qcBonus: number;
+    startsAt: string;
   };
 }) {
   const { error } = await supabase
@@ -390,7 +393,9 @@ export async function updateAdminManagedEvent({
       category: input.category,
       date_label: input.date,
       description: input.description,
+      end_date_label: input.endDate,
       end_time_label: input.endTime,
+      ends_at: input.endsAt,
       moderation_message:
         input.organizerMessage?.trim() || 'A CultureQuest administrator updated your event.',
       rejection_reason: input.status === 'rejected' ? 'Rejected by CultureQuest admin.' : null,
@@ -403,6 +408,7 @@ export async function updateAdminManagedEvent({
       venue_name: input.venueName,
       xp_bonus: input.xpBonus,
       qc_bonus: input.qcBonus,
+      starts_at: input.startsAt,
     })
     .eq('id', eventId);
 
