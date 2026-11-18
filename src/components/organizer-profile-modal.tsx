@@ -230,7 +230,7 @@ export function OrganizerProfileModal({
 
   const content = (
     <GestureDetector gesture={swipeGesture}>
-      <Animated.View className="flex-1 bg-canvas" style={swipeStyle}>
+      <Animated.View className="flex-1 bg-canvas" style={swipeStyle} testID="organizer.detail">
         <ScrollView
           className="flex-1 bg-canvas"
           contentContainerStyle={{
@@ -242,6 +242,7 @@ export function OrganizerProfileModal({
           <View className="px-5">
             <Pressable
               onPress={closeWithAnimation}
+              testID="organizer.close"
               className="mb-5 h-12 w-12 items-center justify-center rounded-full active:opacity-80"
               style={{ backgroundColor: Colors.light.backgroundElement }}
             >
@@ -467,7 +468,9 @@ function OrganizerProfileEventRow({
 }) {
   return (
     <Pressable
+      accessibilityLabel={`Open event ${event.title}`}
       onPress={onPress}
+      testID={`organizer.event.${event.id}`}
       className="flex-row items-center gap-3 rounded-feature p-3 active:opacity-85"
       style={[CardStyles.compact, { backgroundColor: Colors.light.backgroundElement }]}
     >

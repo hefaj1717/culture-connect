@@ -1,0 +1,38 @@
+appId: host.exp.exponent
+name: Event organizer event back stack stays intact
+tags:
+  - local
+  - navigation
+---
+# Flow 02 leaves the seeded student authenticated. Continue in the same app
+# instance so this flow exercises navigation rather than Expo Go startup.
+- extendedWaitUntil:
+    visible:
+      id: app.authenticated
+    timeout: 30000
+- tapOn:
+    id: tab.discover
+- extendedWaitUntil:
+    visible: E2E Live Culture Night
+    timeout: 30000
+- tapOn: E2E Live Culture Night
+- scrollUntilVisible:
+    element:
+      id: event.organizer
+    direction: DOWN
+- tapOn:
+    id: event.organizer
+- assertVisible:
+    id: organizer.detail
+- scrollUntilVisible:
+    element: E2E Upcoming Exhibition
+    direction: DOWN
+- tapOn: E2E Upcoming Exhibition
+- assertVisible: E2E Upcoming Exhibition
+- tapOn:
+    id: event.close
+- assertVisible:
+    id: organizer.detail
+- tapOn:
+    id: organizer.close
+- assertVisible: E2E Live Culture Night

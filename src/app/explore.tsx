@@ -69,6 +69,8 @@ const audienceFilters = [
   { key: 'tonight', label: 'Tonight' },
 ];
 const EVENT_CHECK_IN_RADIUS_METERS = 500;
+const E2E_MODE = process.env.EXPO_PUBLIC_E2E_MODE === 'true';
+const E2E_CHECK_IN_CODE = process.env.EXPO_PUBLIC_E2E_EVENT_CODE;
 
 export type EventCheckInResult = {
   duplicate?: boolean;
@@ -367,7 +369,7 @@ export default function ExploreScreen({
   }, [displayedOrganizerProfiles, selectedEventFromStore]);
 
   return (
-    <View className="flex-1 bg-canvas">
+    <View className="flex-1 bg-canvas" testID="discover.screen">
       <ScrollView
         className="flex-1"
         contentContainerStyle={{ paddingBottom: 112 }}
@@ -455,6 +457,7 @@ export default function ExploreScreen({
                 </View>
 
                 <Pressable
+                  testID={`event.card.${featuredEvent.id}`}
                   onPress={() => {
                     Keyboard.dismiss();
                     setSelectedEvent(featuredEvent);
@@ -572,6 +575,7 @@ export default function ExploreScreen({
                     return (
                       <Pressable
                         key={event.id}
+                        testID={`event.card.${event.id}`}
                         onPress={() => {
                           Keyboard.dismiss();
                           setSelectedEvent(event);
@@ -1034,6 +1038,20 @@ export function EventDetailModal({
     setTimeout(() => setScanLocked(false), 1400);
   }
 
+  async function handleE2ECheckIn() {
+    if (!E2E_MODE || !E2E_CHECK_IN_CODE || !activeEvent || !verifiedVenue) return;
+
+    setCheckingLocation(true);
+    setLocationMessage(null);
+    const result = await onCheckIn(activeEvent, E2E_CHECK_IN_CODE, verifiedVenue.coordinates);
+    setCheckingLocation(false);
+    setLocationMessage(
+      result.success
+        ? getCheckInResultMessage(activeEvent, result)
+        : result.error ?? 'E2E check-in failed.',
+    );
+  }
+
   async function handleStatusToggle(nextStatus: 'interested' | 'going') {
     if (!activeEvent || statusActionPending) return;
 
@@ -1073,7 +1091,7 @@ export function EventDetailModal({
       ) : null}
       <GestureDetector gesture={swipeGesture}>
         <Animated.View className="flex-1 bg-canvas" style={swipeStyle}>
-          <View className="flex-1 bg-canvas">
+          <View className="flex-1 bg-canvas" testID="event.detail">
             <ScrollView
               className="flex-1"
               contentContainerStyle={{ paddingBottom: insets.bottom + 30 }}
@@ -1090,6 +1108,8 @@ export function EventDetailModal({
                   withTextGradient
                 />
                 <Pressable
+                  accessibilityLabel="Close event"
+                  testID="event.close"
                   onPress={closeWithAnimation}
                   className="absolute left-5 h-10 w-10 items-center justify-center rounded-full bg-black/30 active:opacity-80"
                   style={{ top: stableTopInset + 6 }}
@@ -1138,6 +1158,7 @@ export function EventDetailModal({
                       />
                     }
                     label="Interested"
+                    testID="event.rsvp.interested"
                     onPress={() => handleStatusToggle('interested')}
                   />
                   <StatusButton
@@ -1150,6 +1171,7 @@ export function EventDetailModal({
                       />
                     }
                     label="Going"
+                    testID="event.rsvp.going"
                     onPress={() => handleStatusToggle('going')}
                   />
                 </View>
@@ -1227,6 +1249,7 @@ export function EventDetailModal({
                   {activeOrganizerProfile ? (
                     <Pressable
                       onPress={openOrganizerProfile}
+                      testID="event.organizer"
                       className="flex-row items-center gap-3 rounded-feature p-3 active:opacity-85"
                       style={{ backgroundColor: Colors.light.backgroundElement }}
                     >
@@ -1286,6 +1309,7 @@ export function EventDetailModal({
                     <Pressable
                       onPress={openScanner}
                       disabled={checkingLocation || checkInWindowState !== 'open'}
+                      testID="event.check-in.open-scanner"
                       className="h-[52px] flex-row items-center justify-center gap-2 rounded-xl bg-primary active:opacity-85 disabled:opacity-60"
                     >
                       <QrCode size={19} color="white" strokeWidth={2.4} />
@@ -1299,6 +1323,19 @@ export function EventDetailModal({
                               : 'Scan event QR'}
                       </Text>
                     </Pressable>
+                    {E2E_MODE && E2E_CHECK_IN_CODE && checkInWindowState === 'open' ? (
+                      <Pressable
+                        accessibilityLabel="Run E2E event check-in"
+                        className="mt-3 h-[44px] items-center justify-center rounded-xl border border-primary/20 bg-primary/5 active:opacity-85"
+                        disabled={checkingLocation}
+                        onPress={handleE2ECheckIn}
+                        testID="event.check-in.e2e"
+                      >
+                        <Text className="text-[13px] font-bold text-primary">
+                          Verify seeded E2E check-in
+                        </Text>
+                      </Pressable>
+                    ) : null}
                   </>
                 )}
               </View>
@@ -1404,17 +1441,20 @@ function StatusButton({
   icon,
   label,
   onPress,
+  testID,
 }: {
   active: boolean;
   disabled?: boolean;
   icon: React.ReactNode;
   label: string;
   onPress: () => void;
+  testID?: string;
 }) {
   return (
     <Pressable
       disabled={disabled}
       onPress={onPress}
+      testID={testID}
       className={`h-11 flex-1 flex-row items-center justify-center gap-2 rounded-xl ${
         active ? 'bg-primary' : ''
       } ${disabled ? 'opacity-55' : ''}`}

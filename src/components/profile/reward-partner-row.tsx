@@ -38,7 +38,9 @@ export function RewardPartnerRow({
 
   return (
     <Pressable
+      accessibilityLabel={`Open reward ${reward.discount}`}
       onPress={onPress}
+      testID={`reward.card.${reward.id}`}
       className={`rounded-[26px] border p-3 active:opacity-85 ${
         rowState === 'ready'
           ? 'border-accent/30 bg-accent/10'

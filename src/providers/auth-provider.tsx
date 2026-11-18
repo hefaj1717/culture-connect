@@ -5,6 +5,7 @@ import { createContext, useCallback, useContext, useEffect, useState, type React
 
 import { limitText, textLimits } from '@/constants/text-limits';
 import { type CityId, defaultCityId } from '@/data/culture';
+import { deleteCurrentAccount } from '@/lib/account-deletion';
 import { getNetworkAwareErrorMessage, OFFLINE_ERROR_MESSAGE } from '@/lib/network-errors';
 import { supabase } from '@/lib/supabase';
 
@@ -58,6 +59,7 @@ type AuthContextValue = {
     organizerLocationLongitude?: number | null;
     organizerLocationName?: string | null;
   }) => Promise<{ error: string | null }>;
+  deleteAccount: () => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
 };
 
@@ -129,20 +131,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     }
 
-    supabase.auth.getSession().then(({ data, error }) => {
-      setSession(data.session);
-      if (error) {
-        setAuthError(getNetworkAwareErrorMessage(error.message));
-      }
-      setLoading(false);
-    }).catch(() => {
-      setAuthError(OFFLINE_ERROR_MESSAGE);
-      setLoading(false);
-    });
+    supabase.auth
+      .getSession()
+      .then(({ data, error }) => {
+        setSession(data.session);
+        if (error) {
+          setAuthError(getNetworkAwareErrorMessage(error.message));
+        }
+        setLoading(false);
+      })
+      .catch(() => {
+        setAuthError(OFFLINE_ERROR_MESSAGE);
+        setLoading(false);
+      });
 
-    Linking.getInitialURL().then(handleAuthUrl).catch(() => {
-      setAuthError('Could not finish the sign-in link. Please try again.');
-    });
+    Linking.getInitialURL()
+      .then(handleAuthUrl)
+      .catch(() => {
+        setAuthError('Could not finish the sign-in link. Please try again.');
+      });
     const linkingSubscription = Linking.addEventListener('url', ({ url }) => {
       handleAuthUrl(url);
     });
@@ -467,6 +474,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await supabase.auth.signOut();
   }
 
+  async function deleteAccount() {
+    return deleteCurrentAccount();
+  }
+
   return (
     <AuthContext.Provider
       value={{
@@ -484,6 +495,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         verifySignUpCode,
         resendSignUpCode,
         updateProfile,
+        deleteAccount,
         signOut,
       }}
     >

@@ -331,7 +331,7 @@ export function AuthScreen() {
         keyboardShouldPersistTaps="handled"
         scrollIndicatorInsets={{ bottom: 44 }}
       >
-        <View className="flex-1 bg-white">
+        <View className="flex-1 bg-white" testID="auth.screen">
           <BrandImage
             source={require('@/assets/images/culture/hero-culture.jpg')}
             withTextGradient
@@ -722,6 +722,7 @@ export function AuthScreen() {
             {mode !== 'confirmSignUp' && (
               <AuthInput
                 inputRef={emailRef}
+                testID="auth.email"
                 value={email}
                 onChangeText={(value) => {
                   setEmail(limitText(value, textLimits.email));
@@ -748,6 +749,7 @@ export function AuthScreen() {
               <View className="relative">
                 <AuthInput
                   inputRef={passwordRef}
+                  testID="auth.password"
                   value={password}
                   onChangeText={(value) => {
                     setPassword(limitText(value, textLimits.password));
@@ -791,6 +793,7 @@ export function AuthScreen() {
             <Pressable
               accessibilityRole="button"
               accessibilityState={{ busy: loading, disabled: loading }}
+              testID="auth.submit"
               onPress={mode === 'confirmSignUp' ? handleConfirmCode : handleSubmit}
               disabled={loading}
               className="mb-4 h-[52px] items-center justify-center rounded-xl bg-primary active:opacity-80"
@@ -824,6 +827,7 @@ export function AuthScreen() {
 
             <Pressable
               accessibilityRole="button"
+              testID="auth.toggle-mode"
               onPress={() => {
                 setError(null);
                 setFieldErrors({});

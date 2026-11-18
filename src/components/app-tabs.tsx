@@ -419,7 +419,7 @@ function AuthenticatedTabs() {
   }));
 
   return (
-    <View className="flex-1 bg-white">
+    <View className="flex-1 bg-white" testID="app.authenticated">
       <StatusBar style={activeIndex === 0 ? 'light' : 'dark'} />
       {userStateError && (
         <ErrorState
@@ -648,6 +648,7 @@ function TabButton({
       accessibilityLabel={`${label}, tab ${position} of ${TAB_COUNT}`}
       accessibilityRole="tab"
       accessibilityState={{ selected: active }}
+      testID={`tab.${label.toLowerCase()}`}
       onPress={onPress}
       className="items-center justify-center gap-1"
       style={{ minWidth }}

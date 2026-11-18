@@ -1,6 +1,16 @@
 import { Image } from 'expo-image';
 import * as Location from 'expo-location';
-import { ArrowRight, Bell, CheckCircle2, Globe, LockKeyhole, Move, User, Users, X } from 'lucide-react-native';
+import {
+  ArrowRight,
+  Bell,
+  CheckCircle2,
+  Globe,
+  LockKeyhole,
+  Move,
+  User,
+  Users,
+  X,
+} from 'lucide-react-native';
 import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import MapView, { Marker } from 'react-native-maps';
@@ -11,12 +21,7 @@ import { BrandImage } from '@/components/brand-image';
 import { UniversityProfileModal } from '@/components/university-profile-modal';
 import { CardStyles, Colors } from '@/constants/theme';
 import { cultureMapStyle } from '@/constants/map-style';
-import {
-  type CultureCityData,
-  type CultureEvent,
-  getCultureCityData,
-  languageLabels,
-} from '@/data/culture';
+import { type CultureCityData, type CultureEvent, getCultureCityData } from '@/data/culture';
 import { getEventEngagement } from '@/lib/event-engagement';
 import {
   EMPTY_CITY_ACTIVITY_BASELINE,
@@ -97,7 +102,9 @@ export default function HomeScreen({
   const [activityBaseline, setActivityBaseline] = useState<CityActivityBaseline>(
     EMPTY_CITY_ACTIVITY_BASELINE,
   );
-  const [selectedUniversity, setSelectedUniversity] = useState<UniversityLeaderboardRow | null>(null);
+  const [selectedUniversity, setSelectedUniversity] = useState<UniversityLeaderboardRow | null>(
+    null,
+  );
   const [selectedUniversityProfile, setSelectedUniversityProfile] =
     useState<UniversityProfileSummary | null>(null);
   const [selectedUniversityError, setSelectedUniversityError] = useState<string | null>(null);
@@ -129,7 +136,10 @@ export default function HomeScreen({
       onInsert: (incomingNotification) => {
         setNotificationsError(null);
         setNotifications((current) =>
-          [incomingNotification, ...current.filter((notification) => notification.id !== incomingNotification.id)].sort(
+          [
+            incomingNotification,
+            ...current.filter((notification) => notification.id !== incomingNotification.id),
+          ].sort(
             (first, second) =>
               new Date(second.createdAt).getTime() - new Date(first.createdAt).getTime(),
           ),
@@ -182,56 +192,53 @@ export default function HomeScreen({
     setNotificationsOpen(true);
   }
 
-  const markNotificationRead = useCallback(
-    async (notification: UserNotification) => {
-      if (notification.readAt) return true;
-      if (notificationReadPendingIdsRef.current.has(notification.id)) return false;
+  const markNotificationRead = useCallback(async (notification: UserNotification) => {
+    if (notification.readAt) return true;
+    if (notificationReadPendingIdsRef.current.has(notification.id)) return false;
 
-      setNotificationReadError(null);
-      notificationReadPendingIdsRef.current.add(notification.id);
-      setNotificationReadPendingIds((current) => [...current, notification.id]);
+    setNotificationReadError(null);
+    notificationReadPendingIdsRef.current.add(notification.id);
+    setNotificationReadPendingIds((current) => [...current, notification.id]);
 
-      const result = await markNotificationReadWithRollback({
-        notification,
-        persist: markUserNotificationsRead,
-        applyOptimisticRead: (readAt) => {
-          setNotifications((current) =>
-            current.map((currentNotification) =>
-              currentNotification.id === notification.id
-                ? { ...currentNotification, readAt }
-                : currentNotification,
-            ),
-          );
-        },
-        rollback: () => {
-          setNotifications((current) =>
-            current.map((currentNotification) =>
-              currentNotification.id === notification.id
-                ? { ...currentNotification, readAt: notification.readAt }
-                : currentNotification,
-            ),
-          );
-        },
+    const result = await markNotificationReadWithRollback({
+      notification,
+      persist: markUserNotificationsRead,
+      applyOptimisticRead: (readAt) => {
+        setNotifications((current) =>
+          current.map((currentNotification) =>
+            currentNotification.id === notification.id
+              ? { ...currentNotification, readAt }
+              : currentNotification,
+          ),
+        );
+      },
+      rollback: () => {
+        setNotifications((current) =>
+          current.map((currentNotification) =>
+            currentNotification.id === notification.id
+              ? { ...currentNotification, readAt: notification.readAt }
+              : currentNotification,
+          ),
+        );
+      },
+    });
+
+    notificationReadPendingIdsRef.current.delete(notification.id);
+    setNotificationReadPendingIds((current) =>
+      current.filter((notificationId) => notificationId !== notification.id),
+    );
+
+    if (result.error) {
+      setNotificationReadError({
+        eventId: notification.eventId,
+        notificationId: notification.id,
+        message: result.error,
       });
+      return false;
+    }
 
-      notificationReadPendingIdsRef.current.delete(notification.id);
-      setNotificationReadPendingIds((current) =>
-        current.filter((notificationId) => notificationId !== notification.id),
-      );
-
-      if (result.error) {
-        setNotificationReadError({
-          eventId: notification.eventId,
-          notificationId: notification.id,
-          message: result.error,
-        });
-        return false;
-      }
-
-      return true;
-    },
-    [],
-  );
+    return true;
+  }, []);
 
   useEffect(() => {
     if (!notificationsOpen || notificationsLoading) return;
@@ -559,18 +566,14 @@ export default function HomeScreen({
                       <Text className="text-[12px] font-bold text-primary">
                         +{event.xpBonus} XP
                       </Text>
-                      <Text className="text-[12px] font-extrabold text-accent">+{event.qcBonus} QC</Text>
+                      <Text className="text-[12px] font-extrabold text-accent">
+                        +{event.qcBonus} QC
+                      </Text>
                       {event.isFree && (
                         <View className="rounded-full bg-success/10 px-1.5 py-0.5">
                           <Text className="text-[10px] font-bold text-success">Free</Text>
                         </View>
                       )}
-                      <View className="flex-row items-center gap-1">
-                        <Globe size={12} color={Colors.light.textSecondary} />
-                        <Text className="text-[11px] font-medium text-muted">
-                          {languageLabels[event.language]}
-                        </Text>
-                      </View>
                     </View>
                   </View>
                 </Pressable>

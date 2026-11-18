@@ -107,11 +107,12 @@ export function RewardDetailModal({
     <Modal animationType="slide" transparent onRequestClose={onClose} visible={!!reward}>
       {reward && (
         <GestureDetector gesture={gesture}>
-          <Animated.View className="flex-1 bg-canvas" style={swipeStyle}>
+          <Animated.View className="flex-1 bg-canvas" style={swipeStyle} testID="reward.detail">
             <SafeAreaView className="flex-1 bg-canvas" edges={['bottom']}>
               <View className="bg-canvas px-5 pb-3" style={{ paddingTop: stableTopInset + 8 }}>
                 <Pressable
                   onPress={onClose}
+                  testID="reward.close"
                   className="h-10 w-10 items-center justify-center rounded-full bg-gray-100 active:opacity-80"
                   accessibilityRole="button"
                   accessibilityLabel="Close reward"
@@ -324,6 +325,7 @@ export function RewardDetailModal({
                 <Pressable
                   onPress={onRedeem}
                   disabled={redeemDisabled}
+                  testID="reward.redeem"
                   className="h-[54px] items-center justify-center rounded-2xl active:opacity-85"
                   style={{
                     backgroundColor: redeemDisabled ? '#E5E0EA' : Colors.light.primary,

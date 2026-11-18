@@ -12,9 +12,11 @@
     "scheme": "cultureconnectrn",
     "userInterfaceStyle": "automatic",
     "ios": {
+      "bundleIdentifier": "com.usek17.culturequest",
       "icon": "./assets/expo.icon"
     },
     "android": {
+      "package": "com.usek17.culturequest",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
