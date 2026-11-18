@@ -12,6 +12,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import type { ScrollViewInstance } from 'react-native';
 import { GestureDetector } from 'react-native-gesture-handler';
 import Animated from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -98,7 +99,7 @@ export function EditProfileModal({
   visible,
 }: EditProfileModalProps) {
   const stableTopInset = useStableTopInset();
-  const scrollViewRef = useRef<ScrollView>(null);
+  const scrollViewRef = useRef<ScrollViewInstance>(null);
   const universityOptions = getUniversitiesForCity(cityId);
   const {
     closeWithAnimation,

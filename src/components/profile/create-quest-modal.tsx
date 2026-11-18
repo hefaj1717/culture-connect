@@ -14,6 +14,7 @@ import {
   TextInput,
   View,
   type ViewStyle,
+  type ScrollViewInstance,
 } from 'react-native';
 import { GestureDetector, type GestureType } from 'react-native-gesture-handler';
 import Animated, { type AnimatedStyle } from 'react-native-reanimated';
@@ -96,7 +97,7 @@ export function CreateQuestModal({
   swipeStyle,
   visible,
 }: CreateQuestModalProps) {
-  const scrollViewRef = useRef<ScrollView>(null);
+  const scrollViewRef = useRef<ScrollViewInstance>(null);
 
   function focusFormArea(y: number) {
     setTimeout(() => {

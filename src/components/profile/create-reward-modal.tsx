@@ -12,6 +12,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import type { ScrollViewInstance } from 'react-native';
 import { GestureDetector } from 'react-native-gesture-handler';
 import Animated from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -107,7 +108,7 @@ export function CreateRewardModal({
   visible,
 }: CreateRewardModalProps) {
   const cityData = getCultureCityData(savedCityId);
-  const scrollViewRef = useRef<ScrollView>(null);
+  const scrollViewRef = useRef<ScrollViewInstance>(null);
   const [datePickerOpen, setDatePickerOpen] = useState(false);
   const [datePickerTarget, setDatePickerTarget] = useState<'from' | 'until'>('from');
   const [calendarMonth, setCalendarMonth] = useState(startOfMonth(new Date()));

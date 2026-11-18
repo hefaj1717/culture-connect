@@ -23,6 +23,7 @@ import {
   TextInput,
   View,
   type ViewStyle,
+  type ScrollViewInstance,
 } from 'react-native';
 import { GestureDetector, type GestureType } from 'react-native-gesture-handler';
 import Animated, { type AnimatedStyle } from 'react-native-reanimated';
@@ -184,7 +185,7 @@ export function CreateEventModal({
   visible,
 }: CreateEventModalProps) {
   const cityData = getCultureCityData(cityId);
-  const scrollViewRef = useRef<ScrollView>(null);
+  const scrollViewRef = useRef<ScrollViewInstance>(null);
 
   function focusFormArea(y: number) {
     setTimeout(() => {

@@ -13,6 +13,8 @@ import {
   Text,
   TextInput,
   View,
+  type ScrollViewInstance,
+  type TextInputInstance,
 } from 'react-native';
 
 import { BrandImage } from '@/components/brand-image';
@@ -41,12 +43,12 @@ const organizerTypes = [
 
 type AuthInputProps = TextInputProps & {
   inputClassName?: string;
-  inputRef?: ((node: TextInput | null) => void) | { current: TextInput | null };
+  inputRef?: ((node: TextInputInstance | null) => void) | { current: TextInputInstance | null };
   className?: string;
 };
 
 function AuthInput({ inputRef, inputClassName, className, ...props }: AuthInputProps) {
-  const internalRef = useRef<TextInput>(null);
+  const internalRef = useRef<TextInputInstance>(null);
 
   function focusInput() {
     internalRef.current?.focus();
@@ -78,17 +80,17 @@ function AuthInput({ inputRef, inputClassName, className, ...props }: AuthInputP
 export function AuthScreen() {
   const { authError, clearAuthError, signIn, signUp, verifySignUpCode, resendSignUpCode } = useAuth();
   const { isOffline } = useNetworkStatus();
-  const scrollViewRef = useRef<ScrollView>(null);
-  const confirmationCodeRef = useRef<TextInput>(null);
-  const firstNameRef = useRef<TextInput>(null);
-  const lastNameRef = useRef<TextInput>(null);
-  const institutionNameRef = useRef<TextInput>(null);
-  const websiteUrlRef = useRef<TextInput>(null);
-  const contactRoleRef = useRef<TextInput>(null);
-  const organizerNoteRef = useRef<TextInput>(null);
-  const studentEmailRef = useRef<TextInput>(null);
-  const emailRef = useRef<TextInput>(null);
-  const passwordRef = useRef<TextInput>(null);
+  const scrollViewRef = useRef<ScrollViewInstance>(null);
+  const confirmationCodeRef = useRef<TextInputInstance>(null);
+  const firstNameRef = useRef<TextInputInstance>(null);
+  const lastNameRef = useRef<TextInputInstance>(null);
+  const institutionNameRef = useRef<TextInputInstance>(null);
+  const websiteUrlRef = useRef<TextInputInstance>(null);
+  const contactRoleRef = useRef<TextInputInstance>(null);
+  const organizerNoteRef = useRef<TextInputInstance>(null);
+  const studentEmailRef = useRef<TextInputInstance>(null);
+  const emailRef = useRef<TextInputInstance>(null);
+  const passwordRef = useRef<TextInputInstance>(null);
   const [mode, setMode] = useState<'signIn' | 'signUp' | 'confirmSignUp'>('signIn');
   const [email, setEmail] = useState('');
   const [pendingEmail, setPendingEmail] = useState('');
@@ -131,7 +133,7 @@ export function AuthScreen() {
   };
   const cityUniversities = getUniversitiesForCity(cityId);
 
-  function keepInputAboveKeyboard(inputRef: React.RefObject<TextInput | null>) {
+  function keepInputAboveKeyboard(inputRef: React.RefObject<TextInputInstance | null>) {
     setTimeout(() => {
       const nodeHandle = findNodeHandle(inputRef.current);
       const scrollResponder = scrollViewRef.current as
