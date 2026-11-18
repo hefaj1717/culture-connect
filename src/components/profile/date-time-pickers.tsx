@@ -1,4 +1,5 @@
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { Pressable, ScrollView, View } from 'react-native';
+import { Text } from '@/components/ui/text';
 
 const monthNames = [
   'January',
@@ -46,25 +47,25 @@ export function DatePickerModal({
         <View className="mb-4 flex-row items-center justify-between">
           <Pressable
             onPress={() => onChangeMonth(addMonths(month, -1))}
-            className="h-9 w-9 items-center justify-center rounded-full bg-gray-100"
+            className="h-9 w-9 items-center justify-center rounded-full bg-subtle"
           >
-            <Text className="text-[20px] font-bold text-primary">{'‹'}</Text>
+            <Text className="text-title3 font-inter-semibold text-primary">{'‹'}</Text>
           </Pressable>
-          <Text className="text-[17px] font-extrabold text-ink">
+          <Text className="text-headline font-inter-bold text-ink">
             {monthNames[month.getMonth()]} {month.getFullYear()}
           </Text>
           <Pressable
             onPress={() => onChangeMonth(addMonths(month, 1))}
-            className="h-9 w-9 items-center justify-center rounded-full bg-gray-100"
+            className="h-9 w-9 items-center justify-center rounded-full bg-subtle"
           >
-            <Text className="text-[20px] font-bold text-primary">{'›'}</Text>
+            <Text className="text-title3 font-inter-semibold text-primary">{'›'}</Text>
           </Pressable>
         </View>
 
         <View className="mb-2 flex-row">
           {weekdayLabels.map((day) => (
             <Text
-              className="flex-1 text-center text-[11px] font-bold uppercase text-muted"
+              className="flex-1 text-center text-caption font-inter-semibold text-muted"
               key={day}
             >
               {day}
@@ -86,7 +87,7 @@ export function DatePickerModal({
               >
                 {date && (
                   <View className="h-9 w-9 items-center justify-center rounded-full bg-primary/10">
-                    <Text className="text-[13px] font-bold text-primary">{date.getDate()}</Text>
+                    <Text className="text-footnote font-inter-semibold text-primary">{date.getDate()}</Text>
                   </View>
                 )}
               </Pressable>
@@ -126,14 +127,14 @@ export function TimePickerModal({
       <Pressable className="absolute inset-0" onPress={onClose} />
       <View className="rounded-2xl bg-white p-4">
         <View className="mb-4 flex-row items-center justify-between">
-          <Text className="text-[19px] font-extrabold text-ink">Choose time</Text>
-          <Text className="text-[17px] font-extrabold text-primary">
+          <Text className="text-title3 font-inter-bold text-ink">Choose time</Text>
+          <Text className="text-headline font-inter-bold text-primary">
             {formatTimeUnit(hour)}:{formatTimeUnit(minute)}
           </Text>
         </View>
 
         <View className="mb-4 flex-row gap-3">
-          <ScrollView className="max-h-[220px] flex-1 rounded-xl bg-gray-100">
+          <ScrollView className="max-h-[220px] flex-1 rounded-xl bg-subtle">
             {timeHours.map((nextHour) => (
               <Pressable
                 key={nextHour}
@@ -143,7 +144,7 @@ export function TimePickerModal({
                 }`}
               >
                 <Text
-                  className={`text-[16px] font-bold ${
+                  className={`text-headline font-inter-semibold ${
                     hour === nextHour ? 'text-white' : 'text-ink'
                   }`}
                 >
@@ -153,7 +154,7 @@ export function TimePickerModal({
             ))}
           </ScrollView>
 
-          <ScrollView className="max-h-[220px] flex-1 rounded-xl bg-gray-100">
+          <ScrollView className="max-h-[220px] flex-1 rounded-xl bg-subtle">
             {timeMinutes.map((nextMinute) => (
               <Pressable
                 key={nextMinute}
@@ -163,7 +164,7 @@ export function TimePickerModal({
                 }`}
               >
                 <Text
-                  className={`text-[16px] font-bold ${
+                  className={`text-headline font-inter-semibold ${
                     minute === nextMinute ? 'text-white' : 'text-ink'
                   }`}
                 >
@@ -178,7 +179,7 @@ export function TimePickerModal({
           onPress={onConfirm}
           className="h-12 items-center justify-center rounded-xl bg-primary active:opacity-85"
         >
-          <Text className="text-[14px] font-semibold text-white">Set time</Text>
+          <Text className="text-body font-inter-semibold text-white">Set time</Text>
         </Pressable>
       </View>
     </View>

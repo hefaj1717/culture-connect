@@ -16,7 +16,6 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
-  Text,
   useWindowDimensions,
   View,
 } from 'react-native';
@@ -32,11 +31,12 @@ import Animated, {
 import { CardListSkeleton, EmptyState, ErrorState } from '@/components/async-state';
 import { BrandImage } from '@/components/brand-image';
 import { ScreenHeader } from '@/components/screen-header';
-import { CardStyles, Colors } from '@/constants/theme';
+import { Colors, Spacing } from '@/constants/theme';
 import { type CultureCityData, getCultureCityData } from '@/data/culture';
 import { useResponsiveLayout } from '@/hooks/use-responsive-layout';
 import { useStableTopInset } from '@/hooks/use-stable-safe-area';
 import { fetchApprovedQuests, type Quest, type QuestStop } from '@/lib/quests';
+import { Text } from '@/components/ui/text';
 
 type QuestsScreenProps = {
   cityData?: CultureCityData;
@@ -91,12 +91,12 @@ export default function QuestsScreen({
     <View className="flex-1 bg-canvas">
       <ScrollView
         className="flex-1"
-        contentContainerStyle={{ paddingBottom: 112 }}
+        contentContainerStyle={{ paddingBottom: 40 }}
         showsVerticalScrollIndicator={false}
       >
-        <View className="px-5" style={{ paddingTop: stableTopInset + 24 }}>
+        <View className="px-5" style={{ paddingTop: stableTopInset + Spacing.sm }}>
           <ScreenHeader title="Quests" />
-          <Text className="mb-3 text-[11px] font-semibold uppercase tracking-wide text-muted">
+          <Text className="mb-3 text-headline font-inter-semibold text-ink">
             Active paths
           </Text>
 
@@ -145,10 +145,9 @@ function QuestCard({ onPress, quest }: { onPress: () => void; quest: Quest }) {
   return (
     <Pressable
       onPress={onPress}
-      className="overflow-hidden rounded-3xl border border-primary/10 bg-surface active:opacity-90"
-      style={CardStyles.elevated}
+      className="overflow-hidden rounded-2xl border border-line bg-surface active:opacity-90"
     >
-      <View className="bg-gray-200" style={{ height: layout.isSmallPhone ? 126 : 142 }}>
+      <View className="bg-subtle" style={{ height: layout.isSmallPhone ? 126 : 142 }}>
         <BrandImage
           source={getQuestImageSource(quest.image, quest.imageUrl)}
           contentFit="cover"
@@ -156,16 +155,15 @@ function QuestCard({ onPress, quest }: { onPress: () => void; quest: Quest }) {
           withTextGradient
         >
           <View
-            className="absolute left-4 top-4 flex-row items-center gap-1.5 rounded-full px-3 py-1.5"
-            style={{ backgroundColor: Colors.light.background }}
+            className="absolute left-3 top-3 flex-row items-center gap-1.5 rounded-full bg-white px-2.5 py-1"
           >
-            <Route size={13} color={Colors.light.ink} strokeWidth={2.5} />
-            <Text className="text-[10px] font-extrabold uppercase tracking-wide text-ink">
+            <Route size={12} color={Colors.light.ink} strokeWidth={2.2} />
+            <Text className="text-caption font-inter-semibold text-ink">
               {quest.theme}
             </Text>
           </View>
           <View className="absolute bottom-4 left-4 right-4">
-            <Text className="font-heading text-[24px] font-extrabold leading-[27px] text-white">
+            <Text className="font-heading text-title2 text-white" numberOfLines={2}>
               {quest.title}
             </Text>
           </View>
@@ -173,26 +171,27 @@ function QuestCard({ onPress, quest }: { onPress: () => void; quest: Quest }) {
       </View>
 
       <View className="p-4">
-        <View className="mb-4 flex-row flex-wrap gap-2">
+        <View className="mb-3 flex-row items-center gap-4">
           <QuestMeta
-            icon={<CalendarDays size={13} color={Colors.light.primary} strokeWidth={2.4} />}
+            icon={<CalendarDays size={13} color={Colors.light.textSecondary} strokeWidth={2} />}
             label={formatQuestAvailability(quest.availableFrom, quest.availableUntil)}
           />
           <QuestMeta
-            icon={<Users size={13} color={Colors.light.accent} strokeWidth={2.4} />}
+            icon={<Users size={13} color={Colors.light.textSecondary} strokeWidth={2} />}
             label={`${quest.completionCount.toLocaleString()} completed`}
           />
         </View>
 
-        <View className="mb-3 flex-row items-center justify-between">
-          <Text className="text-[13px] font-extrabold text-primary">+{quest.totalXp} XP</Text>
-          <Text className="text-[13px] font-extrabold text-accent">+{quest.totalQc} QC</Text>
-          <Text className="text-[12px] font-semibold text-muted">
-            {quest.completedStops} of {totalStops} stops completed
+        <View className="mb-2 flex-row items-center justify-between">
+          <Text className="text-footnote font-inter-medium text-ink">
+            {quest.completedStops} of {totalStops} stops
+          </Text>
+          <Text className="text-footnote font-inter-semibold text-ink">
+            +{quest.totalXp} XP · +{quest.totalQc} QC
           </Text>
         </View>
 
-        <View className="h-2 overflow-hidden rounded-full bg-primary/10">
+        <View className="h-1.5 overflow-hidden rounded-full bg-progressTrack">
           <View
             className="h-full rounded-full bg-success"
             style={{ width: `${progressPercent}%` }}
@@ -205,9 +204,11 @@ function QuestCard({ onPress, quest }: { onPress: () => void; quest: Quest }) {
 
 function QuestMeta({ icon, label }: { icon: ReactNode; label: string }) {
   return (
-    <View className="flex-row items-center gap-1.5 rounded-full bg-primary/5 px-2.5 py-1.5">
+    <View className="min-w-0 flex-shrink flex-row items-center gap-1.5">
       {icon}
-      <Text className="text-[11px] font-semibold text-primary">{label}</Text>
+      <Text className="text-caption text-muted" numberOfLines={1}>
+        {label}
+      </Text>
     </View>
   );
 }
@@ -327,7 +328,7 @@ function QuestDetailModal({
             contentContainerStyle={{ paddingBottom: 32 }}
             showsVerticalScrollIndicator={false}
           >
-            <View className="relative h-[270px] bg-gray-200">
+            <View className="relative h-[270px] bg-subtle">
               <BrandImage
                 source={getQuestImageSource(quest.image, quest.imageUrl)}
                 contentFit="cover"
@@ -346,10 +347,10 @@ function QuestDetailModal({
                 </Pressable>
               </View>
               <View className="absolute bottom-5 left-5 right-5">
-                <Text className="mb-2 text-[12px] font-bold uppercase tracking-wide text-white/80">
+                <Text className="mb-2 text-caption font-inter-semibold text-white/80">
                   {quest.theme}
                 </Text>
-                <Text className="font-heading text-[30px] font-extrabold leading-[34px] text-white">
+                <Text className="font-heading text-title1 leading-[34px] text-white">
                   {quest.title}
                 </Text>
               </View>
@@ -357,11 +358,11 @@ function QuestDetailModal({
 
             <View className="px-5 pt-5">
               <View className="mb-5 flex-row items-center justify-between rounded-2xl bg-primary/10 p-4">
-                <Text className="text-[15px] font-extrabold text-primary">
+                <Text className="text-body font-inter-bold text-primary">
                   {quest.totalXp} XP total
                   {' · '}{quest.totalQc} QC
                 </Text>
-                <Text className="text-[13px] font-semibold text-muted">
+                <Text className="text-footnote font-inter-semibold text-muted">
                   {quest.completedStops}/{quest.stops.length} stops
                 </Text>
               </View>
@@ -377,7 +378,7 @@ function QuestDetailModal({
                 />
               </View>
 
-              <Text className="mb-3 font-heading text-[23px] font-extrabold text-ink">
+              <Text className="mb-3 font-heading text-title2 text-ink">
                 Trail stops
               </Text>
 
@@ -395,14 +396,14 @@ function QuestDetailModal({
                 disabled={questCompleted || !questHasStops}
                 onPress={openCompletionScanner}
                 className={`mt-2 h-[52px] flex-row items-center justify-center gap-2 rounded-2xl ${
-                  questCompleted || !questHasStops ? 'bg-gray-200' : 'bg-primary active:opacity-85'
+                  questCompleted || !questHasStops ? 'bg-subtle' : 'bg-primary active:opacity-85'
                 }`}
               >
                 {questCompleted && (
                   <BadgeCheck size={19} color={Colors.light.textSecondary} strokeWidth={2.4} />
                 )}
                 <Text
-                  className={`font-ui text-[15px] font-extrabold ${
+                  className={`text-body font-inter-bold ${
                     questCompleted ? 'text-muted' : 'text-white'
                   }`}
                 >
@@ -423,7 +424,7 @@ function QuestDetailModal({
           >
             <SafeAreaView className="flex-1 bg-black" edges={['top', 'bottom']}>
               <View className="flex-row items-center justify-between px-5 py-4">
-                <Text className="text-[18px] font-extrabold text-white">Scan finish QR</Text>
+                <Text className="text-headline font-inter-bold text-white">Scan finish QR</Text>
                 <Pressable
                   onPress={() => setScannerOpen(false)}
                   className="h-10 w-10 items-center justify-center rounded-full bg-white/15"
@@ -434,18 +435,18 @@ function QuestDetailModal({
 
               {!permission ? (
                 <View className="flex-1 items-center justify-center px-6">
-                  <Text className="text-center text-[14px] text-white/80">Loading camera...</Text>
+                  <Text className="text-center text-body text-white/80">Loading camera...</Text>
                 </View>
               ) : !permission.granted ? (
                 <View className="flex-1 items-center justify-center px-6">
-                  <Text className="mb-4 text-center text-[15px] leading-5 text-white">
+                  <Text className="mb-4 text-center text-body leading-5 text-white">
                     Camera access is needed to scan the finish QR code.
                   </Text>
                   <Pressable
                     onPress={requestPermission}
                     className="h-12 items-center justify-center rounded-xl bg-white px-5"
                   >
-                    <Text className="text-[14px] font-bold text-ink">Allow camera access</Text>
+                    <Text className="text-body font-inter-semibold text-ink">Allow camera access</Text>
                   </Pressable>
                 </View>
               ) : (
@@ -456,13 +457,13 @@ function QuestDetailModal({
                     style={{ flex: 1 }}
                   />
                   <View className="absolute bottom-0 left-0 right-0 bg-black/60 px-5 py-5">
-                    <Text className="text-center text-[14px] font-semibold text-white">
+                    <Text className="text-center text-body font-inter-semibold text-white">
                       {completing
                         ? 'Completing your quest...'
                         : 'Scan the official QR code at the final trail stop.'}
                     </Text>
                     {scanMessage && (
-                      <Text className="mt-3 text-center text-[13px] font-semibold text-destructive">
+                      <Text className="mt-3 text-center text-footnote font-inter-semibold text-destructive">
                         {scanMessage}
                       </Text>
                     )}
@@ -483,7 +484,7 @@ function QuestStopRow({ isLast, stop }: { isLast: boolean; stop: QuestStop }) {
       <View className="items-center">
         <View
           className={`h-11 w-11 items-center justify-center rounded-2xl ${
-            stop.completed ? 'bg-primary' : 'bg-gray-100'
+            stop.completed ? 'bg-primary' : 'bg-subtle'
           }`}
         >
           {stop.completed ? (
@@ -492,24 +493,24 @@ function QuestStopRow({ isLast, stop }: { isLast: boolean; stop: QuestStop }) {
             <LockKeyhole size={20} color={Colors.light.disabledIcon} strokeWidth={2.4} />
           )}
         </View>
-        {!isLast && <View className="my-1 h-10 w-px bg-gray-200" />}
+        {!isLast && <View className="my-1 h-10 w-px bg-subtle" />}
       </View>
 
       <View className="min-w-0 flex-1 pb-4">
         <Text
-          className={`font-ui text-[15px] font-bold ${stop.completed ? 'text-ink' : 'text-muted'}`}
+          className={`text-body font-inter-semibold ${stop.completed ? 'text-ink' : 'text-muted'}`}
         >
           {stop.title}
         </Text>
-        <Text className="mt-1 text-[13px] leading-5 text-muted">{stop.description}</Text>
+        <Text className="mt-1 text-footnote leading-5 text-muted">{stop.description}</Text>
         <View className="mt-2 flex-row items-center gap-4">
           <View className="flex-row items-center gap-1">
             <Clock3 size={13} color={Colors.light.textSecondary} />
-            <Text className="text-[12px] font-medium text-muted">{stop.eta}</Text>
+            <Text className="text-caption font-inter-medium text-muted">{stop.eta}</Text>
           </View>
           <View className="flex-row items-center gap-1">
             <MapPin size={13} color={Colors.light.textSecondary} />
-            <Text className="text-[12px] font-medium text-muted">
+            <Text className="text-caption font-inter-medium text-muted">
               {stop.completed ? 'Completed' : 'Upcoming'}
             </Text>
           </View>

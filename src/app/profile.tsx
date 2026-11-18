@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Alert, AppState, Platform, ScrollView, Text, View } from 'react-native';
+import { Alert, AppState, Platform, ScrollView, View } from 'react-native';
 
 import { AdminReviewModal } from '@/components/profile/admin-review-modal';
 import { BadgesModal } from '@/components/profile/badges-modal';
@@ -75,6 +75,7 @@ import {
 import { fetchXpTransactions, type XpTransaction } from '@/lib/xp-transactions';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/providers/auth-provider';
+import { Text } from '@/components/ui/text';
 
 type ProfileScreenProps = {
   checkedInEventIds?: string[];
@@ -729,7 +730,7 @@ export default function ProfileScreen({
   if (!session) {
     return (
       <View className="flex-1 items-center justify-center bg-canvas px-6">
-        <Text className="text-center font-body text-[15px] text-muted">
+        <Text className="text-center font-body text-body text-muted">
           Log in to view your profile.
         </Text>
       </View>
@@ -847,8 +848,8 @@ export default function ProfileScreen({
     <View className="flex-1 bg-canvas" testID="profile.screen">
       <ScrollView
         className="flex-1"
-        contentContainerStyle={{ paddingBottom: 112, paddingTop: stableModalTopInset + 8 }}
-        contentInsetAdjustmentBehavior="automatic"
+        contentContainerStyle={{ paddingBottom: 40, paddingTop: stableModalTopInset + 8 }}
+        contentInsetAdjustmentBehavior="never"
       >
         <ProfileRankCard
           avatarInitials={avatarInitials}

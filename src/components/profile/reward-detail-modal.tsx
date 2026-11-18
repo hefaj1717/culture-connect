@@ -3,7 +3,6 @@ import {
   Modal,
   Pressable,
   ScrollView,
-  Text,
   View,
   type ViewStyle,
 } from 'react-native';
@@ -18,6 +17,7 @@ import { formatRewardTime } from '@/data/profile';
 import { useStableTopInset } from '@/hooks/use-stable-safe-area';
 import { formatRewardAvailability } from '@/lib/reward-availability';
 import type { OrganizerProfile } from '@/lib/organizer-profiles';
+import { Text } from '@/components/ui/text';
 
 type RewardDetailModalProps = {
   cityName: string;
@@ -113,11 +113,11 @@ export function RewardDetailModal({
                 <Pressable
                   onPress={onClose}
                   testID="reward.close"
-                  className="h-10 w-10 items-center justify-center rounded-full bg-gray-100 active:opacity-80"
+                  className="h-10 w-10 items-center justify-center rounded-full bg-subtle active:opacity-80"
                   accessibilityRole="button"
                   accessibilityLabel="Close reward"
                 >
-                  <ArrowLeft size={21} color="#6B818C" strokeWidth={2.6} />
+                  <ArrowLeft size={21} color={Colors.light.textSecondary} strokeWidth={2.6} />
                 </Pressable>
               </View>
               <ScrollView
@@ -131,19 +131,19 @@ export function RewardDetailModal({
                 showsVerticalScrollIndicator={false}
               >
                 <View
-                  className="rounded-[30px] border border-gray-200 bg-canvas p-6"
+                  className="rounded-2xl border border-line bg-canvas p-6"
                   style={{ boxShadow: '0 12px 24px rgba(36, 28, 46, 0.08)' }}
                 >
                   <View className="mb-7 flex-row items-start justify-between gap-4">
                     <View className="min-w-0 flex-1">
                       <Text
-                        className="font-ui text-[22px] font-extrabold leading-7 text-ink"
+                        className="text-title2 font-inter-bold leading-7 text-ink"
                         numberOfLines={2}
                       >
                         {venueName}
                       </Text>
                       <Text
-                        className="mt-1 text-[12px] font-semibold leading-[17px] text-muted"
+                        className="mt-1 text-caption font-inter-semibold leading-[17px] text-muted"
                         numberOfLines={2}
                       >
                         {reward.location}
@@ -158,53 +158,53 @@ export function RewardDetailModal({
                         onPress={() => onOpenOrganizer(reward)}
                       >
                         <View className="h-6 w-6 items-center justify-center rounded-full bg-primary/10">
-                          <Text className="text-[9px] font-extrabold text-primary">
+                          <Text className="text-caption font-inter-bold text-primary">
                             {getOrganizerInitials(reward.organizerName)}
                           </Text>
                         </View>
-                        <Text className="text-[11px] font-semibold text-muted" numberOfLines={1}>
+                        <Text className="text-caption font-inter-semibold text-muted" numberOfLines={1}>
                           Offered by{' '}
-                          <Text className="font-extrabold text-ink">
+                          <Text className="font-inter-bold text-ink">
                             {reward.organizerName ?? 'Verified CultureQuest partner'}
                           </Text>
                         </Text>
                       </Pressable>
                     </View>
                     <View className="rounded-full border border-primary/40 px-3 py-1.5">
-                      <Text className="text-[10px] font-extrabold uppercase tracking-wide text-primary">
+                      <Text className="text-caption font-inter-bold text-primary">
                         Partner
                       </Text>
                     </View>
                   </View>
 
-                  <View className="mb-5 h-[1px] bg-gray-200" />
-                  <Text className="font-heading text-[31px] font-extrabold leading-[36px] text-ink">
+                  <View className="mb-5 h-[1px] bg-subtle" />
+                  <Text className="font-heading text-title1 leading-[36px] text-ink">
                     {reward.discount}
                   </Text>
                   <Text
-                    className="mt-4 text-[14px] leading-[22px] text-muted"
+                    className="mt-4 text-body leading-[22px] text-muted"
                     numberOfLines={detailsExpanded ? undefined : 3}
                   >
                     {reward.description ??
                       'Redeem this reward with CultureQuest Credits, then show the pickup screen to staff before ordering or paying.'}
                   </Text>
 
-                  <View className="mt-6 rounded-2xl border border-primary/15 bg-surface p-4">
+                  <View className="mt-6 rounded-2xl border border-line bg-surface p-4">
                     <Pressable
                       onPress={onToggleDetails}
                       className="flex-row items-center justify-between gap-3 active:opacity-80"
                     >
                       <View className="min-w-0 flex-1">
-                        <Text className="text-[20px] font-extrabold leading-6 text-accent">
+                        <Text className="text-title3 font-inter-bold leading-6 text-accent">
                           {reward.qcCost.toLocaleString()} QC
                         </Text>
-                        <Text className="mt-1 text-[12px] font-semibold leading-4 text-muted">
+                        <Text className="mt-1 text-caption font-inter-semibold leading-4 text-muted">
                           {rewardCanRedeem || rewardStateExists
                             ? formatRewardAvailability(reward)
                             : `${userQc.toLocaleString()} / ${reward.qcCost.toLocaleString()} QC`}
                         </Text>
                       </View>
-                      <Text className="text-[12px] font-extrabold text-accentDeep">
+                      <Text className="text-caption font-inter-bold text-accentDeep">
                         {detailsExpanded ? 'Hide' : 'Show'}
                       </Text>
                     </Pressable>
@@ -217,10 +217,10 @@ export function RewardDetailModal({
                           'Show the pickup card before the reward is applied.',
                         ].map((step, index) => (
                           <View className="flex-row items-start gap-3" key={step}>
-                            <Text className="w-5 text-[12px] font-extrabold text-accentDeep">
+                            <Text className="w-5 text-caption font-inter-bold text-accentDeep">
                               {index + 1}.
                             </Text>
-                            <Text className="flex-1 text-[13px] leading-5 text-muted">{step}</Text>
+                            <Text className="flex-1 text-footnote leading-5 text-muted">{step}</Text>
                           </View>
                         ))}
                       </View>
@@ -228,14 +228,14 @@ export function RewardDetailModal({
                   </View>
                 </View>
 
-                <View className="rounded-[30px] border border-primary/25 bg-surface p-[22px]">
+                <View className="rounded-2xl border border-primary/25 bg-surface p-[22px]">
                   <View className="mb-5 flex-row items-start justify-between gap-3">
                     <View className="min-w-0 flex-1">
-                      <Text className="text-[10px] font-bold uppercase leading-[16px] tracking-[1.6px] text-muted">
+                      <Text className="text-caption font-inter-semibold leading-[16px] text-muted">
                         Staff pickup
                       </Text>
                       <Text
-                        className="mt-1 font-heading text-[23px] font-extrabold leading-[29px] text-ink"
+                        className="mt-1 font-heading text-title2 leading-[29px] text-ink"
                         numberOfLines={2}
                       >
                         {pickupTitle}
@@ -248,7 +248,7 @@ export function RewardDetailModal({
                       }}
                     >
                       <Text
-                        className="text-[11px] font-bold"
+                        className="text-caption font-inter-semibold"
                         style={{ color: rewardIsUsed ? Colors.light.onPrimary : Colors.light.primary }}
                       >
                         {statusLabel}
@@ -257,7 +257,7 @@ export function RewardDetailModal({
                   </View>
 
                   <View
-                    className="items-center rounded-[24px] border px-5 py-6"
+                    className="items-center rounded-2xl border px-5 py-6"
                     style={{
                       backgroundColor: Colors.light.background,
                       borderColor: Colors.light.primary,
@@ -269,36 +269,36 @@ export function RewardDetailModal({
                         <LockKeyhole size={19} color={Colors.light.ink} strokeWidth={2.4} />
                       </View>
                     )}
-                    <Text className="mb-3 text-center text-[10px] font-bold uppercase leading-[14px] tracking-[1.8px] text-muted">
+                    <Text className="mb-3 text-center text-caption font-inter-semibold leading-[14px] text-muted">
                       CultureQuest reward
                     </Text>
-                    <Text className="text-center font-heading text-[20px] font-extrabold leading-[27px] text-ink">
+                    <Text className="text-center font-heading text-title3 leading-[27px] text-ink">
                       {reward.discount}
                     </Text>
                     {rewardIsActive && (
                       <Text
-                        className="mt-5 text-center font-ui text-[34px] font-extrabold tracking-widest text-accent"
+                        className="mt-5 text-center text-largeTitle font-inter-bold text-accent"
                         selectable
                       >
                         {pickupCode}
                       </Text>
                     )}
                     {!rewardStateExists && rewardCanRedeem && (
-                      <Text className="mt-5 text-center text-[16px] font-extrabold text-ink">
+                      <Text className="mt-5 text-center text-headline font-inter-bold text-ink">
                         Code hidden until redeem
                       </Text>
                     )}
                     {!rewardStateExists && !rewardCanRedeem && (
-                      <Text className="mt-5 text-center text-[16px] font-extrabold text-ink">
+                      <Text className="mt-5 text-center text-headline font-inter-bold text-ink">
                         {`You need ${rewardQcNeeded.toLocaleString()} more CultureQuest Credits`}
                       </Text>
                     )}
                     {rewardIsUsed && (
-                      <Text className="mt-5 text-center text-[16px] font-extrabold text-accent">
+                      <Text className="mt-5 text-center text-headline font-inter-bold text-accent">
                         This coupon has already been used.
                       </Text>
                     )}
-                    <Text className="mt-4 text-center text-[12px] leading-5 text-muted">
+                    <Text className="mt-4 text-center text-caption leading-5 text-muted">
                       {rewardIsActive
                         ? `Valid for ${formatRewardTime(
                             remainingMs,
@@ -316,7 +316,7 @@ export function RewardDetailModal({
 
                 {rewardRedeemError && (
                   <View className="rounded-2xl border border-accent/25 bg-accent/10 p-4">
-                    <Text className="text-[13px] font-semibold leading-5 text-ink">
+                    <Text className="text-footnote font-inter-semibold leading-5 text-ink">
                       {rewardRedeemError}
                     </Text>
                   </View>
@@ -332,7 +332,7 @@ export function RewardDetailModal({
                   }}
                 >
                   <Text
-                    className="text-[15px] font-semibold"
+                    className="text-body font-inter-semibold"
                     style={{ color: redeemDisabled ? Colors.light.textSecondary : '#FFFFFF' }}
                   >
                     {redeemButtonLabel}

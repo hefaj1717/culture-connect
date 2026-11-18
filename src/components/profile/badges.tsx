@@ -1,8 +1,9 @@
 import { X } from 'lucide-react-native';
 import type { ComponentType } from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 
-import { GamificationColors } from '@/constants/theme';
+import { Colors, GamificationColors } from '@/constants/theme';
+import { Text } from '@/components/ui/text';
 
 export type BadgeCategory = keyof typeof GamificationColors.badges;
 
@@ -34,8 +35,8 @@ export function PassportBadge({
   return (
     <Pressable
       onPress={onPress}
-      className={`rounded-3xl border p-3 active:opacity-80 ${
-        badge.unlocked ? 'border-white bg-white' : 'border-gray-200 bg-gray-100'
+      className={`rounded-2xl border p-3 active:opacity-80 ${
+        badge.unlocked ? 'border-white bg-white' : 'border-line bg-subtle'
       }`}
       style={[
         { width: itemWidth },
@@ -44,14 +45,14 @@ export function PassportBadge({
     >
       <BadgeIcon badge={badge} className="mb-3 h-14 w-14 rounded-2xl" iconSize={25} />
       <Text
-        className={`font-ui text-[12px] font-bold leading-4 ${
+        className={`text-caption font-inter-semibold leading-4 ${
           badge.unlocked ? 'text-ink' : 'text-muted'
         }`}
         numberOfLines={2}
       >
         {badge.title}
       </Text>
-      <Text className="mt-1 text-[10px] font-semibold text-muted" numberOfLines={1}>
+      <Text className="mt-1 text-caption font-inter-semibold text-muted" numberOfLines={1}>
         {badge.unlocked ? 'Unlocked' : badge.progress}
       </Text>
     </Pressable>
@@ -76,8 +77,8 @@ export function BadgeGridItem({
   return (
     <Pressable
       onPress={onPress}
-      className={`min-h-[138px] rounded-3xl border p-3 active:opacity-80 ${
-        badge.unlocked ? 'border-white bg-white' : 'border-gray-200 bg-gray-50'
+      className={`min-h-[138px] rounded-2xl border p-3 active:opacity-80 ${
+        badge.unlocked ? 'border-white bg-white' : 'border-line bg-subtle'
       }`}
       style={[
         { width: itemWidth },
@@ -86,14 +87,14 @@ export function BadgeGridItem({
     >
       <BadgeIcon badge={badge} className="mb-3 h-14 w-14 rounded-2xl" iconSize={24} />
       <Text
-        className={`font-ui text-[12px] font-extrabold leading-4 ${
+        className={`text-caption font-inter-bold leading-4 ${
           badge.unlocked ? 'text-ink' : 'text-muted'
         }`}
         numberOfLines={2}
       >
         {badge.title}
       </Text>
-      <Text className="mt-1 text-[10px] font-bold text-muted" numberOfLines={1}>
+      <Text className="mt-1 text-caption font-inter-semibold text-muted" numberOfLines={1}>
         {badge.unlocked ? 'Unlocked' : badge.progress}
       </Text>
       {hasProgress && (
@@ -123,33 +124,33 @@ export function BadgeDetailSheet({
     : 0;
 
   return (
-    <View className="absolute inset-x-0 bottom-0 border-t border-gray-200 bg-white px-5 pb-8 pt-4">
+    <View className="absolute inset-x-0 bottom-0 border-t border-line bg-white px-5 pb-8 pt-4">
       <View className="mb-4 flex-row items-start gap-4">
-        <BadgeIcon badge={badge} className="h-16 w-16 rounded-3xl" iconSize={28} />
+        <BadgeIcon badge={badge} className="h-16 w-16 rounded-2xl" iconSize={28} />
         <View className="min-w-0 flex-1">
           <View className="mb-1 flex-row items-start justify-between gap-3">
-            <Text className="min-w-0 flex-1 font-heading text-[24px] font-extrabold leading-7 text-ink">
+            <Text className="min-w-0 flex-1 font-heading text-title2 leading-7 text-ink">
               {badge.title}
             </Text>
             <Pressable
               onPress={onClose}
-              className="h-9 w-9 items-center justify-center rounded-full bg-gray-100 active:opacity-80"
+              className="h-9 w-9 items-center justify-center rounded-full bg-subtle active:opacity-80"
               accessibilityRole="button"
               accessibilityLabel="Close badge detail"
             >
-              <X size={18} color="#6B818C" strokeWidth={2.6} />
+              <X size={18} color={Colors.light.textSecondary} strokeWidth={2.6} />
             </Pressable>
           </View>
-          <Text className="text-[13px] leading-5 text-muted">{badge.description}</Text>
+          <Text className="text-footnote leading-5 text-muted">{badge.description}</Text>
         </View>
       </View>
 
       <View className="rounded-2xl bg-accent/10 p-4">
         <View className="mb-2 flex-row items-center justify-between">
-          <Text className="text-[11px] font-extrabold uppercase tracking-[2px] text-muted">
+          <Text className="text-caption font-inter-bold text-muted">
             Progress
           </Text>
-          <Text className="text-[12px] font-extrabold text-accentDeep">
+          <Text className="text-caption font-inter-bold text-accentDeep">
             {badge.unlocked ? 'Unlocked' : badge.progress}
           </Text>
         </View>
@@ -161,7 +162,7 @@ export function BadgeDetailSheet({
             />
           </View>
         ) : (
-          <Text className="text-[13px] font-semibold text-muted">
+          <Text className="text-footnote font-inter-semibold text-muted">
             Keep exploring to unlock this badge.
           </Text>
         )}
@@ -184,7 +185,7 @@ function BadgeIcon({
 
   return (
     <View
-      className={`relative items-center justify-center ${badge.unlocked ? '' : 'bg-gray-200'} ${className}`}
+      className={`relative items-center justify-center ${badge.unlocked ? '' : 'bg-subtle'} ${className}`}
       style={badge.unlocked ? { backgroundColor: categoryColor } : undefined}
     >
       <Icon

@@ -1,5 +1,6 @@
 import { Building2, CheckCircle2, CircleAlert } from 'lucide-react-native';
-import { Text, View } from 'react-native';
+import { View } from 'react-native';
+import { Text } from '@/components/ui/text';
 
 type OrganizerStatus = 'pending' | 'approved' | 'rejected';
 
@@ -17,8 +18,8 @@ export function OrganizerVerifiedBadge({ compact = false }: { compact?: boolean 
         <CheckCircle2 size={compact ? 11 : 12} color="white" strokeWidth={3} />
       </View>
       <Text
-        className={`font-extrabold uppercase tracking-wide text-ink ${
-          compact ? 'text-[10px]' : 'text-[11px]'
+        className={`font-inter-bold text-ink ${
+          compact ? 'text-caption' : 'text-caption'
         }`}
       >
         Approved
@@ -58,8 +59,8 @@ export function OrganizerStatusCard({ status }: { status: OrganizerStatus }) {
         <Icon size={17} color={color} strokeWidth={2.4} />
       </View>
       <View className="flex-1">
-        <Text className="font-ui text-[13px] font-bold text-ink">{title}</Text>
-        <Text className="mt-0.5 text-[12px] leading-4 text-muted">{message}</Text>
+        <Text className="text-footnote font-inter-semibold text-ink">{title}</Text>
+        <Text className="mt-0.5 text-caption leading-4 text-muted">{message}</Text>
       </View>
     </View>
   );

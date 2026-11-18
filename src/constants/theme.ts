@@ -107,14 +107,14 @@ export const Radius = {
   small: 8,
   control: 12,
   card: 16,
-  feature: 24,
+  feature: 20,
   full: 9999,
 } as const;
 
 export const Shadows = {
-  elevated: '0 12px 28px rgba(30, 30, 36, 0.09)',
-  compact: '0 8px 18px rgba(30, 30, 36, 0.07)',
-  soft: '0 6px 16px rgba(30, 30, 36, 0.05)',
+  elevated: '0 6px 20px rgba(30, 30, 36, 0.06)',
+  compact: '0 2px 10px rgba(30, 30, 36, 0.05)',
+  soft: '0 1px 4px rgba(30, 30, 36, 0.04)',
 } as const;
 
 export const CardStyles = {

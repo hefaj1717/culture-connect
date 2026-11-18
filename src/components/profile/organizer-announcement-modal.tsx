@@ -7,8 +7,6 @@ import {
   Platform,
   Pressable,
   ScrollView,
-  Text,
-  TextInput,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -19,6 +17,7 @@ import { ScreenHeader } from '@/components/screen-header';
 import { Colors } from '@/constants/theme';
 import { useCardSwipeBack } from '@/hooks/use-card-swipe-back';
 import type { ManagedOrganizerEvent } from '@/lib/organizer-events';
+import { Text, TextInput } from '@/components/ui/text';
 
 const TITLE_LIMIT = 60;
 const BODY_LIMIT = 240;
@@ -126,29 +125,29 @@ export function OrganizerAnnouncementModal({
                   title="Announcement"
                 />
 
-                <View className="mt-5 rounded-feature border border-primary/10 bg-surface p-4">
-                  <Text className="text-[12px] font-bold uppercase tracking-wide text-muted">
+                <View className="mt-5 rounded-2xl border border-line bg-surface p-4">
+                  <Text className="text-caption font-inter-semibold text-muted">
                     Title
                   </Text>
                   <TextInput
                     accessibilityLabel="Announcement title"
-                    className="mt-2 rounded-xl border border-primary/15 bg-canvas px-3 py-3 text-[16px] font-semibold text-ink"
+                    className="mt-2 rounded-xl border border-line bg-canvas px-3 py-3 text-headline font-inter-semibold text-ink"
                     maxLength={TITLE_LIMIT}
                     onChangeText={setTitle}
                     placeholder="e.g. Tonight's venue update"
                     placeholderTextColor={Colors.light.textSecondary}
                     value={title}
                   />
-                  <Text className="mt-1.5 text-right text-[11px] text-muted">
+                  <Text className="mt-1.5 text-right text-caption text-muted">
                     {title.length}/{TITLE_LIMIT}
                   </Text>
 
-                  <Text className="mt-4 text-[12px] font-bold uppercase tracking-wide text-muted">
+                  <Text className="mt-4 text-caption font-inter-semibold text-muted">
                     Message
                   </Text>
                   <TextInput
                     accessibilityLabel="Announcement message"
-                    className="mt-2 min-h-[118px] rounded-xl border border-primary/15 bg-canvas px-3 py-3 text-[15px] leading-5 text-ink"
+                    className="mt-2 min-h-[118px] rounded-xl border border-line bg-canvas px-3 py-3 text-body leading-5 text-ink"
                     maxLength={BODY_LIMIT}
                     multiline
                     onChangeText={setBody}
@@ -157,7 +156,7 @@ export function OrganizerAnnouncementModal({
                     textAlignVertical="top"
                     value={body}
                   />
-                  <Text className="mt-1.5 text-right text-[11px] text-muted">
+                  <Text className="mt-1.5 text-right text-caption text-muted">
                     {body.length}/{BODY_LIMIT}
                   </Text>
                 </View>
@@ -165,16 +164,16 @@ export function OrganizerAnnouncementModal({
                 <View className="mt-4">
                   <View className="mb-2 flex-row items-center gap-2">
                     <CalendarDays size={16} color={Colors.light.primary} strokeWidth={2.2} />
-                    <Text className="text-[13px] font-bold text-ink">
-                      Link an event <Text className="font-medium text-muted">(optional)</Text>
+                    <Text className="text-footnote font-inter-semibold text-ink">
+                      Link an event <Text className="font-inter-medium text-muted">(optional)</Text>
                     </Text>
                   </View>
                   <Pressable
-                    className={`rounded-xl border px-3 py-3 ${linkedEventId === null ? 'border-primary bg-primary/10' : 'border-primary/15 bg-surface'} active:opacity-75`}
+                    className={`rounded-xl border px-3 py-3 ${linkedEventId === null ? 'border-primary bg-primary/10' : 'border-line bg-surface'} active:opacity-75`}
                     onPress={() => setLinkedEventId(null)}
                   >
                     <Text
-                      className={`text-[13px] font-semibold ${linkedEventId === null ? 'text-primary' : 'text-ink'}`}
+                      className={`text-footnote font-inter-semibold ${linkedEventId === null ? 'text-primary' : 'text-ink'}`}
                     >
                       No event link
                     </Text>
@@ -183,17 +182,17 @@ export function OrganizerAnnouncementModal({
                     const selected = linkedEventId === event.id;
                     return (
                       <Pressable
-                        className={`mt-2 rounded-xl border px-3 py-3 ${selected ? 'border-primary bg-primary/10' : 'border-primary/15 bg-surface'} active:opacity-75`}
+                        className={`mt-2 rounded-xl border px-3 py-3 ${selected ? 'border-primary bg-primary/10' : 'border-line bg-surface'} active:opacity-75`}
                         key={event.id}
                         onPress={() => setLinkedEventId(event.id)}
                       >
                         <Text
-                          className={`text-[13px] font-bold ${selected ? 'text-primary' : 'text-ink'}`}
+                          className={`text-footnote font-inter-semibold ${selected ? 'text-primary' : 'text-ink'}`}
                           numberOfLines={1}
                         >
                           {event.title}
                         </Text>
-                        <Text className="mt-0.5 text-[11px] text-muted" numberOfLines={1}>
+                        <Text className="mt-0.5 text-caption text-muted" numberOfLines={1}>
                           {event.date} · {event.venueName}
                         </Text>
                       </Pressable>
@@ -202,13 +201,13 @@ export function OrganizerAnnouncementModal({
                 </View>
 
                 <View className="mt-5 rounded-xl bg-accent/10 px-3 py-3">
-                  <Text className="text-[12px] leading-5 text-ink">
+                  <Text className="text-caption leading-5 text-ink">
                     One announcement can be sent per day. Followers can mute announcements without
                     unfollowing you.
                   </Text>
                 </View>
                 {error ? (
-                  <Text className="mt-3 text-[13px] leading-5 text-destructive">{error}</Text>
+                  <Text className="mt-3 text-footnote leading-5 text-destructive">{error}</Text>
                 ) : null}
                 <Pressable
                   accessibilityLabel="Send announcement"
@@ -221,7 +220,7 @@ export function OrganizerAnnouncementModal({
                   ) : (
                     <Send size={18} color={Colors.light.onPrimary} strokeWidth={2.4} />
                   )}
-                  <Text className="text-[15px] font-bold text-white">
+                  <Text className="text-body font-inter-semibold text-white">
                     {publishing ? 'Sending…' : 'Send to followers'}
                   </Text>
                 </Pressable>

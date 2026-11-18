@@ -17,7 +17,7 @@ import {
   X,
 } from 'lucide-react-native';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { Alert, Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import type { ViewInstance } from 'react-native';
 import * as Sharing from 'expo-sharing';
 import { GestureDetector } from 'react-native-gesture-handler';
@@ -50,6 +50,7 @@ import type { UserUniversityMembership } from '@/lib/university-leaderboard';
 import type { XpTransaction } from '@/lib/xp-transactions';
 import { useCardSwipeBack } from '@/hooks/use-card-swipe-back';
 import { useResponsiveLayout } from '@/hooks/use-responsive-layout';
+import { Text } from '@/components/ui/text';
 
 type OrganizerStatus = 'none' | 'pending' | 'approved' | 'rejected';
 type ActivityHistoryFilter = 'all' | UserEventStatus;
@@ -115,7 +116,7 @@ export function ProfileRankCard({
 
   return (
     <View
-      className="mx-5 mb-5 rounded-[28px] border border-primary/15 bg-surface p-4"
+      className="mx-5 mb-5 rounded-2xl border border-line bg-surface p-4"
       style={{ boxShadow: '0 10px 24px rgba(36, 28, 46, 0.08)' }}
     >
       <View className="mb-5 flex-row items-center gap-4">
@@ -128,7 +129,7 @@ export function ProfileRankCard({
         <View className="min-w-0 flex-1">
           <View className="mb-1 flex-row items-start justify-between gap-2">
             <Text
-              className="min-w-0 flex-1 font-heading font-extrabold text-ink"
+              className="min-w-0 flex-1 font-heading text-ink"
               numberOfLines={2}
               style={{
                 fontSize: layout.profileNameSize,
@@ -151,7 +152,7 @@ export function ProfileRankCard({
               <OrganizerVerifiedBadge />
             </View>
           )}
-          <Text className="text-[13px] font-medium text-muted" numberOfLines={1}>
+          <Text className="text-footnote font-inter-medium text-muted" numberOfLines={1}>
             {levelProgress.currentLevel.name} · {cityLabel}
           </Text>
         </View>
@@ -161,24 +162,24 @@ export function ProfileRankCard({
         <View className="mb-3 flex-row items-end justify-between gap-4">
           <View>
             <View className="mb-1">
-              <Text className="text-[11px] font-semibold uppercase tracking-wide text-muted">
+              <Text className="text-headline font-inter-semibold text-ink">
                 Total XP
               </Text>
             </View>
-            <Text className="font-heading text-[54px] font-extrabold leading-[58px] text-ink">
+            <Text className="font-heading text-hero leading-[58px] text-ink">
               {userXp.toLocaleString()}
             </Text>
-            <Text className="mt-1 text-[15px] font-extrabold text-accent">
+            <Text className="mt-1 text-body font-inter-bold text-accent">
               {userQc.toLocaleString()} QC available
             </Text>
           </View>
           <View className="items-end">
-            <Text className="text-right text-[12px] font-semibold leading-4 text-muted">
+            <Text className="text-right text-caption font-inter-semibold leading-4 text-muted">
               {levelProgress.nextLevel
                 ? `${levelProgress.xpToNext.toLocaleString()} XP to ${levelProgress.nextLevel.name}`
                 : 'Top city rank reached'}
             </Text>
-            <Text className="mt-1 text-[16px] font-extrabold text-accentDeep">
+            <Text className="mt-1 text-headline font-inter-bold text-accentDeep">
               {Math.round(levelProgress.progressPercent)}%
             </Text>
           </View>
@@ -219,7 +220,7 @@ export function UniversityAffiliationSection({
 
   return (
     <View
-      className="mx-5 mb-7 rounded-3xl border border-primary/10 bg-primary/5 px-4 py-4"
+      className="mx-5 mb-7 rounded-2xl border border-line bg-primary/5 px-4 py-4"
       style={CardStyles.compact}
     >
       <View className="flex-row items-center gap-3">
@@ -228,23 +229,23 @@ export function UniversityAffiliationSection({
         </View>
         <View className="min-w-0 flex-1">
           <View className="mb-1 flex-row items-center gap-2">
-            <Text className="text-[11px] font-extrabold uppercase tracking-wide text-primary">
+            <Text className="text-caption font-inter-bold text-primary">
               Campus ranking
             </Text>
             <View className="rounded-full bg-white px-2 py-0.5">
-              <Text className="text-[10px] font-extrabold text-muted">
+              <Text className="text-caption font-inter-bold text-muted">
                 {membership.status === 'verified' ? 'Verified' : 'Pending'}
               </Text>
             </View>
           </View>
-          <Text className="font-ui text-[15px] font-extrabold text-ink" numberOfLines={1}>
+          <Text className="text-body font-inter-bold text-ink" numberOfLines={1}>
             {membership.shortName}
           </Text>
-          <Text className="mt-0.5 text-[12px] leading-4 text-muted" numberOfLines={1}>
+          <Text className="mt-0.5 text-caption leading-4 text-muted" numberOfLines={1}>
             {membership.studentEmail}
           </Text>
           {membership.status !== 'verified' && (
-            <Text className="mt-1 text-[11px] leading-4 text-muted">
+            <Text className="mt-1 text-caption leading-4 text-muted">
               Student email confirmation will be enabled after the email domain setup.
             </Text>
           )}
@@ -291,14 +292,14 @@ export function AccountActionsModal({
     <Modal animationType="fade" transparent visible={visible} onRequestClose={onClose}>
       <Pressable className="flex-1 justify-end bg-ink/25 px-5 pb-8" onPress={onClose}>
         <Pressable
-          className="rounded-[30px] bg-canvas px-4 pb-4 pt-3"
+          className="rounded-2xl bg-canvas px-4 pb-4 pt-3"
           onPress={(event) => event.stopPropagation()}
         >
           <View className="mb-3 h-1.5 w-10 self-center rounded-full bg-primary/20" />
           <View className="mb-4 flex-row items-start px-1">
             <View className="min-w-0 flex-1">
-              <Text className="font-heading text-[24px] leading-7 text-ink">Settings</Text>
-              <Text className="mt-1 text-[13px] leading-5 text-muted">
+              <Text className="font-heading text-title2 leading-7 text-ink">Settings</Text>
+              <Text className="mt-1 text-footnote leading-5 text-muted">
                 Manage your CultureQuest account.
               </Text>
             </View>
@@ -322,8 +323,8 @@ export function AccountActionsModal({
               <UserRound size={18} color={Colors.light.primary} strokeWidth={2.4} />
             </View>
             <View className="flex-1">
-              <Text className="font-heading text-[18px] leading-6 text-ink">Edit profile</Text>
-              <Text className="mt-0.5 text-[12px] text-muted">Name, city, and profile photo</Text>
+              <Text className="font-heading text-headline leading-6 text-ink">Edit profile</Text>
+              <Text className="mt-0.5 text-caption text-muted">Name, city, and profile photo</Text>
             </View>
             <ChevronRight size={17} color={Colors.light.primary} strokeWidth={2.4} />
           </Pressable>
@@ -341,8 +342,8 @@ export function AccountActionsModal({
               <LogOut size={18} color={Colors.light.destructive} strokeWidth={2.4} />
             </View>
             <View className="flex-1">
-              <Text className="font-ui text-[15px] font-bold text-destructive">Log out</Text>
-              <Text className="mt-0.5 text-[12px] text-muted">
+              <Text className="text-body font-inter-semibold text-destructive">Log out</Text>
+              <Text className="mt-0.5 text-caption text-muted">
                 Leave this account on this device
               </Text>
             </View>
@@ -366,14 +367,14 @@ export function ProfileActions({ onEdit, onSignOut }: ProfileActionsProps) {
           onPress={onEdit}
           className="h-12 flex-1 flex-row items-center justify-center rounded-xl bg-primary active:opacity-85"
         >
-          <Text className="text-[14px] font-semibold text-white">Edit profile</Text>
+          <Text className="text-body font-inter-semibold text-white">Edit profile</Text>
         </Pressable>
 
         <Pressable
           onPress={onSignOut}
-          className="h-12 flex-1 flex-row items-center justify-center rounded-xl border border-gray-200 active:opacity-80"
+          className="h-12 flex-1 flex-row items-center justify-center rounded-xl border border-line active:opacity-80"
         >
-          <Text className="text-[14px] font-semibold text-muted">Log out</Text>
+          <Text className="text-body font-inter-semibold text-muted">Log out</Text>
         </Pressable>
       </View>
     </View>
@@ -450,7 +451,7 @@ export function ProfileHistoryList({
         onPress={onOpenFollowing}
       />
       {(eventsError || rewardsError) && (
-        <Text className="mt-1 text-[12px] leading-4 text-muted">
+        <Text className="mt-1 text-caption leading-4 text-muted">
           Some organiser history could not be loaded. Open a row to try again.
         </Text>
       )}
@@ -473,8 +474,8 @@ function ProfileHistoryRow({
     <Pressable className="mb-6 flex-row items-start py-1 active:opacity-70" onPress={onPress}>
       <View className="mt-1 mr-4">{icon}</View>
       <View className="min-w-0 flex-1">
-        <Text className="font-heading text-[20px] leading-6 text-ink">{label}</Text>
-        <Text className="mt-1 text-[13px] leading-5 text-muted">{description}</Text>
+        <Text className="font-heading text-title3 leading-6 text-ink">{label}</Text>
+        <Text className="mt-1 text-footnote leading-5 text-muted">{description}</Text>
       </View>
     </Pressable>
   );
@@ -492,15 +493,15 @@ export function UserActivitySection({
     <View className="mb-4 px-5">
       <Pressable
         onPress={onOpenAll}
-        className="flex-row items-center gap-3 rounded-[26px] border border-primary/10 bg-primary/5 p-3.5 active:opacity-85"
+        className="flex-row items-center gap-3 rounded-2xl border border-line bg-primary/5 p-3.5 active:opacity-85"
         style={{ boxShadow: '0 8px 18px rgba(36, 28, 46, 0.05)' }}
       >
         <View className="h-11 w-11 items-center justify-center rounded-2xl bg-white">
           <CalendarDays size={20} color={Colors.light.primary} strokeWidth={2.4} />
         </View>
         <View className="min-w-0 flex-1">
-          <Text className="font-heading text-[19px] font-extrabold text-ink">My activity</Text>
-          <Text className="mt-0.5 text-[12px] font-medium text-muted">
+          <Text className="font-heading text-title3 text-ink">My activity</Text>
+          <Text className="mt-0.5 text-caption font-inter-medium text-muted">
             {activityCount > 0
               ? `${activityCount} ${activityCount === 1 ? 'activity' : 'activities'}`
               : 'Events, reward spends, and XP changes'}
@@ -531,10 +532,10 @@ export function DigitalPassportSection({
   return (
     <View className="mb-8 mt-2">
       <View className="mb-4 flex-row items-center justify-between px-5">
-        <Text className="font-heading text-[22px] font-extrabold text-ink">Digital Passport</Text>
+        <Text className="font-heading text-title2 text-ink">Digital Passport</Text>
         {badges.length > 0 && onOpenAll ? (
           <Pressable onPress={onOpenAll} className="active:opacity-75">
-            <Text className="text-[12px] font-semibold text-primary">View all</Text>
+            <Text className="text-caption font-inter-semibold text-primary">View all</Text>
           </Pressable>
         ) : null}
       </View>
@@ -546,10 +547,10 @@ export function DigitalPassportSection({
         />
       ) : badges.length === 0 ? (
         <View className="mx-5 rounded-2xl bg-canvas p-4">
-          <Text className="font-ui text-[14px] font-extrabold text-ink">
+          <Text className="text-body font-inter-bold text-ink">
             Your passport is waiting
           </Text>
-          <Text className="mt-1 text-[12px] leading-4 text-muted">
+          <Text className="mt-1 text-caption leading-4 text-muted">
             Attend events and complete quests to collect your first badges.
           </Text>
         </View>
@@ -597,23 +598,23 @@ export function OrganizerToolsSection({
   return (
     <View className="mb-4 px-5">
       <View className="mb-2.5 flex-row items-center justify-between">
-        <Text className="font-heading text-[21px] font-extrabold text-ink">Organizer Tools</Text>
+        <Text className="font-heading text-title2 text-ink">Organizer Tools</Text>
       </View>
 
       {status === 'approved' ? (
         <View
-          className="rounded-[26px] border border-primary/10 bg-primary/5 p-3.5"
+          className="rounded-2xl border border-line bg-primary/5 p-3.5"
           style={{ boxShadow: '0 8px 18px rgba(36, 28, 46, 0.05)' }}
         >
           <View className="mb-3">
             <View className="mb-1 flex-row items-start justify-between gap-3">
-              <Text className="min-w-0 flex-1 font-heading text-[19px] font-extrabold text-ink">
+              <Text className="min-w-0 flex-1 font-heading text-title3 text-ink">
                 Event maker tools
               </Text>
               <OrganizerVerifiedBadge compact />
             </View>
             <View className="min-w-0 flex-1">
-              <Text className="mt-0.5 text-[12px] leading-4 text-muted">
+              <Text className="mt-0.5 text-caption leading-4 text-muted">
                 Create and publish events for {cityName}.
               </Text>
             </View>
@@ -624,19 +625,19 @@ export function OrganizerToolsSection({
               onPress={onCreateEvent}
               className="h-10 flex-row items-center justify-center rounded-xl bg-primary active:opacity-85"
             >
-              <Text className="text-[14px] font-semibold text-white">Create event</Text>
+              <Text className="text-body font-inter-semibold text-white">Create event</Text>
             </Pressable>
             <Pressable
               onPress={onCreateReward}
               className="h-10 flex-row items-center justify-center rounded-xl border border-primary/25 bg-white active:opacity-85"
             >
-              <Text className="text-[14px] font-semibold text-primary">Create reward</Text>
+              <Text className="text-body font-inter-semibold text-primary">Create reward</Text>
             </Pressable>
             <Pressable
               onPress={onCreateAnnouncement}
               className="h-10 flex-row items-center justify-center rounded-xl border border-primary/25 bg-white active:opacity-85"
             >
-              <Text className="text-[14px] font-semibold text-primary">Send announcement</Text>
+              <Text className="text-body font-inter-semibold text-primary">Send announcement</Text>
             </Pressable>
           </View>
         </View>
@@ -665,18 +666,18 @@ export function AdminToolsSection({
   return (
     <View className="mb-6 px-5">
       <View className="mb-3 flex-row items-center justify-between">
-        <Text className="font-heading text-[22px] font-extrabold text-ink">Admin Tools</Text>
+        <Text className="font-heading text-title2 text-ink">Admin Tools</Text>
       </View>
-      <View className="rounded-3xl border border-primary/10 bg-ink p-4">
+      <View className="rounded-2xl border border-line bg-ink p-4">
         <View className="mb-1 flex-row items-start justify-between gap-3">
-          <Text className="min-w-0 flex-1 font-heading text-[20px] font-extrabold text-white">
+          <Text className="min-w-0 flex-1 font-heading text-title3 text-white">
             CultureQuest control room
           </Text>
           <View className="rounded-full bg-white/10 px-3 py-1">
-            <Text className="text-[11px] font-extrabold text-white">{pendingCount} pending</Text>
+            <Text className="text-caption font-inter-bold text-white">{pendingCount} pending</Text>
           </View>
         </View>
-        <Text className="mt-1 text-[13px] leading-5 text-white/70">
+        <Text className="mt-1 text-footnote leading-5 text-white/70">
           Review organizer submissions and create official city trails.
         </Text>
         <View className="mt-4 gap-2">
@@ -684,25 +685,25 @@ export function AdminToolsSection({
             onPress={onOpenReview}
             className="h-11 flex-row items-center justify-center rounded-xl bg-primary active:opacity-85"
           >
-            <Text className="text-[14px] font-semibold text-white">Review content</Text>
+            <Text className="text-body font-inter-semibold text-white">Review content</Text>
           </Pressable>
           <Pressable
             onPress={onCreateQuest}
             className="h-11 flex-row items-center justify-center rounded-xl border border-white/15 bg-white/10 active:opacity-85"
           >
-            <Text className="text-[14px] font-semibold text-white">Create quest</Text>
+            <Text className="text-body font-inter-semibold text-white">Create quest</Text>
           </Pressable>
           <Pressable
             onPress={onManageEvents}
             className="h-11 flex-row items-center justify-center rounded-xl border border-white/15 bg-white/10 active:opacity-85"
           >
-            <Text className="text-[14px] font-semibold text-white">Manage events</Text>
+            <Text className="text-body font-inter-semibold text-white">Manage events</Text>
           </Pressable>
           <Pressable
             onPress={onOpenXpAudit}
             className="h-11 flex-row items-center justify-center rounded-xl border border-white/15 bg-white/10 active:opacity-85"
           >
-            <Text className="text-[14px] font-semibold text-white">XP audit</Text>
+            <Text className="text-body font-inter-semibold text-white">XP audit</Text>
           </Pressable>
         </View>
       </View>
@@ -749,9 +750,9 @@ export function AdminXpAuditModal({
             >
               <Pressable
                 onPress={closeWithAnimation}
-                className="h-10 w-10 items-center justify-center rounded-full bg-gray-100 active:opacity-80"
+                className="h-10 w-10 items-center justify-center rounded-full bg-subtle active:opacity-80"
               >
-                <ArrowLeft size={21} color="#6B818C" strokeWidth={2.6} />
+                <ArrowLeft size={21} color={Colors.light.textSecondary} strokeWidth={2.6} />
               </Pressable>
               <Pressable
                 disabled={loading}
@@ -767,14 +768,14 @@ export function AdminXpAuditModal({
               contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 40, paddingTop: 8 }}
               showsVerticalScrollIndicator={false}
             >
-              <View className="mb-4 overflow-hidden rounded-feature border border-primary/10 bg-surface p-5">
-                <Text className="text-[11px] font-extrabold uppercase tracking-[2px] text-primary">
+              <View className="mb-4 overflow-hidden rounded-2xl border border-line bg-surface p-5">
+                <Text className="text-caption font-inter-bold text-primary">
                   Admin audit
                 </Text>
-                <Text className="mt-2 font-heading text-[34px] font-extrabold leading-[38px] text-ink">
+                <Text className="mt-2 font-heading text-largeTitle leading-[38px] text-ink">
                   XP ledger
                 </Text>
-                <Text className="mt-2 text-[13px] leading-5 text-muted">
+                <Text className="mt-2 text-footnote leading-5 text-muted">
                   Server-side XP transactions, duplicate protection, reward spends, and quest
                   awards.
                 </Text>
@@ -815,8 +816,8 @@ export function AdminXpAuditModal({
 function AuditSummaryPill({ label, value }: { label: string; value: number }) {
   return (
     <View className="min-w-0 flex-1 rounded-2xl bg-canvas px-3 py-2">
-      <Text className="text-[10px] font-extrabold uppercase tracking-wide text-muted">{label}</Text>
-      <Text className="mt-0.5 font-heading text-[24px] font-extrabold text-ink">
+      <Text className="text-caption font-inter-bold text-muted">{label}</Text>
+      <Text className="mt-0.5 font-heading text-title2 text-ink">
         {value.toLocaleString()}
       </Text>
     </View>
@@ -844,11 +845,11 @@ function XpTransactionRow({
 
   return (
     <View
-      className={`rounded-3xl border p-4 ${
+      className={`rounded-2xl border p-4 ${
         isRewardRedemption
           ? 'border-accent/20 bg-accent/5'
           : isSpend
-            ? 'border-primary/15 bg-surface'
+            ? 'border-line bg-surface'
             : 'border-accent/15 bg-accent/5'
       }`}
       style={CardStyles.compact}
@@ -856,7 +857,7 @@ function XpTransactionRow({
       <View className="flex-row items-start gap-3">
         <View
           className={`h-11 w-11 items-center justify-center rounded-2xl ${
-            isRewardRedemption ? 'bg-accent/12' : isSpend ? 'bg-gray-100' : 'bg-accent/12'
+            isRewardRedemption ? 'bg-accent/12' : isSpend ? 'bg-subtle' : 'bg-accent/12'
           }`}
         >
           <TransactionIcon
@@ -876,21 +877,21 @@ function XpTransactionRow({
           <View className="mb-1 flex-row items-start justify-between gap-3">
             <View className="min-w-0 flex-1">
               {admin && (
-                <Text className="mb-0.5 text-[11px] font-extrabold uppercase tracking-wide text-primary">
+                <Text className="mb-0.5 text-caption font-inter-bold text-primary">
                   {transaction.userLabel}
                 </Text>
               )}
               {isRewardRedemption ? (
-                <Text className="mb-0.5 text-[10px] font-extrabold uppercase tracking-wide text-accent">
+                <Text className="mb-0.5 text-caption font-inter-bold text-accent">
                   Reward redeemed
                 </Text>
               ) : null}
-              <Text className="font-ui text-[15px] font-extrabold leading-5 text-ink">
+              <Text className="text-body font-inter-bold leading-5 text-ink">
                 {transactionTitle}
               </Text>
             </View>
             <Text
-              className={`font-heading text-[24px] font-extrabold leading-7 ${
+              className={`font-heading text-title2 leading-7 ${
                 isRewardRedemption
                   ? 'text-accent'
                   : isSpend
@@ -905,12 +906,12 @@ function XpTransactionRow({
           </View>
 
           <View className="flex-row flex-wrap items-center gap-2">
-            <Text className="text-[11px] font-semibold text-muted">
+            <Text className="text-caption font-inter-semibold text-muted">
               {sourceLabel} · {formatAuditDate(transaction.createdAt)}
             </Text>
             {transaction.balanceAfter !== null && (
               <View className="rounded-full bg-white px-2 py-0.5">
-                <Text className="text-[10px] font-extrabold text-muted">
+                <Text className="text-caption font-inter-bold text-muted">
                   Balance {transaction.balanceAfter.toLocaleString()}
                 </Text>
               </View>
@@ -948,14 +949,14 @@ export function OrganizerEventHistorySection({
       ) : (
         <Pressable
           onPress={onOpenAll}
-          className="flex-row items-center gap-3 rounded-[26px] border border-primary/15 bg-surface p-3.5 active:opacity-85"
+          className="flex-row items-center gap-3 rounded-2xl border border-line bg-surface p-3.5 active:opacity-85"
         >
           <View className="h-11 w-11 items-center justify-center rounded-2xl bg-canvas">
             <CalendarDays size={20} color={Colors.light.primary} strokeWidth={2.4} />
           </View>
           <View className="min-w-0 flex-1">
-            <Text className="font-heading text-[19px] font-extrabold text-ink">My events</Text>
-            <Text className="mt-0.5 text-[12px] font-medium text-muted">
+            <Text className="font-heading text-title3 text-ink">My events</Text>
+            <Text className="mt-0.5 text-caption font-inter-medium text-muted">
               {events.length > 0
                 ? `${events.length} submitted ${events.length === 1 ? 'event' : 'events'}`
                 : 'Submitted, pending, and past events'}
@@ -994,14 +995,14 @@ export function OrganizerRewardHistorySection({
       ) : (
         <Pressable
           onPress={onOpenAll}
-          className="flex-row items-center gap-3 rounded-[26px] border border-primary/15 bg-surface p-3.5 active:opacity-85"
+          className="flex-row items-center gap-3 rounded-2xl border border-line bg-surface p-3.5 active:opacity-85"
         >
           <View className="h-11 w-11 items-center justify-center rounded-2xl bg-accent/10">
             <Gift size={20} color={Colors.light.accent} strokeWidth={2.4} />
           </View>
           <View className="min-w-0 flex-1">
-            <Text className="font-heading text-[19px] font-extrabold text-ink">My rewards</Text>
-            <Text className="mt-0.5 text-[12px] font-medium text-muted">
+            <Text className="font-heading text-title3 text-ink">My rewards</Text>
+            <Text className="mt-0.5 text-caption font-inter-medium text-muted">
               {rewards.length > 0
                 ? `${rewards.length} submitted ${rewards.length === 1 ? 'reward' : 'rewards'}`
                 : 'Submitted, pending, and approved rewards'}
@@ -1085,11 +1086,11 @@ export function UserActivityHistoryModal({
               <Pressable
                 accessibilityLabel="Back to profile"
                 onPress={closeWithAnimation}
-                className="mb-3 h-10 w-10 items-center justify-center rounded-full bg-gray-100 active:opacity-80"
+                className="mb-3 h-10 w-10 items-center justify-center rounded-full bg-subtle active:opacity-80"
               >
-                <ArrowLeft size={21} color="#6B818C" strokeWidth={2.6} />
+                <ArrowLeft size={21} color={Colors.light.textSecondary} strokeWidth={2.6} />
               </Pressable>
-              <Text className="font-heading text-[28px] font-extrabold text-ink">My activity</Text>
+              <Text className="font-heading text-title1 text-ink">My activity</Text>
             </View>
             <HistoryFilterBar
               activeKey={activityFilter}
@@ -1239,9 +1240,9 @@ export function OrganizerEventHistoryModal({
             <View className="bg-white px-5 pb-2" style={{ paddingTop: stableModalTopInset + 6 }}>
               <Pressable
                 onPress={closeWithAnimation}
-                className="h-10 w-10 items-center justify-center rounded-full bg-gray-100 active:opacity-80"
+                className="h-10 w-10 items-center justify-center rounded-full bg-subtle active:opacity-80"
               >
-                <ArrowLeft size={21} color="#6B818C" strokeWidth={2.6} />
+                <ArrowLeft size={21} color={Colors.light.textSecondary} strokeWidth={2.6} />
               </Pressable>
             </View>
             <HistoryFilterBar
@@ -1320,9 +1321,9 @@ export function OrganizerRewardHistoryModal({
             <View className="bg-white px-5 pb-2" style={{ paddingTop: stableModalTopInset + 6 }}>
               <Pressable
                 onPress={closeWithAnimation}
-                className="h-10 w-10 items-center justify-center rounded-full bg-gray-100 active:opacity-80"
+                className="h-10 w-10 items-center justify-center rounded-full bg-subtle active:opacity-80"
               >
-                <ArrowLeft size={21} color="#6B818C" strokeWidth={2.6} />
+                <ArrowLeft size={21} color={Colors.light.textSecondary} strokeWidth={2.6} />
               </Pressable>
             </View>
 
@@ -1401,10 +1402,10 @@ function HistoryFilterBar<T extends string>({
             key={filter.key}
             onPress={() => onSelect(filter.key)}
             className={`h-9 justify-center rounded-full px-4 ${
-              active ? 'bg-primary' : 'border border-gray-200 bg-gray-100'
+              active ? 'bg-primary' : 'border border-line bg-subtle'
             }`}
           >
-            <Text className={`text-[12px] font-semibold ${active ? 'text-white' : 'text-muted'}`}>
+            <Text className={`text-caption font-inter-semibold ${active ? 'text-white' : 'text-muted'}`}>
               {filter.label}
             </Text>
           </Pressable>
@@ -1537,10 +1538,10 @@ function EventHistoryRow({
   return (
     <Pressable
       onPress={onPress}
-      className="overflow-hidden rounded-3xl border border-primary/10 bg-surface active:opacity-85"
+      className="overflow-hidden rounded-2xl border border-line bg-surface active:opacity-85"
       style={CardStyles.compact}
     >
-      <View className="h-[126px] bg-gray-200">
+      <View className="h-[126px] bg-subtle">
         <BrandImage
           source={getEventImageSource(event)}
           contentFit="cover"
@@ -1549,19 +1550,19 @@ function EventHistoryRow({
       </View>
       <View className="p-4">
         <View className="mb-2 flex-row items-center justify-between gap-3">
-          <Text className="text-[11px] font-semibold uppercase tracking-wide text-muted">
+          <Text className="text-headline font-inter-semibold text-ink">
             {event.date}
           </Text>
           <UserEventStatusPill status={status} />
         </View>
-        <Text className="font-ui text-[16px] font-extrabold text-ink" numberOfLines={2}>
+        <Text className="text-headline font-inter-bold text-ink" numberOfLines={2}>
           {event.title}
         </Text>
-        <Text className="mt-1 text-[13px] font-medium text-muted" numberOfLines={1}>
+        <Text className="mt-1 text-footnote font-inter-medium text-muted" numberOfLines={1}>
           {event.venueName} · {formatEventTimeRange(event)}
         </Text>
         <View className="mt-3 self-start rounded-full bg-accent/10 px-3 py-1">
-          <Text className="text-[12px] font-extrabold text-accentDeep">{xpLabel}</Text>
+          <Text className="text-caption font-inter-bold text-accentDeep">{xpLabel}</Text>
         </View>
         <HistoryEngagementStats event={event} status={status} />
       </View>
@@ -1579,10 +1580,10 @@ function OrganizerEventRow({
   return (
     <Pressable
       onPress={onPress}
-      className="overflow-hidden rounded-3xl border border-primary/10 bg-surface active:opacity-85"
+      className="overflow-hidden rounded-2xl border border-line bg-surface active:opacity-85"
       style={CardStyles.compact}
     >
-      <View className="h-[126px] bg-gray-200">
+      <View className="h-[126px] bg-subtle">
         <BrandImage
           source={getEventImageSource(event)}
           contentFit="cover"
@@ -1591,15 +1592,15 @@ function OrganizerEventRow({
       </View>
       <View className="p-4">
         <View className="mb-2 flex-row items-center justify-between gap-3">
-          <Text className="text-[11px] font-semibold uppercase tracking-wide text-muted">
+          <Text className="text-headline font-inter-semibold text-ink">
             {event.date}
           </Text>
           <OrganizerEventStatusPill status={event.reviewStatus} />
         </View>
-        <Text className="font-ui text-[16px] font-extrabold text-ink" numberOfLines={2}>
+        <Text className="text-headline font-inter-bold text-ink" numberOfLines={2}>
           {event.title}
         </Text>
-        <Text className="mt-1 text-[13px] font-medium text-muted" numberOfLines={1}>
+        <Text className="mt-1 text-footnote font-inter-medium text-muted" numberOfLines={1}>
           {event.venueName} · {formatEventTimeRange(event)}
         </Text>
         <HistoryEngagementStats event={event} />
@@ -1618,11 +1619,11 @@ function OrganizerRewardRow({
   return (
     <Pressable
       onPress={onPress}
-      className="overflow-hidden rounded-3xl border border-primary/10 bg-surface"
+      className="overflow-hidden rounded-2xl border border-line bg-surface"
       style={CardStyles.compact}
     >
       <View className="flex-row gap-3 p-3">
-        <View className="h-[96px] w-[96px] overflow-hidden rounded-[22px] bg-gray-100">
+        <View className="h-[96px] w-[96px] overflow-hidden rounded-2xl bg-subtle">
           <BrandImage
             contentFit="cover"
             source={getRewardHistoryImageSource(reward)}
@@ -1634,33 +1635,33 @@ function OrganizerRewardRow({
         <View className="min-w-0 flex-1 justify-between py-1">
           <View>
             <View className="mb-1 flex-row items-center justify-between gap-2">
-              <Text className="min-w-0 flex-1 text-[11px] font-semibold uppercase tracking-wide text-muted">
+              <Text className="min-w-0 flex-1 text-headline font-inter-semibold text-ink">
                 {formatSubmittedDate(reward.createdAt)}
               </Text>
               <OrganizerRewardStatusPill status={reward.reviewStatus} />
             </View>
             <Text
-              className="font-ui text-[16px] font-extrabold leading-5 text-ink"
+              className="text-headline font-inter-bold leading-5 text-ink"
               numberOfLines={2}
             >
               {reward.discount}
             </Text>
-            <Text className="mt-1 text-[12px] font-medium leading-4 text-muted" numberOfLines={1}>
+            <Text className="mt-1 text-caption font-inter-medium leading-4 text-muted" numberOfLines={1}>
               {reward.name}
             </Text>
-            <Text className="mt-1 text-[11px] font-semibold leading-4 text-muted" numberOfLines={1}>
+            <Text className="mt-1 text-caption font-inter-semibold leading-4 text-muted" numberOfLines={1}>
               {formatRewardAvailability(reward)}
             </Text>
           </View>
 
           <View className="mt-2 flex-row items-center justify-between gap-3">
             <Text
-              className="min-w-0 flex-1 text-[14px] font-extrabold text-accent"
+              className="min-w-0 flex-1 text-body font-inter-bold text-accent"
               numberOfLines={1}
             >
               {reward.qcCost.toLocaleString()} QC
             </Text>
-            <Text className="text-[12px] font-extrabold text-primary">
+            <Text className="text-caption font-inter-bold text-primary">
               {reward.reviewStatus === 'approved' ? 'Live' : 'Review'}
             </Text>
           </View>
@@ -1668,8 +1669,8 @@ function OrganizerRewardRow({
       </View>
 
       {reward.reviewStatus === 'rejected' && !!reward.rejectionReason && (
-        <View className="border-t border-gray-100 bg-destructive/5 px-4 py-3">
-          <Text className="text-[12px] leading-4 text-destructive" numberOfLines={2}>
+        <View className="border-t border-line bg-destructive/5 px-4 py-3">
+          <Text className="text-caption leading-4 text-destructive" numberOfLines={2}>
             {reward.rejectionReason}
           </Text>
         </View>
@@ -1708,7 +1709,7 @@ function HistoryEventDetail({
         contentContainerStyle={{ paddingBottom: 36 }}
         showsVerticalScrollIndicator={false}
       >
-        <View className="h-[260px] bg-gray-200">
+        <View className="h-[260px] bg-subtle">
           <BrandImage
             source={getEventImageSource(event)}
             contentFit="cover"
@@ -1718,14 +1719,14 @@ function HistoryEventDetail({
             <View className="absolute bottom-5 left-5 right-5">
               <View className="mb-2 flex-row flex-wrap items-center gap-2">
                 <View className="rounded-full bg-white/90 px-2.5 py-1">
-                  <Text className="text-[11px] font-bold text-primary">
+                  <Text className="text-caption font-inter-semibold text-primary">
                     {eventCategoryLabels[event.category]}
                   </Text>
                 </View>
                 {status && <UserEventStatusPill status={status} />}
                 {organizerStatus && <OrganizerEventStatusPill status={organizerStatus} />}
               </View>
-              <Text className="font-ui text-[28px] font-extrabold leading-8 text-white">
+              <Text className="text-title1 font-inter-bold leading-8 text-white">
                 {event.title}
               </Text>
             </View>
@@ -1740,50 +1741,50 @@ function HistoryEventDetail({
         </View>
 
         <View className="px-5 pt-5">
-          <View className="mb-5 gap-3 rounded-2xl border border-gray-200 bg-white p-4">
-            <HistoryInfoRow icon={<MapPin size={17} color="#6B818C" />} label={event.venueName} />
+          <View className="mb-5 gap-3 rounded-2xl border border-line bg-white p-4">
+            <HistoryInfoRow icon={<MapPin size={17} color={Colors.light.textSecondary} />} label={event.venueName} />
             <HistoryInfoRow
-              icon={<Clock size={17} color="#6B818C" />}
+              icon={<Clock size={17} color={Colors.light.textSecondary} />}
               label={`${event.date}, ${formatEventTimeRange(event)}`}
             />
             <View className="flex-row gap-2">
               <HistoryStatPill
-                icon={<Users size={15} color="#6B818C" strokeWidth={2.4} />}
+                icon={<Users size={15} color={Colors.light.textSecondary} strokeWidth={2.4} />}
                 label="Interested"
                 value={getEventEngagement(event, status).interested}
               />
               <HistoryStatPill
-                icon={<Clock size={15} color="#6B818C" strokeWidth={2.4} />}
+                icon={<Clock size={15} color={Colors.light.textSecondary} strokeWidth={2.4} />}
                 label="Going"
                 value={getEventEngagement(event, status).going}
               />
               <HistoryStatPill
-                icon={<CheckCircle2 size={15} color="#6B818C" strokeWidth={2.4} />}
+                icon={<CheckCircle2 size={15} color={Colors.light.textSecondary} strokeWidth={2.4} />}
                 label="Attended"
                 value={getEventEngagement(event, status).attended}
               />
             </View>
             <View className="rounded-2xl bg-primary/5 px-3 py-2.5">
-              <Text className="text-[13px] font-semibold text-primary">
+              <Text className="text-footnote font-inter-semibold text-primary">
                 {getEventXpLabel(event, transaction)} after confirmed attendance
               </Text>
             </View>
           </View>
 
-          <Text className="mb-2 font-ui text-[16px] font-extrabold text-ink">About this event</Text>
-          <Text className="mb-5 text-[14px] leading-5 text-ink/75">{event.description}</Text>
+          <Text className="mb-2 text-headline font-inter-bold text-ink">About this event</Text>
+          <Text className="mb-5 text-body leading-5 text-ink/75">{event.description}</Text>
 
-          <View className="rounded-2xl border border-gray-200 bg-gray-50 p-4">
-            <Text className="text-[12px] font-semibold uppercase tracking-wide text-muted">
+          <View className="rounded-2xl border border-line bg-subtle p-4">
+            <Text className="text-caption font-inter-semibold text-muted">
               Organiser
             </Text>
-            <Text className="mt-1 text-[15px] font-bold text-ink">{event.organizerName}</Text>
+            <Text className="mt-1 text-body font-inter-semibold text-ink">{event.organizerName}</Text>
             {canShowOrganizerQr && (
               <Pressable
                 onPress={() => setQrPassOpen(true)}
                 className="mt-4 h-11 flex-row items-center justify-center rounded-xl bg-primary active:opacity-85"
               >
-                <Text className="text-[14px] font-semibold text-white">Open check-in QR</Text>
+                <Text className="text-body font-inter-semibold text-white">Open check-in QR</Text>
               </Pressable>
             )}
             {onEditEvent && (
@@ -1792,7 +1793,7 @@ function HistoryEventDetail({
                 className="mt-3 h-11 flex-row items-center justify-center gap-2 rounded-xl border border-primary/25 bg-primary/5 active:opacity-85"
               >
                 <Edit3 size={16} color={Colors.light.primary} strokeWidth={2.5} />
-                <Text className="text-[14px] font-semibold text-primary">Edit event</Text>
+                <Text className="text-body font-inter-semibold text-primary">Edit event</Text>
               </Pressable>
             )}
           </View>
@@ -1887,9 +1888,9 @@ function OrganizerEventQrModal({
             <View className="bg-white px-5 pb-3" style={{ paddingTop: stableModalTopInset + 6 }}>
               <Pressable
                 onPress={closeWithAnimation}
-                className="h-10 w-10 items-center justify-center rounded-full bg-gray-100 active:opacity-80"
+                className="h-10 w-10 items-center justify-center rounded-full bg-subtle active:opacity-80"
               >
-                <ArrowLeft size={21} color="#6B818C" strokeWidth={2.6} />
+                <ArrowLeft size={21} color={Colors.light.textSecondary} strokeWidth={2.6} />
               </Pressable>
             </View>
 
@@ -1909,40 +1910,40 @@ function OrganizerEventQrModal({
                 <View
                   ref={qrCardRef}
                   collapsable={false}
-                  className="overflow-hidden rounded-[30px] bg-ink"
+                  className="overflow-hidden rounded-2xl bg-ink"
                   style={{ boxShadow: '0 14px 28px rgba(36, 28, 46, 0.14)' }}
                 >
                   <View className="bg-ink p-6">
-                    <Text className="text-[11px] font-extrabold uppercase tracking-[2px] text-white/60">
+                    <Text className="text-caption font-inter-bold text-white/60">
                       CultureQuest check-in
                     </Text>
-                    <Text className="mt-2 font-heading text-[30px] font-extrabold leading-[34px] text-white">
+                    <Text className="mt-2 font-heading text-title1 leading-[34px] text-white">
                       {event.title}
                     </Text>
                     <Text
-                      className="mt-2 text-[14px] font-semibold leading-5"
+                      className="mt-2 text-body font-inter-semibold leading-5"
                       style={{ color: 'rgba(255,255,255,0.78)' }}
                     >
                       {event.venueName} · {event.date}, {formatEventTimeRange(event)}
                     </Text>
 
-                    <View className="mt-7 items-center rounded-[28px] bg-white p-6">
+                    <View className="mt-7 items-center rounded-2xl bg-white p-6">
                       <QRCode
                         backgroundColor="#FFFFFF"
                         color={Colors.light.ink}
                         size={220}
                         value={checkInCode}
                       />
-                      <Text className="mt-5 text-center text-[11px] font-extrabold uppercase tracking-[1.8px] text-muted">
+                      <Text className="mt-5 text-center text-caption font-inter-bold text-muted">
                         Valid for 15 minutes
                       </Text>
-                      <Text className="mt-1 text-center font-ui text-[22px] font-extrabold tracking-[2px] text-ink">
+                      <Text className="mt-1 text-center text-title2 font-inter-bold text-ink">
                         {checkInCode}
                       </Text>
                     </View>
 
                     <Text
-                      className="mt-5 text-center text-[12px] leading-5"
+                      className="mt-5 text-center text-caption leading-5"
                       style={{ color: 'rgba(255,255,255,0.72)' }}
                     >
                       This QR expires after 15 minutes. Keep this card open at the venue entrance
@@ -1952,9 +1953,9 @@ function OrganizerEventQrModal({
                 </View>
               )}
 
-              <View className="mt-4 rounded-2xl border border-gray-200 bg-white p-4">
-                <Text className="font-ui text-[15px] font-extrabold text-ink">Organizer note</Text>
-                <Text className="mt-1 text-[13px] leading-5 text-muted">
+              <View className="mt-4 rounded-2xl border border-line bg-white p-4">
+                <Text className="text-body font-inter-bold text-ink">Organizer note</Text>
+                <Text className="mt-1 text-footnote leading-5 text-muted">
                   This QR is intentionally short-lived. Show it at the venue instead of printing or
                   sharing it in advance.
                 </Text>
@@ -1965,7 +1966,7 @@ function OrganizerEventQrModal({
                 onPress={shareQrPass}
                 className="mt-4 h-[52px] flex-row items-center justify-center rounded-2xl bg-primary active:opacity-85 disabled:opacity-60"
               >
-                <Text className="text-[15px] font-extrabold text-white">
+                <Text className="text-body font-inter-bold text-white">
                   {sharing ? 'Preparing PNG...' : 'Share QR image'}
                 </Text>
               </Pressable>
@@ -1981,7 +1982,7 @@ function HistoryInfoRow({ icon, label }: { icon: ReactNode; label: string }) {
   return (
     <View className="flex-row items-center gap-3">
       <View className="h-8 w-8 items-center justify-center rounded-full bg-primary/10">{icon}</View>
-      <Text className="flex-1 text-[13px] font-medium text-ink/75">{label}</Text>
+      <Text className="flex-1 text-footnote font-inter-medium text-ink/75">{label}</Text>
     </View>
   );
 }
@@ -2008,17 +2009,17 @@ function HistoryEngagementStats({
   return (
     <View className="mt-3 flex-row gap-2">
       <HistoryStatPill
-        icon={<Users size={14} color="#6B818C" strokeWidth={2.4} />}
+        icon={<Users size={14} color={Colors.light.textSecondary} strokeWidth={2.4} />}
         label="Interested"
         value={engagement.interested}
       />
       <HistoryStatPill
-        icon={<Clock size={14} color="#6B818C" strokeWidth={2.4} />}
+        icon={<Clock size={14} color={Colors.light.textSecondary} strokeWidth={2.4} />}
         label="Going"
         value={engagement.going}
       />
       <HistoryStatPill
-        icon={<CheckCircle2 size={14} color="#6B818C" strokeWidth={2.4} />}
+        icon={<CheckCircle2 size={14} color={Colors.light.textSecondary} strokeWidth={2.4} />}
         label="Attended"
         value={engagement.attended}
       />
@@ -2038,7 +2039,7 @@ function HistoryStatPill({
   return (
     <View className="min-w-0 flex-1 flex-row items-center gap-1.5 rounded-2xl bg-primary/5 px-2.5 py-2">
       {icon}
-      <Text className="min-w-0 flex-1 text-[11px] font-semibold text-ink/70" numberOfLines={1}>
+      <Text className="min-w-0 flex-1 text-caption font-inter-semibold text-ink/70" numberOfLines={1}>
         {value.toLocaleString()} {label}
       </Text>
     </View>
@@ -2068,7 +2069,7 @@ function UserEventStatusPill({ status }: { status: UserEventStatus }) {
 
   return (
     <View className="rounded-full bg-primary/10 px-2.5 py-1">
-      <Text className="text-[10px] font-extrabold text-primary">{label}</Text>
+      <Text className="text-caption font-inter-bold text-primary">{label}</Text>
     </View>
   );
 }
@@ -2078,7 +2079,7 @@ function OrganizerEventStatusPill({ status }: { status: OrganizerEventStatus }) 
 
   return (
     <View className={`rounded-full px-2.5 py-1 ${statusStyle.container}`}>
-      <Text className={`text-[10px] font-extrabold ${statusStyle.text}`}>{statusStyle.label}</Text>
+      <Text className={`text-caption font-inter-bold ${statusStyle.text}`}>{statusStyle.label}</Text>
     </View>
   );
 }
@@ -2091,13 +2092,13 @@ function getOrganizerEventStatusStyle(status: OrganizerEventStatus) {
     return { container: 'bg-destructive/10', label: 'Rejected', text: 'text-destructive' };
   }
   if (status === 'cancelled') {
-    return { container: 'bg-gray-100', label: 'Cancelled', text: 'text-muted' };
+    return { container: 'bg-subtle', label: 'Cancelled', text: 'text-muted' };
   }
   if (status === 'draft') {
-    return { container: 'bg-gray-100', label: 'Draft', text: 'text-muted' };
+    return { container: 'bg-subtle', label: 'Draft', text: 'text-muted' };
   }
 
-  return { container: 'bg-secondary/12', label: 'Pending', text: 'text-secondary' };
+  return { container: 'bg-accent/12', label: 'Pending', text: 'text-accent' };
 }
 
 function OrganizerRewardStatusPill({ status }: { status: OrganizerRewardStatus }) {
@@ -2105,7 +2106,7 @@ function OrganizerRewardStatusPill({ status }: { status: OrganizerRewardStatus }
 
   return (
     <View className={`rounded-full px-2.5 py-1 ${statusStyle.container}`}>
-      <Text className={`text-[10px] font-extrabold ${statusStyle.text}`}>{statusStyle.label}</Text>
+      <Text className={`text-caption font-inter-bold ${statusStyle.text}`}>{statusStyle.label}</Text>
     </View>
   );
 }
@@ -2118,13 +2119,13 @@ function getOrganizerRewardStatusStyle(status: OrganizerRewardStatus) {
     return { container: 'bg-destructive/10', label: 'Rejected', text: 'text-destructive' };
   }
   if (status === 'archived') {
-    return { container: 'bg-gray-100', label: 'Archived', text: 'text-muted' };
+    return { container: 'bg-subtle', label: 'Archived', text: 'text-muted' };
   }
   if (status === 'draft') {
-    return { container: 'bg-gray-100', label: 'Draft', text: 'text-muted' };
+    return { container: 'bg-subtle', label: 'Draft', text: 'text-muted' };
   }
 
-  return { container: 'bg-secondary/12', label: 'Pending', text: 'text-secondary' };
+  return { container: 'bg-accent/12', label: 'Pending', text: 'text-accent' };
 }
 
 function getRewardHistoryImageSource(reward: ManagedOrganizerReward) {
@@ -2179,13 +2180,13 @@ export function RewardsSection({
   return (
     <View className="mb-6 px-5">
       <View className="mb-3 flex-row items-center justify-between">
-        <Text className="font-heading text-[22px] font-extrabold text-ink">Rewards</Text>
+        <Text className="font-heading text-title2 text-ink">Rewards</Text>
         {hasMoreRewards ? (
           <Pressable onPress={onOpenAll} className="active:opacity-75">
-            <Text className="text-[12px] font-extrabold text-primary">View all</Text>
+            <Text className="text-caption font-inter-bold text-primary">View all</Text>
           </Pressable>
         ) : (
-          <Text className="text-[11px] font-semibold text-primary">{cityName}</Text>
+          <Text className="text-caption font-inter-semibold text-primary">{cityName}</Text>
         )}
       </View>
 
@@ -2258,15 +2259,15 @@ export function RewardsListModal({
                 <View className="min-w-0 flex-1 flex-row items-center gap-3">
                   <Pressable
                     onPress={closeWithAnimation}
-                    className="h-10 w-10 items-center justify-center rounded-full bg-gray-100 active:opacity-80"
+                    className="h-10 w-10 items-center justify-center rounded-full bg-subtle active:opacity-80"
                   >
-                    <ArrowLeft size={21} color="#6B818C" strokeWidth={2.6} />
+                    <ArrowLeft size={21} color={Colors.light.textSecondary} strokeWidth={2.6} />
                   </Pressable>
                   <View className="min-w-0 flex-1">
-                    <Text className="font-heading text-[25px] font-extrabold text-ink">
+                    <Text className="font-heading text-title2 text-ink">
                       Rewards
                     </Text>
-                    <Text className="text-[12px] font-semibold text-primary">{cityName}</Text>
+                    <Text className="text-caption font-inter-semibold text-primary">{cityName}</Text>
                   </View>
                 </View>
                 <View className="h-10 w-10" />

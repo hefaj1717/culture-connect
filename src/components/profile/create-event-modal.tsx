@@ -19,8 +19,6 @@ import {
   Platform,
   Pressable,
   ScrollView,
-  Text,
-  TextInput,
   View,
   type ViewStyle,
   type ScrollViewInstance,
@@ -52,6 +50,8 @@ import {
   type PlaceSearchError,
   type PlaceSuggestion,
 } from '@/lib/place-search';
+import { Text, TextInput } from '@/components/ui/text';
+import { Colors } from '@/constants/theme';
 
 type CreateEventModalProps = {
   calendarMonth: Date;
@@ -235,11 +235,11 @@ export function CreateEventModal({
                     Keyboard.dismiss();
                     onClose();
                   }}
-                  className="mb-5 h-10 w-10 items-center justify-center rounded-full bg-gray-100 active:opacity-80"
+                  className="mb-5 h-10 w-10 items-center justify-center rounded-full bg-subtle active:opacity-80"
                   accessibilityRole="button"
                   accessibilityLabel="Close create event"
                 >
-                  <ArrowLeft size={21} color="#6B818C" strokeWidth={2.6} />
+                  <ArrowLeft size={21} color={Colors.light.textSecondary} strokeWidth={2.6} />
                 </Pressable>
 
                 {!isEditingEvent && (
@@ -249,25 +249,25 @@ export function CreateEventModal({
                   />
                 )}
 
-                <Text className="mb-2 text-[13px] font-semibold text-ink">Event title</Text>
+                <Text className="mb-2 text-footnote font-inter-semibold text-ink">Event title</Text>
                 <TextInput
                   value={eventTitle}
                   onChangeText={onChangeEventTitle}
                   onFocus={() => focusFormArea(110)}
                   placeholder="e.g. Student Jazz Night"
-                  placeholderTextColor="#8B909A"
+                  placeholderTextColor={Colors.light.inputPlaceholder}
                   maxLength={textLimits.eventTitle}
-                  className="mb-4 rounded-xl border border-gray-300 px-4 py-3 text-[15px] text-ink"
+                  className="mb-4 rounded-xl border border-line px-4 py-3 text-body text-ink"
                 />
 
-                <Text className="mb-2 text-[13px] font-semibold text-ink">Event photo</Text>
+                <Text className="mb-2 text-footnote font-inter-semibold text-ink">Event photo</Text>
                 <Pressable
                   onPress={() => {
                     Keyboard.dismiss();
                     onPickEventImage();
                   }}
                   className={`mb-4 overflow-hidden rounded-2xl border active:opacity-85 ${
-                    eventImageUri ? 'border-gray-200 bg-gray-100' : 'border-primary/40 bg-primary/5'
+                    eventImageUri ? 'border-line bg-subtle' : 'border-primary/40 bg-primary/5'
                   }`}
                   style={!eventImageUri ? { borderStyle: 'dashed' } : undefined}
                 >
@@ -281,12 +281,12 @@ export function CreateEventModal({
                   ) : (
                     <View className="h-[150px] items-center justify-center px-5">
                       <View className="mb-3 h-11 w-11 items-center justify-center rounded-full bg-primary/15">
-                        <Camera size={20} color="#6B818C" strokeWidth={2.4} />
+                        <Camera size={20} color={Colors.light.textSecondary} strokeWidth={2.4} />
                       </View>
-                      <Text className="text-center font-ui text-[14px] font-bold text-primary">
+                      <Text className="text-center text-body font-inter-semibold text-primary">
                         Add event photo
                       </Text>
-                      <Text className="mt-1 text-center text-[12px] leading-4 text-muted">
+                      <Text className="mt-1 text-center text-caption leading-4 text-muted">
                         Optional. If you skip it, CultureQuest will use a default event image.
                       </Text>
                     </View>
@@ -299,16 +299,16 @@ export function CreateEventModal({
                       Keyboard.dismiss();
                       onRemoveEventImage();
                     }}
-                    className="mb-4 h-10 items-center justify-center rounded-xl border border-gray-200 active:opacity-80"
+                    className="mb-4 h-10 items-center justify-center rounded-xl border border-line active:opacity-80"
                   >
-                    <Text className="text-[13px] font-semibold text-muted">Remove photo</Text>
+                    <Text className="text-footnote font-inter-semibold text-muted">Remove photo</Text>
                   </Pressable>
                 )}
 
-                <Text className="mb-2 text-[13px] font-semibold text-ink">Place or address</Text>
+                <Text className="mb-2 text-footnote font-inter-semibold text-ink">Place or address</Text>
                 <View className="mb-4">
-                  <View className="h-12 flex-row items-center gap-3 rounded-xl border border-gray-300 px-4">
-                    <Search size={16} color="#6B818C" strokeWidth={2.4} />
+                  <View className="h-12 flex-row items-center gap-3 rounded-xl border border-line px-4">
+                    <Search size={16} color={Colors.light.textSecondary} strokeWidth={2.4} />
                     <TextInput
                       value={placeQuery}
                       onChangeText={(value) => {
@@ -317,13 +317,13 @@ export function CreateEventModal({
                       }}
                       onFocus={() => focusFormArea(330)}
                       placeholder={`Search places in ${cityData.name}`}
-                      placeholderTextColor="#8B909A"
+                      placeholderTextColor={Colors.light.inputPlaceholder}
                       maxLength={textLimits.placeSearch}
-                      className="flex-1 text-[15px] text-ink"
+                      className="flex-1 text-body text-ink"
                     />
-                    {searchingPlaces && <ActivityIndicator color="#6B818C" size="small" />}
+                    {searchingPlaces && <ActivityIndicator color={Colors.light.textSecondary} size="small" />}
                   </View>
-                  <Text className="mt-2 text-[11px] leading-4 text-muted">
+                  <Text className="mt-2 text-caption leading-4 text-muted">
                     {hasGooglePlacesApiKey
                       ? 'Powered by Google Places suggestions.'
                       : 'Google Places key is missing, so place suggestions are unavailable.'}
@@ -331,15 +331,15 @@ export function CreateEventModal({
 
                   {placeSearchError ? (
                     <View className="mt-2 flex-row items-center gap-3 rounded-xl bg-accent/10 px-3 py-2.5">
-                      <Text className="min-w-0 flex-1 text-[11px] leading-4 text-ink">
+                      <Text className="min-w-0 flex-1 text-caption leading-4 text-ink">
                         {placeSearchError.message}
                       </Text>
                       <Pressable
                         onPress={onRetryPlaceSearch}
-                        className="rounded-lg bg-accent px-2.5 py-1.5 active:opacity-75"
+                        className="rounded-xl bg-accent px-2.5 py-1.5 active:opacity-75"
                         accessibilityLabel="Retry place search"
                       >
-                        <Text className="text-[11px] font-bold text-white">Retry</Text>
+                        <Text className="text-caption font-inter-semibold text-white">Retry</Text>
                       </Pressable>
                     </View>
                   ) : null}
@@ -347,13 +347,13 @@ export function CreateEventModal({
                   {selectedPlace && (
                     <View className="mt-2 flex-row gap-3 rounded-xl border border-primary/25 bg-primary/10 p-3">
                       <View className="h-9 w-9 items-center justify-center rounded-full bg-primary/15">
-                        <MapPin size={16} color="#6B818C" strokeWidth={2.4} />
+                        <MapPin size={16} color={Colors.light.textSecondary} strokeWidth={2.4} />
                       </View>
                       <View className="min-w-0 flex-1">
-                        <Text className="font-ui text-[13px] font-bold text-ink" numberOfLines={1}>
+                        <Text className="text-footnote font-inter-semibold text-ink" numberOfLines={1}>
                           {selectedPlace.name}
                         </Text>
-                        <Text className="text-[11px] leading-4 text-muted" numberOfLines={2}>
+                        <Text className="text-caption leading-4 text-muted" numberOfLines={2}>
                           {selectedPlace.address}
                         </Text>
                       </View>
@@ -361,7 +361,7 @@ export function CreateEventModal({
                   )}
 
                   {placeSuggestions.length > 0 && (
-                    <View className="mt-2 overflow-hidden rounded-xl border border-gray-200 bg-white">
+                    <View className="mt-2 overflow-hidden rounded-xl border border-line bg-white">
                       {placeSuggestions.map((place) => (
                         <Pressable
                           key={`${place.source}-${place.id}`}
@@ -369,19 +369,19 @@ export function CreateEventModal({
                             Keyboard.dismiss();
                             onSelectPlace(place);
                           }}
-                          className="flex-row items-start gap-3 border-b border-gray-100 p-3 active:bg-gray-50"
+                          className="flex-row items-start gap-3 border-b border-line p-3 active:bg-subtle"
                         >
                           <View className="h-9 w-9 items-center justify-center rounded-full bg-primary/10">
-                            <MapPin size={16} color="#6B818C" strokeWidth={2.4} />
+                            <MapPin size={16} color={Colors.light.textSecondary} strokeWidth={2.4} />
                           </View>
                           <View className="min-w-0 flex-1">
                             <Text
-                              className="font-ui text-[13px] font-bold text-ink"
+                              className="text-footnote font-inter-semibold text-ink"
                               numberOfLines={1}
                             >
                               {place.name}
                             </Text>
-                            <Text className="text-[11px] leading-4 text-muted" numberOfLines={2}>
+                            <Text className="text-caption leading-4 text-muted" numberOfLines={2}>
                               {place.address}
                             </Text>
                           </View>
@@ -391,7 +391,7 @@ export function CreateEventModal({
                   )}
                 </View>
 
-                <Text className="mb-2 text-[13px] font-semibold text-ink">Category</Text>
+                <Text className="mb-2 text-footnote font-inter-semibold text-ink">Category</Text>
                 <View className="mb-4 flex-row flex-wrap gap-2">
                   {eventCategories.map((category) => (
                     <ChoicePill
@@ -410,37 +410,37 @@ export function CreateEventModal({
                 <View className="mb-4 gap-3">
                   <View className="flex-row gap-3">
                     <View className="flex-1">
-                      <Text className="mb-2 text-[13px] font-semibold text-ink">Starts on</Text>
-                      <Pressable onPress={openDatePicker} className="h-12 justify-center rounded-xl border border-gray-300 px-4 active:opacity-80">
-                        <Text className={`text-[15px] ${eventDate ? 'text-ink' : 'text-muted'}`}>{eventDate || 'Choose date'}</Text>
+                      <Text className="mb-2 text-footnote font-inter-semibold text-ink">Starts on</Text>
+                      <Pressable onPress={openDatePicker} className="h-12 justify-center rounded-xl border border-line px-4 active:opacity-80">
+                        <Text className={`text-body ${eventDate ? 'text-ink' : 'text-muted'}`}>{eventDate || 'Choose date'}</Text>
                       </Pressable>
                     </View>
                     <View className="flex-1">
-                      <Text className="mb-2 text-[13px] font-semibold text-ink">Ends on</Text>
-                      <Pressable onPress={onOpenEndDatePicker} className="h-12 justify-center rounded-xl border border-gray-300 px-4 active:opacity-80">
-                        <Text className={`text-[15px] ${eventEndDate || eventDate ? 'text-ink' : 'text-muted'}`}>{eventEndDate || eventDate || 'Choose date'}</Text>
+                      <Text className="mb-2 text-footnote font-inter-semibold text-ink">Ends on</Text>
+                      <Pressable onPress={onOpenEndDatePicker} className="h-12 justify-center rounded-xl border border-line px-4 active:opacity-80">
+                        <Text className={`text-body ${eventEndDate || eventDate ? 'text-ink' : 'text-muted'}`}>{eventEndDate || eventDate || 'Choose date'}</Text>
                       </Pressable>
                     </View>
                   </View>
                   <View className="flex-row gap-3">
                     <View className="flex-1">
-                      <Text className="mb-2 text-[13px] font-semibold text-ink">Starts</Text>
+                      <Text className="mb-2 text-footnote font-inter-semibold text-ink">Starts</Text>
                       <Pressable
                         onPress={() => openTimePicker('start')}
-                        className="h-12 justify-center rounded-xl border border-gray-300 px-4 active:opacity-80"
+                        className="h-12 justify-center rounded-xl border border-line px-4 active:opacity-80"
                       >
-                        <Text className={`text-[15px] ${eventTime ? 'text-ink' : 'text-muted'}`}>
+                        <Text className={`text-body ${eventTime ? 'text-ink' : 'text-muted'}`}>
                           {eventTime || 'Start time'}
                         </Text>
                       </Pressable>
                     </View>
                     <View className="flex-1">
-                      <Text className="mb-2 text-[13px] font-semibold text-ink">Ends</Text>
+                      <Text className="mb-2 text-footnote font-inter-semibold text-ink">Ends</Text>
                       <Pressable
                         onPress={() => openTimePicker('end')}
-                        className="h-12 justify-center rounded-xl border border-gray-300 px-4 active:opacity-80"
+                        className="h-12 justify-center rounded-xl border border-line px-4 active:opacity-80"
                       >
-                        <Text className={`text-[15px] ${eventEndTime ? 'text-ink' : 'text-muted'}`}>
+                        <Text className={`text-body ${eventEndTime ? 'text-ink' : 'text-muted'}`}>
                           {eventEndTime || 'End time'}
                         </Text>
                       </Pressable>
@@ -450,13 +450,13 @@ export function CreateEventModal({
 
                 {eventDateValue && eventEndDateValue && eventTime && eventEndTime && (
                   <View className="mb-4 rounded-2xl bg-canvas px-3 py-2.5">
-                    <Text className="text-[12px] font-semibold leading-4 text-muted">
+                    <Text className="text-caption font-inter-semibold leading-4 text-muted">
                       QR check-in works from {eventDate} {eventTime} until {eventEndDate || eventDate} {eventEndTime}.
                     </Text>
                   </View>
                 )}
 
-                <Text className="mb-2 text-[13px] font-semibold text-ink">Price</Text>
+                <Text className="mb-2 text-footnote font-inter-semibold text-ink">Price</Text>
                 <View className="mb-3 flex-row gap-2">
                   <ChoicePill
                     active={eventIsFree}
@@ -476,31 +476,31 @@ export function CreateEventModal({
                   />
                 </View>
                 <View className="mb-4 rounded-2xl bg-primary/5 px-3 py-2.5">
-                  <Text className="flex-1 text-[12px] font-semibold leading-4 text-muted">
+                  <Text className="flex-1 text-caption font-inter-semibold leading-4 text-muted">
                     Attendees earn {defaultEventXp} XP and 5 CultureQuest Credits for this event.
                   </Text>
                 </View>
 
-                <Text className="mb-2 text-[13px] font-semibold text-ink">Description</Text>
+                <Text className="mb-2 text-footnote font-inter-semibold text-ink">Description</Text>
                 <TextInput
                   value={eventDescription}
                   onChangeText={onChangeEventDescription}
                   onFocus={() => focusFormArea(680)}
                   placeholder="What should students know before joining?"
-                  placeholderTextColor="#8B909A"
+                  placeholderTextColor={Colors.light.inputPlaceholder}
                   multiline
                   textAlignVertical="top"
                   maxLength={textLimits.eventDescription}
-                  className="mb-4 min-h-[112px] rounded-xl border border-gray-300 px-4 py-3 text-[15px] leading-5 text-ink"
+                  className="mb-4 min-h-[112px] rounded-xl border border-line px-4 py-3 text-body leading-5 text-ink"
                 />
-                <Text className="-mt-3 mb-4 text-right text-[11px] text-muted">
+                <Text className="-mt-3 mb-4 text-right text-caption text-muted">
                   {eventDescription.length}/{textLimits.eventDescription}
                 </Text>
 
                 {isEditingEvent && (
                   <View className="mb-4 rounded-xl bg-primary/5 p-3">
-                    <Text className="text-[13px] font-semibold text-ink">Note for attendees (optional)</Text>
-                    <Text className="mt-1 text-[12px] leading-4 text-muted">
+                    <Text className="text-footnote font-inter-semibold text-ink">Note for attendees (optional)</Text>
+                    <Text className="mt-1 text-caption leading-4 text-muted">
                       This is sent to people who saved the event only after CultureQuest approves the update.
                     </Text>
                     <TextInput
@@ -510,16 +510,16 @@ export function CreateEventModal({
                       placeholderTextColor="#8B9BA4"
                       multiline
                       maxLength={textLimits.organizerNote}
-                      className="mt-3 min-h-[76px] rounded-xl border border-primary/15 bg-white px-3 py-2 text-[14px] leading-5 text-ink"
+                      className="mt-3 min-h-[76px] rounded-xl border border-line bg-white px-3 py-2 text-body leading-5 text-ink"
                     />
-                    <Text className="mt-1 text-right text-[11px] text-muted">
+                    <Text className="mt-1 text-right text-caption text-muted">
                       {eventUpdateMessage.length}/{textLimits.organizerNote}
                     </Text>
                   </View>
                 )}
 
                 {createEventError && (
-                  <Text className="mb-4 text-[13px] font-medium text-destructive">
+                  <Text className="mb-4 text-footnote font-inter-medium text-destructive">
                     {createEventError}
                   </Text>
                 )}
@@ -535,7 +535,7 @@ export function CreateEventModal({
                   {creatingEvent ? (
                     <ActivityIndicator color="white" />
                   ) : (
-                    <Text className="text-[15px] font-semibold text-white">
+                    <Text className="text-body font-inter-semibold text-white">
                       {isEditingEvent ? 'Submit changes' : 'Submit for review'}
                     </Text>
                   )}

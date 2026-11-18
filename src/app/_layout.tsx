@@ -17,7 +17,6 @@ import {
 } from '@expo-google-fonts/playfair-display';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
-import { Text, TextInput } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import AppTabs from '@/components/app-tabs';
@@ -41,26 +40,6 @@ export default function TabLayout() {
     PlayfairDisplay_900Black,
   });
   const fontsLoaded = interLoaded && playfairLoaded;
-
-  useEffect(() => {
-    if (fontsLoaded) {
-      const textComponent = Text as typeof Text & { defaultProps?: { style?: unknown } };
-      const textInputComponent = TextInput as typeof TextInput & {
-        defaultProps?: { style?: unknown };
-      };
-
-      textComponent.defaultProps = textComponent.defaultProps ?? {};
-      textComponent.defaultProps.style = [
-        { fontFamily: 'Inter_400Regular' },
-        textComponent.defaultProps.style,
-      ];
-      textInputComponent.defaultProps = textInputComponent.defaultProps ?? {};
-      textInputComponent.defaultProps.style = [
-        { fontFamily: 'Inter_400Regular' },
-        textInputComponent.defaultProps.style,
-      ];
-    }
-  }, [fontsLoaded]);
 
   if (!fontsLoaded) return null;
 

@@ -3,7 +3,6 @@ import { LinearGradient } from 'expo-linear-gradient';
 import type { ReactNode } from 'react';
 import { StyleSheet, type StyleProp, type ViewStyle, View } from 'react-native';
 
-import { Colors } from '@/constants/theme';
 
 type BrandImageProps = {
   children?: ReactNode;
@@ -25,25 +24,11 @@ export function BrandImage({
   return (
     <View className={`overflow-hidden bg-ink ${className ?? ''}`} style={style}>
       <Image source={source} contentFit={contentFit} style={StyleSheet.absoluteFill} />
-      <View
-        pointerEvents="none"
-        style={[
-          StyleSheet.absoluteFill,
-          { backgroundColor: Colors.light.primary, opacity: 0.1 },
-        ]}
-      />
-      <View
-        pointerEvents="none"
-        style={[
-          StyleSheet.absoluteFill,
-          { backgroundColor: Colors.light.ink, opacity: 0.08 },
-        ]}
-      />
       {withTextGradient && (
         <LinearGradient
           pointerEvents="none"
-          colors={['rgba(36, 28, 46, 0.05)', 'rgba(36, 28, 46, 0.34)', 'rgba(36, 28, 46, 0.88)']}
-          locations={[0, 0.48, 1]}
+          colors={['rgba(30, 30, 36, 0)', 'rgba(30, 30, 36, 0.25)', 'rgba(30, 30, 36, 0.82)']}
+          locations={[0.35, 0.6, 1]}
           style={StyleSheet.absoluteFill}
         />
       )}

@@ -10,8 +10,6 @@ import {
   Platform,
   Pressable,
   ScrollView,
-  Text,
-  TextInput,
   View,
   type ViewStyle,
   type ScrollViewInstance,
@@ -23,6 +21,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { textLimits } from '@/constants/text-limits';
 import { ScreenHeader } from '@/components/screen-header';
 import { cultureCities, type CityId } from '@/data/culture';
+import { Text, TextInput } from '@/components/ui/text';
+import { Colors } from '@/constants/theme';
 
 type QuestDraftStop = {
   description: string;
@@ -132,11 +132,11 @@ export function CreateQuestModal({
                     Keyboard.dismiss();
                     onClose();
                   }}
-                  className="mb-5 h-10 w-10 items-center justify-center rounded-full bg-gray-100 active:opacity-80"
+                  className="mb-5 h-10 w-10 items-center justify-center rounded-full bg-subtle active:opacity-80"
                   accessibilityRole="button"
                   accessibilityLabel="Close create quest"
                 >
-                  <ArrowLeft size={21} color="#6B818C" strokeWidth={2.6} />
+                  <ArrowLeft size={21} color={Colors.light.textSecondary} strokeWidth={2.6} />
                 </Pressable>
 
                 <ScreenHeader
@@ -144,7 +144,7 @@ export function CreateQuestModal({
                   title="Create quest"
                 />
 
-                <Text className="mb-2 text-[13px] font-semibold text-ink">City</Text>
+                <Text className="mb-2 text-footnote font-inter-semibold text-ink">City</Text>
                 <View className="mb-4 flex-row gap-2">
                   {cultureCities.map((city) => (
                     <ChoiceChip
@@ -156,71 +156,71 @@ export function CreateQuestModal({
                   ))}
                 </View>
 
-                <Text className="mb-2 text-[13px] font-semibold text-ink">Quest title</Text>
+                <Text className="mb-2 text-footnote font-inter-semibold text-ink">Quest title</Text>
                 <TextInput
                   value={questTitle}
                   onChangeText={onChangeTitle}
                   onFocus={() => focusFormArea(260)}
                   placeholder="e.g. Old Town Culture Trail"
-                  placeholderTextColor="#8B909A"
+                  placeholderTextColor={Colors.light.inputPlaceholder}
                   maxLength={textLimits.questTitle}
-                  className="mb-4 rounded-xl border border-gray-300 px-4 py-3 text-[15px] text-ink"
+                  className="mb-4 rounded-xl border border-line px-4 py-3 text-body text-ink"
                 />
 
-                <Text className="mb-2 text-[13px] font-semibold text-ink">Theme</Text>
+                <Text className="mb-2 text-footnote font-inter-semibold text-ink">Theme</Text>
                 <TextInput
                   value={questTheme}
                   onChangeText={onChangeTheme}
                   onFocus={() => focusFormArea(330)}
                   placeholder="City route"
-                  placeholderTextColor="#8B909A"
+                  placeholderTextColor={Colors.light.inputPlaceholder}
                   maxLength={textLimits.questTheme}
-                  className="mb-4 rounded-xl border border-gray-300 px-4 py-3 text-[15px] text-ink"
+                  className="mb-4 rounded-xl border border-line px-4 py-3 text-body text-ink"
                 />
 
-                <Text className="mb-2 text-[13px] font-semibold text-ink">Availability</Text>
+                <Text className="mb-2 text-footnote font-inter-semibold text-ink">Availability</Text>
                 <View className="mb-4 flex-row gap-3">
                   <View className="flex-1">
-                    <Text className="mb-1.5 text-[11px] font-medium text-muted">From</Text>
+                    <Text className="mb-1.5 text-caption font-inter-medium text-muted">From</Text>
                     <TextInput
                       value={questAvailableFrom}
                       onChangeText={onChangeAvailableFrom}
                       placeholder="YYYY-MM-DD"
-                      placeholderTextColor="#8B909A"
+                      placeholderTextColor={Colors.light.inputPlaceholder}
                       keyboardType="numbers-and-punctuation"
-                      className="rounded-xl border border-gray-300 px-3 py-3 text-[14px] text-ink"
+                      className="rounded-xl border border-line px-3 py-3 text-body text-ink"
                     />
                   </View>
                   <View className="flex-1">
-                    <Text className="mb-1.5 text-[11px] font-medium text-muted">Until (optional)</Text>
+                    <Text className="mb-1.5 text-caption font-inter-medium text-muted">Until (optional)</Text>
                     <TextInput
                       value={questAvailableUntil}
                       onChangeText={onChangeAvailableUntil}
                       placeholder="YYYY-MM-DD"
-                      placeholderTextColor="#8B909A"
+                      placeholderTextColor={Colors.light.inputPlaceholder}
                       keyboardType="numbers-and-punctuation"
-                      className="rounded-xl border border-gray-300 px-3 py-3 text-[14px] text-ink"
+                      className="rounded-xl border border-line px-3 py-3 text-body text-ink"
                     />
                   </View>
                 </View>
 
-                <Text className="mb-2 text-[13px] font-semibold text-ink">Description</Text>
+                <Text className="mb-2 text-footnote font-inter-semibold text-ink">Description</Text>
                 <TextInput
                   value={questDescription}
                   onChangeText={onChangeDescription}
                   onFocus={() => focusFormArea(420)}
                   placeholder="What story does this trail tell?"
-                  placeholderTextColor="#8B909A"
+                  placeholderTextColor={Colors.light.inputPlaceholder}
                   multiline
                   textAlignVertical="top"
                   maxLength={textLimits.questDescription}
-                  className="mb-4 min-h-[104px] rounded-xl border border-gray-300 px-4 py-3 text-[15px] leading-5 text-ink"
+                  className="mb-4 min-h-[104px] rounded-xl border border-line px-4 py-3 text-body leading-5 text-ink"
                 />
-                <Text className="-mt-3 mb-4 text-right text-[11px] text-muted">
+                <Text className="-mt-3 mb-4 text-right text-caption text-muted">
                   {questDescription.length}/{textLimits.questDescription}
                 </Text>
 
-                <Text className="mb-2 text-[13px] font-semibold text-ink">Quest photo</Text>
+                <Text className="mb-2 text-footnote font-inter-semibold text-ink">Quest photo</Text>
                 <Pressable
                   onPress={() => {
                     Keyboard.dismiss();
@@ -228,7 +228,7 @@ export function CreateQuestModal({
                   }}
                   className={`mb-4 h-[154px] overflow-hidden rounded-2xl border ${
                     questImageUri
-                      ? 'border-gray-200 bg-gray-100'
+                      ? 'border-line bg-subtle'
                       : 'border-dashed border-primary/45 bg-primary/5'
                   }`}
                 >
@@ -250,7 +250,7 @@ export function CreateQuestModal({
                         }}
                       />
                       <View className="absolute bottom-4 left-4">
-                        <Text className="text-[12px] font-extrabold text-white">Change photo</Text>
+                        <Text className="text-caption font-inter-bold text-white">Change photo</Text>
                       </View>
                       <Pressable
                         onPress={() => {
@@ -265,12 +265,12 @@ export function CreateQuestModal({
                   ) : (
                     <View className="flex-1 items-center justify-center px-6">
                       <View className="mb-3 h-11 w-11 items-center justify-center rounded-2xl bg-primary/10">
-                        <Camera size={21} color="#6B818C" strokeWidth={2.5} />
+                        <Camera size={21} color={Colors.light.textSecondary} strokeWidth={2.5} />
                       </View>
-                      <Text className="text-center text-[14px] font-extrabold text-primary">
+                      <Text className="text-center text-body font-inter-bold text-primary">
                         Add quest photo
                       </Text>
-                      <Text className="mt-1 text-center text-[12px] leading-4 text-muted">
+                      <Text className="mt-1 text-center text-caption leading-4 text-muted">
                         Optional. If you skip it, CultureQuest will use a default trail image.
                       </Text>
                     </View>
@@ -279,23 +279,23 @@ export function CreateQuestModal({
 
                 <View className="mb-4 flex-row gap-3">
                   <View className="flex-1">
-                    <Text className="mb-2 text-[13px] font-semibold text-ink">Total XP</Text>
+                    <Text className="mb-2 text-footnote font-inter-semibold text-ink">Total XP</Text>
                     <TextInput
                       value={questXp}
                       onChangeText={onChangeXp}
                       onFocus={() => focusFormArea(650)}
                       keyboardType="number-pad"
                       placeholder="150"
-                      placeholderTextColor="#8B909A"
+                      placeholderTextColor={Colors.light.inputPlaceholder}
                       maxLength={textLimits.rewardXp}
-                      className="rounded-xl border border-gray-300 px-4 py-3 text-[15px] text-ink"
+                      className="rounded-xl border border-line px-4 py-3 text-body text-ink"
                     />
-                    <Text className="mt-2 text-[12px] font-extrabold text-accent">
+                    <Text className="mt-2 text-caption font-inter-bold text-accent">
                       +5 CultureQuest Credits awarded automatically
                     </Text>
                   </View>
                   <View className="flex-1">
-                    <Text className="mb-2 text-[13px] font-semibold text-ink">Status</Text>
+                    <Text className="mb-2 text-footnote font-inter-semibold text-ink">Status</Text>
                     <View className="flex-row gap-2">
                       <ChoiceChip
                         active={questStatus === 'approved'}
@@ -312,7 +312,7 @@ export function CreateQuestModal({
                 </View>
 
                 <View className="mb-3 flex-row items-center justify-between">
-                  <Text className="font-heading text-[22px] font-extrabold text-ink">Stops</Text>
+                  <Text className="font-heading text-title2 text-ink">Stops</Text>
                   <Pressable
                     onPress={() => {
                       Keyboard.dismiss();
@@ -321,18 +321,18 @@ export function CreateQuestModal({
                     className="h-9 flex-row items-center gap-1 rounded-full bg-primary px-3 active:opacity-85"
                   >
                     <Plus size={16} color="white" strokeWidth={2.6} />
-                    <Text className="text-[12px] font-extrabold text-white">Add</Text>
+                    <Text className="text-caption font-inter-bold text-white">Add</Text>
                   </Pressable>
                 </View>
 
                 <View className="gap-3">
                   {questStops.map((stop, index) => (
                     <View
-                      className="rounded-2xl border border-gray-200 bg-white p-4"
+                      className="rounded-2xl border border-line bg-white p-4"
                       key={`quest-stop-${index}`}
                     >
                       <View className="mb-3 flex-row items-center justify-between">
-                        <Text className="text-[12px] font-semibold uppercase tracking-wide text-muted">
+                        <Text className="text-caption font-inter-semibold text-muted">
                           Stop {index + 1}
                         </Text>
                         {questStops.length > 1 && (
@@ -341,9 +341,9 @@ export function CreateQuestModal({
                               Keyboard.dismiss();
                               onRemoveStop(index);
                             }}
-                            className="h-8 w-8 items-center justify-center rounded-full bg-gray-100 active:opacity-80"
+                            className="h-8 w-8 items-center justify-center rounded-full bg-subtle active:opacity-80"
                           >
-                            <Minus size={16} color="#6B818C" strokeWidth={2.5} />
+                            <Minus size={16} color={Colors.light.textSecondary} strokeWidth={2.5} />
                           </Pressable>
                         )}
                       </View>
@@ -352,36 +352,36 @@ export function CreateQuestModal({
                         onChangeText={(value) => onChangeStop(index, 'title', value)}
                         onFocus={() => focusFormArea(760 + index * 240)}
                         placeholder="Stop title"
-                        placeholderTextColor="#8B909A"
+                        placeholderTextColor={Colors.light.inputPlaceholder}
                         maxLength={textLimits.questStopTitle}
-                        className="mb-3 rounded-xl border border-gray-300 px-4 py-3 text-[15px] text-ink"
+                        className="mb-3 rounded-xl border border-line px-4 py-3 text-body text-ink"
                       />
                       <TextInput
                         value={stop.description}
                         onChangeText={(value) => onChangeStop(index, 'description', value)}
                         onFocus={() => focusFormArea(820 + index * 240)}
                         placeholder="What should students do here?"
-                        placeholderTextColor="#8B909A"
+                        placeholderTextColor={Colors.light.inputPlaceholder}
                         multiline
                         textAlignVertical="top"
                         maxLength={textLimits.questStopDescription}
-                        className="mb-3 min-h-[82px] rounded-xl border border-gray-300 px-4 py-3 text-[15px] leading-5 text-ink"
+                        className="mb-3 min-h-[82px] rounded-xl border border-line px-4 py-3 text-body leading-5 text-ink"
                       />
                       <TextInput
                         value={stop.eta}
                         onChangeText={(value) => onChangeStop(index, 'eta', value)}
                         onFocus={() => focusFormArea(920 + index * 240)}
                         placeholder="ETA, e.g. 7 min"
-                        placeholderTextColor="#8B909A"
+                        placeholderTextColor={Colors.light.inputPlaceholder}
                         maxLength={textLimits.questStopEta}
-                        className="rounded-xl border border-gray-300 px-4 py-3 text-[15px] text-ink"
+                        className="rounded-xl border border-line px-4 py-3 text-body text-ink"
                       />
                     </View>
                   ))}
                 </View>
 
                 {createQuestError && (
-                  <Text className="mt-4 text-[13px] font-medium text-destructive">
+                  <Text className="mt-4 text-footnote font-inter-medium text-destructive">
                     {createQuestError}
                   </Text>
                 )}
@@ -397,7 +397,7 @@ export function CreateQuestModal({
                   {creatingQuest ? (
                     <ActivityIndicator color="white" />
                   ) : (
-                    <Text className="text-[15px] font-semibold text-white">Create quest</Text>
+                    <Text className="text-body font-inter-semibold text-white">Create quest</Text>
                   )}
                 </Pressable>
               </ScrollView>
@@ -425,10 +425,10 @@ function ChoiceChip({
         onPress();
       }}
       className={`h-10 flex-1 items-center justify-center rounded-xl border px-3 active:opacity-85 ${
-        active ? 'border-primary bg-primary' : 'border-gray-200 bg-gray-100'
+        active ? 'border-primary bg-primary' : 'border-line bg-subtle'
       }`}
     >
-      <Text className={`text-[12px] font-extrabold ${active ? 'text-white' : 'text-muted'}`}>
+      <Text className={`text-caption font-inter-bold ${active ? 'text-white' : 'text-muted'}`}>
         {label}
       </Text>
     </Pressable>

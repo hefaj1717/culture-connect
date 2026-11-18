@@ -3,16 +3,13 @@ import * as Location from 'expo-location';
 import {
   ArrowRight,
   Bell,
-  CheckCircle2,
   Globe,
-  LockKeyhole,
-  Move,
   User,
   Users,
   X,
 } from 'lucide-react-native';
-import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import MapView, { Marker } from 'react-native-maps';
 
 import { CardListSkeleton, EmptyState, ErrorState, LoadingState } from '@/components/async-state';
@@ -44,6 +41,7 @@ import {
   type UniversityProfileSummary,
 } from '@/lib/university-profiles';
 import { useAuth } from '@/providers/auth-provider';
+import { Text } from '@/components/ui/text';
 
 type HomeScreenProps = {
   avatarInitials?: string | null;
@@ -86,7 +84,6 @@ export default function HomeScreen({
   const stableTopInset = useStableTopInset();
   const layout = useResponsiveLayout();
   const [canShowUserLocation, setCanShowUserLocation] = useState(false);
-  const [isMapInteractive, setIsMapInteractive] = useState(true);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [notifications, setNotifications] = useState<UserNotification[]>([]);
   const [notificationsError, setNotificationsError] = useState<string | null>(null);
@@ -351,12 +348,10 @@ export default function HomeScreen({
   useEffect(() => {
     let mounted = true;
 
+    // Only reuse an existing grant. Location is requested in context, at event check-in,
+    // rather than as a cold system prompt the moment Home opens.
     async function enableUserLocationOnMap() {
-      const currentPermission = await Location.getForegroundPermissionsAsync();
-      const permission =
-        currentPermission.status === 'granted'
-          ? currentPermission
-          : await Location.requestForegroundPermissionsAsync();
+      const permission = await Location.getForegroundPermissionsAsync();
 
       if (mounted) {
         setCanShowUserLocation(permission.status === 'granted');
@@ -394,14 +389,13 @@ export default function HomeScreen({
 
   useEffect(() => {
     setSelectedActivityId(null);
-    setIsMapInteractive(true);
   }, [cityData.id]);
 
   return (
     <View className="flex-1 bg-canvas">
       <ScrollView
         className="flex-1 bg-canvas"
-        contentContainerStyle={{ paddingBottom: 104 }}
+        contentContainerStyle={{ paddingBottom: 40 }}
         showsVerticalScrollIndicator={false}
       >
         <View className="overflow-hidden bg-ink" style={{ height: layout.heroHeight }}>
@@ -418,7 +412,7 @@ export default function HomeScreen({
           >
             <View className="flex-row items-center justify-between pt-3">
               <Text
-                className="font-heading text-[23px] font-extrabold text-white"
+                className="font-heading text-title2 text-white"
                 style={{
                   textShadowColor: 'rgba(30, 30, 36, 0.22)',
                   textShadowOffset: { height: 1, width: 0 },
@@ -436,7 +430,7 @@ export default function HomeScreen({
                   <Bell size={22} color="white" strokeWidth={2.2} />
                   {unreadNotificationCount > 0 ? (
                     <View className="absolute -right-1 -top-1 min-w-[17px] items-center justify-center rounded-full bg-accent px-1 py-0.5">
-                      <Text className="text-[9px] font-extrabold text-white">
+                      <Text className="text-caption font-inter-bold text-white">
                         {unreadNotificationCount > 9 ? '9+' : unreadNotificationCount}
                       </Text>
                     </View>
@@ -453,7 +447,7 @@ export default function HomeScreen({
                       style={{ height: 44, width: 44 }}
                     />
                   ) : avatarInitials ? (
-                    <Text className="text-[13px] font-extrabold text-white">{avatarInitials}</Text>
+                    <Text className="text-footnote font-inter-bold text-white">{avatarInitials}</Text>
                   ) : (
                     <User size={22} color="white" strokeWidth={2.4} />
                   )}
@@ -464,7 +458,7 @@ export default function HomeScreen({
 
           <View className="absolute bottom-0 left-0 right-0 px-6 pb-7">
             <Text
-              className="mb-2 font-display font-extrabold text-white"
+              className="mb-2 font-display text-white"
               style={{
                 fontSize: layout.isSmallPhone ? 36 : 42,
                 lineHeight: layout.isSmallPhone ? 39 : 45,
@@ -473,34 +467,32 @@ export default function HomeScreen({
               {cityData.heroTitle}
             </Text>
             <Text
-              className="mb-4 text-[15px] leading-5 text-white/75"
+              className="mb-5 text-body text-white/80"
               style={{ maxWidth: Math.min(310, layout.usableWidth) }}
             >
               {cityData.heroSubtitle}
             </Text>
 
-            <View className="mb-4 rounded-xl bg-secondary/95 px-4 py-2.5">
-              <Text className="text-center text-[13px] font-semibold text-white">
+            <View className="flex-row items-center gap-4">
+              <Pressable
+                onPress={onOpenDiscover}
+                accessibilityRole="button"
+                className="h-12 flex-row items-center justify-center gap-2 rounded-xl bg-white px-5 active:opacity-85"
+              >
+                <Text className="text-body font-inter-semibold text-ink">Explore events</Text>
+                <ArrowRight size={16} color={Colors.light.ink} />
+              </Pressable>
+              <Text className="min-w-0 flex-1 text-footnote text-white/80" numberOfLines={2}>
                 {weeklyEventMessage}
               </Text>
             </View>
-
-            <Pressable
-              onPress={onOpenDiscover}
-              className="h-[52px] flex-row items-center justify-center gap-2 rounded-xl bg-primary active:opacity-85"
-            >
-              <Text className="text-[16px] font-semibold text-white">Start Exploring</Text>
-              <ArrowRight size={17} color="white" />
-            </Pressable>
           </View>
         </View>
 
         <View className="pb-5 pt-6">
-          <View className="mb-4 flex-row items-center gap-1.5 px-5">
-            <View className="h-2.5 w-2.5 rounded-full bg-red-500" />
-            <Text className="text-[11px] font-semibold uppercase tracking-wide text-muted">
-              Happening Now
-            </Text>
+          <View className="mb-3 flex-row items-center gap-2 px-5">
+            <View className="h-2 w-2 rounded-full bg-accent" />
+            <Text className="text-headline font-inter-semibold text-ink">Happening now</Text>
           </View>
 
           <ScrollView
@@ -529,11 +521,11 @@ export default function HomeScreen({
               happeningNow.map((event) => (
                 <Pressable
                   onPress={() => onOpenEvent?.(event.id)}
-                  className="overflow-hidden rounded-2xl border border-primary/10 bg-surface active:opacity-85"
+                  className="overflow-hidden rounded-2xl border border-line bg-surface active:opacity-85"
                   style={[CardStyles.compact, { width: layout.cardWidth }]}
                   key={event.id}
                 >
-                  <View className="bg-gray-200" style={{ height: layout.eventImageHeight }}>
+                  <View className="bg-subtle" style={{ height: layout.eventImageHeight }}>
                     <BrandImage
                       source={getEventImageSource(event)}
                       contentFit="cover"
@@ -541,40 +533,16 @@ export default function HomeScreen({
                     />
                   </View>
                   <View className="p-3">
-                    <Text className="mb-1 text-[14px] font-bold text-ink" numberOfLines={2}>
+                    <Text className="mb-1 text-body font-inter-semibold text-ink" numberOfLines={2}>
                       {event.title}
                     </Text>
-                    <Text className="mb-2 text-[12px] text-muted" numberOfLines={1}>
+                    <Text className="mb-2 text-caption text-muted" numberOfLines={1}>
                       {event.date} · {event.venueName}
                     </Text>
-                    <View className="mb-2 flex-row gap-1.5">
-                      <MiniEngagementStat
-                        icon={<Users size={12} color={Colors.light.primary} strokeWidth={2.4} />}
-                        value={
-                          getEventEngagement(event, eventStatuses[event.id]).interested +
-                          getEventEngagement(event, eventStatuses[event.id]).going
-                        }
-                      />
-                      <MiniEngagementStat
-                        icon={
-                          <CheckCircle2 size={12} color={Colors.light.primary} strokeWidth={2.4} />
-                        }
-                        value={getEventEngagement(event, eventStatuses[event.id]).attended}
-                      />
-                    </View>
-                    <View className="flex-row flex-wrap items-center gap-2">
-                      <Text className="text-[12px] font-bold text-primary">
-                        +{event.xpBonus} XP
-                      </Text>
-                      <Text className="text-[12px] font-extrabold text-accent">
-                        +{event.qcBonus} QC
-                      </Text>
-                      {event.isFree && (
-                        <View className="rounded-full bg-success/10 px-1.5 py-0.5">
-                          <Text className="text-[10px] font-bold text-success">Free</Text>
-                        </View>
-                      )}
-                    </View>
+                    <Text className="text-caption font-inter-semibold text-ink">
+                      +{event.xpBonus} XP · +{event.qcBonus} QC
+                      {event.isFree ? <Text className="text-success"> · Free</Text> : null}
+                    </Text>
                   </View>
                 </Pressable>
               ))
@@ -588,7 +556,7 @@ export default function HomeScreen({
             <View className="flex-1 bg-canvas" style={{ paddingTop: stableTopInset }}>
               <View className="px-5 pb-4 pt-3">
                 <View className="flex-row items-center">
-                  <Text className="font-heading text-[30px] font-extrabold text-ink">
+                  <Text className="font-heading text-title1 text-ink">
                     Notifications
                   </Text>
                   <View className="flex-1" />
@@ -601,7 +569,7 @@ export default function HomeScreen({
                     <X size={22} color={Colors.light.textSecondary} strokeWidth={2.2} />
                   </Pressable>
                 </View>
-                <Text className="mt-1 pr-14 text-[14px] leading-5 text-muted">
+                <Text className="mt-1 pr-14 text-body leading-5 text-muted">
                   Important updates about your account and content.
                 </Text>
               </View>
@@ -625,14 +593,14 @@ export default function HomeScreen({
                     onAction={() => void loadNotifications()}
                   />
                 ) : notifications.length === 0 ? (
-                  <View className="mt-10 items-center rounded-feature border border-primary/10 bg-surface px-7 py-10">
+                  <View className="mt-10 items-center rounded-2xl border border-line bg-surface px-7 py-10">
                     <View className="h-12 w-12 items-center justify-center rounded-full bg-primary/10">
                       <Bell size={22} color={Colors.light.primary} strokeWidth={2.1} />
                     </View>
-                    <Text className="mt-4 text-center font-heading text-[23px] font-extrabold text-ink">
+                    <Text className="mt-4 text-center font-heading text-title2 text-ink">
                       No new notifications
                     </Text>
-                    <Text className="mt-2 text-center text-[14px] leading-5 text-muted">
+                    <Text className="mt-2 text-center text-body leading-5 text-muted">
                       New events and announcements from organizers you follow will appear here.
                     </Text>
                   </View>
@@ -640,7 +608,7 @@ export default function HomeScreen({
                   <View className="mt-3 gap-6">
                     {notificationReadError ? (
                       <View className="flex-row items-center gap-3 rounded-2xl bg-accent/10 px-4 py-3">
-                        <Text className="min-w-0 flex-1 text-[13px] leading-5 text-ink">
+                        <Text className="min-w-0 flex-1 text-footnote leading-5 text-ink">
                           {notificationReadError.message}
                         </Text>
                         <Pressable
@@ -660,14 +628,14 @@ export default function HomeScreen({
                           className="rounded-full bg-accent px-3 py-2 active:opacity-75"
                           accessibilityLabel="Retry marking notification as read"
                         >
-                          <Text className="text-[12px] font-extrabold text-white">Retry</Text>
+                          <Text className="text-caption font-inter-bold text-white">Retry</Text>
                         </Pressable>
                       </View>
                     ) : null}
                     {notificationGroups.map((group) => (
                       <View key={group.key}>
                         <View className="mb-2 flex-row items-center gap-3">
-                          <Text className="text-[11px] font-extrabold uppercase tracking-[1.4px] text-primary">
+                          <Text className="text-caption font-inter-bold text-primary">
                             {group.label}
                           </Text>
                           <View className="h-px flex-1 bg-primary/20" />
@@ -711,17 +679,17 @@ export default function HomeScreen({
                                         <View className="h-2 w-2 rounded-full bg-accent" />
                                       ) : null}
                                       <Text
-                                        className={`shrink text-[14px] ${unread ? 'font-extrabold text-ink' : 'font-semibold text-ink'}`}
+                                        className={`shrink text-body ${unread ? 'font-inter-bold text-ink' : 'font-inter-semibold text-ink'}`}
                                       >
                                         {notification.title}
                                       </Text>
                                     </View>
-                                    <Text className="text-[11px] font-medium text-muted">
+                                    <Text className="text-caption font-inter-medium text-muted">
                                       {formatNotificationDate(notification.createdAt)}
                                     </Text>
                                   </View>
                                   <Text
-                                    className={`mt-1 text-[13px] leading-5 ${unread ? 'text-primary' : 'text-muted'}`}
+                                    className={`mt-1 text-footnote leading-5 ${unread ? 'text-primary' : 'text-muted'}`}
                                   >
                                     {notification.body}
                                   </Text>
@@ -741,14 +709,14 @@ export default function HomeScreen({
 
         <View className="bg-canvas px-5 pb-8">
           <View className="mb-3 flex-row items-center justify-between">
-            <Text className="text-[11px] font-semibold uppercase tracking-wide text-muted">
-              City activity
-            </Text>
-            <Text className="text-[11px] font-semibold text-primary">Approved events only</Text>
+            <Text className="text-headline font-inter-semibold text-ink">City activity</Text>
+            <Pressable onPress={onOpenDiscover} hitSlop={8} accessibilityRole="button">
+              <Text className="text-footnote font-inter-semibold text-primary">See all events</Text>
+            </Pressable>
           </View>
 
           <View
-            className="overflow-hidden rounded-3xl border border-primary/10 bg-canvas"
+            className="overflow-hidden rounded-2xl border border-line bg-canvas"
             style={CardStyles.elevated}
           >
             <View className="h-[210px]">
@@ -760,7 +728,6 @@ export default function HomeScreen({
                 moveOnMarkerPress={false}
                 pitchEnabled={false}
                 rotateEnabled={false}
-                scrollEnabled={isMapInteractive}
                 showsBuildings
                 showsCompass={false}
                 showsMyLocationButton={canShowUserLocation}
@@ -770,7 +737,6 @@ export default function HomeScreen({
                 style={StyleSheet.absoluteFill}
                 toolbarEnabled={false}
                 userInterfaceStyle="light"
-                zoomEnabled={isMapInteractive}
               >
                 <ActivityHeatLayer points={activityHeatPoints} region={activityMapRegion} />
                 {activitySpots.map((spot) => (
@@ -802,72 +768,44 @@ export default function HomeScreen({
                   </Marker>
                 ))}
               </MapView>
-              <View
-                pointerEvents="none"
-                className="absolute inset-0 bg-ink/5"
-                style={{ backgroundColor: `${Colors.light.ink}08` }}
-              />
-              <View className="absolute left-5 top-5 rounded-full bg-white/85 px-3 py-1">
-                <Text className="text-[10px] font-bold text-primary">
+              <View className="absolute left-3 top-3 rounded-full bg-white/90 px-3 py-1">
+                <Text className="text-caption font-inter-semibold text-primary">
                   {activityHeatPoints.length > 0 ? 'Predicted activity' : 'Venue locations'}
                 </Text>
               </View>
-              <Pressable
-                onPress={() => setIsMapInteractive((current) => !current)}
-                className={`absolute bottom-3 right-3 h-11 flex-row items-center gap-2 rounded-full border px-4 active:opacity-80 ${
-                  isMapInteractive ? 'border-white/80 bg-white/95' : 'border-primary bg-primary'
-                }`}
-                accessibilityLabel={isMapInteractive ? 'Lock map' : 'Unlock map'}
-                accessibilityRole="button"
-                hitSlop={8}
-              >
-                {isMapInteractive ? (
-                  <LockKeyhole color={Colors.light.primary} size={15} strokeWidth={2.5} />
-                ) : (
-                  <Move color={Colors.light.onPrimary} size={16} strokeWidth={2.5} />
-                )}
-                <Text
-                  className={`text-[12px] font-extrabold ${
-                    isMapInteractive ? 'text-ink' : 'text-white'
-                  }`}
-                >
-                  {isMapInteractive ? 'Lock map' : 'Move map'}
-                </Text>
-              </Pressable>
             </View>
 
-            <View className="border-t border-primary/10 bg-surface px-4 py-3">
+            <View className="border-t border-line bg-surface px-4 py-3.5">
               {eventsError ? (
                 <ErrorState
                   body="We could not refresh city activity right now. Try again in a moment."
                   compact
-                  style={{ marginBottom: 12 }}
                   title="Event activity unavailable"
                   tone="inline"
                 />
               ) : selectedActivitySpot ? (
-                <View className="mb-3 flex-row items-start justify-between gap-3">
-                  <Pressable
-                    onPress={() => onOpenEvent?.(selectedActivitySpot.nextEvent.id)}
-                    className="min-w-0 flex-1 active:opacity-70"
-                  >
-                    <Text className="font-ui text-[15px] font-bold text-ink" numberOfLines={1}>
+                <Pressable
+                  onPress={() => onOpenEvent?.(selectedActivitySpot.nextEvent.id)}
+                  accessibilityRole="button"
+                  className="flex-row items-center gap-3 active:opacity-70"
+                >
+                  <View className="min-w-0 flex-1">
+                    <Text className="text-body font-inter-semibold text-ink" numberOfLines={1}>
                       {selectedActivitySpot.name}
                     </Text>
-                    <Text className="mt-0.5 text-[12px] text-muted" numberOfLines={1}>
+                    <Text className="mt-0.5 text-caption text-muted" numberOfLines={1}>
                       {selectedActivitySpot.nextEvent.title}
                     </Text>
-                  </Pressable>
-                  <View className="max-w-[150px] rounded-full bg-secondary/12 px-3 py-1.5">
-                    <Text className="text-[12px] font-bold text-secondary" numberOfLines={1}>
+                    <Text className="mt-1 text-caption text-muted" numberOfLines={1}>
                       {selectedActivitySpot.interestedCount.toLocaleString()} interested ·{' '}
                       {selectedActivitySpot.goingCount.toLocaleString()} going ·{' '}
                       {selectedActivitySpot.attendedCount.toLocaleString()} attended
                     </Text>
                   </View>
-                </View>
+                  <ArrowRight size={16} color={Colors.light.textSecondary} />
+                </Pressable>
               ) : (
-                <View className="mb-3">
+                <View>
                   {eventsLoading ? (
                     <LoadingState
                       body="Loading approved organizer events for this city."
@@ -886,35 +824,25 @@ export default function HomeScreen({
                   )}
                 </View>
               )}
-
-              <Pressable
-                onPress={onOpenDiscover}
-                className="h-10 flex-row items-center justify-center gap-2 rounded-xl bg-primary active:opacity-85"
-              >
-                <Text className="text-[13px] font-semibold text-white">Open Discover</Text>
-                <ArrowRight size={14} color="white" />
-              </Pressable>
             </View>
           </View>
         </View>
 
         <View className="bg-canvas px-5 pb-8">
           <View className="mb-3 flex-row items-center justify-between">
-            <Text className="text-[11px] font-semibold uppercase tracking-wide text-muted">
-              Campus ranking
-            </Text>
-            <Text className="text-[11px] font-semibold text-primary">{cityData.name}</Text>
+            <Text className="text-headline font-inter-semibold text-ink">Campus ranking</Text>
+            <Text className="text-footnote text-muted">{cityData.name}</Text>
           </View>
 
           <View
-            className="overflow-hidden rounded-3xl border border-primary/10 bg-surface"
+            className="overflow-hidden rounded-2xl border border-line bg-surface"
             style={CardStyles.elevated}
           >
             <View className="bg-primary px-4 py-4">
-              <Text className="font-heading text-[25px] leading-[29px] text-white">
+              <Text className="font-heading text-title2 leading-[29px] text-white">
                 University leaderboard
               </Text>
-              <Text className="mt-1 text-[12px] leading-4 text-white/70">
+              <Text className="mt-1 text-caption leading-4 text-white/70">
                 XP counts only for students linked to a university.
               </Text>
             </View>
@@ -960,21 +888,21 @@ export default function HomeScreen({
                         style={{ backgroundColor: rankColors.background }}
                       >
                         <Text
-                          className="text-[13px] font-extrabold"
+                          className="text-footnote font-inter-bold"
                           style={{ color: rankColors.text }}
                         >
                           #{row.rank}
                         </Text>
                       </View>
                       <View className="min-w-0 flex-1">
-                        <Text className="text-[14px] font-extrabold text-ink" numberOfLines={1}>
+                        <Text className="text-body font-inter-bold text-ink" numberOfLines={1}>
                           {row.shortName}
                         </Text>
-                        <Text className="mt-0.5 text-[11px] text-muted" numberOfLines={1}>
+                        <Text className="mt-0.5 text-caption text-muted" numberOfLines={1}>
                           {row.memberCount} linked student{row.memberCount === 1 ? '' : 's'}
                         </Text>
                       </View>
-                      <Text className="font-heading text-[20px] leading-[24px] text-accentDeep">
+                      <Text className="font-heading text-title3 leading-[24px] text-accentDeep">
                         {row.totalXp.toLocaleString()}
                       </Text>
                     </Pressable>
@@ -1213,15 +1141,6 @@ function getActivityMarkerColor(heatWeight: number) {
   if (heatWeight >= 0.65) return Colors.light.accentDeep;
   if (heatWeight >= 0.18) return Colors.light.accent;
   return Colors.light.primary;
-}
-
-function MiniEngagementStat({ icon, value }: { icon: ReactNode; value: number }) {
-  return (
-    <View className="flex-row items-center gap-1 rounded-full bg-primary/5 px-2 py-1">
-      {icon}
-      <Text className="text-[10px] font-extrabold text-primary">{value.toLocaleString()}</Text>
-    </View>
-  );
 }
 
 function formatNotificationDate(value: string) {

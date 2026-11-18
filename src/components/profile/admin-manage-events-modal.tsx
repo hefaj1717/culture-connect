@@ -17,8 +17,6 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
-  Text,
-  TextInput,
   View,
 } from 'react-native';
 import { GestureDetector } from 'react-native-gesture-handler';
@@ -60,6 +58,7 @@ import {
   normalizeRewardTimeInput,
   validateRewardAvailability,
 } from '@/lib/reward-availability';
+import { Text, TextInput } from '@/components/ui/text';
 
 type ManageContentTab = 'events' | 'rewards';
 type AdminEventFilter = 'all' | OrganizerEventStatus | 'past';
@@ -280,11 +279,11 @@ export function AdminManageEventsModal({
             >
               <Pressable
                 onPress={closeWithAnimation}
-                className="h-10 w-10 items-center justify-center rounded-full bg-gray-100 active:opacity-80"
+                className="h-10 w-10 items-center justify-center rounded-full bg-subtle active:opacity-80"
                 accessibilityLabel="Close manage events"
                 accessibilityRole="button"
               >
-                <ArrowLeft size={21} color="#6B818C" strokeWidth={2.6} />
+                <ArrowLeft size={21} color={Colors.light.textSecondary} strokeWidth={2.6} />
               </Pressable>
               <Pressable
                 onPress={onRefresh}
@@ -325,18 +324,18 @@ export function AdminManageEventsModal({
             )}
 
             <View className="px-5 pb-2">
-              <View className="h-12 flex-row items-center gap-2 rounded-2xl border border-gray-200 bg-white px-4">
-                <Search size={17} color="#6B818C" strokeWidth={2.4} />
+              <View className="h-12 flex-row items-center gap-2 rounded-2xl border border-line bg-white px-4">
+                <Search size={17} color={Colors.light.textSecondary} strokeWidth={2.4} />
                 <TextInput
                   autoCorrect={false}
-                  className="min-w-0 flex-1 text-[14px] font-semibold text-ink"
+                  className="min-w-0 flex-1 text-body font-inter-semibold text-ink"
                   onChangeText={setSearchQuery}
                   placeholder={
                     activeTab === 'events'
                       ? 'Search title, venue, or organizer'
                       : 'Search reward, place, or organizer'
                   }
-                  placeholderTextColor="#8B909A"
+                  placeholderTextColor={Colors.light.inputPlaceholder}
                   returnKeyType="search"
                   value={searchQuery}
                 />
@@ -495,13 +494,13 @@ function AdminEventFilterBar({
             key={filter.key}
             onPress={() => onSelect(filter.key)}
             className={`h-9 flex-row items-center gap-2 rounded-full px-4 ${
-              active ? 'bg-primary' : 'border border-gray-200 bg-gray-100'
+              active ? 'bg-primary' : 'border border-line bg-subtle'
             }`}
           >
-            <Text className={`text-[12px] font-semibold ${active ? 'text-white' : 'text-muted'}`}>
+            <Text className={`text-caption font-inter-semibold ${active ? 'text-white' : 'text-muted'}`}>
               {filter.label}
             </Text>
-            <Text className={`text-[11px] font-extrabold ${active ? 'text-white' : 'text-muted'}`}>
+            <Text className={`text-caption font-inter-bold ${active ? 'text-white' : 'text-muted'}`}>
               {count}
             </Text>
           </Pressable>
@@ -523,7 +522,7 @@ function AdminContentTabBar({
   rewardCount: number;
 }) {
   return (
-    <View className="mx-5 mb-3 flex-row rounded-2xl bg-gray-100 p-1">
+    <View className="mx-5 mb-3 flex-row rounded-2xl bg-subtle p-1">
       {[
         { count: eventCount, key: 'events' as const, label: 'Events' },
         { count: rewardCount, key: 'rewards' as const, label: 'Rewards' },
@@ -538,11 +537,11 @@ function AdminContentTabBar({
               active ? 'bg-white' : ''
             }`}
           >
-            <Text className={`text-[13px] font-extrabold ${active ? 'text-ink' : 'text-muted'}`}>
+            <Text className={`text-footnote font-inter-bold ${active ? 'text-ink' : 'text-muted'}`}>
               {tab.label}
             </Text>
             <Text
-              className={`text-[12px] font-extrabold ${active ? 'text-primary' : 'text-muted'}`}
+              className={`text-caption font-inter-bold ${active ? 'text-primary' : 'text-muted'}`}
             >
               {tab.count}
             </Text>
@@ -584,13 +583,13 @@ function AdminRewardFilterBar({
             key={filter.key}
             onPress={() => onSelect(filter.key)}
             className={`h-9 flex-row items-center gap-2 rounded-full px-4 ${
-              active ? 'bg-primary' : 'border border-gray-200 bg-gray-100'
+              active ? 'bg-primary' : 'border border-line bg-subtle'
             }`}
           >
-            <Text className={`text-[12px] font-semibold ${active ? 'text-white' : 'text-muted'}`}>
+            <Text className={`text-caption font-inter-semibold ${active ? 'text-white' : 'text-muted'}`}>
               {filter.label}
             </Text>
-            <Text className={`text-[11px] font-extrabold ${active ? 'text-white' : 'text-muted'}`}>
+            <Text className={`text-caption font-inter-bold ${active ? 'text-white' : 'text-muted'}`}>
               {count}
             </Text>
           </Pressable>
@@ -612,10 +611,10 @@ function AdminManagedEventCard({
   return (
     <Pressable
       onPress={onPress}
-      className="overflow-hidden rounded-3xl border border-primary/10 bg-white active:opacity-85"
+      className="overflow-hidden rounded-2xl border border-line bg-white active:opacity-85"
       style={CardStyles.compact}
     >
-      <View className="h-[126px] bg-gray-200">
+      <View className="h-[126px] bg-subtle">
         <BrandImage
           contentFit="cover"
           source={getEventImageSource(event)}
@@ -624,22 +623,22 @@ function AdminManagedEventCard({
       </View>
       <View className="p-4">
         <View className="mb-2 flex-row items-center justify-between gap-3">
-          <Text className="text-[11px] font-semibold uppercase tracking-wide text-muted">
+          <Text className="text-headline font-inter-semibold text-ink">
             {event.date}
           </Text>
           <View className="flex-row items-center gap-2">
             {event.changes.length > 0 && event.reviewStatus === 'pending' && (
               <View className="rounded-full bg-accent/20 px-2.5 py-1">
-                <Text className="text-[10px] font-extrabold text-accentDeep">Edit pending</Text>
+                <Text className="text-caption font-inter-bold text-accentDeep">Edit pending</Text>
               </View>
             )}
             <AdminEventStatusPill status={event.reviewStatus} />
           </View>
         </View>
-        <Text className="font-ui text-[16px] font-extrabold text-ink" numberOfLines={2}>
+        <Text className="text-headline font-inter-bold text-ink" numberOfLines={2}>
           {event.title}
         </Text>
-        <Text className="mt-1 text-[13px] font-medium text-muted" numberOfLines={1}>
+        <Text className="mt-1 text-footnote font-inter-medium text-muted" numberOfLines={1}>
           {event.venueName} · {formatEventTimeRange(event)}
         </Text>
         <Pressable
@@ -651,7 +650,7 @@ function AdminManagedEventCard({
             onOpenOrganizer();
           }}
         >
-          <Text className="text-[12px] font-semibold text-primary" numberOfLines={1}>
+          <Text className="text-caption font-inter-semibold text-primary" numberOfLines={1}>
             Created by {event.organizerName}
           </Text>
         </Pressable>
@@ -663,7 +662,7 @@ function AdminManagedEventCard({
           <MiniStat label="QC" value={event.qcBonus} />
         </View>
         {event.changes.length > 0 && (
-          <Text className="mt-3 text-[11px] font-semibold text-accentDeep">
+          <Text className="mt-3 text-caption font-inter-semibold text-accentDeep">
             {event.changes.length} requested {event.changes.length === 1 ? 'change' : 'changes'}
           </Text>
         )}
@@ -684,10 +683,10 @@ function AdminManagedRewardCard({
   return (
     <Pressable
       onPress={onPress}
-      className="overflow-hidden rounded-3xl border border-primary/10 bg-white active:opacity-85"
+      className="overflow-hidden rounded-2xl border border-line bg-white active:opacity-85"
       style={CardStyles.compact}
     >
-      <View className="h-[126px] bg-gray-200">
+      <View className="h-[126px] bg-subtle">
         <BrandImage
           contentFit="cover"
           source={getRewardImageSource(reward)}
@@ -696,18 +695,18 @@ function AdminManagedRewardCard({
       </View>
       <View className="p-4">
         <View className="mb-2 flex-row items-center justify-between gap-3">
-          <Text className="text-[11px] font-semibold uppercase tracking-wide text-muted">
+          <Text className="text-headline font-inter-semibold text-ink">
             {rewardCategoryLabels[reward.category]}
           </Text>
           <AdminRewardStatusPill status={reward.reviewStatus} />
         </View>
-        <Text className="font-ui text-[16px] font-extrabold text-ink" numberOfLines={2}>
+        <Text className="text-headline font-inter-bold text-ink" numberOfLines={2}>
           {reward.title}
         </Text>
-        <Text className="mt-1 text-[13px] font-medium text-muted" numberOfLines={1}>
+        <Text className="mt-1 text-footnote font-inter-medium text-muted" numberOfLines={1}>
           {reward.placeName} · {reward.qcCost.toLocaleString()} QC
         </Text>
-        <Text className="mt-1 text-[12px] font-semibold text-muted" numberOfLines={1}>
+        <Text className="mt-1 text-caption font-inter-semibold text-muted" numberOfLines={1}>
           {formatRewardAvailability(reward)}
         </Text>
         <Pressable
@@ -719,11 +718,11 @@ function AdminManagedRewardCard({
             onOpenOrganizer();
           }}
         >
-          <Text className="text-[12px] font-semibold text-primary" numberOfLines={1}>
+          <Text className="text-caption font-inter-semibold text-primary" numberOfLines={1}>
             Created by {reward.organizerName}
           </Text>
         </Pressable>
-        <Text className="mt-3 text-[12px] font-medium leading-4 text-muted" numberOfLines={2}>
+        <Text className="mt-3 text-caption font-inter-medium leading-4 text-muted" numberOfLines={2}>
           {reward.description}
         </Text>
       </View>
@@ -850,11 +849,11 @@ function AdminEventEditor({
       >
         <Pressable
           onPress={onBack}
-          className="h-10 w-10 items-center justify-center rounded-full bg-gray-100 active:opacity-80"
+          className="h-10 w-10 items-center justify-center rounded-full bg-subtle active:opacity-80"
           accessibilityLabel="Back to event list"
           accessibilityRole="button"
         >
-          <ArrowLeft size={21} color="#6B818C" strokeWidth={2.6} />
+          <ArrowLeft size={21} color={Colors.light.textSecondary} strokeWidth={2.6} />
         </Pressable>
         <View className="h-10 w-10" />
       </View>
@@ -865,7 +864,7 @@ function AdminEventEditor({
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        <View className="mb-4 overflow-hidden rounded-3xl bg-ink">
+        <View className="mb-4 overflow-hidden rounded-2xl bg-ink">
           <BrandImage
             contentFit="cover"
             source={getEventImageSource(event)}
@@ -876,11 +875,11 @@ function AdminEventEditor({
             <View className="mb-2 flex-row flex-wrap items-center gap-2">
               <AdminEventStatusPill status={event.reviewStatus} />
               <View className="rounded-full bg-white/90 px-2.5 py-1">
-                <Text className="text-[10px] font-extrabold text-primary">{event.xpBonus} XP</Text>
-                <Text className="text-[10px] font-extrabold text-accent">+{event.qcBonus} QC</Text>
+                <Text className="text-caption font-inter-bold text-primary">{event.xpBonus} XP</Text>
+                <Text className="text-caption font-inter-bold text-accent">+{event.qcBonus} QC</Text>
               </View>
             </View>
-            <Text className="font-heading text-[30px] font-extrabold leading-[34px] text-white">
+            <Text className="font-heading text-title1 leading-[34px] text-white">
               {event.title}
             </Text>
             <Pressable
@@ -889,13 +888,13 @@ function AdminEventEditor({
               className="mt-1 self-start active:opacity-75"
               onPress={onOpenOrganizer}
             >
-              <Text className="text-[13px] font-semibold text-white/80">{event.organizerName}</Text>
+              <Text className="text-footnote font-inter-semibold text-white/80">{event.organizerName}</Text>
             </Pressable>
           </View>
         </View>
 
-        <View className="mb-4 rounded-3xl border border-gray-200 bg-white p-4">
-          <Text className="mb-3 font-ui text-[15px] font-extrabold text-ink">Event details</Text>
+        <View className="mb-4 rounded-2xl border border-line bg-white p-4">
+          <Text className="mb-3 text-body font-inter-bold text-ink">Event details</Text>
           <AdminTextField label="Title" onChangeText={setTitle} value={title} />
           <AdminTextField label="Venue name" onChangeText={setVenueName} value={venueName} />
           <AdminTextField
@@ -986,7 +985,7 @@ function AdminEventEditor({
           ))}
         </ChoiceSection>
 
-        <View className="mb-4 rounded-3xl border border-primary/10 bg-primary/5 p-4">
+        <View className="mb-4 rounded-2xl border border-line bg-primary/5 p-4">
           <InfoRow icon={<CalendarDays size={16} color={Colors.light.primary} />} text={date} />
           <InfoRow
             icon={<Clock size={16} color={Colors.light.primary} />}
@@ -1000,8 +999,8 @@ function AdminEventEditor({
           </View>
         </View>
 
-        <View className="mb-4 rounded-3xl border border-gray-200 bg-white p-4">
-          <Text className="mb-3 font-ui text-[15px] font-extrabold text-ink">Event audit</Text>
+        <View className="mb-4 rounded-2xl border border-line bg-white p-4">
+          <Text className="mb-3 text-body font-inter-bold text-ink">Event audit</Text>
           <AuditRow label="Database ID" value={event.databaseId} />
           <AuditRow label="Organizer" onPress={onOpenOrganizer} value={event.organizerName} />
           <AuditRow label="Status" value={getStatusLabel(status)} />
@@ -1023,7 +1022,7 @@ function AdminEventEditor({
           ) : (
             <Save size={17} color="white" strokeWidth={2.5} />
           )}
-          <Text className="text-[15px] font-extrabold text-white">
+          <Text className="text-body font-inter-bold text-white">
             {saving ? 'Saving event...' : 'Save event'}
           </Text>
         </Pressable>
@@ -1034,7 +1033,7 @@ function AdminEventEditor({
           className="mt-3 h-[52px] flex-row items-center justify-center gap-2 rounded-2xl bg-destructive active:opacity-85 disabled:opacity-60"
         >
           <Trash2 size={17} color="white" strokeWidth={2.5} />
-          <Text className="text-[15px] font-extrabold text-white">Delete event</Text>
+          <Text className="text-body font-inter-bold text-white">Delete event</Text>
         </Pressable>
       </ScrollView>
     </View>
@@ -1186,11 +1185,11 @@ function AdminRewardEditor({
       >
         <Pressable
           onPress={onBack}
-          className="h-10 w-10 items-center justify-center rounded-full bg-gray-100 active:opacity-80"
+          className="h-10 w-10 items-center justify-center rounded-full bg-subtle active:opacity-80"
           accessibilityLabel="Back to reward list"
           accessibilityRole="button"
         >
-          <ArrowLeft size={21} color="#6B818C" strokeWidth={2.6} />
+          <ArrowLeft size={21} color={Colors.light.textSecondary} strokeWidth={2.6} />
         </Pressable>
         <View className="h-10 w-10" />
       </View>
@@ -1201,7 +1200,7 @@ function AdminRewardEditor({
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        <View className="mb-4 overflow-hidden rounded-3xl bg-ink">
+        <View className="mb-4 overflow-hidden rounded-2xl bg-ink">
           <BrandImage
             contentFit="cover"
             source={getRewardImageSource(reward)}
@@ -1212,12 +1211,12 @@ function AdminRewardEditor({
             <View className="mb-2 flex-row flex-wrap items-center gap-2">
               <AdminRewardStatusPill status={reward.reviewStatus} />
               <View className="rounded-full bg-white/90 px-2.5 py-1">
-                <Text className="text-[10px] font-extrabold text-primary">
+                <Text className="text-caption font-inter-bold text-primary">
                   {reward.qcCost.toLocaleString()} QC
                 </Text>
               </View>
             </View>
-            <Text className="font-heading text-[30px] font-extrabold leading-[34px] text-white">
+            <Text className="font-heading text-title1 leading-[34px] text-white">
               {reward.title}
             </Text>
             <Pressable
@@ -1226,15 +1225,15 @@ function AdminRewardEditor({
               className="mt-1 self-start active:opacity-75"
               onPress={onOpenOrganizer}
             >
-              <Text className="text-[13px] font-semibold text-white/80">
+              <Text className="text-footnote font-inter-semibold text-white/80">
                 {reward.organizerName}
               </Text>
             </Pressable>
           </View>
         </View>
 
-        <View className="mb-4 rounded-3xl border border-gray-200 bg-white p-4">
-          <Text className="mb-3 font-ui text-[15px] font-extrabold text-ink">Reward details</Text>
+        <View className="mb-4 rounded-2xl border border-line bg-white p-4">
+          <Text className="mb-3 text-body font-inter-bold text-ink">Reward details</Text>
           <AdminTextField label="Reward title" onChangeText={setTitle} value={title} />
           <AdminTextField label="Place name" onChangeText={setPlaceName} value={placeName} />
           <AdminTextField
@@ -1278,37 +1277,37 @@ function AdminRewardEditor({
           ))}
         </ChoiceSection>
 
-        <View className="mb-4 rounded-3xl border border-gray-200 bg-white p-4">
-          <Text className="mb-1 font-ui text-[15px] font-extrabold text-ink">
+        <View className="mb-4 rounded-2xl border border-line bg-white p-4">
+          <Text className="mb-1 text-body font-inter-bold text-ink">
             Redeem availability
           </Text>
-          <Text className="mb-3 text-[12px] leading-4 text-muted">
+          <Text className="mb-3 text-caption leading-4 text-muted">
             Controls when students can redeem this reward.
           </Text>
           <View className="mb-3 flex-row gap-3">
             <View className="flex-1">
-              <Text className="mb-1.5 text-[12px] font-semibold text-muted">From date</Text>
+              <Text className="mb-1.5 text-caption font-inter-semibold text-muted">From date</Text>
               <Pressable
                 accessibilityLabel="Choose reward start date"
                 accessibilityRole="button"
-                className="h-12 flex-row items-center justify-between rounded-2xl border border-gray-200 bg-white px-4 active:border-primary"
+                className="h-12 flex-row items-center justify-between rounded-2xl border border-line bg-white px-4 active:border-primary"
                 onPress={() => openDatePicker('from')}
               >
-                <Text className="text-[14px] font-semibold text-ink">
+                <Text className="text-body font-inter-semibold text-ink">
                   {formatAdminRewardDateLabel(availableFrom)}
                 </Text>
                 <CalendarDays size={17} color={Colors.light.primary} strokeWidth={2.4} />
               </Pressable>
             </View>
             <View className="flex-1">
-              <Text className="mb-1.5 text-[12px] font-semibold text-muted">Until date</Text>
+              <Text className="mb-1.5 text-caption font-inter-semibold text-muted">Until date</Text>
               <Pressable
                 accessibilityLabel="Choose reward end date"
                 accessibilityRole="button"
-                className="h-12 flex-row items-center justify-between rounded-2xl border border-gray-200 bg-white px-4 active:border-primary"
+                className="h-12 flex-row items-center justify-between rounded-2xl border border-line bg-white px-4 active:border-primary"
                 onPress={() => openDatePicker('until')}
               >
-                <Text className="text-[14px] font-semibold text-ink">
+                <Text className="text-body font-inter-semibold text-ink">
                   {formatAdminRewardDateLabel(availableUntil)}
                 </Text>
                 <CalendarDays size={17} color={Colors.light.primary} strokeWidth={2.4} />
@@ -1317,31 +1316,31 @@ function AdminRewardEditor({
           </View>
           <View className="mb-3 flex-row gap-3">
             <View className="flex-1">
-              <Text className="mb-1.5 text-[12px] font-semibold text-muted">Starts</Text>
+              <Text className="mb-1.5 text-caption font-inter-semibold text-muted">Starts</Text>
               <Pressable
                 accessibilityLabel="Choose reward start time"
                 accessibilityRole="button"
-                className="h-12 flex-row items-center justify-between rounded-2xl border border-gray-200 bg-white px-4 active:border-primary"
+                className="h-12 flex-row items-center justify-between rounded-2xl border border-line bg-white px-4 active:border-primary"
                 onPress={() => openTimePicker('start')}
               >
-                <Text className="text-[14px] font-semibold text-ink">{availableStartTime}</Text>
+                <Text className="text-body font-inter-semibold text-ink">{availableStartTime}</Text>
                 <Clock size={17} color={Colors.light.primary} strokeWidth={2.4} />
               </Pressable>
             </View>
             <View className="flex-1">
-              <Text className="mb-1.5 text-[12px] font-semibold text-muted">Ends</Text>
+              <Text className="mb-1.5 text-caption font-inter-semibold text-muted">Ends</Text>
               <Pressable
                 accessibilityLabel="Choose reward end time"
                 accessibilityRole="button"
-                className="h-12 flex-row items-center justify-between rounded-2xl border border-gray-200 bg-white px-4 active:border-primary"
+                className="h-12 flex-row items-center justify-between rounded-2xl border border-line bg-white px-4 active:border-primary"
                 onPress={() => openTimePicker('end')}
               >
-                <Text className="text-[14px] font-semibold text-ink">{availableEndTime}</Text>
+                <Text className="text-body font-inter-semibold text-ink">{availableEndTime}</Text>
                 <Clock size={17} color={Colors.light.primary} strokeWidth={2.4} />
               </Pressable>
             </View>
           </View>
-          <Text className="text-[12px] font-semibold leading-4 text-primary">
+          <Text className="text-caption font-inter-semibold leading-4 text-primary">
             {formatRewardAvailability({
               ...reward,
               availableDays,
@@ -1353,7 +1352,7 @@ function AdminRewardEditor({
           </Text>
         </View>
 
-        <View className="mb-4 rounded-3xl border border-primary/10 bg-primary/5 p-4">
+        <View className="mb-4 rounded-2xl border border-line bg-primary/5 p-4">
           <InfoRow icon={<Gift size={16} color={Colors.light.primary} />} text={title} />
           <InfoRow icon={<MapPin size={16} color={Colors.light.primary} />} text={placeName} />
           <View className="mt-3 flex-row gap-2">
@@ -1362,8 +1361,8 @@ function AdminRewardEditor({
           </View>
         </View>
 
-        <View className="mb-4 rounded-3xl border border-gray-200 bg-white p-4">
-          <Text className="mb-3 font-ui text-[15px] font-extrabold text-ink">Reward audit</Text>
+        <View className="mb-4 rounded-2xl border border-line bg-white p-4">
+          <Text className="mb-3 text-body font-inter-bold text-ink">Reward audit</Text>
           <AuditRow label="Database ID" value={reward.databaseId} />
           <AuditRow label="Organizer" onPress={onOpenOrganizer} value={reward.organizerName} />
           <AuditRow label="Status" value={getRewardStatusLabel(status)} />
@@ -1381,7 +1380,7 @@ function AdminRewardEditor({
           ) : (
             <Save size={17} color="white" strokeWidth={2.5} />
           )}
-          <Text className="text-[15px] font-extrabold text-white">
+          <Text className="text-body font-inter-bold text-white">
             {saving ? 'Saving reward...' : 'Save reward'}
           </Text>
         </Pressable>
@@ -1392,7 +1391,7 @@ function AdminRewardEditor({
           className="mt-3 h-[52px] flex-row items-center justify-center gap-2 rounded-2xl bg-destructive active:opacity-85 disabled:opacity-60"
         >
           <Trash2 size={17} color="white" strokeWidth={2.5} />
-          <Text className="text-[15px] font-extrabold text-white">Archive reward</Text>
+          <Text className="text-body font-inter-bold text-white">Archive reward</Text>
         </Pressable>
       </ScrollView>
       <DatePickerModal
@@ -1450,15 +1449,15 @@ function AdminTextField({
 }) {
   return (
     <View className={`mb-3 ${containerClassName}`}>
-      <Text className="mb-1.5 text-[12px] font-semibold text-muted">{label}</Text>
+      <Text className="mb-1.5 text-caption font-inter-semibold text-muted">{label}</Text>
       <TextInput
         keyboardType={keyboardType}
         multiline={multiline}
         onChangeText={onChangeText}
-        placeholderTextColor="#8B909A"
+        placeholderTextColor={Colors.light.inputPlaceholder}
         style={multiline ? { minHeight: 104, textAlignVertical: 'top' } : undefined}
         value={value}
-        className="rounded-2xl border border-gray-200 bg-white px-4 py-3 text-[14px] font-medium text-ink"
+        className="rounded-2xl border border-line bg-white px-4 py-3 text-body font-inter-medium text-ink"
       />
     </View>
   );
@@ -1493,8 +1492,8 @@ function parseAdminRewardTime(value: string) {
 
 function ChoiceSection({ children, label }: { children: ReactNode; label: string }) {
   return (
-    <View className="mb-4 rounded-3xl border border-gray-200 bg-white p-4">
-      <Text className="mb-3 font-ui text-[15px] font-extrabold text-ink">{label}</Text>
+    <View className="mb-4 rounded-2xl border border-line bg-white p-4">
+      <Text className="mb-3 text-body font-inter-bold text-ink">{label}</Text>
       <View className="flex-row flex-wrap gap-2">{children}</View>
     </View>
   );
@@ -1508,18 +1507,18 @@ function ManageEventChanges({
   requestedAt?: string | null;
 }) {
   return (
-    <View className="mb-4 rounded-3xl border border-accent/20 bg-accent/10 p-4">
+    <View className="mb-4 rounded-2xl border border-accent/20 bg-accent/10 p-4">
       <View className="mb-3 flex-row items-center justify-between gap-3">
         <View className="min-w-0 flex-1">
-          <Text className="text-[11px] font-extrabold uppercase tracking-wide text-accentDeep">
+          <Text className="text-caption font-inter-bold text-accentDeep">
             Organizer edit request
           </Text>
-          <Text className="mt-1 text-[12px] font-semibold text-muted">
+          <Text className="mt-1 text-caption font-inter-semibold text-muted">
             Requested {formatAuditDate(requestedAt ?? '')}
           </Text>
         </View>
         <View className="rounded-full bg-white/75 px-2.5 py-1">
-          <Text className="text-[10px] font-extrabold text-accentDeep">
+          <Text className="text-caption font-inter-bold text-accentDeep">
             {changes.length} {changes.length === 1 ? 'field' : 'fields'}
           </Text>
         </View>
@@ -1528,11 +1527,11 @@ function ManageEventChanges({
       <View className="gap-2">
         {changes.map((change) => (
           <View className="rounded-2xl bg-white/75 p-3" key={`${change.field}-${change.to}`}>
-            <Text className="text-[12px] font-extrabold text-ink">{change.field}</Text>
-            <Text className="mt-1 text-[11px] font-semibold leading-4 text-muted">
+            <Text className="text-caption font-inter-bold text-ink">{change.field}</Text>
+            <Text className="mt-1 text-caption font-inter-semibold leading-4 text-muted">
               Before: {change.from}
             </Text>
-            <Text className="mt-1 text-[11px] font-extrabold leading-4 text-accentDeep">
+            <Text className="mt-1 text-caption font-inter-bold leading-4 text-accentDeep">
               Now: {change.to}
             </Text>
           </View>
@@ -1555,10 +1554,10 @@ function ChoiceChip({
     <Pressable
       onPress={onPress}
       className={`rounded-full px-3.5 py-2 ${
-        active ? 'bg-primary' : 'border border-gray-200 bg-gray-100'
+        active ? 'bg-primary' : 'border border-line bg-subtle'
       }`}
     >
-      <Text className={`text-[12px] font-extrabold ${active ? 'text-white' : 'text-muted'}`}>
+      <Text className={`text-caption font-inter-bold ${active ? 'text-white' : 'text-muted'}`}>
         {label}
       </Text>
     </Pressable>
@@ -1569,7 +1568,7 @@ function InfoRow({ icon, text }: { icon: ReactNode; text: string }) {
   return (
     <View className="mt-2 flex-row items-center gap-2">
       <View className="h-8 w-8 items-center justify-center rounded-full bg-white">{icon}</View>
-      <Text className="min-w-0 flex-1 text-[12px] font-semibold text-muted" numberOfLines={1}>
+      <Text className="min-w-0 flex-1 text-caption font-inter-semibold text-muted" numberOfLines={1}>
         {text}
       </Text>
     </View>
@@ -1587,9 +1586,9 @@ function AuditRow({
 }) {
   const content = (
     <>
-      <Text className="text-[10px] font-extrabold uppercase tracking-wide text-muted">{label}</Text>
+      <Text className="text-caption font-inter-bold text-muted">{label}</Text>
       <Text
-        className={`mt-1 text-[12px] font-semibold ${onPress ? 'text-primary' : 'text-ink'}`}
+        className={`mt-1 text-caption font-inter-semibold ${onPress ? 'text-primary' : 'text-ink'}`}
         numberOfLines={2}
       >
         {value}
@@ -1602,7 +1601,7 @@ function AuditRow({
       <Pressable
         accessibilityLabel={`Open organizer profile for ${value}`}
         accessibilityRole="button"
-        className="border-b border-gray-100 py-2 active:opacity-75"
+        className="border-b border-line py-2 active:opacity-75"
         onPress={onPress}
       >
         {content}
@@ -1610,7 +1609,7 @@ function AuditRow({
     );
   }
 
-  return <View className="border-b border-gray-100 py-2 last:border-b-0">{content}</View>;
+  return <View className="border-b border-line py-2 last:border-b-0">{content}</View>;
 }
 
 function MiniStat({
@@ -1624,10 +1623,10 @@ function MiniStat({
 }) {
   return (
     <View className="min-w-0 flex-1 rounded-2xl bg-primary/5 px-3 py-2">
-      <Text className="text-[13px] font-extrabold capitalize text-primary">
+      <Text className="text-footnote font-inter-bold capitalize text-primary">
         {valueText ?? (value ?? 0).toLocaleString()}
       </Text>
-      <Text className="mt-0.5 text-[10px] font-semibold uppercase tracking-wide text-muted">
+      <Text className="mt-0.5 text-caption font-inter-semibold text-muted">
         {label}
       </Text>
     </View>
@@ -1639,7 +1638,7 @@ function AdminEventStatusPill({ status }: { status: OrganizerEventStatus }) {
 
   return (
     <View className={`rounded-full px-2.5 py-1 ${statusStyle.container}`}>
-      <Text className={`text-[10px] font-extrabold ${statusStyle.text}`}>{statusStyle.label}</Text>
+      <Text className={`text-caption font-inter-bold ${statusStyle.text}`}>{statusStyle.label}</Text>
     </View>
   );
 }
@@ -1649,7 +1648,7 @@ function AdminRewardStatusPill({ status }: { status: RewardPartnerStatus }) {
 
   return (
     <View className={`rounded-full px-2.5 py-1 ${statusStyle.container}`}>
-      <Text className={`text-[10px] font-extrabold ${statusStyle.text}`}>{statusStyle.label}</Text>
+      <Text className={`text-caption font-inter-bold ${statusStyle.text}`}>{statusStyle.label}</Text>
     </View>
   );
 }
@@ -1724,13 +1723,13 @@ function getStatusStyle(status: OrganizerEventStatus) {
     return { container: 'bg-destructive/10', label: 'Rejected', text: 'text-destructive' };
   }
   if (status === 'cancelled') {
-    return { container: 'bg-gray-100', label: 'Cancelled', text: 'text-muted' };
+    return { container: 'bg-subtle', label: 'Cancelled', text: 'text-muted' };
   }
   if (status === 'draft') {
-    return { container: 'bg-gray-100', label: 'Draft', text: 'text-muted' };
+    return { container: 'bg-subtle', label: 'Draft', text: 'text-muted' };
   }
 
-  return { container: 'bg-secondary/12', label: 'Pending', text: 'text-secondary' };
+  return { container: 'bg-accent/12', label: 'Pending', text: 'text-accent' };
 }
 
 function getRewardStatusStyle(status: RewardPartnerStatus) {
@@ -1741,13 +1740,13 @@ function getRewardStatusStyle(status: RewardPartnerStatus) {
     return { container: 'bg-destructive/10', label: 'Rejected', text: 'text-destructive' };
   }
   if (status === 'archived') {
-    return { container: 'bg-gray-100', label: 'Archived', text: 'text-muted' };
+    return { container: 'bg-subtle', label: 'Archived', text: 'text-muted' };
   }
   if (status === 'draft') {
-    return { container: 'bg-gray-100', label: 'Draft', text: 'text-muted' };
+    return { container: 'bg-subtle', label: 'Draft', text: 'text-muted' };
   }
 
-  return { container: 'bg-secondary/12', label: 'Pending', text: 'text-secondary' };
+  return { container: 'bg-accent/12', label: 'Pending', text: 'text-accent' };
 }
 
 function formatEventTimeRange(event: { endTime?: string | null; time: string }) {

@@ -1,6 +1,7 @@
-import { StyleSheet, Text, View, type StyleProp, type ViewStyle } from 'react-native';
+import { StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 
 import { Spacing, Typography } from '@/constants/theme';
+import { Text } from '@/components/ui/text';
 
 type ScreenHeaderProps = {
   subtitle?: string;

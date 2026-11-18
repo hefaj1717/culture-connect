@@ -18,7 +18,6 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
-  Text,
   View,
   type ViewStyle,
 } from 'react-native';
@@ -32,6 +31,8 @@ import { BrandImage } from '@/components/brand-image';
 import { getCultureCityData } from '@/data/culture';
 import { type PendingAdminEvent, type PendingAdminReward } from '@/lib/admin-moderation';
 import { formatRewardAvailability } from '@/lib/reward-availability';
+import { Text } from '@/components/ui/text';
+import { Colors } from '@/constants/theme';
 
 type ReviewTab = 'events' | 'rewards';
 type ReviewContentKind = 'event' | 'reward';
@@ -87,11 +88,11 @@ export function AdminReviewModal({
               <View className="mb-5 flex-row items-center justify-between">
                 <Pressable
                   onPress={onClose}
-                  className="h-10 w-10 items-center justify-center rounded-full bg-gray-100 active:opacity-80"
+                  className="h-10 w-10 items-center justify-center rounded-full bg-subtle active:opacity-80"
                   accessibilityRole="button"
                   accessibilityLabel="Close content review"
                 >
-                  <ArrowLeft size={21} color="#6B818C" strokeWidth={2.6} />
+                  <ArrowLeft size={21} color={Colors.light.textSecondary} strokeWidth={2.6} />
                 </Pressable>
                 <Pressable
                   onPress={onRefresh}
@@ -99,7 +100,7 @@ export function AdminReviewModal({
                   accessibilityRole="button"
                   accessibilityLabel="Refresh pending content"
                 >
-                  <RefreshCw size={18} color="#6B818C" strokeWidth={2.5} />
+                  <RefreshCw size={18} color={Colors.light.textSecondary} strokeWidth={2.5} />
                 </Pressable>
               </View>
 
@@ -108,13 +109,13 @@ export function AdminReviewModal({
                 title="Approve what goes live"
               />
 
-              <View className="mb-4 flex-row overflow-hidden rounded-feature border border-primary/10 bg-surface">
-                <ReviewQueueSummary icon={<CalendarDays size={17} color="#6B818C" />} label="Events" value={events.length} />
+              <View className="mb-4 flex-row overflow-hidden rounded-2xl border border-line bg-surface">
+                <ReviewQueueSummary icon={<CalendarDays size={17} color={Colors.light.textSecondary} />} label="Events" value={events.length} />
                 <View className="my-4 w-px bg-primary/15" />
-                <ReviewQueueSummary icon={<Gift size={17} color="#A63446" />} label="Rewards" value={rewards.length} />
+                <ReviewQueueSummary icon={<Gift size={17} color={Colors.light.accent} />} label="Rewards" value={rewards.length} />
               </View>
 
-              <View className="mb-4 flex-row gap-2 rounded-2xl bg-gray-100 p-1">
+              <View className="mb-4 flex-row gap-2 rounded-2xl bg-subtle p-1">
                 <ReviewTabButton
                   active={activeTab === 'events'}
                   count={events.length}
@@ -181,8 +182,8 @@ function ReviewQueueSummary({ icon, label, value }: { icon: ReactNode; label: st
     <View className="min-w-0 flex-1 flex-row items-center gap-2.5 px-4 py-3">
       <View className="h-9 w-9 items-center justify-center rounded-full bg-white">{icon}</View>
       <View>
-        <Text className="font-serifRegular text-[22px] leading-6 text-ink">{value}</Text>
-        <Text className="text-[10px] font-bold uppercase tracking-wide text-muted">{label}</Text>
+        <Text className="font-serifRegular text-title2 leading-6 text-ink">{value}</Text>
+        <Text className="text-caption font-inter-semibold text-muted">{label}</Text>
       </View>
     </View>
   );
@@ -206,11 +207,11 @@ function ReviewTabButton({
         active ? 'bg-white' : 'bg-transparent'
       }`}
     >
-      <Text className={`text-[13px] font-extrabold ${active ? 'text-ink' : 'text-muted'}`}>
+      <Text className={`text-footnote font-inter-bold ${active ? 'text-ink' : 'text-muted'}`}>
         {label}
       </Text>
       <View className={`rounded-full px-2 py-0.5 ${active ? 'bg-primary/10' : 'bg-white/70'}`}>
-        <Text className="text-[11px] font-extrabold text-primary">{count}</Text>
+        <Text className="text-caption font-inter-bold text-primary">{count}</Text>
       </View>
     </Pressable>
   );
@@ -234,8 +235,8 @@ function PendingEventCard({
   const submittedLabel = formatReviewTimestamp(event.updatedAt ?? event.createdAt);
 
   return (
-    <View className="overflow-hidden rounded-3xl border border-gray-200 bg-white">
-      <View className="h-[150px] bg-gray-200">
+    <View className="overflow-hidden rounded-2xl border border-line bg-white">
+      <View className="h-[150px] bg-subtle">
         <BrandImage
           source={
             event.imageUrl
@@ -254,32 +255,32 @@ function PendingEventCard({
             }`}
           >
             <Text
-              className={`text-[11px] font-bold ${isEditedEvent ? 'text-ink' : 'text-primary'}`}
+              className={`text-caption font-inter-semibold ${isEditedEvent ? 'text-ink' : 'text-primary'}`}
             >
               {isEditedEvent ? 'Edit review' : 'New event'} · {city.name}
             </Text>
           </View>
           <View className="absolute bottom-4 left-4 right-4">
-            <Text className="font-heading text-[25px] font-extrabold leading-[28px] text-white">
+            <Text className="font-heading text-title2 leading-[28px] text-white">
               {event.title}
             </Text>
           </View>
         </BrandImage>
       </View>
       <View className="p-4">
-        <InfoLine icon={<MapPin size={15} color="#6B818C" />} text={event.venueName} />
+        <InfoLine icon={<MapPin size={15} color={Colors.light.textSecondary} />} text={event.venueName} />
         <InfoLine
-          icon={<CalendarDays size={15} color="#6B818C" />}
+          icon={<CalendarDays size={15} color={Colors.light.textSecondary} />}
           text={`${event.date}, ${formatPendingEventTimeRange(event)}`}
         />
         <InfoLine
-          icon={<UserRound size={15} color="#6B818C" />}
+          icon={<UserRound size={15} color={Colors.light.textSecondary} />}
           text={`Submitted by ${event.organizerName}`}
         />
-        <Text className="mt-2 text-[11px] font-semibold uppercase tracking-wide text-muted">
+        <Text className="mt-2 text-headline font-inter-semibold text-ink">
           {isEditedEvent ? 'Review requested' : 'Submitted'} {submittedLabel}
         </Text>
-        <Text className="mt-3 text-[13px] leading-5 text-muted" numberOfLines={3}>
+        <Text className="mt-3 text-footnote leading-5 text-muted" numberOfLines={3}>
           {event.description}
         </Text>
         {isEditedEvent && <PendingEventChanges changes={event.changes} />}
@@ -299,11 +300,11 @@ function PendingEventChanges({ changes }: { changes: PendingAdminEvent['changes'
   return (
     <View className="mt-4 rounded-2xl border border-accent/20 bg-accent/10 p-3">
       <View className="mb-3 flex-row items-center justify-between gap-3">
-        <Text className="text-[11px] font-extrabold uppercase tracking-wide text-accentDeep">
+        <Text className="text-caption font-inter-bold text-accentDeep">
           Changes requested
         </Text>
         <View className="rounded-full bg-white/70 px-2 py-0.5">
-          <Text className="text-[10px] font-extrabold text-accentDeep">
+          <Text className="text-caption font-inter-bold text-accentDeep">
             {changes.length} {changes.length === 1 ? 'field' : 'fields'}
           </Text>
         </View>
@@ -314,7 +315,7 @@ function PendingEventChanges({ changes }: { changes: PendingAdminEvent['changes'
             key={`${change.field}-${change.from}-${change.to}`}
             className="rounded-2xl bg-white/70 p-2.5"
           >
-            <Text className="mb-2 text-[12px] font-extrabold text-ink">{change.field}</Text>
+            <Text className="mb-2 text-caption font-inter-bold text-ink">{change.field}</Text>
             <View className="gap-1.5">
               <ChangeValue label="Previous" tone="muted" value={change.from} />
               <ChangeValue label="Requested" tone="accent" value={change.to} />
@@ -337,17 +338,17 @@ function ChangeValue({
 }) {
   return (
     <View
-      className={`rounded-xl px-2.5 py-2 ${tone === 'accent' ? 'bg-accent/15' : 'bg-gray-100'}`}
+      className={`rounded-xl px-2.5 py-2 ${tone === 'accent' ? 'bg-accent/15' : 'bg-subtle'}`}
     >
       <Text
-        className={`text-[9px] font-extrabold uppercase tracking-wide ${
+        className={`text-caption font-inter-bold ${
           tone === 'accent' ? 'text-accentDeep' : 'text-muted'
         }`}
       >
         {label}
       </Text>
       <Text
-        className={`mt-0.5 text-[11px] font-semibold leading-4 ${
+        className={`mt-0.5 text-caption font-inter-semibold leading-4 ${
           tone === 'accent' ? 'text-ink' : 'text-muted'
         }`}
       >
@@ -374,7 +375,7 @@ function PendingRewardCard({
   const city = getCultureCityData(reward.cityId);
 
   return (
-    <View className="rounded-3xl border border-gray-200 bg-white p-4">
+    <View className="rounded-2xl border border-line bg-white p-4">
       <View className="mb-3 flex-row items-start gap-3">
         <View className="h-12 w-12 overflow-hidden rounded-2xl bg-primary/10">
           {reward.organizerAvatarUrl ? (
@@ -393,23 +394,23 @@ function PendingRewardCard({
         </View>
         <View className="min-w-0 flex-1">
           <View className="mb-1 flex-row items-center justify-between gap-3">
-            <Text className="min-w-0 flex-1 font-heading text-[22px] font-extrabold leading-[25px] text-ink">
+            <Text className="min-w-0 flex-1 font-heading text-title2 leading-[25px] text-ink">
               {reward.title}
             </Text>
-            <Text className="text-[13px] font-extrabold text-accent">{reward.qcCost} QC</Text>
+            <Text className="text-footnote font-inter-bold text-accent">{reward.qcCost} QC</Text>
           </View>
-          <Text className="text-[13px] font-semibold text-muted" numberOfLines={1}>
+          <Text className="text-footnote font-inter-semibold text-muted" numberOfLines={1}>
             {reward.placeName} · {city.name}
           </Text>
         </View>
       </View>
-      <Text className="text-[13px] leading-5 text-muted" numberOfLines={3}>
+      <Text className="text-footnote leading-5 text-muted" numberOfLines={3}>
         {reward.description}
       </Text>
-      <InfoLine icon={<MapPin size={15} color="#6B818C" />} text={reward.placeAddress} />
-      <InfoLine icon={<Clock size={15} color="#6B818C" />} text={formatRewardAvailability(reward)} />
+      <InfoLine icon={<MapPin size={15} color={Colors.light.textSecondary} />} text={reward.placeAddress} />
+      <InfoLine icon={<Clock size={15} color={Colors.light.textSecondary} />} text={formatRewardAvailability(reward)} />
       <InfoLine
-        icon={<UserRound size={15} color="#6B818C" />}
+        icon={<UserRound size={15} color={Colors.light.textSecondary} />}
         text={`Submitted by ${reward.organizerName}`}
       />
       <ReviewActions
@@ -436,7 +437,7 @@ function InfoLine({ icon, text }: { icon: React.ReactNode; text: string }) {
   return (
     <View className="mt-2 flex-row items-center gap-2">
       <View className="h-7 w-7 items-center justify-center rounded-full bg-primary/10">{icon}</View>
-      <Text className="min-w-0 flex-1 text-[12px] font-semibold text-muted" numberOfLines={1}>
+      <Text className="min-w-0 flex-1 text-caption font-inter-semibold text-muted" numberOfLines={1}>
         {text}
       </Text>
     </View>
@@ -480,10 +481,10 @@ function ReviewActions({
         <Pressable
           disabled={anyBusy}
           onPress={() => confirmAction('rejected')}
-          className="h-11 flex-1 flex-row items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white active:opacity-80"
+          className="h-11 flex-1 flex-row items-center justify-center gap-2 rounded-xl border border-line bg-white active:opacity-80"
         >
-          <X size={16} color="#6B818C" strokeWidth={2.5} />
-          <Text className="text-[13px] font-extrabold text-muted">Reject</Text>
+          <X size={16} color={Colors.light.textSecondary} strokeWidth={2.5} />
+          <Text className="text-footnote font-inter-bold text-muted">Reject</Text>
         </Pressable>
         <Pressable
           disabled={anyBusy}
@@ -495,7 +496,7 @@ function ReviewActions({
           ) : (
             <Check size={16} color="white" strokeWidth={2.5} />
           )}
-          <Text className="text-[13px] font-extrabold text-white">Approve</Text>
+          <Text className="text-footnote font-inter-bold text-white">Approve</Text>
         </Pressable>
       </View>
       {onDelete && (
@@ -509,7 +510,7 @@ function ReviewActions({
           ) : (
             <Trash2 size={15} color="#EF4444" strokeWidth={2.5} />
           )}
-          <Text className="text-[13px] font-extrabold text-destructive">Delete event</Text>
+          <Text className="text-footnote font-inter-bold text-destructive">Delete event</Text>
         </Pressable>
       )}
     </View>

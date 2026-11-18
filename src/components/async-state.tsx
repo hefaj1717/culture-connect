@@ -1,7 +1,6 @@
 import {
   ActivityIndicator,
   Pressable,
-  Text,
   View,
   type StyleProp,
   type ViewStyle,
@@ -10,6 +9,7 @@ import { AlertCircle, Inbox, RefreshCcw, type LucideIcon } from 'lucide-react-na
 
 import { Colors } from '@/constants/theme';
 import { AppSurface } from '@/components/app-surface';
+import { Text } from '@/components/ui/text';
 
 type AsyncStateTone = 'card' | 'inline';
 
@@ -37,13 +37,13 @@ export function CardListSkeleton({
       {Array.from({ length: count }, (_, index) => (
         <View
           key={index}
-          className="overflow-hidden rounded-2xl border border-primary/10 bg-surface"
+          className="overflow-hidden rounded-2xl border border-line bg-surface"
           style={{ height: 132 }}
         >
           <View className="h-16 bg-canvas" />
           <View className="gap-2 p-3">
-            <View className="h-3 w-4/5 rounded-full bg-gray-200" />
-            <View className="h-3 w-2/5 rounded-full bg-gray-100" />
+            <View className="h-3 w-4/5 rounded-full bg-subtle" />
+            <View className="h-3 w-2/5 rounded-full bg-subtle" />
           </View>
         </View>
       ))}
@@ -61,13 +61,12 @@ export function LoadingState({
   return (
     <AppSurface compact={compact} style={style} tone={tone === 'inline' ? 'inline' : 'default'}>
       <View className="flex-row items-center gap-3">
-        <View className="h-9 w-1 rounded-full bg-primary/70" />
         <View className="h-9 w-9 items-center justify-center rounded-full bg-primary/10">
           <ActivityIndicator color={Colors.light.primary} size="small" />
         </View>
         <View className="min-w-0 flex-1">
-          <Text className="font-ui text-[14px] font-extrabold text-ink">{title}</Text>
-          {body ? <Text className="mt-0.5 text-[12px] leading-4 text-muted">{body}</Text> : null}
+          <Text className="text-body font-inter-bold text-ink">{title}</Text>
+          {body ? <Text className="mt-0.5 text-caption leading-4 text-muted">{body}</Text> : null}
         </View>
       </View>
     </AppSurface>
@@ -97,15 +96,14 @@ export function ErrorState({
       tone={tone === 'inline' ? 'inline' : 'default'}
     >
       <View className="flex-row items-stretch gap-3">
-        <View className="w-1 rounded-full bg-accent" />
         {Icon ? (
           <View className="pt-0.5">
             <Icon color={Colors.light.accent} size={18} strokeWidth={2.35} />
           </View>
         ) : null}
         <View className="min-w-0 flex-1">
-          <Text className="font-ui text-[15px] font-extrabold text-ink">{title}</Text>
-          {body ? <Text className="mt-1 text-[12px] leading-4 text-muted">{body}</Text> : null}
+          <Text className="text-body font-inter-bold text-ink">{title}</Text>
+          {body ? <Text className="mt-1 text-caption leading-4 text-muted">{body}</Text> : null}
           {onAction ? (
             <Pressable
               onPress={onAction}
@@ -114,7 +112,7 @@ export function ErrorState({
               accessibilityLabel={actionLabel ?? 'Try again'}
             >
               <RefreshCcw color={Colors.light.onPrimary} size={13} strokeWidth={2.4} />
-              <Text className="ml-1.5 text-[11px] font-extrabold text-white">
+              <Text className="ml-1.5 text-caption font-inter-bold text-white">
                 {actionLabel ?? 'Try again'}
               </Text>
             </Pressable>
@@ -154,14 +152,14 @@ export function EmptyState({
           </View>
         ) : null}
         <View className="min-w-0 flex-1">
-          <Text className="font-serifRegular text-[18px] leading-6 text-ink">{title}</Text>
-          {body ? <Text className="mt-1 text-[13px] leading-5 text-muted">{body}</Text> : null}
+          <Text className="font-serifRegular text-headline leading-6 text-ink">{title}</Text>
+          {body ? <Text className="mt-1 text-footnote leading-5 text-muted">{body}</Text> : null}
           {onAction ? (
             <Pressable
               onPress={onAction}
               className="mt-3 self-start rounded-full bg-primary px-3.5 py-2 active:opacity-80"
             >
-              <Text className="text-[11px] font-extrabold text-white">{actionLabel}</Text>
+              <Text className="text-caption font-inter-bold text-white">{actionLabel}</Text>
             </Pressable>
           ) : null}
         </View>

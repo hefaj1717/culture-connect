@@ -1,9 +1,10 @@
 import { Image } from 'expo-image';
 import { User } from 'lucide-react-native';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import Svg, { Circle } from 'react-native-svg';
 
 import { Colors, GamificationColors } from '@/constants/theme';
+import { Text } from '@/components/ui/text';
 
 type AvatarProps = {
   iconSize: number;
@@ -21,7 +22,7 @@ export function Avatar({ iconSize, initials, size, uri }: AvatarProps) {
       {uri ? (
         <Image source={{ uri }} contentFit="cover" style={{ height: size, width: size }} />
       ) : initials ? (
-        <Text className="font-ui text-[32px] text-white">{initials}</Text>
+        <Text className="font-ui text-title1 text-white">{initials}</Text>
       ) : (
         <User size={iconSize} color="white" strokeWidth={2.2} />
       )}
@@ -44,7 +45,7 @@ export function RankAvatar({ initials, progressPercent, uri }: RankAvatarProps) 
           <Image source={{ uri }} contentFit="cover" style={{ height: 72, width: 72 }} />
         ) : (
           <View className="h-[72px] w-[72px] items-center justify-center bg-primary">
-            <Text className="font-ui text-[22px] font-extrabold text-white">
+            <Text className="text-title2 font-inter-bold text-white">
               {initials ?? 'CQ'}
             </Text>
           </View>

@@ -1,6 +1,6 @@
 import { ArrowLeft, UserCheck } from 'lucide-react-native';
 import { useState } from 'react';
-import { Modal, Pressable, ScrollView, Text, View } from 'react-native';
+import { Modal, Pressable, ScrollView, View } from 'react-native';
 import { GestureDetector } from 'react-native-gesture-handler';
 import Animated from 'react-native-reanimated';
 
@@ -12,6 +12,7 @@ import { getCultureCityData, type CultureEvent } from '@/data/culture';
 import type { UserEventStatus } from '@/lib/event-history';
 import type { OrganizerProfile } from '@/lib/organizer-profiles';
 import { useCardSwipeBack } from '@/hooks/use-card-swipe-back';
+import { Text } from '@/components/ui/text';
 
 type FollowedOrganizersModalProps = {
   activeProfile: OrganizerProfile | null;
@@ -110,8 +111,8 @@ export function FollowedOrganizersModal({
           >
             <ArrowLeft size={21} color={Colors.light.primary} strokeWidth={2.6} />
           </Pressable>
-          <Text className="font-heading text-[30px] leading-9 text-ink">Following</Text>
-          <Text className="mt-1 text-[14px] leading-5 text-muted">
+          <Text className="font-heading text-title1 leading-9 text-ink">Following</Text>
+          <Text className="mt-1 text-body leading-5 text-muted">
             New approved events from these organizers appear in Notifications.
           </Text>
         </View>
@@ -136,14 +137,14 @@ export function FollowedOrganizersModal({
               icon={UserCheck}
             />
           ) : (
-            <View className="overflow-hidden rounded-feature border border-primary/10 bg-surface px-5">
+            <View className="overflow-hidden rounded-2xl border border-line bg-surface px-5">
               {unfollowError ? (
-                <Text className="border-b border-primary/10 py-3 text-[12px] leading-4 text-destructive">
+                <Text className="border-b border-line py-3 text-caption leading-4 text-destructive">
                   {unfollowError}
                 </Text>
               ) : null}
               {error ? (
-                <Text className="border-b border-primary/10 py-3 text-[12px] leading-4 text-muted">
+                <Text className="border-b border-line py-3 text-caption leading-4 text-muted">
                   Some changes may not be up to date. Pull to retry later.
                 </Text>
               ) : null}
@@ -198,7 +199,7 @@ function FollowedOrganizerRow({
   unfollowing: boolean;
 }) {
   return (
-    <View className={`flex-row items-center gap-3 py-4 ${isLast ? '' : 'border-b border-primary/10'}`}>
+    <View className={`flex-row items-center gap-3 py-4 ${isLast ? '' : 'border-b border-line'}`}>
       <Pressable
         accessibilityLabel={`Open ${profile.name}`}
         accessibilityRole="button"
@@ -207,10 +208,10 @@ function FollowedOrganizerRow({
       >
         <OrganizerAvatar profile={profile} size={50} />
         <View className="min-w-0 flex-1">
-        <Text className="font-serifRegular text-[18px] leading-6 text-ink" numberOfLines={1}>
+        <Text className="font-serifRegular text-headline leading-6 text-ink" numberOfLines={1}>
           {profile.name}
         </Text>
-        <Text className="mt-0.5 text-[12px] font-medium text-muted" numberOfLines={1}>
+        <Text className="mt-0.5 text-caption font-inter-medium text-muted" numberOfLines={1}>
           {getCultureCityData(profile.cityId).name}
         </Text>
         </View>
@@ -224,7 +225,7 @@ function FollowedOrganizerRow({
         onPress={() => void onUnfollow(profile.id)}
       >
         <UserCheck size={14} color={Colors.light.success} strokeWidth={2.5} />
-        <Text className="text-[11px] font-bold text-success">
+        <Text className="text-caption font-inter-semibold text-success">
           {unfollowing ? 'Saving…' : 'Following'}
         </Text>
       </Pressable>

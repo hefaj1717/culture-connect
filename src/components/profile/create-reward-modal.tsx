@@ -8,8 +8,6 @@ import {
   Platform,
   Pressable,
   ScrollView,
-  Text,
-  TextInput,
   View,
 } from 'react-native';
 import type { ScrollViewInstance } from 'react-native';
@@ -35,6 +33,8 @@ import {
   type PlaceSuggestion,
 } from '@/lib/place-search';
 import { type RewardAvailabilityInput } from '@/lib/reward-availability';
+import { Text, TextInput } from '@/components/ui/text';
+import { Colors } from '@/constants/theme';
 
 type CreateRewardModalProps = {
   createRewardError: string | null;
@@ -180,11 +180,11 @@ export function CreateRewardModal({
               >
                 <Pressable
                   onPress={closeWithAnimation}
-                  className="mb-5 h-10 w-10 items-center justify-center rounded-full bg-gray-100 active:opacity-80"
+                  className="mb-5 h-10 w-10 items-center justify-center rounded-full bg-subtle active:opacity-80"
                   accessibilityRole="button"
                   accessibilityLabel="Close create reward"
                 >
-                  <ArrowLeft size={21} color="#6B818C" strokeWidth={2.6} />
+                  <ArrowLeft size={21} color={Colors.light.textSecondary} strokeWidth={2.6} />
                 </Pressable>
 
                 <ScreenHeader
@@ -196,7 +196,7 @@ export function CreateRewardModal({
                   title={isEditingReward ? 'Edit reward' : 'Create reward'}
                 />
 
-                <View className="mb-5 rounded-[26px] border border-primary/10 bg-canvas p-4">
+                <View className="mb-5 rounded-2xl border border-line bg-canvas p-4">
                   <View className="flex-row items-center gap-3">
                     <View className="h-16 w-16 overflow-hidden rounded-2xl bg-ink/10">
                       {organizerAvatarUrl ? (
@@ -208,24 +208,24 @@ export function CreateRewardModal({
                         />
                       ) : (
                         <View className="h-full w-full items-center justify-center bg-ink">
-                          <Text className="font-ui text-[20px] font-extrabold text-white">
+                          <Text className="text-title3 font-inter-bold text-white">
                             {organizerInitials}
                           </Text>
                         </View>
                       )}
                     </View>
                     <View className="min-w-0 flex-1">
-                      <Text className="text-[10px] font-extrabold uppercase tracking-wide text-muted">
+                      <Text className="text-caption font-inter-bold text-muted">
                         Reward preview
                       </Text>
                       <Text
-                        className="mt-1 font-ui text-[15px] font-extrabold text-ink"
+                        className="mt-1 text-body font-inter-bold text-ink"
                         numberOfLines={1}
                       >
                         {selectedRewardPlace?.name || organizerName}
                       </Text>
                       <Text
-                        className="mt-0.5 text-[12px] font-medium leading-4 text-muted"
+                        className="mt-0.5 text-caption font-inter-medium leading-4 text-muted"
                         numberOfLines={2}
                       >
                         {rewardTitle.trim() || 'Your reward title will appear here.'}
@@ -234,21 +234,21 @@ export function CreateRewardModal({
                   </View>
                 </View>
 
-                <Text className="mb-2 text-[13px] font-semibold text-ink">Reward title</Text>
+                <Text className="mb-2 text-footnote font-inter-semibold text-ink">Reward title</Text>
                 <TextInput
                   value={rewardTitle}
                   onChangeText={onChangeRewardTitle}
                   onFocus={() => focusFormArea(150)}
                   placeholder="e.g. Free espresso after check-in"
-                  placeholderTextColor="#8B909A"
+                  placeholderTextColor={Colors.light.inputPlaceholder}
                   maxLength={textLimits.rewardTitle}
-                  className="mb-4 rounded-xl border border-gray-300 px-4 py-3 text-[15px] text-ink"
+                  className="mb-4 rounded-xl border border-line px-4 py-3 text-body text-ink"
                 />
 
-                <Text className="mb-2 text-[13px] font-semibold text-ink">Reward place</Text>
+                <Text className="mb-2 text-footnote font-inter-semibold text-ink">Reward place</Text>
                 <View className="mb-4">
-                  <View className="h-12 flex-row items-center gap-3 rounded-xl border border-gray-300 px-4">
-                    <Search size={16} color="#6B818C" strokeWidth={2.4} />
+                  <View className="h-12 flex-row items-center gap-3 rounded-xl border border-line px-4">
+                    <Search size={16} color={Colors.light.textSecondary} strokeWidth={2.4} />
                     <TextInput
                       value={rewardPlaceQuery}
                       onChangeText={(value) => {
@@ -257,13 +257,13 @@ export function CreateRewardModal({
                       }}
                       onFocus={() => focusFormArea(260)}
                       placeholder={`Search places in ${cityData.name}`}
-                      placeholderTextColor="#8B909A"
+                      placeholderTextColor={Colors.light.inputPlaceholder}
                       maxLength={textLimits.placeSearch}
-                      className="flex-1 text-[15px] text-ink"
+                      className="flex-1 text-body text-ink"
                     />
-                    {searchingRewardPlaces && <ActivityIndicator color="#6B818C" size="small" />}
+                    {searchingRewardPlaces && <ActivityIndicator color={Colors.light.textSecondary} size="small" />}
                   </View>
-                  <Text className="mt-2 text-[11px] leading-4 text-muted">
+                  <Text className="mt-2 text-caption leading-4 text-muted">
                     {hasGooglePlacesApiKey
                       ? 'Powered by Google Places suggestions.'
                       : 'Google Places key is missing, so place suggestions are unavailable.'}
@@ -271,15 +271,15 @@ export function CreateRewardModal({
 
                   {rewardPlaceSearchError ? (
                     <View className="mt-2 flex-row items-center gap-3 rounded-xl bg-accent/10 px-3 py-2.5">
-                      <Text className="min-w-0 flex-1 text-[11px] leading-4 text-ink">
+                      <Text className="min-w-0 flex-1 text-caption leading-4 text-ink">
                         {rewardPlaceSearchError.message}
                       </Text>
                       <Pressable
                         onPress={onRetryRewardPlaceSearch}
-                        className="rounded-lg bg-accent px-2.5 py-1.5 active:opacity-75"
+                        className="rounded-xl bg-accent px-2.5 py-1.5 active:opacity-75"
                         accessibilityLabel="Retry place search"
                       >
-                        <Text className="text-[11px] font-bold text-white">Retry</Text>
+                        <Text className="text-caption font-inter-semibold text-white">Retry</Text>
                       </Pressable>
                     </View>
                   ) : null}
@@ -287,13 +287,13 @@ export function CreateRewardModal({
                   {selectedRewardPlace && (
                     <View className="mt-2 flex-row gap-3 rounded-xl border border-accent/25 bg-accent/10 p-3">
                       <View className="h-9 w-9 items-center justify-center rounded-full bg-accent/15">
-                        <MapPin size={16} color="#6B818C" strokeWidth={2.4} />
+                        <MapPin size={16} color={Colors.light.textSecondary} strokeWidth={2.4} />
                       </View>
                       <View className="min-w-0 flex-1">
-                        <Text className="font-ui text-[13px] font-bold text-ink" numberOfLines={1}>
+                        <Text className="text-footnote font-inter-semibold text-ink" numberOfLines={1}>
                           {selectedRewardPlace.name}
                         </Text>
-                        <Text className="text-[11px] leading-4 text-muted" numberOfLines={2}>
+                        <Text className="text-caption leading-4 text-muted" numberOfLines={2}>
                           {selectedRewardPlace.address}
                         </Text>
                       </View>
@@ -301,7 +301,7 @@ export function CreateRewardModal({
                   )}
 
                   {rewardPlaceSuggestions.length > 0 && (
-                    <View className="mt-2 overflow-hidden rounded-xl border border-gray-200 bg-white">
+                    <View className="mt-2 overflow-hidden rounded-xl border border-line bg-white">
                       {rewardPlaceSuggestions.map((place) => (
                         <Pressable
                           key={`${place.source}-${place.id}`}
@@ -309,19 +309,19 @@ export function CreateRewardModal({
                             Keyboard.dismiss();
                             onSelectRewardPlace(place);
                           }}
-                          className="flex-row items-start gap-3 border-b border-gray-100 p-3 active:bg-gray-50"
+                          className="flex-row items-start gap-3 border-b border-line p-3 active:bg-subtle"
                         >
                           <View className="h-9 w-9 items-center justify-center rounded-full bg-accent/10">
-                            <MapPin size={16} color="#6B818C" strokeWidth={2.4} />
+                            <MapPin size={16} color={Colors.light.textSecondary} strokeWidth={2.4} />
                           </View>
                           <View className="min-w-0 flex-1">
                             <Text
-                              className="font-ui text-[13px] font-bold text-ink"
+                              className="text-footnote font-inter-semibold text-ink"
                               numberOfLines={1}
                             >
                               {place.name}
                             </Text>
-                            <Text className="text-[11px] leading-4 text-muted" numberOfLines={2}>
+                            <Text className="text-caption leading-4 text-muted" numberOfLines={2}>
                               {place.address}
                             </Text>
                           </View>
@@ -331,7 +331,7 @@ export function CreateRewardModal({
                   )}
                 </View>
 
-                <Text className="mb-2 text-[13px] font-semibold text-ink">
+                <Text className="mb-2 text-footnote font-inter-semibold text-ink">
                   CultureQuest Credits required to unlock
                 </Text>
                 <TextInput
@@ -340,42 +340,42 @@ export function CreateRewardModal({
                   onFocus={() => focusFormArea(420)}
                   keyboardType="number-pad"
                   placeholder="100"
-                  placeholderTextColor="#8B909A"
+                  placeholderTextColor={Colors.light.inputPlaceholder}
                   maxLength={textLimits.rewardQc}
                   editable={!isEditingReward}
-                  className={`mb-4 rounded-xl border border-gray-300 px-4 py-3 text-[15px] text-ink ${
-                    isEditingReward ? 'bg-gray-100 text-muted' : ''
+                  className={`mb-4 rounded-xl border border-line px-4 py-3 text-body text-ink ${
+                    isEditingReward ? 'bg-subtle text-muted' : ''
                   }`}
                 />
                 {isEditingReward && (
-                  <Text className="-mt-3 mb-4 text-[11px] leading-4 text-muted">
+                  <Text className="-mt-3 mb-4 text-caption leading-4 text-muted">
                     Credit cost is kept unchanged while a reward is being reviewed.
                   </Text>
                 )}
 
-                <Text className="mb-2 text-[13px] font-semibold text-ink">
+                <Text className="mb-2 text-footnote font-inter-semibold text-ink">
                   Redeem availability
                 </Text>
                 <View className="mb-4 gap-3">
                   <View className="flex-row gap-3">
                     <View className="flex-1">
-                      <Text className="mb-2 text-[13px] font-semibold text-ink">From date</Text>
+                      <Text className="mb-2 text-footnote font-inter-semibold text-ink">From date</Text>
                       <Pressable
                         onPress={() => openDatePicker('from')}
-                        className="h-12 justify-center rounded-xl border border-gray-300 px-4 active:opacity-80"
+                        className="h-12 justify-center rounded-xl border border-line px-4 active:opacity-80"
                       >
-                        <Text className="text-[15px] text-ink">
+                        <Text className="text-body text-ink">
                           {formatRewardDateLabel(rewardAvailability.availableFrom)}
                         </Text>
                       </Pressable>
                     </View>
                     <View className="flex-1">
-                      <Text className="mb-2 text-[13px] font-semibold text-ink">Until date</Text>
+                      <Text className="mb-2 text-footnote font-inter-semibold text-ink">Until date</Text>
                       <Pressable
                         onPress={() => openDatePicker('until')}
-                        className="h-12 justify-center rounded-xl border border-gray-300 px-4 active:opacity-80"
+                        className="h-12 justify-center rounded-xl border border-line px-4 active:opacity-80"
                       >
-                        <Text className="text-[15px] text-ink">
+                        <Text className="text-body text-ink">
                           {formatRewardDateLabel(rewardAvailability.availableUntil)}
                         </Text>
                       </Pressable>
@@ -383,30 +383,30 @@ export function CreateRewardModal({
                   </View>
                   <View className="flex-row gap-3">
                     <View className="flex-1">
-                      <Text className="mb-2 text-[13px] font-semibold text-ink">Starts</Text>
+                      <Text className="mb-2 text-footnote font-inter-semibold text-ink">Starts</Text>
                       <Pressable
                         onPress={() => openTimePicker('start')}
-                        className="h-12 justify-center rounded-xl border border-gray-300 px-4 active:opacity-80"
+                        className="h-12 justify-center rounded-xl border border-line px-4 active:opacity-80"
                       >
-                        <Text className="text-[15px] text-ink">
+                        <Text className="text-body text-ink">
                           {rewardAvailability.availableStartTime}
                         </Text>
                       </Pressable>
                     </View>
                     <View className="flex-1">
-                      <Text className="mb-2 text-[13px] font-semibold text-ink">Ends</Text>
+                      <Text className="mb-2 text-footnote font-inter-semibold text-ink">Ends</Text>
                       <Pressable
                         onPress={() => openTimePicker('end')}
-                        className="h-12 justify-center rounded-xl border border-gray-300 px-4 active:opacity-80"
+                        className="h-12 justify-center rounded-xl border border-line px-4 active:opacity-80"
                       >
-                        <Text className="text-[15px] text-ink">
+                        <Text className="text-body text-ink">
                           {rewardAvailability.availableEndTime}
                         </Text>
                       </Pressable>
                     </View>
                   </View>
                   <View className="rounded-2xl bg-canvas px-3 py-2.5">
-                    <Text className="text-[12px] font-semibold leading-4 text-muted">
+                    <Text className="text-caption font-inter-semibold leading-4 text-muted">
                       Reward can be redeemed from {formatRewardDateLabel(rewardAvailability.availableFrom)} to{' '}
                       {formatRewardDateLabel(rewardAvailability.availableUntil)}, from{' '}
                       {rewardAvailability.availableStartTime} to {rewardAvailability.availableEndTime}.
@@ -414,42 +414,42 @@ export function CreateRewardModal({
                   </View>
                 </View>
 
-                <Text className="mb-2 text-[13px] font-semibold text-ink">Description</Text>
+                <Text className="mb-2 text-footnote font-inter-semibold text-ink">Description</Text>
                 <TextInput
                   value={rewardDescription}
                   onChangeText={onChangeRewardDescription}
                   onFocus={() => focusFormArea(490)}
                   placeholder="What does the student receive and how should staff verify it?"
-                  placeholderTextColor="#8B909A"
+                  placeholderTextColor={Colors.light.inputPlaceholder}
                   multiline
                   textAlignVertical="top"
                   maxLength={textLimits.rewardDescription}
-                  className="mb-4 min-h-[112px] rounded-xl border border-gray-300 px-4 py-3 text-[15px] leading-5 text-ink"
+                  className="mb-4 min-h-[112px] rounded-xl border border-line px-4 py-3 text-body leading-5 text-ink"
                 />
-                <Text className="-mt-3 mb-4 text-right text-[11px] text-muted">
+                <Text className="-mt-3 mb-4 text-right text-caption text-muted">
                   {rewardDescription.length}/{textLimits.rewardDescription}
                 </Text>
 
                 {isEditingReward && (
                   <View className="mb-4 rounded-xl bg-primary/5 p-3">
-                    <Text className="text-[13px] font-semibold text-ink">Note for review (optional)</Text>
-                    <Text className="mt-1 text-[12px] leading-4 text-muted">
+                    <Text className="text-footnote font-inter-semibold text-ink">Note for review (optional)</Text>
+                    <Text className="mt-1 text-caption leading-4 text-muted">
                       Tell CultureQuest why the reward changed. This note is included in the review record.
                     </Text>
                     <TextInput
                       value={rewardUpdateMessage}
                       onChangeText={onChangeRewardUpdateMessage}
                       placeholder="For example: redemption hours changed for the new semester."
-                      placeholderTextColor="#8B909A"
+                      placeholderTextColor={Colors.light.inputPlaceholder}
                       multiline
                       maxLength={textLimits.organizerNote}
-                      className="mt-3 min-h-[76px] rounded-xl border border-primary/15 bg-white px-3 py-2 text-[14px] leading-5 text-ink"
+                      className="mt-3 min-h-[76px] rounded-xl border border-line bg-white px-3 py-2 text-body leading-5 text-ink"
                     />
                   </View>
                 )}
 
                 {createRewardError && (
-                  <Text className="mb-4 text-[13px] font-medium text-destructive">
+                  <Text className="mb-4 text-footnote font-inter-medium text-destructive">
                     {createRewardError}
                   </Text>
                 )}
@@ -465,7 +465,7 @@ export function CreateRewardModal({
                   {creatingReward ? (
                     <ActivityIndicator color="white" />
                   ) : (
-                    <Text className="text-[15px] font-semibold text-white">
+                    <Text className="text-body font-inter-semibold text-white">
                       {isEditingReward ? 'Submit changes' : 'Submit for review'}
                     </Text>
                   )}

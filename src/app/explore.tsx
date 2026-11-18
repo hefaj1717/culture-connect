@@ -20,8 +20,6 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
-  Text,
-  TextInput,
   useWindowDimensions,
   View,
 } from 'react-native';
@@ -58,6 +56,7 @@ import { useStableTopInset } from '@/hooks/use-stable-safe-area';
 import { useResponsiveLayout } from '@/hooks/use-responsive-layout';
 import type { UserEventStatus } from '@/lib/event-history';
 import { useAuth } from '@/providers/auth-provider';
+import { Text, TextInput } from '@/components/ui/text';
 
 const audienceFilters = [
   { key: 'all', label: 'All' },
@@ -122,7 +121,7 @@ export default function ExploreScreen({
   const stableTopInset = useStableTopInset();
   const layout = useResponsiveLayout();
   const [search, setSearch] = useState('');
-  const [tab, setTab] = useState<'events' | 'venues'>('events');
+  const [tab, setTab] = useState<'events' | 'organizers'>('events');
   const [audienceFilter, setAudienceFilter] = useState('all');
   const [selectedEvent, setSelectedEvent] = useState<CultureEvent | null>(null);
   const [confirmedCheckIns, setConfirmedCheckIns] = useState<Record<string, boolean>>({});
@@ -288,12 +287,7 @@ export default function ExploreScreen({
             matchesAudience = event.language === 'en' || event.language === 'multilingual';
           }
           if (audienceFilter === 'free') matchesAudience = event.isFree;
-          if (audienceFilter === 'tonight') {
-            matchesAudience =
-              event.date.toLowerCase().includes('thu') ||
-              event.date.toLowerCase().includes('fri') ||
-              event.date.toLowerCase().includes('sat');
-          }
+          if (audienceFilter === 'tonight') matchesAudience = isEventToday(event);
 
           return matchesSearch && matchesAudience;
         })
@@ -308,7 +302,14 @@ export default function ExploreScreen({
     [allEvents, audienceFilter, normalizedSearch],
   );
 
-  const featuredEvent = allEvents.find((event) => event.isFlashQuest);
+  // Only a flash quest that is actually live is promoted, and only when it matches the
+  // current search and filter. It is then left out of the list below to avoid a duplicate.
+  const featuredEvent = filteredEvents.find(
+    (event) => event.isFlashQuest && getCheckInWindowState(event) === 'open',
+  );
+  const listedEvents = featuredEvent
+    ? filteredEvents.filter((event) => event.id !== featuredEvent.id)
+    : filteredEvents;
 
   useEffect(() => {
     setSelectedEvent(null);
@@ -372,23 +373,23 @@ export default function ExploreScreen({
     <View className="flex-1 bg-canvas" testID="discover.screen">
       <ScrollView
         className="flex-1"
-        contentContainerStyle={{ paddingBottom: 112 }}
+        contentContainerStyle={{ paddingBottom: 40 }}
         keyboardShouldPersistTaps="handled"
       >
         <View className="mb-4 px-5" style={{ paddingTop: stableTopInset + Spacing.sm }}>
           <ScreenHeader title="Discover" style={{ marginBottom: Spacing.md }} />
           <View
-            className="h-14 flex-row items-center gap-3.5 rounded-2xl border border-primary/10 px-4"
+            className="h-14 flex-row items-center gap-3.5 rounded-2xl border border-line px-4"
             style={{ backgroundColor: Colors.light.backgroundElement }}
           >
             <Search size={20} color={Colors.light.primary} strokeWidth={2.4} />
             <TextInput
               value={search}
               onChangeText={setSearch}
-              placeholder="Search events, organizers..."
+              placeholder={tab === 'events' ? 'Search events or venues' : 'Search organizers'}
               placeholderTextColor={Colors.light.textSecondary}
               autoCapitalize="none"
-              className="flex-1 text-[15px] font-medium text-ink"
+              className="flex-1 text-body font-inter-medium text-ink"
             />
           </View>
         </View>
@@ -397,7 +398,7 @@ export default function ExploreScreen({
           className="mb-4 mx-5 flex-row rounded-2xl p-1"
           style={{ backgroundColor: Colors.light.backgroundElement }}
         >
-          {(['events', 'venues'] as const).map((nextTab) => {
+          {(['events', 'organizers'] as const).map((nextTab) => {
             const active = tab === nextTab;
             const tabLabel = nextTab === 'events' ? 'Events' : 'Organizers';
             return (
@@ -407,9 +408,10 @@ export default function ExploreScreen({
                   Keyboard.dismiss();
                   setTab(nextTab);
                 }}
-                className={`h-10 flex-1 items-center justify-center rounded-xl ${active ? 'bg-primary' : ''}`}
+                className={`h-9 flex-1 items-center justify-center rounded-xl ${active ? 'bg-surface' : ''}`}
+                style={active ? CardStyles.soft : undefined}
               >
-                <Text className={`text-[13px] font-semibold ${active ? 'text-white' : 'text-muted'}`}>
+                <Text className={`text-footnote font-inter-semibold ${active ? 'text-ink' : 'text-muted'}`}>
                   {tabLabel}
                 </Text>
               </Pressable>
@@ -434,11 +436,11 @@ export default function ExploreScreen({
                       Keyboard.dismiss();
                       setAudienceFilter(active ? 'all' : filter.key);
                     }}
-                    className={`h-9 items-center justify-center rounded-full px-4 ${active ? 'bg-primary' : 'border border-primary/10'}`}
+                    className={`h-9 items-center justify-center rounded-full px-4 ${active ? 'bg-primary' : 'border border-line'}`}
                     style={active ? undefined : { backgroundColor: Colors.light.backgroundElement }}
                   >
                     <Text
-                      className={`text-[13px] font-medium ${active ? 'text-white' : 'text-muted'}`}
+                      className={`text-footnote font-inter-medium ${active ? 'text-white' : 'text-muted'}`}
                     >
                       {filter.label}
                     </Text>
@@ -449,79 +451,50 @@ export default function ExploreScreen({
 
             {featuredEvent && (
               <View className="mb-6 px-5">
-                <View className="mb-3 flex-row items-center gap-1.5">
-                  <View className="h-2.5 w-2.5 rounded-full bg-red-500" />
-                  <Text className="text-[11px] font-semibold uppercase tracking-wide text-muted">
-                    Live Now
-                  </Text>
-                </View>
-
                 <Pressable
                   testID={`event.card.${featuredEvent.id}`}
                   onPress={() => {
                     Keyboard.dismiss();
                     setSelectedEvent(featuredEvent);
                   }}
-                  className="overflow-hidden rounded-3xl active:opacity-90"
-                  style={[CardStyles.elevated, { backgroundColor: Colors.light.backgroundElement }]}
+                  className="overflow-hidden rounded-2xl border border-line bg-surface active:opacity-90"
                 >
-                  <View className="bg-gray-200" style={{ height: layout.isSmallPhone ? 150 : 170 }}>
+                  <View className="bg-subtle" style={{ height: layout.isSmallPhone ? 150 : 170 }}>
                     <BrandImage
                       source={getEventImageSource(featuredEvent)}
                       contentFit="cover"
                       style={StyleSheet.absoluteFill}
-                      withTextGradient
                     >
-                      <View className="absolute left-3 top-3 rounded-full bg-ink/70 px-2.5 py-1">
-                        <Text className="text-[11px] font-bold text-white">Live quest</Text>
+                      <View className="absolute left-3 top-3 flex-row items-center gap-1.5 rounded-full bg-white px-2.5 py-1">
+                        <View className="h-1.5 w-1.5 rounded-full bg-accent" />
+                        <Text className="text-caption font-inter-semibold text-ink">Live now</Text>
                       </View>
                     </BrandImage>
                   </View>
 
                   <View className="p-4">
-                    <View className="mb-2 flex-row flex-wrap items-center gap-2">
-                      <View className="rounded-full bg-primary/5 px-2 py-0.5">
-                        <Text className="text-[11px] font-semibold text-muted">
-                          {eventCategoryLabels[featuredEvent.category]}
-                        </Text>
-                      </View>
-                      {featuredEvent.isFree && (
-                        <View className="rounded-full bg-success/10 px-2 py-0.5">
-                          <Text className="text-[11px] font-bold text-success">Free</Text>
-                        </View>
-                      )}
-                      <EventEngagementPills
-                        attended={
-                          getEventEngagement(featuredEvent, eventStatuses[featuredEvent.id])
-                            .attended
-                        }
-                        going={
-                          getEventEngagement(featuredEvent, eventStatuses[featuredEvent.id]).going
-                        }
-                        interested={
-                          getEventEngagement(featuredEvent, eventStatuses[featuredEvent.id])
-                            .interested
-                        }
-                        mode={getCheckInWindowState(featuredEvent) === 'open' ? 'live' : 'upcoming'}
-                      />
-                    </View>
-
-                    <Text className="mb-1 font-ui text-[18px] font-bold text-ink">
+                    <Text className="mb-1 text-caption font-inter-medium text-muted">
+                      {eventCategoryLabels[featuredEvent.category]}
+                      {featuredEvent.isFree ? (
+                        <Text className="text-success"> · Free</Text>
+                      ) : null}
+                    </Text>
+                    <Text className="mb-1 text-headline font-inter-semibold text-ink">
                       {featuredEvent.title}
                     </Text>
-                    <Text className="mb-3 text-[13px] leading-5 text-muted" numberOfLines={2}>
+                    <Text className="mb-3 text-footnote leading-5 text-muted" numberOfLines={2}>
                       {featuredEvent.description}
                     </Text>
                     <View className="flex-row flex-wrap items-center gap-3">
                       <View className="flex-row items-center gap-1">
                         <Clock size={13} color={Colors.light.textSecondary} />
-                        <Text className="text-[12px] text-muted">
+                        <Text className="text-caption text-muted">
                           {featuredEvent.date}, {formatEventTimeRange(featuredEvent)}
                         </Text>
                       </View>
                       <View className="flex-row items-center gap-1">
                         <MapPin size={13} color={Colors.light.textSecondary} />
-                        <Text className="text-[12px] text-muted" numberOfLines={1}>
+                        <Text className="text-caption text-muted" numberOfLines={1}>
                           {featuredEvent.venueName}
                         </Text>
                       </View>
@@ -537,27 +510,22 @@ export default function ExploreScreen({
                   body="We could not load events right now. Check your connection and try again."
                   compact
                   style={{ marginBottom: 12 }}
-                  title="Approved events could not load"
+                  title="Events could not load"
                 />
               )}
 
-              <Text className="mb-3 text-[11px] font-semibold uppercase tracking-wide text-muted">
-                {audienceFilter === 'international'
-                  ? 'International Events'
-                  : audienceFilter === 'english'
-                    ? 'Events in English'
-                    : audienceFilter === 'free'
-                      ? 'Free Events'
-                      : audienceFilter === 'live'
-                        ? 'Live Now'
-                        : audienceFilter === 'upcoming'
-                          ? 'Coming Up'
-                          : 'Events'}
+              <Text className="mb-3 text-headline font-inter-semibold text-ink">
+                {audienceFilter === 'all'
+                  ? featuredEvent
+                    ? 'More events'
+                    : 'All events'
+                  : (audienceFilters.find((filter) => filter.key === audienceFilter)?.label ??
+                    'Events')}
               </Text>
 
               {eventsLoading ? (
                 <CardListSkeleton count={4} />
-              ) : filteredEvents.length === 0 ? (
+              ) : listedEvents.length === 0 ? (
                 <EmptyState
                   body={
                     eventsError
@@ -569,7 +537,7 @@ export default function ExploreScreen({
                 />
               ) : (
                 <View className="gap-3">
-                  {filteredEvents.map((event) => {
+                  {listedEvents.map((event) => {
                     const isLiveNow = getCheckInWindowState(event) === 'open';
 
                     return (
@@ -580,25 +548,13 @@ export default function ExploreScreen({
                           Keyboard.dismiss();
                           setSelectedEvent(event);
                         }}
-                        className="flex-row items-start gap-3 rounded-2xl p-3 active:opacity-90"
-                        style={[
-                          CardStyles.compact,
-                          {
-                            backgroundColor: Colors.light.backgroundElement,
-                          },
-                        ]}
+                        className="flex-row items-center gap-3 rounded-2xl border border-line bg-surface p-3 active:opacity-90"
                       >
-                        {isLiveNow ? (
-                          <View
-                            pointerEvents="none"
-                            className="absolute bottom-0 left-0 top-0 w-1.5 rounded-l-2xl bg-accent"
-                          />
-                        ) : null}
                         <View
-                          className="shrink-0 overflow-hidden rounded-xl bg-gray-200"
+                          className="shrink-0 overflow-hidden rounded-xl bg-subtle"
                           style={{
-                            height: layout.isSmallPhone ? 90 : 98,
-                            width: layout.isSmallPhone ? 90 : 98,
+                            height: layout.isSmallPhone ? 72 : 80,
+                            width: layout.isSmallPhone ? 72 : 80,
                           }}
                         >
                           <BrandImage
@@ -608,56 +564,24 @@ export default function ExploreScreen({
                           />
                         </View>
                         <View className="min-w-0 flex-1">
-                          <View className="mb-1.5 flex-row items-center gap-2">
-                            {isLiveNow ? (
-                              <View className="flex-row items-center gap-1.5">
-                                <View className="h-2 w-2 rounded-full bg-accent" />
-                                <Text className="text-[11px] font-bold uppercase text-accent">
-                                  Live now
-                                </Text>
-                              </View>
-                            ) : (
-                              <View className="rounded-full bg-primary/10 px-2 py-0.5">
-                                <Text className="text-[10px] font-semibold uppercase text-primary">
-                                  {event.date}
-                                </Text>
-                              </View>
-                            )}
-                            {event.isFree && (
-                              <Text className="text-[11px] font-extrabold text-accent">Free</Text>
-                            )}
-                          </View>
                           <Text
-                            className="mb-1 font-ui text-[16px] font-bold text-ink"
+                            className={`mb-0.5 text-caption font-inter-semibold ${isLiveNow ? 'text-accent' : 'text-muted'}`}
+                            numberOfLines={1}
+                          >
+                            {isLiveNow ? 'Live now' : event.date}
+                            {event.isFree ? <Text className="text-success"> · Free</Text> : null}
+                          </Text>
+                          <Text
+                            className="mb-1 text-body font-inter-semibold text-ink"
                             numberOfLines={2}
                           >
                             {event.title}
                           </Text>
-                          <Text className="mb-2 text-[12px] text-muted" numberOfLines={1}>
-                            {event.venueName}
+                          <Text className="text-caption text-muted" numberOfLines={1}>
+                            {formatEventTimeRange(event)} · {event.venueName}
                           </Text>
-                          <View className="flex-row flex-wrap items-center gap-2.5">
-                            <View className="flex-row items-center gap-1">
-                              <Clock size={13} color={Colors.light.primary} strokeWidth={2.4} />
-                              <Text className="text-[12px] font-semibold text-primary">
-                                {formatEventTimeRange(event)}
-                              </Text>
-                            </View>
-                            <EventEngagementPills
-                              attended={getEventEngagement(event, eventStatuses[event.id]).attended}
-                              going={getEventEngagement(event, eventStatuses[event.id]).going}
-                              interested={
-                                getEventEngagement(event, eventStatuses[event.id]).interested
-                              }
-                              mode={isLiveNow ? 'live' : 'upcoming'}
-                            />
-                          </View>
                         </View>
-                        <ChevronRight
-                          size={18}
-                          color={Colors.light.inputPlaceholder}
-                          style={{ alignSelf: 'center' }}
-                        />
+                        <ChevronRight size={18} color={Colors.light.iconInactive} />
                       </Pressable>
                     );
                   })}
@@ -694,24 +618,24 @@ export default function ExploreScreen({
                     Keyboard.dismiss();
                     setSelectedOrganizerProfile(profile);
                   }}
-                  className="flex-row items-center gap-3 rounded-feature p-3 active:opacity-80"
+                  className="flex-row items-center gap-3 rounded-2xl p-3 active:opacity-80"
                   style={[CardStyles.compact, { backgroundColor: Colors.light.backgroundElement }]}
                 >
                   <OrganizerAvatar profile={profile} size={52} />
                   <View className="min-w-0 flex-1">
                     <View className="flex-row items-center gap-1.5">
-                      <Text className="shrink text-[16px] font-semibold text-ink" numberOfLines={1}>
+                      <Text className="shrink text-headline font-inter-semibold text-ink" numberOfLines={1}>
                         {profile.name}
                       </Text>
                       <CheckCircle2 size={14} color={Colors.light.background} fill={Colors.light.success} />
                     </View>
                     <View className="mt-1 flex-row items-center gap-1">
                       <MapPin size={12} color={Colors.light.primary} strokeWidth={2.3} />
-                      <Text className="flex-1 text-[12px] font-medium text-primary" numberOfLines={1}>
+                      <Text className="flex-1 text-caption font-inter-medium text-primary" numberOfLines={1}>
                         {profile.locationName ?? cityData.name}
                       </Text>
                     </View>
-                    <Text className="mt-1.5 text-[12px] leading-4 text-muted" numberOfLines={1}>
+                    <Text className="mt-1.5 text-caption leading-4 text-muted" numberOfLines={1}>
                       {profile.bio}
                     </Text>
                   </View>
@@ -1118,27 +1042,27 @@ export function EventDetailModal({
                 </Pressable>
                 <View className="absolute bottom-5 left-5 right-5">
                   <View className="mb-2 flex-row flex-wrap items-center gap-2">
-                    <Text className="text-[11px] font-bold uppercase tracking-wider text-white/75">
+                    <Text className="text-caption font-inter-semibold text-white/75">
                       {eventCategoryLabels[activeEvent.category]}
                     </Text>
                     {isLiveNow ? (
                       <View className="flex-row items-center gap-1.5">
                         <View className="h-1.5 w-1.5 rounded-full bg-accent" />
-                        <Text className="text-[11px] font-bold uppercase tracking-wide text-white">
+                        <Text className="text-caption font-inter-semibold text-white">
                           Live now
                         </Text>
                       </View>
                     ) : null}
                     {checkedIn && (
                       <View className="rounded-full bg-success px-2.5 py-1">
-                        <Text className="text-[11px] font-bold text-white">
+                        <Text className="text-caption font-inter-semibold text-white">
                           Attendance confirmed
                         </Text>
                       </View>
                     )}
                   </View>
                   <Text
-                    className="font-heading text-[30px] leading-9 text-white"
+                    className="font-heading text-title1 leading-9 text-white"
                     numberOfLines={3}
                   >
                     {activeEvent.title}
@@ -1178,23 +1102,23 @@ export function EventDetailModal({
 
                 {statusActionError && (
                   <View className="mb-4 flex-row items-center justify-between rounded-xl border border-destructive/20 bg-destructive/5 p-3">
-                    <Text className="mr-3 flex-1 text-[13px] leading-5 text-destructive">
+                    <Text className="mr-3 flex-1 text-footnote leading-5 text-destructive">
                       {statusActionError}
                     </Text>
                     {statusActionToRetry && (
                       <Pressable
                         disabled={statusActionPending}
                         onPress={() => handleStatusToggle(statusActionToRetry)}
-                        className="rounded-lg bg-destructive px-3 py-2 active:opacity-85"
+                        className="rounded-xl bg-destructive px-3 py-2 active:opacity-85"
                       >
-                        <Text className="text-[12px] font-bold text-white">Retry</Text>
+                        <Text className="text-caption font-inter-semibold text-white">Retry</Text>
                       </Pressable>
                     )}
                   </View>
                 )}
 
                 <View
-                  className="mb-6 rounded-feature p-4"
+                  className="mb-6 rounded-2xl p-4"
                   style={{ backgroundColor: Colors.light.backgroundElement }}
                 >
                   <InfoRow icon={<MapPin size={17} color={Colors.light.primary} />} label={activeEvent.venueName} />
@@ -1209,11 +1133,11 @@ export function EventDetailModal({
                       {isLiveNow ? (
                         <>
                           <CheckCircle2 size={17} color={Colors.light.accent} />
-                          <Text className="text-[13px] font-semibold text-ink">
+                          <Text className="text-footnote font-inter-semibold text-ink">
                             {detailEngagement.attended.toLocaleString()} checked in
                           </Text>
-                          <Text className="text-[13px] text-muted">·</Text>
-                          <Text className="text-[13px] text-muted">
+                          <Text className="text-footnote text-muted">·</Text>
+                          <Text className="text-footnote text-muted">
                             {(detailEngagement.interested + detailEngagement.going).toLocaleString()}{' '}
                             planning to attend
                           </Text>
@@ -1221,7 +1145,7 @@ export function EventDetailModal({
                       ) : (
                         <>
                           <Users size={17} color={Colors.light.primary} />
-                          <Text className="text-[13px] font-semibold text-ink">
+                          <Text className="text-footnote font-inter-semibold text-ink">
                             {(detailEngagement.interested + detailEngagement.going).toLocaleString()}{' '}
                             planning to attend
                           </Text>
@@ -1229,36 +1153,36 @@ export function EventDetailModal({
                       )}
                     </View>
                     <View className="rounded-full bg-accent/10 px-3 py-1.5">
-                      <Text className="text-[12px] font-semibold text-accent">+{activeEvent.xpBonus} XP</Text>
-                      <Text className="text-[12px] font-semibold text-accentDeep">+{activeEvent.qcBonus} QC</Text>
+                      <Text className="text-caption font-inter-semibold text-accent">+{activeEvent.xpBonus} XP</Text>
+                      <Text className="text-caption font-inter-semibold text-accentDeep">+{activeEvent.qcBonus} QC</Text>
                     </View>
                   </View>
                 </View>
 
                 <View className="mb-2 flex-row items-center gap-3">
-                  <Text className="font-serifRegular text-[22px] leading-7 text-ink">About</Text>
+                  <Text className="font-serifRegular text-title2 leading-7 text-ink">About</Text>
                   <View className="h-px flex-1 bg-primary/15" />
                 </View>
-                <Text className="mb-6 text-[14px] leading-6 text-muted">{activeEvent.description}</Text>
+                <Text className="mb-6 text-body leading-6 text-muted">{activeEvent.description}</Text>
 
                 <View className="mb-6">
                   <View className="mb-2 flex-row items-center gap-3">
-                    <Text className="font-serifRegular text-[22px] leading-7 text-ink">Hosted by</Text>
+                    <Text className="font-serifRegular text-title2 leading-7 text-ink">Hosted by</Text>
                     <View className="h-px flex-1 bg-primary/15" />
                   </View>
                   {activeOrganizerProfile ? (
                     <Pressable
                       onPress={openOrganizerProfile}
                       testID="event.organizer"
-                      className="flex-row items-center gap-3 rounded-feature p-3 active:opacity-85"
+                      className="flex-row items-center gap-3 rounded-2xl p-3 active:opacity-85"
                       style={{ backgroundColor: Colors.light.backgroundElement }}
                     >
                       <OrganizerAvatar profile={activeOrganizerProfile} size={44} />
                       <View className="min-w-0 flex-1">
-                        <Text className="text-[15px] font-bold text-ink" numberOfLines={1}>
+                        <Text className="text-body font-inter-semibold text-ink" numberOfLines={1}>
                           {activeOrganizerProfile.name}
                         </Text>
-                        <Text className="mt-1 text-[12px] font-semibold text-primary" numberOfLines={1}>
+                        <Text className="mt-1 text-caption font-inter-semibold text-primary" numberOfLines={1}>
                           {activeOrganizerProfile.locationName ?? 'Verified CultureQuest organizer'}
                         </Text>
                       </View>
@@ -1266,11 +1190,11 @@ export function EventDetailModal({
                     </Pressable>
                   ) : (
                     <View
-                      className="rounded-feature p-3"
+                      className="rounded-2xl p-3"
                       style={{ backgroundColor: Colors.light.backgroundElement }}
                     >
-                      <Text className="text-[15px] font-bold text-ink">{activeEvent.organizerName}</Text>
-                      <Text className="mt-1 text-[12px] leading-4 text-muted">
+                      <Text className="text-body font-inter-semibold text-ink">{activeEvent.organizerName}</Text>
+                      <Text className="mt-1 text-caption leading-4 text-muted">
                         Organizer profile is not available yet.
                       </Text>
                     </View>
@@ -1280,19 +1204,19 @@ export function EventDetailModal({
                 {onEditEvent && (
                   <Pressable
                     onPress={() => onEditEvent(activeEvent)}
-                    className="mb-5 h-[48px] flex-row items-center justify-center gap-2 rounded-xl border border-primary/20 bg-primary/5 active:opacity-80"
+                    className="mb-5 h-[48px] flex-row items-center justify-center gap-2 rounded-xl border border-line bg-primary/5 active:opacity-80"
                   >
                     <Edit3 size={17} color={Colors.light.primary} strokeWidth={2.3} />
-                    <Text className="text-[14px] font-bold text-primary">Edit event</Text>
+                    <Text className="text-body font-inter-semibold text-primary">Edit event</Text>
                   </Pressable>
                 )}
 
                 {checkedIn ? (
                   <View className="rounded-2xl bg-success/10 p-4">
-                    <Text className="text-[15px] font-extrabold text-success">
+                    <Text className="text-body font-inter-bold text-success">
                       Attendance confirmed
                     </Text>
-                    <Text className="mt-1 text-[13px] leading-5 text-ink/75">
+                    <Text className="mt-1 text-footnote leading-5 text-ink/75">
                       You earned {activeEvent.xpBonus} XP and {activeEvent.qcBonus} CultureQuest Credits for this event.
                     </Text>
                   </View>
@@ -1303,7 +1227,7 @@ export function EventDetailModal({
                         className="mb-3 rounded-xl p-3"
                         style={{ backgroundColor: Colors.light.backgroundElement }}
                       >
-                        <Text className="text-[12px] leading-4 text-muted">{locationMessage}</Text>
+                        <Text className="text-caption leading-4 text-muted">{locationMessage}</Text>
                       </View>
                     )}
                     <Pressable
@@ -1313,7 +1237,7 @@ export function EventDetailModal({
                       className="h-[52px] flex-row items-center justify-center gap-2 rounded-xl bg-primary active:opacity-85 disabled:opacity-60"
                     >
                       <QrCode size={19} color="white" strokeWidth={2.4} />
-                      <Text className="text-[15px] font-semibold text-white">
+                      <Text className="text-body font-inter-semibold text-white">
                         {checkingLocation
                           ? 'Checking location...'
                           : checkInWindowState === 'not-started'
@@ -1326,12 +1250,12 @@ export function EventDetailModal({
                     {E2E_MODE && E2E_CHECK_IN_CODE && checkInWindowState === 'open' ? (
                       <Pressable
                         accessibilityLabel="Run E2E event check-in"
-                        className="mt-3 h-[44px] items-center justify-center rounded-xl border border-primary/20 bg-primary/5 active:opacity-85"
+                        className="mt-3 h-[44px] items-center justify-center rounded-xl border border-line bg-primary/5 active:opacity-85"
                         disabled={checkingLocation}
                         onPress={handleE2ECheckIn}
                         testID="event.check-in.e2e"
                       >
-                        <Text className="text-[13px] font-bold text-primary">
+                        <Text className="text-footnote font-inter-semibold text-primary">
                           Verify seeded E2E check-in
                         </Text>
                       </Pressable>
@@ -1348,7 +1272,7 @@ export function EventDetailModal({
             >
               <SafeAreaView className="flex-1 bg-black" edges={['top', 'bottom']}>
                 <View className="flex-row items-center justify-between px-5 py-4">
-                  <Text className="text-[18px] font-extrabold text-white">Scan QR code</Text>
+                  <Text className="text-headline font-inter-bold text-white">Scan QR code</Text>
                   <Pressable
                     onPress={() => setScannerOpen(false)}
                     className="h-10 w-10 items-center justify-center rounded-full bg-white/15"
@@ -1359,18 +1283,18 @@ export function EventDetailModal({
 
                 {!permission ? (
                   <View className="flex-1 items-center justify-center px-6">
-                    <Text className="text-center text-[14px] text-white/80">Loading camera...</Text>
+                    <Text className="text-center text-body text-white/80">Loading camera...</Text>
                   </View>
                 ) : !permission.granted ? (
                   <View className="flex-1 items-center justify-center px-6">
-                    <Text className="mb-4 text-center text-[15px] leading-5 text-white">
+                    <Text className="mb-4 text-center text-body leading-5 text-white">
                       Camera access is needed to scan the organiser QR code.
                     </Text>
                     <Pressable
                       onPress={requestPermission}
                       className="h-12 items-center justify-center rounded-xl bg-white px-5"
                     >
-                      <Text className="text-[14px] font-bold text-ink">Allow camera access</Text>
+                      <Text className="text-body font-inter-semibold text-ink">Allow camera access</Text>
                     </Pressable>
                   </View>
                 ) : (
@@ -1381,14 +1305,14 @@ export function EventDetailModal({
                       style={{ flex: 1 }}
                     />
                     <View className="absolute bottom-0 left-0 right-0 bg-black/60 px-5 py-5">
-                      <Text className="text-center text-[14px] font-semibold text-white">
+                      <Text className="text-center text-body font-inter-semibold text-white">
                         Ask the organiser for the event QR code.
                       </Text>
-                      <Text className="mt-1 text-center text-[12px] text-white/70">
+                      <Text className="mt-1 text-center text-caption text-white/70">
                         Scan only the official event check-in card at the venue.
                       </Text>
                       {scanMessage && (
-                        <Text className="mt-3 text-center text-[13px] font-semibold text-destructive">
+                        <Text className="mt-3 text-center text-footnote font-inter-semibold text-destructive">
                           {scanMessage}
                         </Text>
                       )}
@@ -1461,57 +1385,10 @@ function StatusButton({
       style={active ? undefined : { backgroundColor: Colors.light.backgroundElement }}
     >
       {icon}
-      <Text className={`text-[14px] font-semibold ${active ? 'text-white' : 'text-primary'}`}>
+      <Text className={`text-body font-inter-semibold ${active ? 'text-white' : 'text-primary'}`}>
         {label}
       </Text>
     </Pressable>
-  );
-}
-
-function EventEngagementPills({
-  attended,
-  going,
-  interested,
-  mode = 'upcoming',
-}: {
-  attended: number;
-  going: number;
-  interested: number;
-  mode?: 'live' | 'upcoming';
-}) {
-  const metrics =
-    mode === 'live'
-      ? [
-          {
-            icon: <CheckCircle2 size={12} color={Colors.light.accent} strokeWidth={2.4} />,
-            value: attended,
-          },
-          {
-            icon: <Users size={12} color={Colors.light.primary} strokeWidth={2.4} />,
-            value: interested + going,
-          },
-        ]
-      : [
-          {
-            icon: <Users size={12} color={Colors.light.primary} strokeWidth={2.4} />,
-            value: interested + going,
-          },
-        ];
-
-  return (
-    <View className="flex-row items-center gap-1.5">
-      {metrics.map((metric, index) => (
-        <View
-          className="flex-row items-center gap-1 rounded-full bg-primary/5 px-2 py-1"
-          key={index}
-        >
-          {metric.icon}
-          <Text className="text-[11px] font-bold text-primary">
-            {metric.value.toLocaleString()}
-          </Text>
-        </View>
-      ))}
-    </View>
   );
 }
 
@@ -1519,7 +1396,7 @@ function InfoRow({ icon, label }: { icon: React.ReactNode; label: string }) {
   return (
     <View className="flex-row items-center gap-3">
       <View className="h-8 w-8 items-center justify-center rounded-full bg-primary/10">{icon}</View>
-      <Text className="flex-1 text-[13px] font-medium text-ink">{label}</Text>
+      <Text className="flex-1 text-footnote font-inter-medium text-ink">{label}</Text>
     </View>
   );
 }
@@ -1586,6 +1463,13 @@ function getOrganizerImageSource(image: CultureEvent['organizerImage']) {
 
 function formatEventTimeRange(event: CultureEvent) {
   return event.endTime ? `${event.time}-${event.endTime}` : event.time;
+}
+
+function isEventToday(event: CultureEvent) {
+  const startsAt = getEventStartTimestamp(event);
+  if (!Number.isFinite(startsAt)) return false;
+
+  return new Date(startsAt).toDateString() === new Date().toDateString();
 }
 
 function getEventStartTimestamp(event: CultureEvent) {

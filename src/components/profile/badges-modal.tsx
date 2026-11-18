@@ -3,7 +3,6 @@ import {
   Modal,
   Pressable,
   ScrollView,
-  Text,
   View,
   useWindowDimensions,
   type ViewStyle,
@@ -17,6 +16,8 @@ import {
   BadgeGridItem,
   type AchievementBadge,
 } from '@/components/profile/badges';
+import { Text } from '@/components/ui/text';
+import { Colors } from '@/constants/theme';
 
 type BadgesModalProps = {
   badges: AchievementBadge[];
@@ -63,14 +64,14 @@ export function BadgesModal({
               <View className="mb-5 flex-row items-center justify-between">
                 <Pressable
                   onPress={onClose}
-                  className="h-10 w-10 items-center justify-center rounded-full bg-gray-100 active:opacity-80"
+                  className="h-10 w-10 items-center justify-center rounded-full bg-subtle active:opacity-80"
                   accessibilityRole="button"
                   accessibilityLabel="Close badges"
                 >
-                  <ArrowLeft size={21} color="#6B818C" strokeWidth={2.6} />
+                  <ArrowLeft size={21} color={Colors.light.textSecondary} strokeWidth={2.6} />
                 </Pressable>
                 <View className="rounded-full bg-primary/10 px-3 py-1.5">
-                  <Text className="text-[12px] font-extrabold text-primary">
+                  <Text className="text-caption font-inter-bold text-primary">
                     {unlockedBadgeCount} / {badges.length} completed
                   </Text>
                 </View>

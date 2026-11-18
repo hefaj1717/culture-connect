@@ -1,14 +1,7 @@
 import { StatusBar } from 'expo-status-bar';
-import { Compass, Home, Route, User, WifiOff } from 'lucide-react-native';
+import { Compass, Home, Route, User, WifiOff, type LucideIcon } from 'lucide-react-native';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Alert, Pressable, Text, useWindowDimensions, View } from 'react-native';
-import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import Animated, {
-  runOnJS,
-  useAnimatedStyle,
-  useSharedValue,
-  withTiming,
-} from 'react-native-reanimated';
+import { Alert, Pressable, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AuthScreen } from '@/components/auth-screen';
@@ -39,10 +32,17 @@ import {
 import { useAuth } from '@/providers/auth-provider';
 import { useResponsiveLayout } from '@/hooks/use-responsive-layout';
 import { useNetworkStatus } from '@/providers/network-provider';
+import { Text } from '@/components/ui/text';
 
 const ACTIVE = Colors.light.primary;
 const INACTIVE = Colors.light.iconInactive;
-const TAB_COUNT = 4;
+const TABS: { icon: LucideIcon; label: string }[] = [
+  { icon: Home, label: 'Home' },
+  { icon: Compass, label: 'Discover' },
+  { icon: Route, label: 'Quests' },
+  { icon: User, label: 'Profile' },
+];
+const TAB_COUNT = TABS.length;
 
 export default function AppTabs() {
   const { loading, session } = useAuth();
@@ -55,7 +55,7 @@ export default function AppTabs() {
 
   if (!session) {
     return (
-      <View className="flex-1 bg-white">
+      <View className="flex-1 bg-canvas">
         <StatusBar style="light" />
         <AuthScreen />
       </View>
@@ -66,7 +66,6 @@ export default function AppTabs() {
 }
 
 function AuthenticatedTabs() {
-  const { width } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const layout = useResponsiveLayout();
   const { isOffline } = useNetworkStatus();
@@ -99,8 +98,6 @@ function AuthenticatedTabs() {
     nonce: number;
     returnTabIndex: number;
   } | null>(null);
-  const translateX = useSharedValue(-activeIndex * width);
-  const startX = useSharedValue(0);
   const metadataName = [user?.user_metadata?.first_name, user?.user_metadata?.last_name]
     .filter(Boolean)
     .join(' ');
@@ -223,7 +220,6 @@ function AuthenticatedTabs() {
 
   function goToTab(index: number) {
     setActiveIndex(index);
-    translateX.value = withTiming(-index * width, { duration: 220 });
   }
 
   function openDiscoverEvent(eventId: string) {
@@ -250,7 +246,14 @@ function AuthenticatedTabs() {
     }
 
     if (checkedInEventIdsRef.current.has(event.id)) {
-      return { duplicate: true, success: true, totalXp: userXp, totalQc: userQc, xpEarned: 0, qcEarned: 0 };
+      return {
+        duplicate: true,
+        success: true,
+        totalXp: userXp,
+        totalQc: userQc,
+        xpEarned: 0,
+        qcEarned: 0,
+      };
     }
 
     const databaseEventId = getOrganizerEventDatabaseId(event.id);
@@ -387,215 +390,118 @@ function AuthenticatedTabs() {
     return { success: true };
   }
 
-  const gesture = useMemo(
-    () =>
-      Gesture.Pan()
-        .activeOffsetX([-12, 12])
-        .failOffsetY([-35, 35])
-        .onBegin(() => {
-          startX.value = translateX.value;
-        })
-        .onUpdate((event) => {
-          const minTranslate = -(TAB_COUNT - 1) * width;
-          const maxTranslate = 0;
-          const nextTranslate = startX.value + event.translationX;
-          translateX.value = Math.max(minTranslate, Math.min(maxTranslate, nextTranslate));
-        })
-        .onEnd((event) => {
-          const projected = translateX.value + event.velocityX * 0.12;
-          const nextIndex = Math.min(
-            TAB_COUNT - 1,
-            Math.max(0, Math.round(Math.abs(projected) / width)),
-          );
-
-          translateX.value = withTiming(-nextIndex * width, { duration: 180 });
-          runOnJS(setActiveIndex)(nextIndex);
-        }),
-    [startX, translateX, width],
-  );
-
-  const pagerStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: translateX.value }],
-  }));
-
   return (
-    <View className="flex-1 bg-white" testID="app.authenticated">
+    <View className="flex-1 bg-canvas" testID="app.authenticated">
       <StatusBar style={activeIndex === 0 ? 'light' : 'dark'} />
       {userStateError && (
         <ErrorState
           body="Showing saved account information where available."
           compact
           icon={WifiOff}
-          onAction={userStateLoading ? undefined : () => setUserStateReloadNonce((current) => current + 1)}
+          onAction={
+            userStateLoading ? undefined : () => setUserStateReloadNonce((current) => current + 1)
+          }
           style={{ left: 16, position: 'absolute', right: 16, top: insets.top + 8, zIndex: 20 }}
           title="Some account data could not refresh"
         />
       )}
-      <GestureDetector gesture={gesture}>
-        <Animated.View
-          style={[
-            {
-              flex: 1,
-              width: width * TAB_COUNT,
-              flexDirection: 'row',
-            },
-            pagerStyle,
-          ]}
-        >
-          <View style={{ width }}>
-            <HomeScreen
-              avatarInitials={avatarInitials}
-              avatarUrl={avatarUrl}
-              cityData={cityData}
-              events={publicEvents}
-              eventsError={approvedEventsError}
-              eventsLoading={approvedEventsLoading}
-              eventStatuses={eventStatuses}
-              leaderboard={universityLeaderboard}
-              leaderboardError={universityLeaderboardError}
-              leaderboardLoading={universityLeaderboardLoading}
-              onOpenDiscover={() => goToTab(1)}
-              onOpenEvent={openDiscoverEvent}
-              onOpenProfile={() => goToTab(3)}
-            />
-          </View>
-          <View style={{ width }}>
-            <ExploreScreen
-              checkedInEventIds={checkedInEventIds}
-              cityData={cityData}
-              events={publicEvents}
-              eventsError={approvedEventsError}
-              eventsLoading={approvedEventsLoading}
-              eventsRefreshKey={organizerEventsVersion}
-              eventStatuses={eventStatuses}
-              onEventCheckIn={awardEventCheckInXp}
-              onExternalEventClose={closeExternalDiscoverEvent}
-              onEventStatusChange={updateEventStatus}
-              openEventId={eventOpenRequest?.eventId}
-              openEventNonce={eventOpenRequest?.nonce}
-            />
-          </View>
-          <View style={{ width }}>
-            <QuestsScreen
-              cityData={cityData}
-              completedQuestIds={completedQuestIds}
-              onQuestCompleted={awardQuestCompletionXp}
-              questsRefreshKey={questsRefreshKey}
-            />
-          </View>
-          <View style={{ width }}>
-            <ProfileScreen
-              checkedInEventIds={checkedInEventIds}
-              eventsRefreshKey={organizerEventsVersion}
-              eventStatuses={eventStatuses}
-              onEventCheckIn={awardEventCheckInXp}
-              onEventStatusChange={updateEventStatus}
-              rewardsRefreshKey={rewardsRefreshKey}
-              userEventHistory={userEventHistory}
-              userXp={userXp}
-              userQc={userQc}
-              onEventCreated={() => {
-                setOrganizerEventsVersion((version) => version + 1);
-              }}
-              onRewardCreated={() => {
-                setRewardsRefreshKey((version) => version + 1);
-              }}
-              onQuestCreated={() => {
-                setQuestsRefreshKey((version) => version + 1);
-              }}
-              onUserXpChange={setUserXp}
-              onUserQcChange={setUserQc}
-            />
-          </View>
-        </Animated.View>
-      </GestureDetector>
+      {/* All tabs stay mounted so their scroll position and state survive tab switches. */}
+      <View className="flex-1">
+        <View style={[StyleSheet.absoluteFill, activeIndex === 0 ? null : styles.hidden]}>
+          <HomeScreen
+            avatarInitials={avatarInitials}
+            avatarUrl={avatarUrl}
+            cityData={cityData}
+            events={publicEvents}
+            eventsError={approvedEventsError}
+            eventsLoading={approvedEventsLoading}
+            eventStatuses={eventStatuses}
+            leaderboard={universityLeaderboard}
+            leaderboardError={universityLeaderboardError}
+            leaderboardLoading={universityLeaderboardLoading}
+            onOpenDiscover={() => goToTab(1)}
+            onOpenEvent={openDiscoverEvent}
+            onOpenProfile={() => goToTab(3)}
+          />
+        </View>
+        <View style={[StyleSheet.absoluteFill, activeIndex === 1 ? null : styles.hidden]}>
+          <ExploreScreen
+            checkedInEventIds={checkedInEventIds}
+            cityData={cityData}
+            events={publicEvents}
+            eventsError={approvedEventsError}
+            eventsLoading={approvedEventsLoading}
+            eventsRefreshKey={organizerEventsVersion}
+            eventStatuses={eventStatuses}
+            onEventCheckIn={awardEventCheckInXp}
+            onExternalEventClose={closeExternalDiscoverEvent}
+            onEventStatusChange={updateEventStatus}
+            openEventId={eventOpenRequest?.eventId}
+            openEventNonce={eventOpenRequest?.nonce}
+          />
+        </View>
+        <View style={[StyleSheet.absoluteFill, activeIndex === 2 ? null : styles.hidden]}>
+          <QuestsScreen
+            cityData={cityData}
+            completedQuestIds={completedQuestIds}
+            onQuestCompleted={awardQuestCompletionXp}
+            questsRefreshKey={questsRefreshKey}
+          />
+        </View>
+        <View style={[StyleSheet.absoluteFill, activeIndex === 3 ? null : styles.hidden]}>
+          <ProfileScreen
+            checkedInEventIds={checkedInEventIds}
+            eventsRefreshKey={organizerEventsVersion}
+            eventStatuses={eventStatuses}
+            onEventCheckIn={awardEventCheckInXp}
+            onEventStatusChange={updateEventStatus}
+            rewardsRefreshKey={rewardsRefreshKey}
+            userEventHistory={userEventHistory}
+            userXp={userXp}
+            userQc={userQc}
+            onEventCreated={() => {
+              setOrganizerEventsVersion((version) => version + 1);
+            }}
+            onRewardCreated={() => {
+              setRewardsRefreshKey((version) => version + 1);
+            }}
+            onQuestCreated={() => {
+              setQuestsRefreshKey((version) => version + 1);
+            }}
+            onUserXpChange={setUserXp}
+            onUserQcChange={setUserQc}
+          />
+        </View>
+      </View>
 
       {isOffline && (
         <View className="flex-row items-center justify-center gap-2 border-t border-accent/15 bg-ink px-4 py-2">
           <WifiOff size={15} color={Colors.light.accent} strokeWidth={2.4} />
-          <Text className="text-center text-[12px] font-semibold text-white" numberOfLines={2}>
+          <Text
+            className="text-center text-caption font-inter-semibold text-white"
+            numberOfLines={2}
+          >
             {"You're offline. Some updates will resume when your connection returns."}
           </Text>
         </View>
       )}
 
       <View
-        style={{
-          height: layout.tabHeight + Math.max(0, insets.bottom - 18),
-          paddingTop: 8,
-          paddingBottom: Math.max(14, insets.bottom),
-          borderTopWidth: 1,
-          borderTopColor: Colors.light.borderSubtle,
-          backgroundColor: Colors.light.onPrimary,
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'space-around',
-        }}
+        className="flex-row items-start justify-around border-t border-line bg-canvas"
+        style={{ paddingBottom: Math.max(10, insets.bottom), paddingTop: 8 }}
       >
-        <TabButton
-          active={activeIndex === 0}
-          icon={
-            <Home
-              size={24}
-              color={activeIndex === 0 ? ACTIVE : INACTIVE}
-              fill="none"
-              strokeWidth={activeIndex === 0 ? 2.6 : 2.2}
-            />
-          }
-          label="Home"
-          labelSize={layout.tabLabelSize}
-          minWidth={layout.tabMinWidth}
-          position={1}
-          onPress={() => goToTab(0)}
-        />
-        <TabButton
-          active={activeIndex === 1}
-          icon={
-            <Compass
-              size={23}
-              color={activeIndex === 1 ? ACTIVE : INACTIVE}
-              fill="none"
-              strokeWidth={activeIndex === 1 ? 2.6 : 2.3}
-            />
-          }
-          label="Discover"
-          labelSize={layout.tabLabelSize}
-          minWidth={layout.tabMinWidth}
-          position={2}
-          onPress={() => goToTab(1)}
-        />
-        <TabButton
-          active={activeIndex === 2}
-          icon={
-            <Route
-              size={23}
-              color={activeIndex === 2 ? ACTIVE : INACTIVE}
-              fill="none"
-              strokeWidth={activeIndex === 2 ? 2.6 : 2.3}
-            />
-          }
-          label="Quests"
-          labelSize={layout.tabLabelSize}
-          minWidth={layout.tabMinWidth}
-          position={3}
-          onPress={() => goToTab(2)}
-        />
-        <TabButton
-          active={activeIndex === 3}
-          icon={
-            <User
-              size={24}
-              color={activeIndex === 3 ? ACTIVE : INACTIVE}
-              fill="none"
-              strokeWidth={activeIndex === 3 ? 2.6 : 2.2}
-            />
-          }
-          label="Profile"
-          labelSize={layout.tabLabelSize}
-          minWidth={layout.tabMinWidth}
-          position={4}
-          onPress={() => goToTab(3)}
-        />
+        {TABS.map((tab, index) => (
+          <TabButton
+            active={activeIndex === index}
+            icon={tab.icon}
+            key={tab.label}
+            label={tab.label}
+            labelSize={layout.tabLabelSize}
+            minWidth={layout.tabMinWidth}
+            position={index + 1}
+            onPress={() => goToTab(index)}
+          />
+        ))}
       </View>
     </View>
   );
@@ -627,7 +533,7 @@ function getUserInitials(value?: string | null) {
 
 function TabButton({
   active,
-  icon,
+  icon: Icon,
   label,
   labelSize,
   minWidth,
@@ -635,13 +541,15 @@ function TabButton({
   position,
 }: {
   active: boolean;
-  icon: React.ReactNode;
+  icon: LucideIcon;
   label: string;
   labelSize: number;
   minWidth: number;
   onPress: () => void;
   position: number;
 }) {
+  const color = active ? ACTIVE : INACTIVE;
+
   return (
     <Pressable
       accessibilityHint={`Switches to the ${label} tab`}
@@ -650,16 +558,20 @@ function TabButton({
       accessibilityState={{ selected: active }}
       testID={`tab.${label.toLowerCase()}`}
       onPress={onPress}
-      className="items-center justify-center gap-1"
+      className="items-center gap-1"
+      hitSlop={6}
       style={{ minWidth }}
     >
-      {icon}
+      <View
+        className={`h-8 w-14 items-center justify-center rounded-full ${active ? 'bg-primary/10' : ''}`}
+      >
+        <Icon size={22} color={color} strokeWidth={active ? 2.3 : 2} />
+      </View>
       <Text
         style={{
-          color: active ? ACTIVE : INACTIVE,
-          fontFamily: FontTokens.ui,
+          color,
+          fontFamily: active ? FontTokens.ui : FontTokens.caption,
           fontSize: labelSize,
-          fontWeight: '700',
         }}
       >
         {label}
@@ -667,3 +579,7 @@ function TabButton({
     </Pressable>
   );
 }
+
+const styles = StyleSheet.create({
+  hidden: { display: 'none' },
+});

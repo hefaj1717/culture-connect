@@ -15,7 +15,6 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
-  Text,
   useWindowDimensions,
   View,
 } from 'react-native';
@@ -41,6 +40,7 @@ import {
 } from '@/lib/organizer-follows';
 import type { OrganizerProfile } from '@/lib/organizer-profiles';
 import { useAuth } from '@/providers/auth-provider';
+import { Text } from '@/components/ui/text';
 
 type OrganizerProfileModalProps = {
   cityName: string;
@@ -250,7 +250,7 @@ export function OrganizerProfileModal({
             </Pressable>
 
             <View
-              className="overflow-hidden rounded-feature"
+              className="overflow-hidden rounded-2xl"
               style={{ backgroundColor: Colors.light.backgroundElement }}
             >
               <View className="flex-row items-start justify-between gap-4 px-5 pb-3 pt-5">
@@ -261,11 +261,11 @@ export function OrganizerProfileModal({
                       color={Colors.light.background}
                       fill={Colors.light.success}
                     />
-                    <Text className="text-[10px] font-bold uppercase tracking-wide text-success">
+                    <Text className="text-caption font-inter-semibold text-success">
                       Verified organizer
                     </Text>
                   </View>
-                  <Text className="mt-3 font-heading text-[30px] leading-9 text-ink">
+                  <Text className="mt-3 font-heading text-title1 leading-9 text-ink">
                     {profile.name}
                   </Text>
                   {canFollow ? (
@@ -286,7 +286,7 @@ export function OrganizerProfileModal({
                           <UserPlus size={15} color={Colors.light.background} strokeWidth={2.5} />
                         )}
                         <Text
-                          className={`text-[12px] font-bold ${
+                          className={`text-caption font-inter-semibold ${
                             isFollowing ? 'text-success' : 'text-white'
                           }`}
                         >
@@ -302,7 +302,7 @@ export function OrganizerProfileModal({
                           }
                           disabled={announcementPreferenceLoading}
                           onPress={() => void toggleAnnouncementPreference()}
-                          className={`flex-row items-center gap-1.5 self-start rounded-full border border-primary/20 px-3 py-2 ${
+                          className={`flex-row items-center gap-1.5 self-start rounded-full border border-line px-3 py-2 ${
                             announcementPreferenceLoading ? 'opacity-55' : 'active:opacity-80'
                           }`}
                         >
@@ -312,7 +312,7 @@ export function OrganizerProfileModal({
                             <Bell size={15} color={Colors.light.success} strokeWidth={2.3} />
                           )}
                           <Text
-                            className={`text-[12px] font-bold ${announcementsMuted ? 'text-primary' : 'text-success'}`}
+                            className={`text-caption font-inter-semibold ${announcementsMuted ? 'text-primary' : 'text-success'}`}
                           >
                             {announcementPreferenceLoading
                               ? 'Saving…'
@@ -323,7 +323,7 @@ export function OrganizerProfileModal({
                         </Pressable>
                       ) : null}
                       {followError ? (
-                        <Text className="mt-1.5 max-w-[210px] text-[11px] leading-4 text-destructive">
+                        <Text className="mt-1.5 max-w-[210px] text-caption leading-4 text-destructive">
                           {followError}
                         </Text>
                       ) : null}
@@ -335,19 +335,19 @@ export function OrganizerProfileModal({
 
               <View className="px-5 pt-3">
                 <View className="mb-2 flex-row items-center gap-3">
-                  <Text className="font-serifRegular text-[20px] leading-6 text-ink">About</Text>
+                  <Text className="font-serifRegular text-title3 leading-6 text-ink">About</Text>
                   <View className="h-px flex-1 bg-primary/15" />
                 </View>
-                <Text className="text-[14px] leading-6 text-muted">{organizerBio}</Text>
-                <View className="mt-5 flex-row items-start gap-3 border-t border-primary/10 pb-5 pt-4">
+                <Text className="text-body leading-6 text-muted">{organizerBio}</Text>
+                <View className="mt-5 flex-row items-start gap-3 border-t border-line pb-5 pt-4">
                   <View className="h-9 w-9 items-center justify-center rounded-full bg-primary/10">
                     <MapPin size={17} color={Colors.light.primary} strokeWidth={2.4} />
                   </View>
                   <View className="min-w-0 flex-1">
-                    <Text className="text-[13px] font-semibold text-ink" numberOfLines={1}>
+                    <Text className="text-footnote font-inter-semibold text-ink" numberOfLines={1}>
                       {organizerLocation.title}
                     </Text>
-                    <Text className="mt-0.5 text-[12px] leading-4 text-muted" numberOfLines={2}>
+                    <Text className="mt-0.5 text-caption leading-4 text-muted" numberOfLines={2}>
                       {organizerLocation.subtitle}
                     </Text>
                   </View>
@@ -357,8 +357,8 @@ export function OrganizerProfileModal({
 
             <View className="mt-6">
               <View className="mb-3 flex-row items-end justify-between">
-                <Text className="font-heading text-[27px] leading-8 text-ink">Events</Text>
-                <Text className="pb-1 text-[12px] font-semibold uppercase tracking-wide text-muted">
+                <Text className="font-heading text-title1 leading-8 text-ink">Events</Text>
+                <Text className="pb-1 text-caption font-inter-semibold text-muted">
                   {organizerEvents.length} total
                 </Text>
               </View>
@@ -414,7 +414,7 @@ export function OrganizerAvatar({
       ) : (
         <View className="flex-1 items-center justify-center">
           <Text
-            className={`font-ui font-extrabold ${dark ? 'text-white' : 'text-primary'}`}
+            className={`font-inter-bold ${dark ? 'text-white' : 'text-primary'}`}
             style={{ fontSize: Math.max(16, size * 0.32) }}
           >
             {initials}
@@ -438,7 +438,7 @@ function OrganizerEventGroup({
 }) {
   return (
     <View className="mb-5">
-      <Text className="mb-2 text-[11px] font-bold uppercase tracking-[2px] text-muted">
+      <Text className="mb-2 text-caption font-inter-semibold text-muted">
         {title}
       </Text>
       {events.length === 0 ? (
@@ -471,10 +471,10 @@ function OrganizerProfileEventRow({
       accessibilityLabel={`Open event ${event.title}`}
       onPress={onPress}
       testID={`organizer.event.${event.id}`}
-      className="flex-row items-center gap-3 rounded-feature p-3 active:opacity-85"
+      className="flex-row items-center gap-3 rounded-2xl p-3 active:opacity-85"
       style={[CardStyles.compact, { backgroundColor: Colors.light.backgroundElement }]}
     >
-      <View className="h-[72px] w-[72px] overflow-hidden rounded-2xl bg-gray-200">
+      <View className="h-[72px] w-[72px] overflow-hidden rounded-2xl bg-subtle">
         <BrandImage
           source={getEventImageSource(event)}
           contentFit="cover"
@@ -482,13 +482,13 @@ function OrganizerProfileEventRow({
         />
       </View>
       <View className="min-w-0 flex-1">
-        <Text className="mb-1 text-[11px] font-bold uppercase tracking-wide text-muted">
+        <Text className="mb-1 text-caption font-inter-semibold text-muted">
           {event.date} · {formatEventTimeRange(event)}
         </Text>
-        <Text className="font-ui text-[15px] font-extrabold text-ink" numberOfLines={1}>
+        <Text className="text-body font-inter-bold text-ink" numberOfLines={1}>
           {event.title}
         </Text>
-        <Text className="mt-1 text-[12px] text-muted" numberOfLines={1}>
+        <Text className="mt-1 text-caption text-muted" numberOfLines={1}>
           {event.venueName}
         </Text>
       </View>

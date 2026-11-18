@@ -1,11 +1,12 @@
 import { CheckCircle2, LockKeyhole } from 'lucide-react-native';
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 
 import { BrandImage } from '@/components/brand-image';
-import { CardStyles } from '@/constants/theme';
+import { CardStyles, Colors } from '@/constants/theme';
 import type { RewardPartner } from '@/data/culture';
 import type { RedeemedRewardState } from '@/data/profile';
 import { formatRewardAvailability, isRewardCurrentlyAvailable } from '@/lib/reward-availability';
+import { Text } from '@/components/ui/text';
 
 type RewardPartnerRowProps = {
   onPress: () => void;
@@ -41,17 +42,17 @@ export function RewardPartnerRow({
       accessibilityLabel={`Open reward ${reward.discount}`}
       onPress={onPress}
       testID={`reward.card.${reward.id}`}
-      className={`rounded-[26px] border p-3 active:opacity-85 ${
+      className={`rounded-2xl border p-3 active:opacity-85 ${
         rowState === 'ready'
           ? 'border-accent/30 bg-accent/10'
           : rowState === 'active'
             ? 'border-primary/25 bg-primary/10'
-            : 'border-primary/15 bg-surface'
+            : 'border-line bg-surface'
       }`}
       style={CardStyles.compact}
     >
       <View className="flex-row gap-3">
-        <View className="h-[94px] w-[94px] overflow-hidden rounded-[22px] bg-gray-100">
+        <View className="h-[94px] w-[94px] overflow-hidden rounded-2xl bg-subtle">
           <BrandImage
             className="h-full w-full"
             source={getRewardImageSource(reward)}
@@ -62,25 +63,25 @@ export function RewardPartnerRow({
         <View className="min-w-0 flex-1 justify-between py-0.5">
           <View>
             <View className="mb-1 flex-row items-center justify-between gap-2">
-              <Text className="min-w-0 flex-1 text-[11px] font-extrabold uppercase tracking-wide text-muted">
+              <Text className="min-w-0 flex-1 text-caption font-inter-bold text-muted">
                 {formatVenueName(reward.name)}
               </Text>
               <RewardStatusPill state={rowState} />
             </View>
 
             <Text
-              className="font-ui text-[17px] font-extrabold leading-5 text-ink"
+              className="text-headline font-inter-bold leading-5 text-ink"
               numberOfLines={2}
             >
               {reward.discount}
             </Text>
-            <Text className="mt-1 text-[12px] font-medium leading-4 text-muted" numberOfLines={1}>
+            <Text className="mt-1 text-caption font-inter-medium leading-4 text-muted" numberOfLines={1}>
               {formatLocation(reward.location)}
             </Text>
           </View>
 
           <View className="mt-3 flex-row items-center justify-between gap-3">
-            <Text className="min-w-0 flex-1 text-[12px] font-semibold text-muted" numberOfLines={1}>
+            <Text className="min-w-0 flex-1 text-caption font-inter-semibold text-muted" numberOfLines={1}>
               {rowState === 'used'
                 ? 'Coupon already used'
                 : rowState === 'active'
@@ -94,14 +95,14 @@ export function RewardPartnerRow({
             <View
               className={`rounded-full px-3 py-1.5 ${
                 rowState === 'used'
-                  ? 'bg-gray-100'
+                  ? 'bg-subtle'
                   : rowState === 'ready'
                     ? 'bg-primary'
                     : 'bg-accent/15'
               }`}
             >
               <Text
-                className={`text-[12px] font-extrabold ${
+                className={`text-caption font-inter-bold ${
                   rowState === 'used'
                     ? 'text-muted'
                     : rowState === 'ready'
@@ -146,16 +147,16 @@ function RewardStatusPill({ state }: { state: RewardRowState }) {
   return (
     <View
       className={`flex-row items-center gap-1 rounded-full px-2 py-1 ${
-        isReady ? 'bg-accent/20' : isActive ? 'bg-primary/15' : 'bg-gray-100'
+        isReady ? 'bg-accent/20' : isActive ? 'bg-primary/15' : 'bg-subtle'
       }`}
     >
       {isReady || isActive ? (
-        <CheckCircle2 size={12} color="#A63446" strokeWidth={2.6} />
+        <CheckCircle2 size={12} color={Colors.light.accent} strokeWidth={2.6} />
       ) : (
-        <LockKeyhole size={12} color="#6B818C" strokeWidth={2.5} />
+        <LockKeyhole size={12} color={Colors.light.textSecondary} strokeWidth={2.5} />
       )}
       <Text
-        className={`text-[10px] font-extrabold ${isReady || isActive ? 'text-ink' : 'text-muted'}`}
+        className={`text-caption font-inter-bold ${isReady || isActive ? 'text-ink' : 'text-muted'}`}
       >
         {label}
       </Text>

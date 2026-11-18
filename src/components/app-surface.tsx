@@ -1,6 +1,6 @@
 import { StyleSheet, View, type StyleProp, type ViewProps, type ViewStyle } from 'react-native';
 
-import { CardStyles, Colors, Radius, Spacing } from '@/constants/theme';
+import { Colors, Radius, Spacing } from '@/constants/theme';
 
 type AppSurfaceProps = ViewProps & {
   compact?: boolean;
@@ -22,7 +22,6 @@ export function AppSurface({
         styles.base,
         compact ? styles.compact : styles.regular,
         tone === 'inline' ? styles.inline : tone === 'tinted' ? styles.tinted : styles.default,
-        tone === 'inline' ? undefined : CardStyles.soft,
         style,
       ]}
       {...props}
@@ -41,7 +40,7 @@ const styles = StyleSheet.create({
   },
   default: {
     backgroundColor: Colors.light.surface,
-    borderColor: `${Colors.light.primary}1A`,
+    borderColor: Colors.light.borderSubtle,
     borderRadius: Radius.feature,
     borderWidth: 1,
   },
@@ -54,7 +53,7 @@ const styles = StyleSheet.create({
   },
   tinted: {
     backgroundColor: Colors.light.backgroundElement,
-    borderColor: `${Colors.light.primary}1A`,
+    borderColor: Colors.light.borderSubtle,
     borderRadius: Radius.feature,
     borderWidth: 1,
   },
