@@ -10,8 +10,12 @@ const patterns = [
     regex: /-----BEGIN (?:RSA |EC |OPENSSH |DSA )?PRIVATE KEY-----/,
   },
   {
-    name: 'Supabase service role secret',
-    regex: /\b(?:SUPABASE_SERVICE_ROLE_KEY|service_role)\b/i,
+    name: 'Supabase secret key',
+    regex: /\bsb_secret_[0-9A-Za-z._-]{20,}\b/,
+  },
+  {
+    name: 'JWT token',
+    regex: /\beyJ[0-9A-Za-z_-]{20,}\.[0-9A-Za-z_-]{20,}\.[0-9A-Za-z_-]{20,}\b/,
   },
   {
     name: 'Google API key',

@@ -8,15 +8,22 @@ node_modules/
 dist/
 web-build/
 expo-env.d.ts
+.eas/
 
 # Native
 .kotlin/
 *.orig.*
 *.jks
+*.keystore
 *.p8
 *.p12
 *.key
 *.mobileprovision
+*.cer
+*.provisionprofile
+credentials.json
+google-services.json
+GoogleService-Info.plist
 
 # Metro
 .metro-health-check*
@@ -31,19 +38,39 @@ yarn-error.*
 *.pem
 
 # local env files
-.env*.local
+.env*
+!.env.example
+!.env.*.example
 
 # typescript
 *.tsbuildinfo
 
 # test output
 coverage/
+.maestro/tests/
+test-results/
+playwright-report/
+*.lcov
+
+# Supabase local state
+supabase/.branches/
+supabase/.temp/
+
+# local databases and build artifacts
+*.db
+*.db-journal
+*.sqlite
+*.sqlite3
+*.apk
+*.aab
+*.ipa
+
+# editors
+.idea/
+.fleet/
 
 example
 
 # generated native folders
 /ios
 /android
-
-# env files
-.env
