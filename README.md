@@ -1,46 +1,152 @@
-# Welcome to your Expo app 👋
+# CultureQuest
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+CultureQuest is a mobile application for discovering local culture, joining
+events, completing city quests, and supporting university communities.
 
-## Get started
+The application combines event discovery, QR attendance verification,
+organizer profiles, rewards, notifications, a city activity map, and a digital
+passport in one experience for residents, students, and visitors.
 
-1. Install dependencies
+> **Project status:** active beta development. The repository is suitable for
+> development and internal testing, but the application is not yet a finished
+> production release.
+
+## Main features
+
+- Discover upcoming and live cultural events by city.
+- Respond as interested or going and confirm attendance with secure QR codes.
+- Explore predicted city activity on an interactive map.
+- Complete time-limited quests and build a digital passport.
+- Earn permanent XP and spend Quest Credits (QC) on organizer rewards.
+- Follow verified organizers and receive event announcements.
+- Compare university communities through the campus leaderboard.
+- Create events, quests, and rewards through moderated organizer workflows.
+- Review content, audit XP, and manage submissions with admin tools.
+- Receive in-app and real-time updates about moderation and content changes.
+
+## Technology
+
+- [Expo SDK 58](https://docs.expo.dev/versions/v58.0.0/) and React Native
+- TypeScript and Expo Router
+- Supabase Auth, PostgreSQL, Realtime, Storage, and Row Level Security
+- NativeWind and shared design tokens
+- Jest for unit tests
+- Supabase CLI database contract tests
+- Maestro mobile end-to-end flows
+
+## Requirements
+
+- Node.js and npm
+- iOS Simulator with Xcode, an Android emulator, or a physical device
+- A Supabase project for connected development
+- A Google Maps Platform key with the Places API enabled
+- Docker Desktop and the Supabase CLI for local database tests
+
+## Local setup
+
+1. Clone the repository and install locked dependencies:
 
    ```bash
-   npm install
+   git clone https://github.com/hefaj1717/culture-connect.git
+   cd culture-connect
+   npm ci
    ```
 
-2. Start the app
+2. Create a local environment file:
 
    ```bash
-   npx expo start
+   cp .env.example .env
    ```
 
-In the output, you'll find options to open the app in a
+3. Add your own development credentials to `.env`:
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+   ```dotenv
+   EXPO_PUBLIC_SUPABASE_URL=
+   EXPO_PUBLIC_SUPABASE_ANON_KEY=
+   EXPO_PUBLIC_GOOGLE_MAPS_API_KEY=
+   ```
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+   Only use the public Supabase anon key in the client. Never place a Supabase
+   service-role key or another server secret in an `EXPO_PUBLIC_*` variable.
+   Restrict the Google key in Google Cloud to the APIs and applications that
+   require it.
 
-### Other setup steps
+4. Start the application:
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+   ```bash
+   npm start
+   ```
 
-## Learn more
+   Use the terminal shortcuts to open iOS or Android. A development build is
+   recommended when testing native integrations.
 
-To learn more about developing your project with Expo, look at the following resources:
+## Local Supabase
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+Docker Desktop must be running before starting the local stack:
 
-## Join the community
+```bash
+npx supabase start
+npx supabase db reset
+```
 
-Join our community of developers creating universal apps.
+Database changes belong in `supabase/migrations`. Check a remote deployment
+before applying it:
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+```bash
+npx supabase db push --dry-run
+```
+
+Do not commit files from `supabase/.temp` or local environment credentials.
+
+## Quality checks
+
+Run the full frontend quality suite:
+
+```bash
+npm run quality:frontend
+```
+
+Individual checks are also available:
+
+```bash
+npm run lint
+npx tsc --noEmit
+npm run test:unit
+npm run test:db
+npm run test:e2e
+npm run security:check
+```
+
+Database tests require the local Supabase stack. Maestro tests require a
+configured simulator or emulator and a test build of the application.
+
+## Project structure
+
+```text
+src/app/                 Expo Router screens
+src/components/          Shared UI and feature components
+src/hooks/               Reusable screen and form behavior
+src/lib/                 Data access and domain logic
+src/constants/           Theme and application constants
+supabase/migrations/     Versioned database schema changes
+supabase/tests/          Database security and contract tests
+.maestro/flows/          Mobile end-to-end scenarios
+```
+
+## Security
+
+Authentication and authorization are enforced in Supabase with Row Level
+Security and restricted RPC functions. The repository also runs dependency,
+secret, TypeScript, lint, unit, and database checks in CI.
+
+If you discover a security issue, do not publish credentials or exploit
+details in a public issue. Contact the repository owner privately.
+
+## License
+
+This repository is **source-visible but not open source**. Copyright © 2026
+Karol Wlosek. All rights reserved. No permission is granted to copy, modify,
+redistribute, sublicense, or reuse the project without prior written
+permission. See [LICENSE](LICENSE).
+
+Third-party libraries and assets remain subject to their own licenses.
