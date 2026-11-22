@@ -756,7 +756,7 @@ export default function HomeScreen({
                 initialRegion={activityMapRegion}
                 customMapStyle={cultureMapStyle}
                 key={cityData.id}
-                mapType="standard"
+                mapType={process.env.EXPO_OS === 'ios' ? 'mutedStandard' : 'standard'}
                 moveOnMarkerPress={false}
                 pitchEnabled={false}
                 rotateEnabled={false}
@@ -764,7 +764,7 @@ export default function HomeScreen({
                 showsBuildings
                 showsCompass={false}
                 showsMyLocationButton={canShowUserLocation}
-                showsPointsOfInterests
+                showsPointsOfInterests={false}
                 showsScale={false}
                 showsUserLocation={canShowUserLocation}
                 style={StyleSheet.absoluteFill}
@@ -858,12 +858,25 @@ export default function HomeScreen({
                       {selectedActivitySpot.nextEvent.title}
                     </Text>
                   </Pressable>
-                  <View className="max-w-[150px] rounded-full bg-secondary/12 px-3 py-1.5">
-                    <Text className="text-[12px] font-bold text-secondary" numberOfLines={1}>
-                      {selectedActivitySpot.interestedCount.toLocaleString()} interested ·{' '}
-                      {selectedActivitySpot.goingCount.toLocaleString()} going ·{' '}
-                      {selectedActivitySpot.attendedCount.toLocaleString()} attended
-                    </Text>
+                  <View className="shrink-0 gap-1 rounded-xl bg-secondary/12 px-3 py-2">
+                    <View className="flex-row items-center gap-1.5">
+                      <Bell size={12} color={Colors.light.accent} strokeWidth={2.4} />
+                      <Text className="text-[11px] font-bold text-secondary">
+                        {selectedActivitySpot.interestedCount.toLocaleString()} interested
+                      </Text>
+                    </View>
+                    <View className="flex-row items-center gap-1.5">
+                      {isEventLiveNow(selectedActivitySpot.nextEvent) ? (
+                        <Users size={12} color={Colors.light.accent} strokeWidth={2.4} />
+                      ) : (
+                        <CheckCircle2 size={12} color={Colors.light.accent} strokeWidth={2.4} />
+                      )}
+                      <Text className="text-[11px] font-bold text-secondary">
+                        {isEventLiveNow(selectedActivitySpot.nextEvent)
+                          ? `${selectedActivitySpot.attendedCount.toLocaleString()} checked in`
+                          : `${selectedActivitySpot.goingCount.toLocaleString()} going`}
+                      </Text>
+                    </View>
                   </View>
                 </View>
               ) : (
@@ -1294,26 +1307,26 @@ function groupNotificationsByAge(notifications: UserNotification[]): Notificatio
 function getCityMapRegion(cityData: CultureCityData) {
   if (cityData.id === 'lublin') {
     return {
-      latitude: 51.2479,
-      longitude: 22.5662,
-      latitudeDelta: 0.06,
-      longitudeDelta: 0.06,
+      latitude: 51.2487,
+      longitude: 22.5687,
+      latitudeDelta: 0.018,
+      longitudeDelta: 0.026,
     };
   }
 
   if (cityData.id === 'leuven') {
     return {
-      latitude: 50.8798,
-      longitude: 4.7005,
-      latitudeDelta: 0.04,
-      longitudeDelta: 0.04,
+      latitude: 50.8792,
+      longitude: 4.701,
+      latitudeDelta: 0.018,
+      longitudeDelta: 0.026,
     };
   }
 
   return {
     latitude: 50.8798,
     longitude: 4.7005,
-    latitudeDelta: 0.048,
-    longitudeDelta: 0.048,
+    latitudeDelta: 0.018,
+    longitudeDelta: 0.026,
   };
 }

@@ -29,13 +29,7 @@ export const cultureMapStyle = [
   },
   {
     featureType: 'poi',
-    elementType: 'geometry',
-    stylers: [{ color: Colors.light.backgroundSelected }],
-  },
-  {
-    featureType: 'poi',
-    elementType: 'labels.text.fill',
-    stylers: [{ color: Colors.light.textSecondary }],
+    stylers: [{ visibility: 'off' }],
   },
   {
     featureType: 'road',
