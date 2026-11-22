@@ -1,6 +1,6 @@
 begin;
 
-select plan(45);
+select plan(47);
 
 select ok(
   to_regprocedure('public.get_my_digital_passport_progress()') is not null,
@@ -395,6 +395,28 @@ select is(
   to_regclass('public.idx_xp_transactions_user_source_key'),
   null,
   'the duplicate XP source-key index is removed'
+);
+
+select is(
+  (
+    select confdeltype::text
+    from pg_constraint
+    where conname = 'redemptions_used_by_fkey'
+      and conrelid = 'public.redemptions'::regclass
+  ),
+  'n',
+  'legacy redemption audits do not block account deletion'
+);
+
+select is(
+  (
+    select confdeltype::text
+    from pg_constraint
+    where conname = 'university_leaderboard_seasons_finalized_by_fkey'
+      and conrelid = 'public.university_leaderboard_seasons'::regclass
+  ),
+  'n',
+  'finalized university seasons do not block account deletion'
 );
 
 select * from finish();

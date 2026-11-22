@@ -17,7 +17,16 @@ import {
   X,
 } from 'lucide-react-native';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { Alert, Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import {
+  Alert,
+  Modal,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+  type ViewInstance,
+} from 'react-native';
 import * as Sharing from 'expo-sharing';
 import { GestureDetector } from 'react-native-gesture-handler';
 import Animated from 'react-native-reanimated';
@@ -1819,7 +1828,7 @@ function OrganizerEventQrModal({
   stableModalTopInset: number;
   visible: boolean;
 }) {
-  const qrCardRef = useRef<View>(null);
+  const qrCardRef = useRef<ViewInstance>(null);
   const [checkInCode, setCheckInCode] = useState<string | null>(null);
   const [checkInCodeError, setCheckInCodeError] = useState<string | null>(null);
   const [checkInCodeLoading, setCheckInCodeLoading] = useState(false);

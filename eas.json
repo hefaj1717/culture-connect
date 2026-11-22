@@ -4,6 +4,15 @@
     "appVersionSource": "remote"
   },
   "build": {
+    "e2e-test": {
+      "withoutCredentials": true,
+      "ios": {
+        "simulator": true
+      },
+      "android": {
+        "buildType": "apk"
+      }
+    },
     "preview": {
       "distribution": "internal"
     },

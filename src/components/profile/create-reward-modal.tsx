@@ -8,6 +8,7 @@ import {
   Platform,
   Pressable,
   ScrollView,
+  type ScrollViewInstance,
   Text,
   TextInput,
   View,
@@ -107,7 +108,7 @@ export function CreateRewardModal({
   visible,
 }: CreateRewardModalProps) {
   const cityData = getCultureCityData(savedCityId);
-  const scrollViewRef = useRef<ScrollView>(null);
+  const scrollViewRef = useRef<ScrollViewInstance>(null);
   const [datePickerOpen, setDatePickerOpen] = useState(false);
   const [datePickerTarget, setDatePickerTarget] = useState<'from' | 'until'>('from');
   const [calendarMonth, setCalendarMonth] = useState(startOfMonth(new Date()));
@@ -136,8 +137,9 @@ export function CreateRewardModal({
   function openDatePicker(target: 'from' | 'until') {
     Keyboard.dismiss();
     const selectedDate =
-      parseRewardDate(target === 'from' ? rewardAvailability.availableFrom : rewardAvailability.availableUntil) ??
-      new Date();
+      parseRewardDate(
+        target === 'from' ? rewardAvailability.availableFrom : rewardAvailability.availableUntil,
+      ) ?? new Date();
     setCalendarMonth(startOfMonth(selectedDate));
     setDatePickerTarget(target);
     setDatePickerOpen(true);
@@ -352,9 +354,7 @@ export function CreateRewardModal({
                   </Text>
                 )}
 
-                <Text className="mb-2 text-[13px] font-semibold text-ink">
-                  Redeem availability
-                </Text>
+                <Text className="mb-2 text-[13px] font-semibold text-ink">Redeem availability</Text>
                 <View className="mb-4 gap-3">
                   <View className="flex-row gap-3">
                     <View className="flex-1">
@@ -406,9 +406,11 @@ export function CreateRewardModal({
                   </View>
                   <View className="rounded-2xl bg-canvas px-3 py-2.5">
                     <Text className="text-[12px] font-semibold leading-4 text-muted">
-                      Reward can be redeemed from {formatRewardDateLabel(rewardAvailability.availableFrom)} to{' '}
+                      Reward can be redeemed from{' '}
+                      {formatRewardDateLabel(rewardAvailability.availableFrom)} to{' '}
                       {formatRewardDateLabel(rewardAvailability.availableUntil)}, from{' '}
-                      {rewardAvailability.availableStartTime} to {rewardAvailability.availableEndTime}.
+                      {rewardAvailability.availableStartTime} to{' '}
+                      {rewardAvailability.availableEndTime}.
                     </Text>
                   </View>
                 </View>
@@ -431,9 +433,12 @@ export function CreateRewardModal({
 
                 {isEditingReward && (
                   <View className="mb-4 rounded-xl bg-primary/5 p-3">
-                    <Text className="text-[13px] font-semibold text-ink">Note for review (optional)</Text>
+                    <Text className="text-[13px] font-semibold text-ink">
+                      Note for review (optional)
+                    </Text>
                     <Text className="mt-1 text-[12px] leading-4 text-muted">
-                      Tell CultureQuest why the reward changed. This note is included in the review record.
+                      Tell CultureQuest why the reward changed. This note is included in the review
+                      record.
                     </Text>
                     <TextInput
                       value={rewardUpdateMessage}

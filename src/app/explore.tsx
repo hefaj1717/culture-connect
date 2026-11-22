@@ -27,6 +27,8 @@ import {
 } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
+  Easing,
+  ReduceMotion,
   runOnJS,
   useAnimatedStyle,
   useSharedValue,
@@ -69,6 +71,19 @@ const audienceFilters = [
   { key: 'tonight', label: 'Tonight' },
 ];
 const EVENT_CHECK_IN_RADIUS_METERS = 500;
+const E2E_MODE = process.env.EXPO_PUBLIC_E2E_MODE === 'true';
+const E2E_CHECK_IN_CODE = process.env.EXPO_PUBLIC_E2E_EVENT_CODE;
+const NAVIGATION_EASE_OUT = Easing.bezier(0.23, 1, 0.32, 1);
+const NAVIGATION_TIMING = {
+  duration: 240,
+  easing: NAVIGATION_EASE_OUT,
+  reduceMotion: ReduceMotion.System,
+};
+const NAVIGATION_EXIT_TIMING = {
+  duration: 200,
+  easing: NAVIGATION_EASE_OUT,
+  reduceMotion: ReduceMotion.System,
+};
 
 export type EventCheckInResult = {
   duplicate?: boolean;
@@ -361,13 +376,14 @@ export default function ExploreScreen({
     }
 
     return (
-      displayedOrganizerProfiles.find((profile) => profile.id === selectedEventFromStore.organizerId) ??
-      organizerProfileFromEvent(selectedEventFromStore)
+      displayedOrganizerProfiles.find(
+        (profile) => profile.id === selectedEventFromStore.organizerId,
+      ) ?? organizerProfileFromEvent(selectedEventFromStore)
     );
   }, [displayedOrganizerProfiles, selectedEventFromStore]);
 
   return (
-    <View className="flex-1 bg-canvas">
+    <View className="flex-1 bg-canvas" testID="discover.screen">
       <ScrollView
         className="flex-1"
         contentContainerStyle={{ paddingBottom: 112 }}
@@ -407,7 +423,9 @@ export default function ExploreScreen({
                 }}
                 className={`h-10 flex-1 items-center justify-center rounded-xl ${active ? 'bg-primary' : ''}`}
               >
-                <Text className={`text-[13px] font-semibold ${active ? 'text-white' : 'text-muted'}`}>
+                <Text
+                  className={`text-[13px] font-semibold ${active ? 'text-white' : 'text-muted'}`}
+                >
                   {tabLabel}
                 </Text>
               </Pressable>
@@ -455,6 +473,7 @@ export default function ExploreScreen({
                 </View>
 
                 <Pressable
+                  testID={`event.card.${featuredEvent.id}`}
                   onPress={() => {
                     Keyboard.dismiss();
                     setSelectedEvent(featuredEvent);
@@ -572,6 +591,7 @@ export default function ExploreScreen({
                     return (
                       <Pressable
                         key={event.id}
+                        testID={`event.card.${event.id}`}
                         onPress={() => {
                           Keyboard.dismiss();
                           setSelectedEvent(event);
@@ -699,11 +719,18 @@ export default function ExploreScreen({
                       <Text className="shrink text-[16px] font-semibold text-ink" numberOfLines={1}>
                         {profile.name}
                       </Text>
-                      <CheckCircle2 size={14} color={Colors.light.background} fill={Colors.light.success} />
+                      <CheckCircle2
+                        size={14}
+                        color={Colors.light.background}
+                        fill={Colors.light.success}
+                      />
                     </View>
                     <View className="mt-1 flex-row items-center gap-1">
                       <MapPin size={12} color={Colors.light.primary} strokeWidth={2.3} />
-                      <Text className="flex-1 text-[12px] font-medium text-primary" numberOfLines={1}>
+                      <Text
+                        className="flex-1 text-[12px] font-medium text-primary"
+                        numberOfLines={1}
+                      >
                         {profile.locationName ?? cityData.name}
                       </Text>
                     </View>
@@ -748,7 +775,10 @@ export default function ExploreScreen({
         organizerEvents={allEvents}
         organizerProfile={selectedEventOrganizerProfile}
         onToggleStatus={async (eventId, status) =>
-          (await onEventStatusChange?.(eventId, eventStatuses[eventId] === status ? null : status)) ?? {
+          (await onEventStatusChange?.(
+            eventId,
+            eventStatuses[eventId] === status ? null : status,
+          )) ?? {
             error: 'RSVP is not available right now.',
           }
         }
@@ -811,15 +841,20 @@ export function EventDetailModal({
   const [scanMessage, setScanMessage] = useState<string | null>(null);
   const [statusActionError, setStatusActionError] = useState<string | null>(null);
   const [statusActionPending, setStatusActionPending] = useState(false);
-  const [statusActionToRetry, setStatusActionToRetry] = useState<'interested' | 'going' | null>(null);
+  const [statusActionToRetry, setStatusActionToRetry] = useState<'interested' | 'going' | null>(
+    null,
+  );
   const [locationMessage, setLocationMessage] = useState<string | null>(null);
   const [checkingLocation, setCheckingLocation] = useState(false);
   const [detailEvent, setDetailEvent] = useState<CultureEvent | null>(event);
   const [detailOrganizerProfile, setDetailOrganizerProfile] = useState<OrganizerProfile | null>(
     organizerProfile ?? null,
   );
-  const [embeddedOrganizerProfile, setEmbeddedOrganizerProfile] = useState<OrganizerProfile | null>(null);
+  const [embeddedOrganizerProfile, setEmbeddedOrganizerProfile] = useState<OrganizerProfile | null>(
+    null,
+  );
   const [organizerPresentationStatic, setOrganizerPresentationStatic] = useState(false);
+  const [eventPresentedOverOrganizer, setEventPresentedOverOrganizer] = useState(false);
   const [returnContext, setReturnContext] = useState<{
     event: CultureEvent;
     organizerProfile: OrganizerProfile;
@@ -844,6 +879,7 @@ export function EventDetailModal({
     setDetailOrganizerProfile(organizerProfile ?? null);
     setEmbeddedOrganizerProfile(null);
     setOrganizerPresentationStatic(false);
+    setEventPresentedOverOrganizer(false);
   }, [event, organizerProfile, translateX]);
 
   const activeEvent = detailEvent ?? event;
@@ -856,7 +892,7 @@ export function EventDetailModal({
   }, [embeddedOrganizerProfile, translateX]);
 
   const swipeGesture = Gesture.Pan()
-    .enabled(!embeddedOrganizerProfile)
+    .enabled(!embeddedOrganizerProfile || eventPresentedOverOrganizer)
     .activeOffsetX([-999, 18])
     .failOffsetY([-35, 35])
     .onUpdate((gestureEvent) => {
@@ -870,7 +906,7 @@ export function EventDetailModal({
         return;
       }
 
-      translateX.value = withTiming(0, { duration: 180 });
+      translateX.value = withTiming(0, NAVIGATION_EXIT_TIMING);
     });
 
   const swipeStyle = useAnimatedStyle(() => ({
@@ -880,7 +916,7 @@ export function EventDetailModal({
   function closeWithAnimation() {
     if (returnContext) {
       const destination = returnContext;
-      translateX.value = withTiming(width, { duration: 180 }, (finished) => {
+      translateX.value = withTiming(width, NAVIGATION_EXIT_TIMING, (finished) => {
         if (finished) {
           runOnJS(showPreviousOrganizer)(destination);
         }
@@ -888,7 +924,7 @@ export function EventDetailModal({
       return;
     }
 
-    translateX.value = withTiming(width, { duration: 180 }, (finished) => {
+    translateX.value = withTiming(width, NAVIGATION_EXIT_TIMING, (finished) => {
       if (finished) {
         runOnJS(onClose)();
       }
@@ -903,6 +939,7 @@ export function EventDetailModal({
     setDetailOrganizerProfile(destination.organizerProfile);
     setOrganizerPresentationStatic(true);
     setEmbeddedOrganizerProfile(destination.organizerProfile);
+    setEventPresentedOverOrganizer(false);
     setReturnContext(null);
     requestAnimationFrame(() => {
       translateX.value = 0;
@@ -911,6 +948,14 @@ export function EventDetailModal({
 
   function openOrganizerProfile() {
     if (!activeOrganizerProfile) {
+      return;
+    }
+
+    if (
+      eventPresentedOverOrganizer &&
+      returnContext?.organizerProfile.id === activeOrganizerProfile.id
+    ) {
+      closeWithAnimation();
       return;
     }
 
@@ -1034,6 +1079,20 @@ export function EventDetailModal({
     setTimeout(() => setScanLocked(false), 1400);
   }
 
+  async function handleE2ECheckIn() {
+    if (!E2E_MODE || !E2E_CHECK_IN_CODE || !activeEvent || !verifiedVenue) return;
+
+    setCheckingLocation(true);
+    setLocationMessage(null);
+    const result = await onCheckIn(activeEvent, E2E_CHECK_IN_CODE, verifiedVenue.coordinates);
+    setCheckingLocation(false);
+    setLocationMessage(
+      result.success
+        ? getCheckInResultMessage(activeEvent, result)
+        : (result.error ?? 'E2E check-in failed.'),
+    );
+  }
+
   async function handleStatusToggle(nextStatus: 'interested' | 'going') {
     if (!activeEvent || statusActionPending) return;
 
@@ -1052,12 +1111,7 @@ export function EventDetailModal({
   }
 
   return (
-    <Modal
-      animationType="slide"
-      transparent
-      onRequestClose={closeWithAnimation}
-      visible
-    >
+    <Modal animationType="slide" transparent onRequestClose={closeWithAnimation} visible>
       {returnContext && !embeddedOrganizerProfile ? (
         <View pointerEvents="none" style={StyleSheet.absoluteFill}>
           <OrganizerProfileModal
@@ -1072,8 +1126,11 @@ export function EventDetailModal({
         </View>
       ) : null}
       <GestureDetector gesture={swipeGesture}>
-        <Animated.View className="flex-1 bg-canvas" style={swipeStyle}>
-          <View className="flex-1 bg-canvas">
+        <Animated.View
+          className="flex-1 bg-canvas"
+          style={[swipeStyle, eventPresentedOverOrganizer ? styles.presentedEvent : null]}
+        >
+          <View className="flex-1 bg-canvas" testID="event.detail">
             <ScrollView
               className="flex-1"
               contentContainerStyle={{ paddingBottom: insets.bottom + 30 }}
@@ -1090,6 +1147,8 @@ export function EventDetailModal({
                   withTextGradient
                 />
                 <Pressable
+                  accessibilityLabel="Close event"
+                  testID="event.close"
                   onPress={closeWithAnimation}
                   className="absolute left-5 h-10 w-10 items-center justify-center rounded-full bg-black/30 active:opacity-80"
                   style={{ top: stableTopInset + 6 }}
@@ -1117,10 +1176,7 @@ export function EventDetailModal({
                       </View>
                     )}
                   </View>
-                  <Text
-                    className="font-heading text-[30px] leading-9 text-white"
-                    numberOfLines={3}
-                  >
+                  <Text className="font-heading text-[30px] leading-9 text-white" numberOfLines={3}>
                     {activeEvent.title}
                   </Text>
                 </View>
@@ -1134,10 +1190,13 @@ export function EventDetailModal({
                     icon={
                       <BellRing
                         size={17}
-                        color={status === 'interested' ? Colors.light.onPrimary : Colors.light.primary}
+                        color={
+                          status === 'interested' ? Colors.light.onPrimary : Colors.light.primary
+                        }
                       />
                     }
                     label="Interested"
+                    testID="event.rsvp.interested"
                     onPress={() => handleStatusToggle('interested')}
                   />
                   <StatusButton
@@ -1150,6 +1209,7 @@ export function EventDetailModal({
                       />
                     }
                     label="Going"
+                    testID="event.rsvp.going"
                     onPress={() => handleStatusToggle('going')}
                   />
                 </View>
@@ -1175,7 +1235,10 @@ export function EventDetailModal({
                   className="mb-6 rounded-feature p-4"
                   style={{ backgroundColor: Colors.light.backgroundElement }}
                 >
-                  <InfoRow icon={<MapPin size={17} color={Colors.light.primary} />} label={activeEvent.venueName} />
+                  <InfoRow
+                    icon={<MapPin size={17} color={Colors.light.primary} />}
+                    label={activeEvent.venueName}
+                  />
                   <View className="my-3 h-px bg-primary/10" />
                   <InfoRow
                     icon={<Clock size={17} color={Colors.light.primary} />}
@@ -1192,7 +1255,9 @@ export function EventDetailModal({
                           </Text>
                           <Text className="text-[13px] text-muted">·</Text>
                           <Text className="text-[13px] text-muted">
-                            {(detailEngagement.interested + detailEngagement.going).toLocaleString()}{' '}
+                            {(
+                              detailEngagement.interested + detailEngagement.going
+                            ).toLocaleString()}{' '}
                             planning to attend
                           </Text>
                         </>
@@ -1200,15 +1265,21 @@ export function EventDetailModal({
                         <>
                           <Users size={17} color={Colors.light.primary} />
                           <Text className="text-[13px] font-semibold text-ink">
-                            {(detailEngagement.interested + detailEngagement.going).toLocaleString()}{' '}
+                            {(
+                              detailEngagement.interested + detailEngagement.going
+                            ).toLocaleString()}{' '}
                             planning to attend
                           </Text>
                         </>
                       )}
                     </View>
                     <View className="rounded-full bg-accent/10 px-3 py-1.5">
-                      <Text className="text-[12px] font-semibold text-accent">+{activeEvent.xpBonus} XP</Text>
-                      <Text className="text-[12px] font-semibold text-accentDeep">+{activeEvent.qcBonus} QC</Text>
+                      <Text className="text-[12px] font-semibold text-accent">
+                        +{activeEvent.xpBonus} XP
+                      </Text>
+                      <Text className="text-[12px] font-semibold text-accentDeep">
+                        +{activeEvent.qcBonus} QC
+                      </Text>
                     </View>
                   </View>
                 </View>
@@ -1217,16 +1288,21 @@ export function EventDetailModal({
                   <Text className="font-serifRegular text-[22px] leading-7 text-ink">About</Text>
                   <View className="h-px flex-1 bg-primary/15" />
                 </View>
-                <Text className="mb-6 text-[14px] leading-6 text-muted">{activeEvent.description}</Text>
+                <Text className="mb-6 text-[14px] leading-6 text-muted">
+                  {activeEvent.description}
+                </Text>
 
                 <View className="mb-6">
                   <View className="mb-2 flex-row items-center gap-3">
-                    <Text className="font-serifRegular text-[22px] leading-7 text-ink">Hosted by</Text>
+                    <Text className="font-serifRegular text-[22px] leading-7 text-ink">
+                      Hosted by
+                    </Text>
                     <View className="h-px flex-1 bg-primary/15" />
                   </View>
                   {activeOrganizerProfile ? (
                     <Pressable
                       onPress={openOrganizerProfile}
+                      testID="event.organizer"
                       className="flex-row items-center gap-3 rounded-feature p-3 active:opacity-85"
                       style={{ backgroundColor: Colors.light.backgroundElement }}
                     >
@@ -1235,7 +1311,10 @@ export function EventDetailModal({
                         <Text className="text-[15px] font-bold text-ink" numberOfLines={1}>
                           {activeOrganizerProfile.name}
                         </Text>
-                        <Text className="mt-1 text-[12px] font-semibold text-primary" numberOfLines={1}>
+                        <Text
+                          className="mt-1 text-[12px] font-semibold text-primary"
+                          numberOfLines={1}
+                        >
                           {activeOrganizerProfile.locationName ?? 'Verified CultureQuest organizer'}
                         </Text>
                       </View>
@@ -1246,7 +1325,9 @@ export function EventDetailModal({
                       className="rounded-feature p-3"
                       style={{ backgroundColor: Colors.light.backgroundElement }}
                     >
-                      <Text className="text-[15px] font-bold text-ink">{activeEvent.organizerName}</Text>
+                      <Text className="text-[15px] font-bold text-ink">
+                        {activeEvent.organizerName}
+                      </Text>
                       <Text className="mt-1 text-[12px] leading-4 text-muted">
                         Organizer profile is not available yet.
                       </Text>
@@ -1270,7 +1351,8 @@ export function EventDetailModal({
                       Attendance confirmed
                     </Text>
                     <Text className="mt-1 text-[13px] leading-5 text-ink/75">
-                      You earned {activeEvent.xpBonus} XP and {activeEvent.qcBonus} CultureQuest Credits for this event.
+                      You earned {activeEvent.xpBonus} XP and {activeEvent.qcBonus} CultureQuest
+                      Credits for this event.
                     </Text>
                   </View>
                 ) : (
@@ -1286,6 +1368,7 @@ export function EventDetailModal({
                     <Pressable
                       onPress={openScanner}
                       disabled={checkingLocation || checkInWindowState !== 'open'}
+                      testID="event.check-in.open-scanner"
                       className="h-[52px] flex-row items-center justify-center gap-2 rounded-xl bg-primary active:opacity-85 disabled:opacity-60"
                     >
                       <QrCode size={19} color="white" strokeWidth={2.4} />
@@ -1299,6 +1382,19 @@ export function EventDetailModal({
                               : 'Scan event QR'}
                       </Text>
                     </Pressable>
+                    {E2E_MODE && E2E_CHECK_IN_CODE && checkInWindowState === 'open' ? (
+                      <Pressable
+                        accessibilityLabel="Run E2E event check-in"
+                        className="mt-3 h-[44px] items-center justify-center rounded-xl border border-primary/20 bg-primary/5 active:opacity-85"
+                        disabled={checkingLocation}
+                        onPress={handleE2ECheckIn}
+                        testID="event.check-in.e2e"
+                      >
+                        <Text className="text-[13px] font-bold text-primary">
+                          Verify seeded E2E check-in
+                        </Text>
+                      </Pressable>
+                    ) : null}
                   </>
                 )}
               </View>
@@ -1364,7 +1460,7 @@ export function EventDetailModal({
         </Animated.View>
       </GestureDetector>
       {embeddedOrganizerProfile ? (
-        <View style={StyleSheet.absoluteFill}>
+        <View style={[StyleSheet.absoluteFill, styles.embeddedOrganizer]}>
           <OrganizerProfileModal
             embedded
             cityName={cityName}
@@ -1383,10 +1479,10 @@ export function EventDetailModal({
               translateX.value = width;
               setDetailEvent(nextEvent);
               setDetailOrganizerProfile(sourceProfile);
-              setEmbeddedOrganizerProfile(null);
-              setOrganizerPresentationStatic(false);
+              setEventPresentedOverOrganizer(true);
+              setOrganizerPresentationStatic(true);
               requestAnimationFrame(() => {
-                translateX.value = withTiming(0, { duration: 220 });
+                translateX.value = withTiming(0, NAVIGATION_TIMING);
               });
             }}
             profile={embeddedOrganizerProfile}
@@ -1404,17 +1500,20 @@ function StatusButton({
   icon,
   label,
   onPress,
+  testID,
 }: {
   active: boolean;
   disabled?: boolean;
   icon: React.ReactNode;
   label: string;
   onPress: () => void;
+  testID?: string;
 }) {
   return (
     <Pressable
       disabled={disabled}
       onPress={onPress}
+      testID={testID}
       className={`h-11 flex-1 flex-row items-center justify-center gap-2 rounded-xl ${
         active ? 'bg-primary' : ''
       } ${disabled ? 'opacity-55' : ''}`}
@@ -1492,7 +1591,9 @@ function getCheckInResultMessage(event: CultureEvent, result: EventCheckInResult
   if (result.success) {
     const xpEarned = result.xpEarned && result.xpEarned > 0 ? result.xpEarned : event.xpBonus;
     const balanceLabel =
-      typeof result.totalXp === 'number' ? ` New balance: ${result.totalXp.toLocaleString()} XP.` : '';
+      typeof result.totalXp === 'number'
+        ? ` New balance: ${result.totalXp.toLocaleString()} XP.`
+        : '';
 
     return `Attendance verified. +${xpEarned.toLocaleString()} XP and +${event.qcBonus.toLocaleString()} CultureQuest Credits for ${event.title}.${balanceLabel}`;
   }
@@ -1654,3 +1755,12 @@ function formatDistance(distanceMeters: number) {
 
   return `${(distanceMeters / 1000).toFixed(1)}km`;
 }
+
+const styles = StyleSheet.create({
+  embeddedOrganizer: {
+    zIndex: 1,
+  },
+  presentedEvent: {
+    zIndex: 2,
+  },
+});

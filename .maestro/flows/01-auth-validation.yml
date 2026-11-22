@@ -1,0 +1,18 @@
+appId: host.exp.exponent
+name: Auth validation keeps the user on the login screen
+tags:
+  - local
+  - smoke
+---
+- launchApp:
+    clearState: false
+- openLink: exp://127.0.0.1:8081
+- extendedWaitUntil:
+    visible:
+      id: auth.screen
+    timeout: 60000
+- tapOn:
+    id: auth.submit
+- assertVisible: Please fix the highlighted fields.
+- assertVisible:
+    id: auth.screen

@@ -1,5 +1,12 @@
 import { buildPassportAchievements } from '@/components/profile/passport-achievements';
 
+jest.mock('lucide-react-native', () => ({
+  CalendarCheck2: () => null,
+  HeartHandshake: () => null,
+  Route: () => null,
+  Sparkles: () => null,
+}));
+
 describe('Digital Passport university ranking awards', () => {
   it('shows a permanent academic-year badge for each finalized podium result', () => {
     const badges = buildPassportAchievements({

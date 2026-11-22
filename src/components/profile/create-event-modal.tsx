@@ -19,6 +19,7 @@ import {
   Platform,
   Pressable,
   ScrollView,
+  type ScrollViewInstance,
   Text,
   TextInput,
   View,
@@ -184,7 +185,7 @@ export function CreateEventModal({
   visible,
 }: CreateEventModalProps) {
   const cityData = getCultureCityData(cityId);
-  const scrollViewRef = useRef<ScrollView>(null);
+  const scrollViewRef = useRef<ScrollViewInstance>(null);
 
   function focusFormArea(y: number) {
     setTimeout(() => {
@@ -410,14 +411,26 @@ export function CreateEventModal({
                   <View className="flex-row gap-3">
                     <View className="flex-1">
                       <Text className="mb-2 text-[13px] font-semibold text-ink">Starts on</Text>
-                      <Pressable onPress={openDatePicker} className="h-12 justify-center rounded-xl border border-gray-300 px-4 active:opacity-80">
-                        <Text className={`text-[15px] ${eventDate ? 'text-ink' : 'text-muted'}`}>{eventDate || 'Choose date'}</Text>
+                      <Pressable
+                        onPress={openDatePicker}
+                        className="h-12 justify-center rounded-xl border border-gray-300 px-4 active:opacity-80"
+                      >
+                        <Text className={`text-[15px] ${eventDate ? 'text-ink' : 'text-muted'}`}>
+                          {eventDate || 'Choose date'}
+                        </Text>
                       </Pressable>
                     </View>
                     <View className="flex-1">
                       <Text className="mb-2 text-[13px] font-semibold text-ink">Ends on</Text>
-                      <Pressable onPress={onOpenEndDatePicker} className="h-12 justify-center rounded-xl border border-gray-300 px-4 active:opacity-80">
-                        <Text className={`text-[15px] ${eventEndDate || eventDate ? 'text-ink' : 'text-muted'}`}>{eventEndDate || eventDate || 'Choose date'}</Text>
+                      <Pressable
+                        onPress={onOpenEndDatePicker}
+                        className="h-12 justify-center rounded-xl border border-gray-300 px-4 active:opacity-80"
+                      >
+                        <Text
+                          className={`text-[15px] ${eventEndDate || eventDate ? 'text-ink' : 'text-muted'}`}
+                        >
+                          {eventEndDate || eventDate || 'Choose date'}
+                        </Text>
                       </Pressable>
                     </View>
                   </View>
@@ -450,7 +463,8 @@ export function CreateEventModal({
                 {eventDateValue && eventEndDateValue && eventTime && eventEndTime && (
                   <View className="mb-4 rounded-2xl bg-canvas px-3 py-2.5">
                     <Text className="text-[12px] font-semibold leading-4 text-muted">
-                      QR check-in works from {eventDate} {eventTime} until {eventEndDate || eventDate} {eventEndTime}.
+                      QR check-in works from {eventDate} {eventTime} until{' '}
+                      {eventEndDate || eventDate} {eventEndTime}.
                     </Text>
                   </View>
                 )}
@@ -498,9 +512,12 @@ export function CreateEventModal({
 
                 {isEditingEvent && (
                   <View className="mb-4 rounded-xl bg-primary/5 p-3">
-                    <Text className="text-[13px] font-semibold text-ink">Note for attendees (optional)</Text>
+                    <Text className="text-[13px] font-semibold text-ink">
+                      Note for attendees (optional)
+                    </Text>
                     <Text className="mt-1 text-[12px] leading-4 text-muted">
-                      This is sent to people who saved the event only after CultureQuest approves the update.
+                      This is sent to people who saved the event only after CultureQuest approves
+                      the update.
                     </Text>
                     <TextInput
                       value={eventUpdateMessage}

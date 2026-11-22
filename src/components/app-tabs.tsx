@@ -13,7 +13,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AuthScreen } from '@/components/auth-screen';
 import { ErrorState } from '@/components/async-state';
-import ExploreScreen, { type EventCheckInResult } from '@/app/explore';
+import ExploreScreen, { EventDetailModal, type EventCheckInResult } from '@/app/explore';
 import HomeScreen from '@/app/index';
 import ProfileScreen from '@/app/profile';
 import QuestsScreen from '@/app/quests';
@@ -30,6 +30,7 @@ import {
 import { updateEventEngagementCounts } from '@/lib/event-engagement';
 import { OFFLINE_ERROR_MESSAGE } from '@/lib/network-errors';
 import { fetchOrganizerEvents } from '@/lib/organizer-events';
+import { organizerProfileFromEvent } from '@/lib/organizer-profiles';
 import { completeQuest, fetchCompletedQuestIds } from '@/lib/quest-completions';
 import { confirmOrganizerEventAttendance, fetchUserXp } from '@/lib/profile-xp';
 import {
@@ -94,11 +95,7 @@ function AuthenticatedTabs() {
   const [userStateReloadNonce, setUserStateReloadNonce] = useState(0);
   const checkedInEventIdsRef = useRef(new Set<string>());
   const completedQuestIdsRef = useRef(new Set<string>());
-  const [eventOpenRequest, setEventOpenRequest] = useState<{
-    eventId: string;
-    nonce: number;
-    returnTabIndex: number;
-  } | null>(null);
+  const [homeEventId, setHomeEventId] = useState<string | null>(null);
   const translateX = useSharedValue(-activeIndex * width);
   const startX = useSharedValue(0);
   const metadataName = [user?.user_metadata?.first_name, user?.user_metadata?.last_name]
@@ -117,9 +114,14 @@ function AuthenticatedTabs() {
     () => buildUserEventHistory(approvedEvents, eventStatuses, checkedInEventIds),
     [approvedEvents, checkedInEventIds, eventStatuses],
   );
+  const homeEvent = useMemo(
+    () => publicEvents.find((event) => event.id === homeEventId) ?? null,
+    [homeEventId, publicEvents],
+  );
+  const homeEventStatus = homeEvent ? eventStatuses[homeEvent.id] : undefined;
 
   useEffect(() => {
-    setEventOpenRequest(null);
+    setHomeEventId(null);
   }, [cityData.id]);
 
   useEffect(() => {
@@ -226,19 +228,6 @@ function AuthenticatedTabs() {
     translateX.value = withTiming(-index * width, { duration: 220 });
   }
 
-  function openDiscoverEvent(eventId: string) {
-    setEventOpenRequest({ eventId, nonce: Date.now(), returnTabIndex: activeIndex });
-    goToTab(1);
-  }
-
-  function closeExternalDiscoverEvent() {
-    const returnTabIndex = eventOpenRequest?.returnTabIndex;
-    setEventOpenRequest(null);
-    if (returnTabIndex !== undefined && returnTabIndex !== 1) {
-      goToTab(returnTabIndex);
-    }
-  }
-
   async function awardEventCheckInXp(
     event: CultureEvent,
     checkInCode: string,
@@ -250,7 +239,14 @@ function AuthenticatedTabs() {
     }
 
     if (checkedInEventIdsRef.current.has(event.id)) {
-      return { duplicate: true, success: true, totalXp: userXp, totalQc: userQc, xpEarned: 0, qcEarned: 0 };
+      return {
+        duplicate: true,
+        success: true,
+        totalXp: userXp,
+        totalQc: userQc,
+        xpEarned: 0,
+        qcEarned: 0,
+      };
     }
 
     const databaseEventId = getOrganizerEventDatabaseId(event.id);
@@ -419,14 +415,16 @@ function AuthenticatedTabs() {
   }));
 
   return (
-    <View className="flex-1 bg-white">
+    <View className="flex-1 bg-white" testID="app.authenticated">
       <StatusBar style={activeIndex === 0 ? 'light' : 'dark'} />
       {userStateError && (
         <ErrorState
           body="Showing saved account information where available."
           compact
           icon={WifiOff}
-          onAction={userStateLoading ? undefined : () => setUserStateReloadNonce((current) => current + 1)}
+          onAction={
+            userStateLoading ? undefined : () => setUserStateReloadNonce((current) => current + 1)
+          }
           style={{ left: 16, position: 'absolute', right: 16, top: insets.top + 8, zIndex: 20 }}
           title="Some account data could not refresh"
         />
@@ -455,7 +453,7 @@ function AuthenticatedTabs() {
               leaderboardError={universityLeaderboardError}
               leaderboardLoading={universityLeaderboardLoading}
               onOpenDiscover={() => goToTab(1)}
-              onOpenEvent={openDiscoverEvent}
+              onOpenEvent={setHomeEventId}
               onOpenProfile={() => goToTab(3)}
             />
           </View>
@@ -469,10 +467,7 @@ function AuthenticatedTabs() {
               eventsRefreshKey={organizerEventsVersion}
               eventStatuses={eventStatuses}
               onEventCheckIn={awardEventCheckInXp}
-              onExternalEventClose={closeExternalDiscoverEvent}
               onEventStatusChange={updateEventStatus}
-              openEventId={eventOpenRequest?.eventId}
-              openEventNonce={eventOpenRequest?.nonce}
             />
           </View>
           <View style={{ width }}>
@@ -509,6 +504,27 @@ function AuthenticatedTabs() {
           </View>
         </Animated.View>
       </GestureDetector>
+
+      <EventDetailModal
+        checkedIn={!!homeEvent && checkedInEventIds.includes(homeEvent.id)}
+        cityName={cityData.name}
+        event={homeEvent}
+        onCheckIn={awardEventCheckInXp}
+        onClose={() => setHomeEventId(null)}
+        onToggleStatus={async (eventId, status) =>
+          (await updateEventStatus(eventId, eventStatuses[eventId] === status ? null : status)) ?? {
+            error: 'RSVP is not available right now.',
+          }
+        }
+        organizerEvents={publicEvents}
+        organizerProfile={homeEvent ? organizerProfileFromEvent(homeEvent) : null}
+        status={
+          homeEventStatus === 'interested' || homeEventStatus === 'going'
+            ? homeEventStatus
+            : undefined
+        }
+        venue={null}
+      />
 
       {isOffline && (
         <View className="flex-row items-center justify-center gap-2 border-t border-accent/15 bg-ink px-4 py-2">
@@ -648,6 +664,7 @@ function TabButton({
       accessibilityLabel={`${label}, tab ${position} of ${TAB_COUNT}`}
       accessibilityRole="tab"
       accessibilityState={{ selected: active }}
+      testID={`tab.${label.toLowerCase()}`}
       onPress={onPress}
       className="items-center justify-center gap-1"
       style={{ minWidth }}

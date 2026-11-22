@@ -21,6 +21,8 @@ import {
 } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
+  Easing,
+  ReduceMotion,
   runOnJS,
   useAnimatedStyle,
   useSharedValue,
@@ -41,6 +43,18 @@ import {
 } from '@/lib/organizer-follows';
 import type { OrganizerProfile } from '@/lib/organizer-profiles';
 import { useAuth } from '@/providers/auth-provider';
+
+const NAVIGATION_EASE_OUT = Easing.bezier(0.23, 1, 0.32, 1);
+const NAVIGATION_TIMING = {
+  duration: 240,
+  easing: NAVIGATION_EASE_OUT,
+  reduceMotion: ReduceMotion.System,
+};
+const NAVIGATION_EXIT_TIMING = {
+  duration: 200,
+  easing: NAVIGATION_EASE_OUT,
+  reduceMotion: ReduceMotion.System,
+};
 
 type OrganizerProfileModalProps = {
   cityName: string;
@@ -77,7 +91,7 @@ export function OrganizerProfileModal({
     if (profile) {
       if (embedded && !staticPresentation) {
         translateX.value = width;
-        translateX.value = withTiming(0, { duration: 220 });
+        translateX.value = withTiming(0, NAVIGATION_TIMING);
       } else {
         translateX.value = 0;
       }
@@ -124,7 +138,7 @@ export function OrganizerProfileModal({
       const shouldClose = translateX.value > width * 0.28 || gestureEvent.velocityX > 700;
 
       if (shouldClose) {
-        translateX.value = withTiming(width, { duration: 180 }, (finished) => {
+        translateX.value = withTiming(width, NAVIGATION_EXIT_TIMING, (finished) => {
           if (finished) {
             runOnJS(onClose)();
           }
@@ -132,7 +146,7 @@ export function OrganizerProfileModal({
         return;
       }
 
-      translateX.value = withTiming(0, { duration: 180 });
+      translateX.value = withTiming(0, NAVIGATION_EXIT_TIMING);
     });
 
   const swipeStyle = useAnimatedStyle(() => ({
@@ -165,7 +179,7 @@ export function OrganizerProfileModal({
     });
   }, [organizerEvents]);
   function closeWithAnimation() {
-    translateX.value = withTiming(width, { duration: 180 }, (finished) => {
+    translateX.value = withTiming(width, NAVIGATION_EXIT_TIMING, (finished) => {
       if (finished) {
         runOnJS(onClose)();
       }
@@ -178,7 +192,7 @@ export function OrganizerProfileModal({
       return;
     }
 
-    translateX.value = withTiming(width, { duration: 180 }, (finished) => {
+    translateX.value = withTiming(width, NAVIGATION_EXIT_TIMING, (finished) => {
       if (finished) {
         runOnJS(onOpenEvent)(event);
       }
@@ -230,7 +244,7 @@ export function OrganizerProfileModal({
 
   const content = (
     <GestureDetector gesture={swipeGesture}>
-      <Animated.View className="flex-1 bg-canvas" style={swipeStyle}>
+      <Animated.View className="flex-1 bg-canvas" style={swipeStyle} testID="organizer.detail">
         <ScrollView
           className="flex-1 bg-canvas"
           contentContainerStyle={{
@@ -242,6 +256,7 @@ export function OrganizerProfileModal({
           <View className="px-5">
             <Pressable
               onPress={closeWithAnimation}
+              testID="organizer.close"
               className="mb-5 h-12 w-12 items-center justify-center rounded-full active:opacity-80"
               style={{ backgroundColor: Colors.light.backgroundElement }}
             >
@@ -467,7 +482,9 @@ function OrganizerProfileEventRow({
 }) {
   return (
     <Pressable
+      accessibilityLabel={`Open event ${event.title}`}
       onPress={onPress}
+      testID={`organizer.event.${event.id}`}
       className="flex-row items-center gap-3 rounded-feature p-3 active:opacity-85"
       style={[CardStyles.compact, { backgroundColor: Colors.light.backgroundElement }]}
     >

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { AppState, Platform, ScrollView, Text, View } from 'react-native';
+import { Alert, AppState, Platform, ScrollView, Text, View } from 'react-native';
 
 import { AdminReviewModal } from '@/components/profile/admin-review-modal';
 import { BadgesModal } from '@/components/profile/badges-modal';
@@ -119,6 +119,7 @@ export default function ProfileScreen({
   const [notice, setNotice] = useState<string | null>(null);
   const stableModalTopInset = useStableTopInset();
   const {
+    deleteAccount,
     organizerApplicationStatus,
     refreshOrganizerApplicationStatus,
     hasRole,
@@ -453,6 +454,7 @@ export default function ProfileScreen({
   } = rewardRedemption;
   const [activityHistoryOpen, setActivityHistoryOpen] = useState(false);
   const [accountActionsOpen, setAccountActionsOpen] = useState(false);
+  const [deletingAccount, setDeletingAccount] = useState(false);
   const [organizerRewardsHistoryOpen, setOrganizerRewardsHistoryOpen] = useState(false);
   const [rewardsListOpen, setRewardsListOpen] = useState(false);
   const {
@@ -801,8 +803,48 @@ export default function ProfileScreen({
       ? rewardOrganizerEventStatus
       : undefined;
 
+  function confirmAccountDeletion() {
+    if (deletingAccount) return;
+
+    Alert.alert(
+      'Delete your account?',
+      'Your profile, XP, QC, activity, follows, organizer events, rewards, and uploaded event photos will be permanently removed. This cannot be undone.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          onPress: () => {
+            Alert.alert(
+              'Delete permanently?',
+              'This is your final confirmation. You will be signed out immediately.',
+              [
+                { text: 'Keep account', style: 'cancel' },
+                {
+                  onPress: () => void removeAccount(),
+                  style: 'destructive',
+                  text: 'Delete account',
+                },
+              ],
+            );
+          },
+          style: 'destructive',
+          text: 'Continue',
+        },
+      ],
+    );
+  }
+
+  async function removeAccount() {
+    setDeletingAccount(true);
+    const result = await deleteAccount();
+
+    if (result.error) {
+      setDeletingAccount(false);
+      Alert.alert('Account was not deleted', result.error);
+    }
+  }
+
   return (
-    <View className="flex-1 bg-canvas">
+    <View className="flex-1 bg-canvas" testID="profile.screen">
       <ScrollView
         className="flex-1"
         contentContainerStyle={{ paddingBottom: 112, paddingTop: stableModalTopInset + 8 }}
@@ -928,6 +970,7 @@ export default function ProfileScreen({
         avatarInitials={avatarInitials}
         avatarUrl={avatarUrl}
         cityId={cityId}
+        deletingAccount={deletingAccount}
         firstName={firstName}
         isStudent={isStudent}
         isOrganizer={isOrganizer}
@@ -941,6 +984,7 @@ export default function ProfileScreen({
         onChangeStudentEmail={setStudentEmail}
         onChangeUniversity={setUniversityId}
         onClose={() => setEditOpen(false)}
+        onDeleteAccount={confirmAccountDeletion}
         onRetryOrganizerLocationSearch={retryOrganizerLocationSearch}
         onSave={saveProfile}
         onSelectOrganizerLocation={selectOrganizerLocation}

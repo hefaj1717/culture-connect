@@ -6,10 +6,5 @@ module.exports = {
     '^@/assets/(.*)$': '<rootDir>/assets/$1',
   },
   testMatch: ['<rootDir>/tests/**/*.test.{ts,tsx}'],
-  collectCoverageFrom: [
-    'src/**/*.{ts,tsx}',
-    '!src/**/*.d.ts',
-    '!src/app/**',
-    '!src/components/**',
-  ],
+  collectCoverageFrom: ['src/**/*.{ts,tsx}', '!src/**/*.d.ts', '!src/app/**', '!src/components/**'],
 };

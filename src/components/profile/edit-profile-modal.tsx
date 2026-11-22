@@ -1,4 +1,4 @@
-import { Camera, Check, GraduationCap, MapPin, Search, X } from 'lucide-react-native';
+import { Camera, Check, GraduationCap, MapPin, Search, Trash2, X } from 'lucide-react-native';
 import { useRef } from 'react';
 import {
   ActivityIndicator,
@@ -8,6 +8,7 @@ import {
   Platform,
   Pressable,
   ScrollView,
+  type ScrollViewInstance,
   Text,
   TextInput,
   View,
@@ -19,6 +20,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { CitySelector } from '@/components/city-selector';
 import { Avatar } from '@/components/profile/profile-avatar';
 import { textLimits } from '@/constants/text-limits';
+import { Colors } from '@/constants/theme';
 import type { CityId } from '@/data/culture';
 import { getUniversitiesForCity } from '@/data/universities';
 import { useCardSwipeBack } from '@/hooks/use-card-swipe-back';
@@ -29,6 +31,7 @@ type EditProfileModalProps = {
   avatarInitials: string | null;
   avatarUrl: string | null;
   cityId: CityId;
+  deletingAccount?: boolean;
   firstName: string;
   isStudent: boolean;
   isOrganizer?: boolean;
@@ -42,6 +45,7 @@ type EditProfileModalProps = {
   onChangeStudentEmail: (email: string) => void;
   onChangeUniversity: (universityId: string) => void;
   onClose: () => void;
+  onDeleteAccount: () => void;
   onRetryOrganizerLocationSearch?: () => void;
   onSave: () => void;
   onSelectOrganizerLocation?: (place: PlaceSuggestion) => void;
@@ -63,6 +67,7 @@ export function EditProfileModal({
   avatarInitials,
   avatarUrl,
   cityId,
+  deletingAccount = false,
   firstName,
   isStudent,
   isOrganizer = false,
@@ -76,6 +81,7 @@ export function EditProfileModal({
   onChangeStudentEmail,
   onChangeUniversity,
   onClose,
+  onDeleteAccount,
   onRetryOrganizerLocationSearch,
   onSave,
   onSelectOrganizerLocation,
@@ -93,7 +99,7 @@ export function EditProfileModal({
   visible,
 }: EditProfileModalProps) {
   const stableTopInset = useStableTopInset();
-  const scrollViewRef = useRef<ScrollView>(null);
+  const scrollViewRef = useRef<ScrollViewInstance>(null);
   const universityOptions = getUniversitiesForCity(cityId);
   const {
     closeWithAnimation,
@@ -427,6 +433,34 @@ export function EditProfileModal({
                     <Text className="text-[15px] font-semibold text-white">Save changes</Text>
                   )}
                 </Pressable>
+
+                <View className="mt-8 border-t border-destructive/10 pt-6">
+                  <Text className="mb-1 font-heading text-[20px] leading-6 text-ink">Account</Text>
+                  <Text className="mb-3 text-[12px] leading-4 text-muted">
+                    Permanently remove your profile, activity, events, rewards, and account data.
+                  </Text>
+                  <Pressable
+                    accessibilityHint="Permanently removes your account and its personal data"
+                    accessibilityLabel="Delete account"
+                    disabled={deletingAccount || savingProfile}
+                    onPress={() => {
+                      Keyboard.dismiss();
+                      onDeleteAccount();
+                    }}
+                    className="h-[52px] flex-row items-center justify-center gap-2 rounded-xl bg-destructive/10 active:opacity-75 disabled:opacity-50"
+                  >
+                    {deletingAccount ? (
+                      <ActivityIndicator color={Colors.light.destructive} />
+                    ) : (
+                      <>
+                        <Trash2 size={18} color={Colors.light.destructive} strokeWidth={2.4} />
+                        <Text className="text-[14px] font-bold text-destructive">
+                          Delete account
+                        </Text>
+                      </>
+                    )}
+                  </Pressable>
+                </View>
               </ScrollView>
             </KeyboardAvoidingView>
           </SafeAreaView>

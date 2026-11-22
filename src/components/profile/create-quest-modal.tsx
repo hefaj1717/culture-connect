@@ -10,6 +10,7 @@ import {
   Platform,
   Pressable,
   ScrollView,
+  type ScrollViewInstance,
   Text,
   TextInput,
   View,
@@ -96,7 +97,7 @@ export function CreateQuestModal({
   swipeStyle,
   visible,
 }: CreateQuestModalProps) {
-  const scrollViewRef = useRef<ScrollView>(null);
+  const scrollViewRef = useRef<ScrollViewInstance>(null);
 
   function focusFormArea(y: number) {
     setTimeout(() => {
@@ -191,7 +192,9 @@ export function CreateQuestModal({
                     />
                   </View>
                   <View className="flex-1">
-                    <Text className="mb-1.5 text-[11px] font-medium text-muted">Until (optional)</Text>
+                    <Text className="mb-1.5 text-[11px] font-medium text-muted">
+                      Until (optional)
+                    </Text>
                     <TextInput
                       value={questAvailableUntil}
                       onChangeText={onChangeAvailableUntil}
