@@ -28,6 +28,7 @@ import {
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
   Easing,
+  FadeIn,
   ReduceMotion,
   runOnJS,
   useAnimatedStyle,
@@ -84,6 +85,15 @@ const NAVIGATION_EXIT_TIMING = {
   easing: NAVIGATION_EASE_OUT,
   reduceMotion: ReduceMotion.System,
 };
+const SEGMENT_EASE_IN_OUT = Easing.bezier(0.77, 0, 0.175, 1);
+const SEGMENT_TIMING = {
+  duration: 160,
+  easing: SEGMENT_EASE_IN_OUT,
+  reduceMotion: ReduceMotion.System,
+};
+const TAB_CONTENT_ENTER = FadeIn.duration(140)
+  .easing(NAVIGATION_EASE_OUT)
+  .reduceMotion(ReduceMotion.System);
 
 export type EventCheckInResult = {
   duplicate?: boolean;
@@ -136,6 +146,8 @@ export default function ExploreScreen({
   const layout = useResponsiveLayout();
   const [search, setSearch] = useState('');
   const [tab, setTab] = useState<'events' | 'venues'>('events');
+  const [segmentWidth, setSegmentWidth] = useState(0);
+  const segmentOffsetX = useSharedValue(0);
   const [audienceFilter, setAudienceFilter] = useState('all');
   const [selectedEvent, setSelectedEvent] = useState<CultureEvent | null>(null);
   const [confirmedCheckIns, setConfirmedCheckIns] = useState<Record<string, boolean>>({});
@@ -155,6 +167,15 @@ export default function ExploreScreen({
   const allEvents = approvedEventsProp ?? organizerEvents;
   const eventsError = hasApprovedEventsProp ? approvedEventsError : organizerEventsError;
   const eventsLoading = hasApprovedEventsProp ? approvedEventsLoading : organizerEventsLoading;
+
+  useEffect(() => {
+    segmentOffsetX.set(withTiming(tab === 'events' ? 0 : segmentWidth, SEGMENT_TIMING));
+  }, [segmentOffsetX, segmentWidth, tab]);
+
+  const segmentIndicatorStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: segmentOffsetX.get() }],
+    width: segmentWidth,
+  }));
 
   useEffect(() => {
     let active = true;
@@ -408,9 +429,17 @@ export default function ExploreScreen({
         </View>
 
         <View
-          className="mb-4 mx-5 flex-row rounded-2xl p-1"
+          className="relative mb-4 mx-5 flex-row rounded-2xl p-1"
+          onLayout={({ nativeEvent }) => {
+            setSegmentWidth((nativeEvent.layout.width - 8) / 2);
+          }}
           style={{ backgroundColor: Colors.light.backgroundElement }}
         >
+          <Animated.View
+            pointerEvents="none"
+            className="absolute bottom-1 left-1 top-1 rounded-xl bg-primary"
+            style={segmentIndicatorStyle}
+          />
           {(['events', 'venues'] as const).map((nextTab) => {
             const active = tab === nextTab;
             const tabLabel = nextTab === 'events' ? 'Events' : 'Organizers';
@@ -421,7 +450,7 @@ export default function ExploreScreen({
                   Keyboard.dismiss();
                   setTab(nextTab);
                 }}
-                className={`h-10 flex-1 items-center justify-center rounded-xl ${active ? 'bg-primary' : ''}`}
+                className="z-10 h-10 flex-1 items-center justify-center rounded-xl"
               >
                 <Text
                   className={`text-[13px] font-semibold ${active ? 'text-white' : 'text-muted'}`}
@@ -434,7 +463,7 @@ export default function ExploreScreen({
         </View>
 
         {tab === 'events' ? (
-          <View>
+          <Animated.View entering={TAB_CONTENT_ENTER} key="events">
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
@@ -680,9 +709,9 @@ export default function ExploreScreen({
                 </View>
               )}
             </View>
-          </View>
+          </Animated.View>
         ) : (
-          <View className="gap-3 px-5">
+          <Animated.View entering={TAB_CONTENT_ENTER} key="organizers" className="gap-3 px-5">
             {organizerProfilesError && (
               <ErrorState
                 body="We could not load organizers right now. Check your connection and try again."
@@ -742,7 +771,7 @@ export default function ExploreScreen({
                 </Pressable>
               ))
             )}
-          </View>
+          </Animated.View>
         )}
       </ScrollView>
 
