@@ -50,8 +50,8 @@ export function BadgesModal({
   return (
     <Modal animationType="slide" transparent onRequestClose={onClose} visible={visible}>
       <GestureDetector gesture={gesture}>
-        <Animated.View className="flex-1 bg-white" style={swipeStyle}>
-          <SafeAreaView className="flex-1 bg-white" edges={['bottom']}>
+        <Animated.View className="flex-1 bg-canvas" style={swipeStyle}>
+          <SafeAreaView className="flex-1 bg-canvas" edges={['bottom']}>
             <ScrollView
               className="flex-1"
               contentContainerStyle={{

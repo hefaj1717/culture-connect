@@ -157,3 +157,17 @@ export const Motion = {
 
 export const BottomTabInset = Platform.select({ ios: 50, android: 80 }) ?? 0;
 export const MaxContentWidth = 800;
+
+/** Foreground/background pairs that give each event category a recognisable colour. */
+export const CategoryColors = {
+  exhibition: { background: Colors.light.successSoft, foreground: Colors.light.success },
+  concert: { background: Colors.light.accentSoft, foreground: Colors.light.accent },
+  screening: { background: Colors.light.primarySoft, foreground: Colors.light.primary },
+  workshop: { background: Colors.light.highlightSoft, foreground: Colors.light.highlightDeep },
+  party: { background: Colors.light.accentSoft, foreground: Colors.light.accentDeep },
+  performance: { background: Colors.light.accentSoft, foreground: Colors.light.accent },
+  market: { background: Colors.light.highlightSoft, foreground: Colors.light.highlightDeep },
+  lecture: { background: Colors.light.primarySoft, foreground: Colors.light.primary },
+  sports: { background: Colors.light.successSoft, foreground: Colors.light.success },
+  other: { background: Colors.light.backgroundElement, foreground: Colors.light.textSecondary },
+} as const;

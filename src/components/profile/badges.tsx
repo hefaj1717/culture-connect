@@ -124,7 +124,7 @@ export function BadgeDetailSheet({
     : 0;
 
   return (
-    <View className="absolute inset-x-0 bottom-0 border-t border-line bg-white px-5 pb-8 pt-4">
+    <View className="absolute inset-x-0 bottom-0 border-t border-line bg-canvas px-5 pb-8 pt-4">
       <View className="mb-4 flex-row items-start gap-4">
         <BadgeIcon badge={badge} className="h-16 w-16 rounded-2xl" iconSize={28} />
         <View className="min-w-0 flex-1">
@@ -147,9 +147,7 @@ export function BadgeDetailSheet({
 
       <View className="rounded-2xl bg-accent/10 p-4">
         <View className="mb-2 flex-row items-center justify-between">
-          <Text className="text-caption font-inter-bold text-muted">
-            Progress
-          </Text>
+          <Text className="text-caption font-inter-bold text-muted">Progress</Text>
           <Text className="text-caption font-inter-bold text-accentDeep">
             {badge.unlocked ? 'Unlocked' : badge.progress}
           </Text>

@@ -29,7 +29,14 @@
       "iconInactive": "#8A949C",
       "borderSubtle": "#E9DFD3",
       "disabledSurface": "#E5E0EA",
-      "disabledIcon": "#9CA3AF"
+      "disabledIcon": "#9CA3AF",
+      "accentSoft": "#F7E4E6",
+      "successSoft": "#E0F0EE",
+      "primarySoft": "#E2EBEE",
+      "highlight": "#D9962B",
+      "highlightSoft": "#FBEFD8",
+      "canvasWarm": "#FCEFE2",
+      "highlightDeep": "#9A5F0E"
     },
     "dark": {
       "text": "#FFF8F0",
@@ -60,7 +67,14 @@
       "iconInactive": "#D9D0E3",
       "borderSubtle": "#5B5066",
       "disabledSurface": "#443354",
-      "disabledIcon": "#D9D0E3"
+      "disabledIcon": "#D9D0E3",
+      "accentSoft": "#4A2A30",
+      "successSoft": "#24403F",
+      "primarySoft": "#2C3C42",
+      "highlight": "#E9B65C",
+      "highlightSoft": "#4A3B22",
+      "canvasWarm": "#2A2620",
+      "highlightDeep": "#F3CD86"
     }
   }
 }

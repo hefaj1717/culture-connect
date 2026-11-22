@@ -3,13 +3,20 @@ import * as Location from 'expo-location';
 import {
   ArrowRight,
   Bell,
+  CalendarDays,
+  Flame,
   Globe,
+  LockKeyhole,
+  MapPin,
+  Move,
+  Trophy,
   User,
   Users,
   X,
+  type LucideIcon,
 } from 'lucide-react-native';
-import { Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Modal, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import MapView, { Marker } from 'react-native-maps';
 
 import { CardListSkeleton, EmptyState, ErrorState, LoadingState } from '@/components/async-state';
@@ -54,6 +61,9 @@ type HomeScreenProps = {
   leaderboard?: UniversityLeaderboardRow[];
   leaderboardError?: string | null;
   leaderboardLoading?: boolean;
+  isActive?: boolean;
+  mapInteractive?: boolean;
+  onMapInteractiveChange?: (interactive: boolean) => void;
   onOpenDiscover?: () => void;
   onOpenEvent?: (eventId: string) => void;
   onOpenProfile?: () => void;
@@ -76,6 +86,9 @@ export default function HomeScreen({
   leaderboard = [],
   leaderboardError = null,
   leaderboardLoading = false,
+  isActive = true,
+  mapInteractive = false,
+  onMapInteractiveChange,
   onOpenDiscover,
   onOpenEvent,
   onOpenProfile,
@@ -189,6 +202,22 @@ export default function HomeScreen({
     setNotificationsOpen(true);
   }
 
+  // iOS cannot present the event sheet while the notifications sheet is still
+  // animating away, so the event opens once that modal has fully dismissed.
+  const pendingNotificationEventIdRef = useRef<string | null>(null);
+
+  function flushPendingNotificationEvent() {
+    const eventId = pendingNotificationEventIdRef.current;
+    pendingNotificationEventIdRef.current = null;
+    if (eventId) onOpenEvent?.(eventId);
+  }
+
+  function openEventAfterNotifications(eventId: string) {
+    pendingNotificationEventIdRef.current = eventId;
+    setNotificationsOpen(false);
+    if (Platform.OS !== 'ios') flushPendingNotificationEvent();
+  }
+
   const markNotificationRead = useCallback(async (notification: UserNotification) => {
     if (notification.readAt) return true;
     if (notificationReadPendingIdsRef.current.has(notification.id)) return false;
@@ -259,6 +288,7 @@ export default function HomeScreen({
     [events],
   );
   const eventsThisWeekCount = useMemo(() => countEventsThisWeek(events), [events]);
+  const liveNowCount = useMemo(() => events.filter(isEventLiveNow).length, [events]);
   const weeklyEventMessage = useMemo(() => {
     if (eventsLoading) return `Checking this week's events in ${cityData.name}`;
     if (eventsError) return `Fresh ${cityData.name} events update soon`;
@@ -391,6 +421,10 @@ export default function HomeScreen({
     setSelectedActivityId(null);
   }, [cityData.id]);
 
+  useEffect(() => {
+    if (!isActive && mapInteractive) onMapInteractiveChange?.(false);
+  }, [isActive, mapInteractive, onMapInteractiveChange]);
+
   return (
     <View className="flex-1 bg-canvas">
       <ScrollView
@@ -447,7 +481,9 @@ export default function HomeScreen({
                       style={{ height: 44, width: 44 }}
                     />
                   ) : avatarInitials ? (
-                    <Text className="text-footnote font-inter-bold text-white">{avatarInitials}</Text>
+                    <Text className="text-footnote font-inter-bold text-white">
+                      {avatarInitials}
+                    </Text>
                   ) : (
                     <User size={22} color="white" strokeWidth={2.4} />
                   )}
@@ -477,10 +513,11 @@ export default function HomeScreen({
               <Pressable
                 onPress={onOpenDiscover}
                 accessibilityRole="button"
-                className="h-12 flex-row items-center justify-center gap-2 rounded-xl bg-white px-5 active:opacity-85"
+                className="h-12 flex-row items-center justify-center gap-2 rounded-xl bg-accent px-5 active:opacity-85"
+                style={{ boxShadow: '0 6px 18px rgba(166, 52, 70, 0.35)' }}
               >
-                <Text className="text-body font-inter-semibold text-ink">Explore events</Text>
-                <ArrowRight size={16} color={Colors.light.ink} />
+                <Text className="text-body font-inter-semibold text-white">Explore events</Text>
+                <ArrowRight size={16} color={Colors.light.onPrimary} />
               </Pressable>
               <Text className="min-w-0 flex-1 text-footnote text-white/80" numberOfLines={2}>
                 {weeklyEventMessage}
@@ -489,11 +526,29 @@ export default function HomeScreen({
           </View>
         </View>
 
+        <View className="-mt-4 flex-row gap-2.5 rounded-t-3xl bg-canvas px-5 pt-5">
+          <StatTile
+            icon={CalendarDays}
+            label="This week"
+            tint="highlight"
+            value={eventsLoading ? '–' : String(eventsThisWeekCount)}
+          />
+          <StatTile
+            icon={Flame}
+            label="Live now"
+            tint="accent"
+            value={eventsLoading ? '–' : String(liveNowCount)}
+          />
+          <StatTile
+            icon={MapPin}
+            label="Venues"
+            tint="success"
+            value={eventsLoading ? '–' : String(activitySpots.length)}
+          />
+        </View>
+
         <View className="pb-5 pt-6">
-          <View className="mb-3 flex-row items-center gap-2 px-5">
-            <View className="h-2 w-2 rounded-full bg-accent" />
-            <Text className="text-headline font-inter-semibold text-ink">Happening now</Text>
-          </View>
+          <SectionHeader icon={Flame} tint="accent" title="Happening now" />
 
           <ScrollView
             horizontal
@@ -530,7 +585,12 @@ export default function HomeScreen({
                       source={getEventImageSource(event)}
                       contentFit="cover"
                       style={StyleSheet.absoluteFill}
-                    />
+                    >
+                      <View className="absolute left-2.5 top-2.5 flex-row items-center gap-1.5 rounded-full bg-accent px-2.5 py-1">
+                        <View className="h-1.5 w-1.5 rounded-full bg-white" />
+                        <Text className="text-caption font-inter-semibold text-white">Live</Text>
+                      </View>
+                    </BrandImage>
                   </View>
                   <View className="p-3">
                     <Text className="mb-1 text-body font-inter-semibold text-ink" numberOfLines={2}>
@@ -539,10 +599,25 @@ export default function HomeScreen({
                     <Text className="mb-2 text-caption text-muted" numberOfLines={1}>
                       {event.date} · {event.venueName}
                     </Text>
-                    <Text className="text-caption font-inter-semibold text-ink">
-                      +{event.xpBonus} XP · +{event.qcBonus} QC
-                      {event.isFree ? <Text className="text-success"> · Free</Text> : null}
-                    </Text>
+                    <View className="flex-row flex-wrap items-center gap-1.5">
+                      <View className="rounded-full bg-highlightSoft px-2 py-0.5">
+                        <Text className="text-caption font-inter-semibold text-highlightDeep">
+                          +{event.xpBonus} XP
+                        </Text>
+                      </View>
+                      <View className="rounded-full bg-primarySoft px-2 py-0.5">
+                        <Text className="text-caption font-inter-semibold text-primary">
+                          +{event.qcBonus} QC
+                        </Text>
+                      </View>
+                      {event.isFree ? (
+                        <View className="rounded-full bg-successSoft px-2 py-0.5">
+                          <Text className="text-caption font-inter-semibold text-success">
+                            Free
+                          </Text>
+                        </View>
+                      ) : null}
+                    </View>
                   </View>
                 </Pressable>
               ))
@@ -551,14 +626,13 @@ export default function HomeScreen({
           <Modal
             animationType="slide"
             visible={notificationsOpen}
+            onDismiss={flushPendingNotificationEvent}
             onRequestClose={() => setNotificationsOpen(false)}
           >
             <View className="flex-1 bg-canvas" style={{ paddingTop: stableTopInset }}>
               <View className="px-5 pb-4 pt-3">
                 <View className="flex-row items-center">
-                  <Text className="font-heading text-title1 text-ink">
-                    Notifications
-                  </Text>
+                  <Text className="font-heading text-title1 text-ink">Notifications</Text>
                   <View className="flex-1" />
                   <Pressable
                     onPress={() => setNotificationsOpen(false)}
@@ -620,8 +694,9 @@ export default function HomeScreen({
                             void (async () => {
                               const didMarkRead = await markNotificationRead(notification);
                               if (didMarkRead && notificationReadError.eventId) {
-                                setNotificationsOpen(false);
-                                onOpenEvent?.(`organizer-${notificationReadError.eventId}`);
+                                openEventAfterNotifications(
+                                  `organizer-${notificationReadError.eventId}`,
+                                );
                               }
                             })();
                           }}
@@ -650,8 +725,9 @@ export default function HomeScreen({
                                   void (async () => {
                                     const didMarkRead = await markNotificationRead(notification);
                                     if (didMarkRead && notification.eventId) {
-                                      setNotificationsOpen(false);
-                                      onOpenEvent?.(`organizer-${notification.eventId}`);
+                                      openEventAfterNotifications(
+                                        `organizer-${notification.eventId}`,
+                                      );
                                     }
                                   })();
                                 }}
@@ -708,12 +784,19 @@ export default function HomeScreen({
         </View>
 
         <View className="bg-canvas px-5 pb-8">
-          <View className="mb-3 flex-row items-center justify-between">
-            <Text className="text-headline font-inter-semibold text-ink">City activity</Text>
-            <Pressable onPress={onOpenDiscover} hitSlop={8} accessibilityRole="button">
-              <Text className="text-footnote font-inter-semibold text-primary">See all events</Text>
-            </Pressable>
-          </View>
+          <SectionHeader
+            action={
+              <Pressable onPress={onOpenDiscover} hitSlop={8} accessibilityRole="button">
+                <Text className="text-footnote font-inter-semibold text-accent">
+                  See all events
+                </Text>
+              </Pressable>
+            }
+            icon={MapPin}
+            inset={false}
+            tint="success"
+            title="City activity"
+          />
 
           <View
             className="overflow-hidden rounded-2xl border border-line bg-canvas"
@@ -728,6 +811,9 @@ export default function HomeScreen({
                 moveOnMarkerPress={false}
                 pitchEnabled={false}
                 rotateEnabled={false}
+                scrollEnabled={mapInteractive}
+                zoomEnabled={mapInteractive}
+                zoomTapEnabled={mapInteractive}
                 showsBuildings
                 showsCompass={false}
                 showsMyLocationButton={canShowUserLocation}
@@ -743,7 +829,8 @@ export default function HomeScreen({
                   <Marker
                     coordinate={spot.coordinates}
                     anchor={{ x: 0.5, y: 0.5 }}
-                    key={spot.id}
+                    // Markers do not track view changes, so remount on selection to redraw.
+                    key={`${spot.id}-${selectedActivitySpot?.id === spot.id ? 'on' : 'off'}`}
                     onPress={() => setSelectedActivityId(spot.id)}
                     tracksViewChanges={false}
                   >
@@ -768,11 +855,28 @@ export default function HomeScreen({
                   </Marker>
                 ))}
               </MapView>
-              <View className="absolute left-3 top-3 rounded-full bg-white/90 px-3 py-1">
-                <Text className="text-caption font-inter-semibold text-primary">
-                  {activityHeatPoints.length > 0 ? 'Predicted activity' : 'Venue locations'}
+              <Pressable
+                onPress={() => onMapInteractiveChange?.(!mapInteractive)}
+                className={`absolute bottom-3 right-3 h-10 flex-row items-center gap-2 rounded-full px-4 active:opacity-80 ${
+                  mapInteractive ? 'bg-accent' : 'bg-white'
+                }`}
+                style={CardStyles.compact}
+                accessibilityLabel={mapInteractive ? 'Lock map' : 'Unlock map to move it'}
+                accessibilityRole="button"
+                accessibilityState={{ selected: mapInteractive }}
+                hitSlop={8}
+              >
+                {mapInteractive ? (
+                  <LockKeyhole color={Colors.light.onPrimary} size={15} strokeWidth={2.4} />
+                ) : (
+                  <Move color={Colors.light.primary} size={15} strokeWidth={2.4} />
+                )}
+                <Text
+                  className={`text-caption font-inter-semibold ${mapInteractive ? 'text-white' : 'text-ink'}`}
+                >
+                  {mapInteractive ? 'Lock map' : 'Move map'}
                 </Text>
-              </View>
+              </Pressable>
             </View>
 
             <View className="border-t border-line bg-surface px-4 py-3.5">
@@ -802,7 +906,9 @@ export default function HomeScreen({
                       {selectedActivitySpot.attendedCount.toLocaleString()} attended
                     </Text>
                   </View>
-                  <ArrowRight size={16} color={Colors.light.textSecondary} />
+                  <View className="h-8 w-8 items-center justify-center rounded-full bg-accentSoft">
+                    <ArrowRight size={16} color={Colors.light.accent} />
+                  </View>
                 </Pressable>
               ) : (
                 <View>
@@ -829,10 +935,13 @@ export default function HomeScreen({
         </View>
 
         <View className="bg-canvas px-5 pb-8">
-          <View className="mb-3 flex-row items-center justify-between">
-            <Text className="text-headline font-inter-semibold text-ink">Campus ranking</Text>
-            <Text className="text-footnote text-muted">{cityData.name}</Text>
-          </View>
+          <SectionHeader
+            action={<Text className="text-footnote text-muted">{cityData.name}</Text>}
+            icon={Trophy}
+            inset={false}
+            tint="highlight"
+            title="Campus ranking"
+          />
 
           <View
             className="overflow-hidden rounded-2xl border border-line bg-surface"
@@ -931,6 +1040,73 @@ export default function HomeScreen({
         profile={selectedUniversityProfile}
         visible={!!selectedUniversity}
       />
+    </View>
+  );
+}
+
+type Tint = 'accent' | 'highlight' | 'success' | 'primary';
+
+const TINTS: Record<Tint, { background: string; foreground: string }> = {
+  accent: { background: Colors.light.accentSoft, foreground: Colors.light.accent },
+  highlight: { background: Colors.light.highlightSoft, foreground: Colors.light.highlight },
+  primary: { background: Colors.light.primarySoft, foreground: Colors.light.primary },
+  success: { background: Colors.light.successSoft, foreground: Colors.light.success },
+};
+
+function SectionHeader({
+  action,
+  icon: Icon,
+  inset = true,
+  tint,
+  title,
+}: {
+  action?: ReactNode;
+  icon: LucideIcon;
+  inset?: boolean;
+  tint: Tint;
+  title: string;
+}) {
+  const colors = TINTS[tint];
+
+  return (
+    <View className={`mb-3 flex-row items-center gap-2.5 ${inset ? 'px-5' : ''}`}>
+      <View
+        className="h-7 w-7 items-center justify-center rounded-lg"
+        style={{ backgroundColor: colors.background }}
+      >
+        <Icon size={15} color={colors.foreground} strokeWidth={2.4} />
+      </View>
+      <Text className="flex-1 text-headline font-inter-semibold text-ink">{title}</Text>
+      {action}
+    </View>
+  );
+}
+
+function StatTile({
+  icon: Icon,
+  label,
+  tint,
+  value,
+}: {
+  icon: LucideIcon;
+  label: string;
+  tint: Tint;
+  value: string;
+}) {
+  const colors = TINTS[tint];
+
+  return (
+    <View
+      className="flex-1 rounded-2xl px-3 py-3"
+      style={{ backgroundColor: colors.background }}
+      accessible
+      accessibilityLabel={`${label}: ${value}`}
+    >
+      <Icon size={16} color={colors.foreground} strokeWidth={2.4} />
+      <Text className="mt-2 font-heading text-title2 text-ink">{value}</Text>
+      <Text className="text-caption font-inter-medium text-muted" numberOfLines={1}>
+        {label}
+      </Text>
     </View>
   );
 }

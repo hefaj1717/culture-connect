@@ -24,6 +24,13 @@ module.exports = {
         badgeSocial: colors.badgeSocial,
         badgeExplore: colors.badgeExplore,
         badgeCulture: colors.badgeCulture,
+        accentSoft: colors.accentSoft,
+        successSoft: colors.successSoft,
+        primarySoft: colors.primarySoft,
+        highlight: colors.highlight,
+        highlightSoft: colors.highlightSoft,
+        highlightDeep: colors.highlightDeep,
+        canvasWarm: colors.canvasWarm,
       },
       // One type scale for the whole app. Use these instead of arbitrary text-[Npx] sizes.
       fontSize: {
