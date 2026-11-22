@@ -497,14 +497,10 @@ function AdminEventFilterBar({
               active ? 'bg-primary' : 'border border-line bg-subtle'
             }`}
           >
-            <Text
-              className={`text-caption font-inter-semibold ${active ? 'text-white' : 'text-muted'}`}
-            >
+            <Text className={`text-caption font-inter-semibold ${active ? 'text-white' : 'text-muted'}`}>
               {filter.label}
             </Text>
-            <Text
-              className={`text-caption font-inter-bold ${active ? 'text-white' : 'text-muted'}`}
-            >
+            <Text className={`text-caption font-inter-bold ${active ? 'text-white' : 'text-muted'}`}>
               {count}
             </Text>
           </Pressable>
@@ -590,14 +586,10 @@ function AdminRewardFilterBar({
               active ? 'bg-primary' : 'border border-line bg-subtle'
             }`}
           >
-            <Text
-              className={`text-caption font-inter-semibold ${active ? 'text-white' : 'text-muted'}`}
-            >
+            <Text className={`text-caption font-inter-semibold ${active ? 'text-white' : 'text-muted'}`}>
               {filter.label}
             </Text>
-            <Text
-              className={`text-caption font-inter-bold ${active ? 'text-white' : 'text-muted'}`}
-            >
+            <Text className={`text-caption font-inter-bold ${active ? 'text-white' : 'text-muted'}`}>
               {count}
             </Text>
           </Pressable>
@@ -631,7 +623,9 @@ function AdminManagedEventCard({
       </View>
       <View className="p-4">
         <View className="mb-2 flex-row items-center justify-between gap-3">
-          <Text className="text-headline font-inter-semibold text-ink">{event.date}</Text>
+          <Text className="text-headline font-inter-semibold text-ink">
+            {event.date}
+          </Text>
           <View className="flex-row items-center gap-2">
             {event.changes.length > 0 && event.reviewStatus === 'pending' && (
               <View className="rounded-full bg-accent/20 px-2.5 py-1">
@@ -728,10 +722,7 @@ function AdminManagedRewardCard({
             Created by {reward.organizerName}
           </Text>
         </Pressable>
-        <Text
-          className="mt-3 text-caption font-inter-medium leading-4 text-muted"
-          numberOfLines={2}
-        >
+        <Text className="mt-3 text-caption font-inter-medium leading-4 text-muted" numberOfLines={2}>
           {reward.description}
         </Text>
       </View>
@@ -851,9 +842,9 @@ function AdminEventEditor({
   }
 
   return (
-    <View className="flex-1 bg-canvas">
+    <View className="flex-1 bg-white">
       <View
-        className="flex-row items-center justify-between bg-canvas px-5 pb-3"
+        className="flex-row items-center justify-between bg-white px-5 pb-3"
         style={{ paddingTop: stableModalTopInset + 6 }}
       >
         <Pressable
@@ -884,12 +875,8 @@ function AdminEventEditor({
             <View className="mb-2 flex-row flex-wrap items-center gap-2">
               <AdminEventStatusPill status={event.reviewStatus} />
               <View className="rounded-full bg-white/90 px-2.5 py-1">
-                <Text className="text-caption font-inter-bold text-primary">
-                  {event.xpBonus} XP
-                </Text>
-                <Text className="text-caption font-inter-bold text-accent">
-                  +{event.qcBonus} QC
-                </Text>
+                <Text className="text-caption font-inter-bold text-primary">{event.xpBonus} XP</Text>
+                <Text className="text-caption font-inter-bold text-accent">+{event.qcBonus} QC</Text>
               </View>
             </View>
             <Text className="font-heading text-title1 leading-[34px] text-white">
@@ -901,9 +888,7 @@ function AdminEventEditor({
               className="mt-1 self-start active:opacity-75"
               onPress={onOpenOrganizer}
             >
-              <Text className="text-footnote font-inter-semibold text-white/80">
-                {event.organizerName}
-              </Text>
+              <Text className="text-footnote font-inter-semibold text-white/80">{event.organizerName}</Text>
             </Pressable>
           </View>
         </View>
@@ -1030,7 +1015,7 @@ function AdminEventEditor({
         <Pressable
           disabled={saving}
           onPress={save}
-          className="h-[52px] flex-row items-center justify-center gap-2 rounded-2xl bg-action active:opacity-85 disabled:opacity-60"
+          className="h-[52px] flex-row items-center justify-center gap-2 rounded-2xl bg-primary active:opacity-85 disabled:opacity-60"
         >
           {saving ? (
             <ActivityIndicator color="white" size="small" />
@@ -1193,9 +1178,9 @@ function AdminRewardEditor({
   }
 
   return (
-    <View className="flex-1 bg-canvas">
+    <View className="flex-1 bg-white">
       <View
-        className="flex-row items-center justify-between bg-canvas px-5 pb-3"
+        className="flex-row items-center justify-between bg-white px-5 pb-3"
         style={{ paddingTop: stableModalTopInset + 6 }}
       >
         <Pressable
@@ -1293,7 +1278,9 @@ function AdminRewardEditor({
         </ChoiceSection>
 
         <View className="mb-4 rounded-2xl border border-line bg-white p-4">
-          <Text className="mb-1 text-body font-inter-bold text-ink">Redeem availability</Text>
+          <Text className="mb-1 text-body font-inter-bold text-ink">
+            Redeem availability
+          </Text>
           <Text className="mb-3 text-caption leading-4 text-muted">
             Controls when students can redeem this reward.
           </Text>
@@ -1386,7 +1373,7 @@ function AdminRewardEditor({
         <Pressable
           disabled={saving}
           onPress={save}
-          className="h-[52px] flex-row items-center justify-center gap-2 rounded-2xl bg-action active:opacity-85 disabled:opacity-60"
+          className="h-[52px] flex-row items-center justify-center gap-2 rounded-2xl bg-primary active:opacity-85 disabled:opacity-60"
         >
           {saving ? (
             <ActivityIndicator color="white" size="small" />
@@ -1581,10 +1568,7 @@ function InfoRow({ icon, text }: { icon: ReactNode; text: string }) {
   return (
     <View className="mt-2 flex-row items-center gap-2">
       <View className="h-8 w-8 items-center justify-center rounded-full bg-white">{icon}</View>
-      <Text
-        className="min-w-0 flex-1 text-caption font-inter-semibold text-muted"
-        numberOfLines={1}
-      >
+      <Text className="min-w-0 flex-1 text-caption font-inter-semibold text-muted" numberOfLines={1}>
         {text}
       </Text>
     </View>
@@ -1642,7 +1626,9 @@ function MiniStat({
       <Text className="text-footnote font-inter-bold capitalize text-primary">
         {valueText ?? (value ?? 0).toLocaleString()}
       </Text>
-      <Text className="mt-0.5 text-caption font-inter-semibold text-muted">{label}</Text>
+      <Text className="mt-0.5 text-caption font-inter-semibold text-muted">
+        {label}
+      </Text>
     </View>
   );
 }
@@ -1652,9 +1638,7 @@ function AdminEventStatusPill({ status }: { status: OrganizerEventStatus }) {
 
   return (
     <View className={`rounded-full px-2.5 py-1 ${statusStyle.container}`}>
-      <Text className={`text-caption font-inter-bold ${statusStyle.text}`}>
-        {statusStyle.label}
-      </Text>
+      <Text className={`text-caption font-inter-bold ${statusStyle.text}`}>{statusStyle.label}</Text>
     </View>
   );
 }
@@ -1664,9 +1648,7 @@ function AdminRewardStatusPill({ status }: { status: RewardPartnerStatus }) {
 
   return (
     <View className={`rounded-full px-2.5 py-1 ${statusStyle.container}`}>
-      <Text className={`text-caption font-inter-bold ${statusStyle.text}`}>
-        {statusStyle.label}
-      </Text>
+      <Text className={`text-caption font-inter-bold ${statusStyle.text}`}>{statusStyle.label}</Text>
     </View>
   );
 }

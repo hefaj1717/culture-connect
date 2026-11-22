@@ -814,7 +814,7 @@ export function AuthScreen() {
               testID="auth.submit"
               onPress={mode === 'confirmSignUp' ? handleConfirmCode : handleSubmit}
               disabled={loading}
-              className="mb-4 h-[52px] items-center justify-center rounded-xl bg-action active:opacity-80"
+              className="mb-4 h-[52px] items-center justify-center rounded-xl bg-primary active:opacity-80"
             >
               {loading ? (
                 <ActivityIndicator color="white" />

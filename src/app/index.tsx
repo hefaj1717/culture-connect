@@ -1,7 +1,14 @@
 import { Image } from 'expo-image';
 import * as Location from 'expo-location';
-import { ArrowRight, Bell, Globe, User, Users, X } from 'lucide-react-native';
-import { Modal, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import {
+  ArrowRight,
+  Bell,
+  Globe,
+  User,
+  Users,
+  X,
+} from 'lucide-react-native';
+import { Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import MapView, { Marker } from 'react-native-maps';
 
@@ -47,9 +54,6 @@ type HomeScreenProps = {
   leaderboard?: UniversityLeaderboardRow[];
   leaderboardError?: string | null;
   leaderboardLoading?: boolean;
-  isActive?: boolean;
-  mapInteractive?: boolean;
-  onMapInteractiveChange?: (interactive: boolean) => void;
   onOpenDiscover?: () => void;
   onOpenEvent?: (eventId: string) => void;
   onOpenProfile?: () => void;
@@ -72,9 +76,6 @@ export default function HomeScreen({
   leaderboard = [],
   leaderboardError = null,
   leaderboardLoading = false,
-  isActive = true,
-  mapInteractive = false,
-  onMapInteractiveChange,
   onOpenDiscover,
   onOpenEvent,
   onOpenProfile,
@@ -186,22 +187,6 @@ export default function HomeScreen({
 
   function openNotifications() {
     setNotificationsOpen(true);
-  }
-
-  // iOS cannot present the event sheet while the notifications sheet is still
-  // animating away, so the event opens once that modal has fully dismissed.
-  const pendingNotificationEventIdRef = useRef<string | null>(null);
-
-  function flushPendingNotificationEvent() {
-    const eventId = pendingNotificationEventIdRef.current;
-    pendingNotificationEventIdRef.current = null;
-    if (eventId) onOpenEvent?.(eventId);
-  }
-
-  function openEventAfterNotifications(eventId: string) {
-    pendingNotificationEventIdRef.current = eventId;
-    setNotificationsOpen(false);
-    if (Platform.OS !== 'ios') flushPendingNotificationEvent();
   }
 
   const markNotificationRead = useCallback(async (notification: UserNotification) => {
@@ -406,10 +391,6 @@ export default function HomeScreen({
     setSelectedActivityId(null);
   }, [cityData.id]);
 
-  useEffect(() => {
-    if (!isActive && mapInteractive) onMapInteractiveChange?.(false);
-  }, [isActive, mapInteractive, onMapInteractiveChange]);
-
   return (
     <View className="flex-1 bg-canvas">
       <ScrollView
@@ -466,9 +447,7 @@ export default function HomeScreen({
                       style={{ height: 44, width: 44 }}
                     />
                   ) : avatarInitials ? (
-                    <Text className="text-footnote font-inter-bold text-white">
-                      {avatarInitials}
-                    </Text>
+                    <Text className="text-footnote font-inter-bold text-white">{avatarInitials}</Text>
                   ) : (
                     <User size={22} color="white" strokeWidth={2.4} />
                   )}
@@ -498,10 +477,10 @@ export default function HomeScreen({
               <Pressable
                 onPress={onOpenDiscover}
                 accessibilityRole="button"
-                className="h-12 flex-row items-center justify-center gap-2 rounded-xl bg-action px-5 active:opacity-85"
+                className="h-12 flex-row items-center justify-center gap-2 rounded-xl bg-white px-5 active:opacity-85"
               >
-                <Text className="text-body font-inter-semibold text-white">Explore events</Text>
-                <ArrowRight size={16} color={Colors.light.onPrimary} />
+                <Text className="text-body font-inter-semibold text-ink">Explore events</Text>
+                <ArrowRight size={16} color={Colors.light.ink} />
               </Pressable>
               <Text className="min-w-0 flex-1 text-footnote text-white/80" numberOfLines={2}>
                 {weeklyEventMessage}
@@ -572,13 +551,14 @@ export default function HomeScreen({
           <Modal
             animationType="slide"
             visible={notificationsOpen}
-            onDismiss={flushPendingNotificationEvent}
             onRequestClose={() => setNotificationsOpen(false)}
           >
             <View className="flex-1 bg-canvas" style={{ paddingTop: stableTopInset }}>
               <View className="px-5 pb-4 pt-3">
                 <View className="flex-row items-center">
-                  <Text className="font-heading text-title1 text-ink">Notifications</Text>
+                  <Text className="font-heading text-title1 text-ink">
+                    Notifications
+                  </Text>
                   <View className="flex-1" />
                   <Pressable
                     onPress={() => setNotificationsOpen(false)}
@@ -640,9 +620,8 @@ export default function HomeScreen({
                             void (async () => {
                               const didMarkRead = await markNotificationRead(notification);
                               if (didMarkRead && notificationReadError.eventId) {
-                                openEventAfterNotifications(
-                                  `organizer-${notificationReadError.eventId}`,
-                                );
+                                setNotificationsOpen(false);
+                                onOpenEvent?.(`organizer-${notificationReadError.eventId}`);
                               }
                             })();
                           }}
@@ -671,9 +650,8 @@ export default function HomeScreen({
                                   void (async () => {
                                     const didMarkRead = await markNotificationRead(notification);
                                     if (didMarkRead && notification.eventId) {
-                                      openEventAfterNotifications(
-                                        `organizer-${notification.eventId}`,
-                                      );
+                                      setNotificationsOpen(false);
+                                      onOpenEvent?.(`organizer-${notification.eventId}`);
                                     }
                                   })();
                                 }}
@@ -737,131 +715,115 @@ export default function HomeScreen({
             </Pressable>
           </View>
 
-          {/* The shadow sits on the outer view; the inner view clips the map to the corners. */}
-          <View className="rounded-3xl bg-surface" style={styles.mapCardShadow}>
-            <View className="overflow-hidden rounded-3xl bg-surface">
-              <View className="h-[220px]">
-                <MapView
-                  initialRegion={activityMapRegion}
-                  customMapStyle={cultureMapStyle}
-                  key={cityData.id}
-                  mapType="standard"
-                  moveOnMarkerPress={false}
-                  pitchEnabled={false}
-                  rotateEnabled={false}
-                  scrollEnabled={mapInteractive}
-                  zoomEnabled={mapInteractive}
-                  zoomTapEnabled={mapInteractive}
-                  showsBuildings
-                  showsCompass={false}
-                  showsMyLocationButton={canShowUserLocation}
-                  showsPointsOfInterests
-                  showsScale={false}
-                  showsUserLocation={canShowUserLocation}
-                  style={StyleSheet.absoluteFill}
-                  toolbarEnabled={false}
-                  userInterfaceStyle="light"
-                >
-                  <ActivityHeatLayer points={activityHeatPoints} region={activityMapRegion} />
-                  {activitySpots.map((spot) => (
-                    <Marker
-                      coordinate={spot.coordinates}
-                      anchor={{ x: 0.5, y: 0.5 }}
-                      // Markers do not track view changes, so remount on selection to redraw.
-                      key={`${spot.id}-${selectedActivitySpot?.id === spot.id ? 'on' : 'off'}`}
-                      onPress={() => setSelectedActivityId(spot.id)}
-                      tracksViewChanges={false}
+          <View
+            className="overflow-hidden rounded-2xl border border-line bg-canvas"
+            style={CardStyles.elevated}
+          >
+            <View className="h-[210px]">
+              <MapView
+                initialRegion={activityMapRegion}
+                customMapStyle={cultureMapStyle}
+                key={cityData.id}
+                mapType="standard"
+                moveOnMarkerPress={false}
+                pitchEnabled={false}
+                rotateEnabled={false}
+                showsBuildings
+                showsCompass={false}
+                showsMyLocationButton={canShowUserLocation}
+                showsPointsOfInterests
+                showsScale={false}
+                showsUserLocation={canShowUserLocation}
+                style={StyleSheet.absoluteFill}
+                toolbarEnabled={false}
+                userInterfaceStyle="light"
+              >
+                <ActivityHeatLayer points={activityHeatPoints} region={activityMapRegion} />
+                {activitySpots.map((spot) => (
+                  <Marker
+                    coordinate={spot.coordinates}
+                    anchor={{ x: 0.5, y: 0.5 }}
+                    key={spot.id}
+                    onPress={() => setSelectedActivityId(spot.id)}
+                    tracksViewChanges={false}
+                  >
+                    <View
+                      className="h-8 w-8 items-center justify-center rounded-full"
+                      style={{
+                        shadowColor: Colors.light.accentDeep,
+                        shadowOffset: { height: 2, width: 0 },
+                        shadowOpacity: selectedActivitySpot?.id === spot.id ? 0.24 : 0.12,
+                        shadowRadius: selectedActivitySpot?.id === spot.id ? 8 : 5,
+                      }}
                     >
                       <View
-                        className="h-8 w-8 items-center justify-center rounded-full"
+                        className="items-center justify-center rounded-full border-[3px] border-white"
                         style={{
-                          shadowColor: Colors.light.ink,
-                          shadowOffset: { height: 2, width: 0 },
-                          shadowOpacity: selectedActivitySpot?.id === spot.id ? 0.24 : 0.12,
-                          shadowRadius: selectedActivitySpot?.id === spot.id ? 8 : 5,
+                          backgroundColor: spot.color,
+                          height: selectedActivitySpot?.id === spot.id ? 21 : 18,
+                          width: selectedActivitySpot?.id === spot.id ? 21 : 18,
                         }}
-                      >
-                        <View
-                          className="items-center justify-center rounded-full border-[3px] border-white"
-                          style={{
-                            backgroundColor: spot.color,
-                            height: selectedActivitySpot?.id === spot.id ? 21 : 18,
-                            width: selectedActivitySpot?.id === spot.id ? 21 : 18,
-                          }}
-                        />
-                      </View>
-                    </Marker>
-                  ))}
-                </MapView>
-                <Pressable
-                  onPress={() => onMapInteractiveChange?.(!mapInteractive)}
-                  className={`absolute bottom-3 right-3 h-9 justify-center rounded-full px-4 active:opacity-80 ${
-                    mapInteractive ? 'bg-primary' : 'bg-white'
-                  }`}
-                  style={CardStyles.compact}
-                  accessibilityLabel={mapInteractive ? 'Lock map' : 'Unlock map to move it'}
-                  accessibilityRole="button"
-                  accessibilityState={{ selected: mapInteractive }}
-                  hitSlop={8}
-                >
-                  <Text
-                    className={`text-caption font-inter-semibold ${mapInteractive ? 'text-white' : 'text-ink'}`}
-                  >
-                    {mapInteractive ? 'Lock map' : 'Move map'}
-                  </Text>
-                </Pressable>
-              </View>
-
-              <View className="px-4 py-4">
-                {eventsError ? (
-                  <ErrorState
-                    body="We could not refresh city activity right now. Try again in a moment."
-                    compact
-                    title="Event activity unavailable"
-                    tone="inline"
-                  />
-                ) : selectedActivitySpot ? (
-                  <Pressable
-                    onPress={() => onOpenEvent?.(selectedActivitySpot.nextEvent.id)}
-                    accessibilityRole="button"
-                    className="flex-row items-center gap-3 active:opacity-70"
-                  >
-                    <View className="min-w-0 flex-1">
-                      <Text className="text-body font-inter-semibold text-ink" numberOfLines={1}>
-                        {selectedActivitySpot.name}
-                      </Text>
-                      <Text className="mt-0.5 text-caption text-muted" numberOfLines={1}>
-                        {selectedActivitySpot.nextEvent.title}
-                      </Text>
-                      <Text className="mt-1 text-caption text-muted" numberOfLines={1}>
-                        {selectedActivitySpot.interestedCount.toLocaleString()} interested ·{' '}
-                        {selectedActivitySpot.goingCount.toLocaleString()} going ·{' '}
-                        {selectedActivitySpot.attendedCount.toLocaleString()} attended
-                      </Text>
+                      />
                     </View>
-                    <ArrowRight size={16} color={Colors.light.textSecondary} />
-                  </Pressable>
-                ) : (
-                  <View>
-                    {eventsLoading ? (
-                      <LoadingState
-                        body="Loading approved organizer events for this city."
-                        compact
-                        title="Loading map activity"
-                        tone="inline"
-                      />
-                    ) : (
-                      <EmptyState
-                        body="The city map will light up once approved events have activity."
-                        compact
-                        icon={Globe}
-                        title="No live activity yet"
-                        tone="inline"
-                      />
-                    )}
-                  </View>
-                )}
+                  </Marker>
+                ))}
+              </MapView>
+              <View className="absolute left-3 top-3 rounded-full bg-white/90 px-3 py-1">
+                <Text className="text-caption font-inter-semibold text-primary">
+                  {activityHeatPoints.length > 0 ? 'Predicted activity' : 'Venue locations'}
+                </Text>
               </View>
+            </View>
+
+            <View className="border-t border-line bg-surface px-4 py-3.5">
+              {eventsError ? (
+                <ErrorState
+                  body="We could not refresh city activity right now. Try again in a moment."
+                  compact
+                  title="Event activity unavailable"
+                  tone="inline"
+                />
+              ) : selectedActivitySpot ? (
+                <Pressable
+                  onPress={() => onOpenEvent?.(selectedActivitySpot.nextEvent.id)}
+                  accessibilityRole="button"
+                  className="flex-row items-center gap-3 active:opacity-70"
+                >
+                  <View className="min-w-0 flex-1">
+                    <Text className="text-body font-inter-semibold text-ink" numberOfLines={1}>
+                      {selectedActivitySpot.name}
+                    </Text>
+                    <Text className="mt-0.5 text-caption text-muted" numberOfLines={1}>
+                      {selectedActivitySpot.nextEvent.title}
+                    </Text>
+                    <Text className="mt-1 text-caption text-muted" numberOfLines={1}>
+                      {selectedActivitySpot.interestedCount.toLocaleString()} interested ·{' '}
+                      {selectedActivitySpot.goingCount.toLocaleString()} going ·{' '}
+                      {selectedActivitySpot.attendedCount.toLocaleString()} attended
+                    </Text>
+                  </View>
+                  <ArrowRight size={16} color={Colors.light.textSecondary} />
+                </Pressable>
+              ) : (
+                <View>
+                  {eventsLoading ? (
+                    <LoadingState
+                      body="Loading approved organizer events for this city."
+                      compact
+                      title="Loading map activity"
+                      tone="inline"
+                    />
+                  ) : (
+                    <EmptyState
+                      body="The city map will light up once approved events have activity."
+                      compact
+                      icon={Globe}
+                      title="No live activity yet"
+                      tone="inline"
+                    />
+                  )}
+                </View>
+              )}
             </View>
           </View>
         </View>
@@ -1178,7 +1140,7 @@ function getTimingWeight(hoursUntilStart: number, endTimestamp: number, now: num
 function getActivityMarkerColor(heatWeight: number) {
   if (heatWeight >= 0.65) return Colors.light.accentDeep;
   if (heatWeight >= 0.18) return Colors.light.accent;
-  return Colors.light.success;
+  return Colors.light.primary;
 }
 
 function formatNotificationDate(value: string) {
@@ -1274,9 +1236,3 @@ function getCityMapRegion(cityData: CultureCityData) {
     longitudeDelta: 0.048,
   };
 }
-
-const styles = StyleSheet.create({
-  mapCardShadow: {
-    boxShadow: '0 12px 28px rgba(30, 30, 36, 0.10), 0 2px 6px rgba(30, 30, 36, 0.05)',
-  },
-});

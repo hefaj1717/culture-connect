@@ -507,7 +507,7 @@ export function CreateEventModal({
                       value={eventUpdateMessage}
                       onChangeText={onChangeEventUpdateMessage}
                       placeholder="For example: the time changed because the venue opens later."
-                      placeholderTextColor={Colors.light.inputPlaceholder}
+                      placeholderTextColor="#8B9BA4"
                       multiline
                       maxLength={textLimits.organizerNote}
                       className="mt-3 min-h-[76px] rounded-xl border border-line bg-white px-3 py-2 text-body leading-5 text-ink"
@@ -530,7 +530,7 @@ export function CreateEventModal({
                     onSubmit();
                   }}
                   disabled={creatingEvent}
-                  className="h-[52px] items-center justify-center rounded-xl bg-action active:opacity-85 disabled:opacity-60"
+                  className="h-[52px] items-center justify-center rounded-xl bg-primary active:opacity-85 disabled:opacity-60"
                 >
                   {creatingEvent ? (
                     <ActivityIndicator color="white" />

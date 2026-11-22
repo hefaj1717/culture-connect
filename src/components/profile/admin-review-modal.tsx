@@ -489,7 +489,7 @@ function ReviewActions({
         <Pressable
           disabled={anyBusy}
           onPress={() => confirmAction('approved')}
-          className="h-11 flex-1 flex-row items-center justify-center gap-2 rounded-xl bg-action active:opacity-85"
+          className="h-11 flex-1 flex-row items-center justify-center gap-2 rounded-xl bg-primary active:opacity-85"
         >
           {busy ? (
             <ActivityIndicator color="white" size="small" />
@@ -506,9 +506,9 @@ function ReviewActions({
           className="h-10 flex-row items-center justify-center gap-2 rounded-xl bg-destructive/10 active:opacity-80"
         >
           {deleteBusy ? (
-            <ActivityIndicator color={Colors.light.destructive} size="small" />
+            <ActivityIndicator color="#EF4444" size="small" />
           ) : (
-            <Trash2 size={15} color={Colors.light.destructive} strokeWidth={2.5} />
+            <Trash2 size={15} color="#EF4444" strokeWidth={2.5} />
           )}
           <Text className="text-footnote font-inter-bold text-destructive">Delete event</Text>
         </Pressable>

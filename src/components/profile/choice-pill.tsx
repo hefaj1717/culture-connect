@@ -28,7 +28,7 @@ export function ChoicePill({ active, icon: Icon, label, onPress }: ChoicePillPro
       }`}
     >
       {Icon && (
-        <Icon size={14} color={active ? Colors.light.primary : Colors.light.textSecondary} strokeWidth={2.4} />
+        <Icon size={14} color={active ? Colors.light.primary : '#6B818C'} strokeWidth={2.4} />
       )}
       <Text className={`text-caption font-inter-semibold ${active ? 'text-primary' : 'text-muted'}`}>
         {label}

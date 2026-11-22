@@ -121,8 +121,8 @@ export function EditProfileModal({
   return (
     <Modal animationType="slide" transparent onRequestClose={closeWithAnimation} visible={visible}>
       <GestureDetector gesture={swipeGesture}>
-        <Animated.View className="flex-1 bg-canvas" style={swipeStyle}>
-          <SafeAreaView className="flex-1 bg-canvas" edges={['bottom']}>
+        <Animated.View className="flex-1 bg-white" style={swipeStyle}>
+          <SafeAreaView className="flex-1 bg-white" edges={['bottom']}>
             <KeyboardAvoidingView
               behavior={Platform.OS === 'ios' ? 'padding' : undefined}
               className="flex-1"
@@ -232,11 +232,7 @@ export function EditProfileModal({
                       {isStudent ? (
                         <Check size={17} color="white" strokeWidth={2.7} />
                       ) : (
-                        <GraduationCap
-                          size={17}
-                          color={Colors.light.textSecondary}
-                          strokeWidth={2.4}
-                        />
+                        <GraduationCap size={17} color={Colors.light.textSecondary} strokeWidth={2.4} />
                       )}
                     </View>
                     <View className="min-w-0 flex-1">
@@ -249,9 +245,7 @@ export function EditProfileModal({
 
                   {isStudent && (
                     <View className="mt-4">
-                      <Text className="mb-2 text-footnote font-inter-semibold text-ink">
-                        University
-                      </Text>
+                      <Text className="mb-2 text-footnote font-inter-semibold text-ink">University</Text>
                       <View className="mb-4 gap-2">
                         {universityOptions.map((university) => {
                           const active = university.id === universityId;
@@ -285,9 +279,7 @@ export function EditProfileModal({
                         })}
                       </View>
 
-                      <Text className="mb-2 text-footnote font-inter-semibold text-ink">
-                        Student email
-                      </Text>
+                      <Text className="mb-2 text-footnote font-inter-semibold text-ink">Student email</Text>
                       <TextInput
                         value={studentEmail}
                         onChangeText={onChangeStudentEmail}
@@ -377,9 +369,7 @@ export function EditProfileModal({
                               className="rounded-xl bg-accent px-2.5 py-1.5 active:opacity-75"
                               accessibilityLabel="Retry place search"
                             >
-                              <Text className="text-caption font-inter-semibold text-white">
-                                Retry
-                              </Text>
+                              <Text className="text-caption font-inter-semibold text-white">Retry</Text>
                             </Pressable>
                           ) : null}
                         </View>
@@ -398,11 +388,7 @@ export function EditProfileModal({
                                 index > 0 ? 'border-t border-line' : ''
                               }`}
                             >
-                              <MapPin
-                                size={16}
-                                color={Colors.light.textSecondary}
-                                strokeWidth={2.4}
-                              />
+                              <MapPin size={16} color={Colors.light.textSecondary} strokeWidth={2.4} />
                               <View className="min-w-0 flex-1">
                                 <Text
                                   className="text-footnote font-inter-semibold text-ink"
@@ -438,7 +424,7 @@ export function EditProfileModal({
                     onSave();
                   }}
                   disabled={savingProfile}
-                  className="h-[52px] items-center justify-center rounded-xl bg-action active:opacity-85"
+                  className="h-[52px] items-center justify-center rounded-xl bg-primary active:opacity-85"
                 >
                   {savingProfile ? (
                     <ActivityIndicator color="white" />

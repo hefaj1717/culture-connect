@@ -2,12 +2,11 @@ import { StatusBar } from 'expo-status-bar';
 import { Compass, Home, Route, User, WifiOff, type LucideIcon } from 'lucide-react-native';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Alert, Pressable, StyleSheet, View } from 'react-native';
-import PagerView from 'react-native-pager-view';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AuthScreen } from '@/components/auth-screen';
 import { ErrorState } from '@/components/async-state';
-import ExploreScreen, { EventDetailModal, type EventCheckInResult } from '@/app/explore';
+import ExploreScreen, { type EventCheckInResult } from '@/app/explore';
 import HomeScreen from '@/app/index';
 import ProfileScreen from '@/app/profile';
 import QuestsScreen from '@/app/quests';
@@ -24,7 +23,6 @@ import {
 import { updateEventEngagementCounts } from '@/lib/event-engagement';
 import { OFFLINE_ERROR_MESSAGE } from '@/lib/network-errors';
 import { fetchOrganizerEvents } from '@/lib/organizer-events';
-import { organizerProfileFromEvent } from '@/lib/organizer-profiles';
 import { completeQuest, fetchCompletedQuestIds } from '@/lib/quest-completions';
 import { confirmOrganizerEventAttendance, fetchUserXp } from '@/lib/profile-xp';
 import {
@@ -95,11 +93,11 @@ function AuthenticatedTabs() {
   const [userStateReloadNonce, setUserStateReloadNonce] = useState(0);
   const checkedInEventIdsRef = useRef(new Set<string>());
   const completedQuestIdsRef = useRef(new Set<string>());
-  const pagerRef = useRef<PagerView>(null);
-  const [homeMapInteractive, setHomeMapInteractive] = useState(false);
-  // Events opened from Home (cards, map, notifications) are shown in place,
-  // without jumping to the Discover tab first.
-  const [overlayEventId, setOverlayEventId] = useState<string | null>(null);
+  const [eventOpenRequest, setEventOpenRequest] = useState<{
+    eventId: string;
+    nonce: number;
+    returnTabIndex: number;
+  } | null>(null);
   const metadataName = [user?.user_metadata?.first_name, user?.user_metadata?.last_name]
     .filter(Boolean)
     .join(' ');
@@ -117,19 +115,8 @@ function AuthenticatedTabs() {
     [approvedEvents, checkedInEventIds, eventStatuses],
   );
 
-  const overlayEvent = useMemo(
-    () =>
-      overlayEventId ? (approvedEvents.find((event) => event.id === overlayEventId) ?? null) : null,
-    [approvedEvents, overlayEventId],
-  );
-  const overlayOrganizerProfile = useMemo(
-    () => (overlayEvent ? organizerProfileFromEvent(overlayEvent) : null),
-    [overlayEvent],
-  );
-  const overlayStatus = overlayEventId ? eventStatuses[overlayEventId] : undefined;
-
   useEffect(() => {
-    setOverlayEventId(null);
+    setEventOpenRequest(null);
   }, [cityData.id]);
 
   useEffect(() => {
@@ -232,15 +219,20 @@ function AuthenticatedTabs() {
   }, [user?.id, userStateReloadNonce]);
 
   function goToTab(index: number) {
-    if (index === activeIndex) return;
     setActiveIndex(index);
-    pagerRef.current?.setPage(index);
   }
 
-  function handlePageSelected(index: number) {
-    setActiveIndex(index);
-    // Leaving Home always re-locks the map so swiping back works again.
-    if (index !== 0) setHomeMapInteractive(false);
+  function openDiscoverEvent(eventId: string) {
+    setEventOpenRequest({ eventId, nonce: Date.now(), returnTabIndex: activeIndex });
+    goToTab(1);
+  }
+
+  function closeExternalDiscoverEvent() {
+    const returnTabIndex = eventOpenRequest?.returnTabIndex;
+    setEventOpenRequest(null);
+    if (returnTabIndex !== undefined && returnTabIndex !== 1) {
+      goToTab(returnTabIndex);
+    }
   }
 
   async function awardEventCheckInXp(
@@ -413,19 +405,9 @@ function AuthenticatedTabs() {
           title="Some account data could not refresh"
         />
       )}
-      {/* All tabs stay mounted (and laid out) so their scroll position, state and the
-          native map survive tab switches. Swiping horizontally changes tabs; it is paused
-          while the Home map is unlocked so map panning does not fight the pager. */}
-      <PagerView
-        ref={pagerRef}
-        initialPage={0}
-        offscreenPageLimit={TAB_COUNT - 1}
-        onPageSelected={(event) => handlePageSelected(event.nativeEvent.position)}
-        overdrag={false}
-        scrollEnabled={!homeMapInteractive}
-        style={{ flex: 1 }}
-      >
-        <View collapsable={false} key="tab-0" style={styles.page}>
+      {/* All tabs stay mounted so their scroll position and state survive tab switches. */}
+      <View className="flex-1">
+        <View style={[StyleSheet.absoluteFill, activeIndex === 0 ? null : styles.hidden]}>
           <HomeScreen
             avatarInitials={avatarInitials}
             avatarUrl={avatarUrl}
@@ -438,14 +420,11 @@ function AuthenticatedTabs() {
             leaderboardError={universityLeaderboardError}
             leaderboardLoading={universityLeaderboardLoading}
             onOpenDiscover={() => goToTab(1)}
-            isActive={activeIndex === 0}
-            mapInteractive={homeMapInteractive}
-            onMapInteractiveChange={setHomeMapInteractive}
-            onOpenEvent={setOverlayEventId}
+            onOpenEvent={openDiscoverEvent}
             onOpenProfile={() => goToTab(3)}
           />
         </View>
-        <View collapsable={false} key="tab-1" style={styles.page}>
+        <View style={[StyleSheet.absoluteFill, activeIndex === 1 ? null : styles.hidden]}>
           <ExploreScreen
             checkedInEventIds={checkedInEventIds}
             cityData={cityData}
@@ -455,10 +434,13 @@ function AuthenticatedTabs() {
             eventsRefreshKey={organizerEventsVersion}
             eventStatuses={eventStatuses}
             onEventCheckIn={awardEventCheckInXp}
+            onExternalEventClose={closeExternalDiscoverEvent}
             onEventStatusChange={updateEventStatus}
+            openEventId={eventOpenRequest?.eventId}
+            openEventNonce={eventOpenRequest?.nonce}
           />
         </View>
-        <View collapsable={false} key="tab-2" style={styles.page}>
+        <View style={[StyleSheet.absoluteFill, activeIndex === 2 ? null : styles.hidden]}>
           <QuestsScreen
             cityData={cityData}
             completedQuestIds={completedQuestIds}
@@ -466,7 +448,7 @@ function AuthenticatedTabs() {
             questsRefreshKey={questsRefreshKey}
           />
         </View>
-        <View collapsable={false} key="tab-3" style={styles.page}>
+        <View style={[StyleSheet.absoluteFill, activeIndex === 3 ? null : styles.hidden]}>
           <ProfileScreen
             checkedInEventIds={checkedInEventIds}
             eventsRefreshKey={organizerEventsVersion}
@@ -490,23 +472,7 @@ function AuthenticatedTabs() {
             onUserQcChange={setUserQc}
           />
         </View>
-      </PagerView>
-
-      <EventDetailModal
-        checkedIn={!!overlayEvent && checkedInEventIds.includes(overlayEvent.id)}
-        cityName={cityData.name}
-        event={overlayEvent}
-        onCheckIn={awardEventCheckInXp}
-        onClose={() => setOverlayEventId(null)}
-        onToggleStatus={(eventId, status) =>
-          updateEventStatus(eventId, eventStatusesRef.current[eventId] === status ? null : status)
-        }
-        organizerEvents={publicEvents}
-        organizerProfile={overlayOrganizerProfile}
-        status={
-          overlayStatus === 'interested' || overlayStatus === 'going' ? overlayStatus : undefined
-        }
-      />
+      </View>
 
       {isOffline && (
         <View className="flex-row items-center justify-center gap-2 border-t border-accent/15 bg-ink px-4 py-2">
@@ -615,5 +581,5 @@ function TabButton({
 }
 
 const styles = StyleSheet.create({
-  page: { flex: 1 },
+  hidden: { display: 'none' },
 });

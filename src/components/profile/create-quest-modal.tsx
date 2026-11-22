@@ -392,7 +392,7 @@ export function CreateQuestModal({
                     onSubmit();
                   }}
                   disabled={creatingQuest}
-                  className="mt-5 h-[52px] items-center justify-center rounded-xl bg-action active:opacity-85"
+                  className="mt-5 h-[52px] items-center justify-center rounded-xl bg-primary active:opacity-85"
                 >
                   {creatingQuest ? (
                     <ActivityIndicator color="white" />

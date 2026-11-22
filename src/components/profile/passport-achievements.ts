@@ -116,7 +116,7 @@ function getOrdinal(rank: 1 | 2 | 3) {
 }
 
 function getRankingAwardColor(rank: 1 | 2 | 3) {
-  if (rank === 1) return '#A63446';
-  if (rank === 2) return '#3E8989';
-  return '#6B818C';
+  if (rank === 1) return '#B8872E';
+  if (rank === 2) return '#71858E';
+  return '#A76E45';
 }

@@ -10,8 +10,6 @@ module.exports = {
       colors: {
         primary: colors.primary,
         accent: colors.accent,
-        action: colors.action,
-        progress: colors.progress,
         accentDeep: colors.accentDeep,
         ink: colors.ink,
         success: colors.success,

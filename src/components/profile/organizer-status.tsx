@@ -1,7 +1,6 @@
 import { Building2, CheckCircle2, CircleAlert } from 'lucide-react-native';
 import { View } from 'react-native';
 import { Text } from '@/components/ui/text';
-import { Colors } from '@/constants/theme';
 
 type OrganizerStatus = 'pending' | 'approved' | 'rejected';
 
@@ -32,7 +31,7 @@ export function OrganizerVerifiedBadge({ compact = false }: { compact?: boolean 
 export function OrganizerStatusCard({ status }: { status: OrganizerStatus }) {
   const isApproved = status === 'approved';
   const isRejected = status === 'rejected';
-  const color = isApproved ? Colors.light.accent : isRejected ? Colors.light.destructive : Colors.light.accent;
+  const color = isApproved ? '#A63446' : isRejected ? '#EF4444' : '#A63446';
   const Icon = isApproved ? CheckCircle2 : isRejected ? CircleAlert : Building2;
   const title = isApproved
     ? 'Organizer approved'

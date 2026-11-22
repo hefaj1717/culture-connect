@@ -263,7 +263,7 @@ function XpProgressBar({ progressPercent }: { progressPercent: number }) {
       className="relative h-4 overflow-hidden rounded-full"
       style={{ backgroundColor: GamificationColors.progressTrack }}
     >
-      <View className="h-full rounded-full bg-progress" style={{ width: `${safeProgress}%` }} />
+      <View className="h-full rounded-full bg-success" style={{ width: `${safeProgress}%` }} />
       {[25, 50, 75].map((tick) => (
         <View
           key={tick}
@@ -365,7 +365,7 @@ export function ProfileActions({ onEdit, onSignOut }: ProfileActionsProps) {
       <View className="flex-row gap-3">
         <Pressable
           onPress={onEdit}
-          className="h-12 flex-1 flex-row items-center justify-center rounded-xl bg-action active:opacity-85"
+          className="h-12 flex-1 flex-row items-center justify-center rounded-xl bg-primary active:opacity-85"
         >
           <Text className="text-body font-inter-semibold text-white">Edit profile</Text>
         </Pressable>
@@ -623,7 +623,7 @@ export function OrganizerToolsSection({
           <View className="gap-1.5">
             <Pressable
               onPress={onCreateEvent}
-              className="h-10 flex-row items-center justify-center rounded-xl bg-action active:opacity-85"
+              className="h-10 flex-row items-center justify-center rounded-xl bg-primary active:opacity-85"
             >
               <Text className="text-body font-inter-semibold text-white">Create event</Text>
             </Pressable>
@@ -683,7 +683,7 @@ export function AdminToolsSection({
         <View className="mt-4 gap-2">
           <Pressable
             onPress={onOpenReview}
-            className="h-11 flex-row items-center justify-center rounded-xl bg-action active:opacity-85"
+            className="h-11 flex-row items-center justify-center rounded-xl bg-primary active:opacity-85"
           >
             <Text className="text-body font-inter-semibold text-white">Review content</Text>
           </Pressable>
@@ -742,10 +742,10 @@ export function AdminXpAuditModal({
   return (
     <Modal animationType="slide" transparent onRequestClose={closeWithAnimation} visible={visible}>
       <GestureDetector gesture={gesture}>
-        <Animated.View className="flex-1 bg-canvas" style={swipeStyle}>
-          <SafeAreaView className="flex-1 bg-canvas" edges={['bottom']}>
+        <Animated.View className="flex-1 bg-white" style={swipeStyle}>
+          <SafeAreaView className="flex-1 bg-white" edges={['bottom']}>
             <View
-              className="flex-row items-center justify-between bg-canvas px-5 pb-3"
+              className="flex-row items-center justify-between bg-white px-5 pb-3"
               style={{ paddingTop: stableModalTopInset + 6 }}
             >
               <Pressable
@@ -1080,9 +1080,9 @@ export function UserActivityHistoryModal({
   return (
     <Modal animationType="slide" transparent onRequestClose={closeWithAnimation} visible={visible}>
       <GestureDetector gesture={gesture}>
-        <Animated.View className="flex-1 bg-canvas" style={swipeStyle}>
-          <SafeAreaView className="flex-1 bg-canvas" edges={['bottom']}>
-            <View className="bg-canvas px-5 pb-2" style={{ paddingTop: stableModalTopInset + 6 }}>
+        <Animated.View className="flex-1 bg-white" style={swipeStyle}>
+          <SafeAreaView className="flex-1 bg-white" edges={['bottom']}>
+            <View className="bg-white px-5 pb-2" style={{ paddingTop: stableModalTopInset + 6 }}>
               <Pressable
                 accessibilityLabel="Back to profile"
                 onPress={closeWithAnimation}
@@ -1235,9 +1235,9 @@ export function OrganizerEventHistoryModal({
       visible={visible}
     >
       <GestureDetector gesture={gesture}>
-        <Animated.View className="flex-1 bg-canvas" style={swipeStyle}>
-          <SafeAreaView className="flex-1 bg-canvas" edges={['bottom']}>
-            <View className="bg-canvas px-5 pb-2" style={{ paddingTop: stableModalTopInset + 6 }}>
+        <Animated.View className="flex-1 bg-white" style={swipeStyle}>
+          <SafeAreaView className="flex-1 bg-white" edges={['bottom']}>
+            <View className="bg-white px-5 pb-2" style={{ paddingTop: stableModalTopInset + 6 }}>
               <Pressable
                 onPress={closeWithAnimation}
                 className="h-10 w-10 items-center justify-center rounded-full bg-subtle active:opacity-80"
@@ -1316,9 +1316,9 @@ export function OrganizerRewardHistoryModal({
   return (
     <Modal animationType="slide" transparent onRequestClose={closeWithAnimation} visible={visible}>
       <GestureDetector gesture={gesture}>
-        <Animated.View className="flex-1 bg-canvas" style={swipeStyle}>
-          <SafeAreaView className="flex-1 bg-canvas" edges={['bottom']}>
-            <View className="bg-canvas px-5 pb-2" style={{ paddingTop: stableModalTopInset + 6 }}>
+        <Animated.View className="flex-1 bg-white" style={swipeStyle}>
+          <SafeAreaView className="flex-1 bg-white" edges={['bottom']}>
+            <View className="bg-white px-5 pb-2" style={{ paddingTop: stableModalTopInset + 6 }}>
               <Pressable
                 onPress={closeWithAnimation}
                 className="h-10 w-10 items-center justify-center rounded-full bg-subtle active:opacity-80"
@@ -1782,7 +1782,7 @@ function HistoryEventDetail({
             {canShowOrganizerQr && (
               <Pressable
                 onPress={() => setQrPassOpen(true)}
-                className="mt-4 h-11 flex-row items-center justify-center rounded-xl bg-action active:opacity-85"
+                className="mt-4 h-11 flex-row items-center justify-center rounded-xl bg-primary active:opacity-85"
               >
                 <Text className="text-body font-inter-semibold text-white">Open check-in QR</Text>
               </Pressable>
@@ -1883,9 +1883,9 @@ function OrganizerEventQrModal({
   return (
     <Modal animationType="slide" transparent onRequestClose={closeWithAnimation} visible={visible}>
       <GestureDetector gesture={gesture}>
-        <Animated.View className="flex-1 bg-canvas" style={swipeStyle}>
-          <SafeAreaView className="flex-1 bg-canvas" edges={['bottom']}>
-            <View className="bg-canvas px-5 pb-3" style={{ paddingTop: stableModalTopInset + 6 }}>
+        <Animated.View className="flex-1 bg-white" style={swipeStyle}>
+          <SafeAreaView className="flex-1 bg-white" edges={['bottom']}>
+            <View className="bg-white px-5 pb-3" style={{ paddingTop: stableModalTopInset + 6 }}>
               <Pressable
                 onPress={closeWithAnimation}
                 className="h-10 w-10 items-center justify-center rounded-full bg-subtle active:opacity-80"
@@ -1964,7 +1964,7 @@ function OrganizerEventQrModal({
               <Pressable
                 disabled={sharing || !checkInCode}
                 onPress={shareQrPass}
-                className="mt-4 h-[52px] flex-row items-center justify-center rounded-2xl bg-action active:opacity-85 disabled:opacity-60"
+                className="mt-4 h-[52px] flex-row items-center justify-center rounded-2xl bg-primary active:opacity-85 disabled:opacity-60"
               >
                 <Text className="text-body font-inter-bold text-white">
                   {sharing ? 'Preparing PNG...' : 'Share QR image'}
@@ -2252,9 +2252,9 @@ export function RewardsListModal({
   return (
     <Modal animationType="slide" transparent onRequestClose={closeWithAnimation} visible={visible}>
       <GestureDetector gesture={gesture}>
-        <Animated.View className="flex-1 bg-canvas" style={swipeStyle}>
-          <SafeAreaView className="flex-1 bg-canvas" edges={['bottom']}>
-            <View className="bg-canvas px-5 pb-3" style={{ paddingTop: stableModalTopInset + 6 }}>
+        <Animated.View className="flex-1 bg-white" style={swipeStyle}>
+          <SafeAreaView className="flex-1 bg-white" edges={['bottom']}>
+            <View className="bg-white px-5 pb-3" style={{ paddingTop: stableModalTopInset + 6 }}>
               <View className="flex-row items-center justify-between">
                 <View className="min-w-0 flex-1 flex-row items-center gap-3">
                   <Pressable
