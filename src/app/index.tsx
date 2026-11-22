@@ -737,130 +737,131 @@ export default function HomeScreen({
             </Pressable>
           </View>
 
-          <View
-            className="overflow-hidden rounded-2xl border border-line bg-canvas"
-            style={CardStyles.elevated}
-          >
-            <View className="h-[210px]">
-              <MapView
-                initialRegion={activityMapRegion}
-                customMapStyle={cultureMapStyle}
-                key={cityData.id}
-                mapType="standard"
-                moveOnMarkerPress={false}
-                pitchEnabled={false}
-                rotateEnabled={false}
-                scrollEnabled={mapInteractive}
-                zoomEnabled={mapInteractive}
-                zoomTapEnabled={mapInteractive}
-                showsBuildings
-                showsCompass={false}
-                showsMyLocationButton={canShowUserLocation}
-                showsPointsOfInterests
-                showsScale={false}
-                showsUserLocation={canShowUserLocation}
-                style={StyleSheet.absoluteFill}
-                toolbarEnabled={false}
-                userInterfaceStyle="light"
-              >
-                <ActivityHeatLayer points={activityHeatPoints} region={activityMapRegion} />
-                {activitySpots.map((spot) => (
-                  <Marker
-                    coordinate={spot.coordinates}
-                    anchor={{ x: 0.5, y: 0.5 }}
-                    // Markers do not track view changes, so remount on selection to redraw.
-                    key={`${spot.id}-${selectedActivitySpot?.id === spot.id ? 'on' : 'off'}`}
-                    onPress={() => setSelectedActivityId(spot.id)}
-                    tracksViewChanges={false}
-                  >
-                    <View
-                      className="h-8 w-8 items-center justify-center rounded-full"
-                      style={{
-                        shadowColor: Colors.light.accentDeep,
-                        shadowOffset: { height: 2, width: 0 },
-                        shadowOpacity: selectedActivitySpot?.id === spot.id ? 0.24 : 0.12,
-                        shadowRadius: selectedActivitySpot?.id === spot.id ? 8 : 5,
-                      }}
+          {/* The shadow sits on the outer view; the inner view clips the map to the corners. */}
+          <View className="rounded-3xl bg-surface" style={styles.mapCardShadow}>
+            <View className="overflow-hidden rounded-3xl bg-surface">
+              <View className="h-[220px]">
+                <MapView
+                  initialRegion={activityMapRegion}
+                  customMapStyle={cultureMapStyle}
+                  key={cityData.id}
+                  mapType="standard"
+                  moveOnMarkerPress={false}
+                  pitchEnabled={false}
+                  rotateEnabled={false}
+                  scrollEnabled={mapInteractive}
+                  zoomEnabled={mapInteractive}
+                  zoomTapEnabled={mapInteractive}
+                  showsBuildings
+                  showsCompass={false}
+                  showsMyLocationButton={canShowUserLocation}
+                  showsPointsOfInterests
+                  showsScale={false}
+                  showsUserLocation={canShowUserLocation}
+                  style={StyleSheet.absoluteFill}
+                  toolbarEnabled={false}
+                  userInterfaceStyle="light"
+                >
+                  <ActivityHeatLayer points={activityHeatPoints} region={activityMapRegion} />
+                  {activitySpots.map((spot) => (
+                    <Marker
+                      coordinate={spot.coordinates}
+                      anchor={{ x: 0.5, y: 0.5 }}
+                      // Markers do not track view changes, so remount on selection to redraw.
+                      key={`${spot.id}-${selectedActivitySpot?.id === spot.id ? 'on' : 'off'}`}
+                      onPress={() => setSelectedActivityId(spot.id)}
+                      tracksViewChanges={false}
                     >
                       <View
-                        className="items-center justify-center rounded-full border-[3px] border-white"
+                        className="h-8 w-8 items-center justify-center rounded-full"
                         style={{
-                          backgroundColor: spot.color,
-                          height: selectedActivitySpot?.id === spot.id ? 21 : 18,
-                          width: selectedActivitySpot?.id === spot.id ? 21 : 18,
+                          shadowColor: Colors.light.ink,
+                          shadowOffset: { height: 2, width: 0 },
+                          shadowOpacity: selectedActivitySpot?.id === spot.id ? 0.24 : 0.12,
+                          shadowRadius: selectedActivitySpot?.id === spot.id ? 8 : 5,
                         }}
-                      />
-                    </View>
-                  </Marker>
-                ))}
-              </MapView>
-              <Pressable
-                onPress={() => onMapInteractiveChange?.(!mapInteractive)}
-                className={`absolute bottom-3 right-3 h-9 justify-center rounded-full px-4 active:opacity-80 ${
-                  mapInteractive ? 'bg-primary' : 'bg-white/95'
-                }`}
-                accessibilityLabel={mapInteractive ? 'Lock map' : 'Unlock map to move it'}
-                accessibilityRole="button"
-                accessibilityState={{ selected: mapInteractive }}
-                hitSlop={8}
-              >
-                <Text
-                  className={`text-caption font-inter-semibold ${mapInteractive ? 'text-white' : 'text-ink'}`}
-                >
-                  {mapInteractive ? 'Lock map' : 'Move map'}
-                </Text>
-              </Pressable>
-            </View>
-
-            <View className="border-t border-line bg-surface px-4 py-3.5">
-              {eventsError ? (
-                <ErrorState
-                  body="We could not refresh city activity right now. Try again in a moment."
-                  compact
-                  title="Event activity unavailable"
-                  tone="inline"
-                />
-              ) : selectedActivitySpot ? (
+                      >
+                        <View
+                          className="items-center justify-center rounded-full border-[3px] border-white"
+                          style={{
+                            backgroundColor: spot.color,
+                            height: selectedActivitySpot?.id === spot.id ? 21 : 18,
+                            width: selectedActivitySpot?.id === spot.id ? 21 : 18,
+                          }}
+                        />
+                      </View>
+                    </Marker>
+                  ))}
+                </MapView>
                 <Pressable
-                  onPress={() => onOpenEvent?.(selectedActivitySpot.nextEvent.id)}
+                  onPress={() => onMapInteractiveChange?.(!mapInteractive)}
+                  className={`absolute bottom-3 right-3 h-9 justify-center rounded-full px-4 active:opacity-80 ${
+                    mapInteractive ? 'bg-primary' : 'bg-white'
+                  }`}
+                  style={CardStyles.compact}
+                  accessibilityLabel={mapInteractive ? 'Lock map' : 'Unlock map to move it'}
                   accessibilityRole="button"
-                  className="flex-row items-center gap-3 active:opacity-70"
+                  accessibilityState={{ selected: mapInteractive }}
+                  hitSlop={8}
                 >
-                  <View className="min-w-0 flex-1">
-                    <Text className="text-body font-inter-semibold text-ink" numberOfLines={1}>
-                      {selectedActivitySpot.name}
-                    </Text>
-                    <Text className="mt-0.5 text-caption text-muted" numberOfLines={1}>
-                      {selectedActivitySpot.nextEvent.title}
-                    </Text>
-                    <Text className="mt-1 text-caption text-muted" numberOfLines={1}>
-                      {selectedActivitySpot.interestedCount.toLocaleString()} interested ·{' '}
-                      {selectedActivitySpot.goingCount.toLocaleString()} going ·{' '}
-                      {selectedActivitySpot.attendedCount.toLocaleString()} attended
-                    </Text>
-                  </View>
-                  <ArrowRight size={16} color={Colors.light.textSecondary} />
+                  <Text
+                    className={`text-caption font-inter-semibold ${mapInteractive ? 'text-white' : 'text-ink'}`}
+                  >
+                    {mapInteractive ? 'Lock map' : 'Move map'}
+                  </Text>
                 </Pressable>
-              ) : (
-                <View>
-                  {eventsLoading ? (
-                    <LoadingState
-                      body="Loading approved organizer events for this city."
-                      compact
-                      title="Loading map activity"
-                      tone="inline"
-                    />
-                  ) : (
-                    <EmptyState
-                      body="The city map will light up once approved events have activity."
-                      compact
-                      icon={Globe}
-                      title="No live activity yet"
-                      tone="inline"
-                    />
-                  )}
-                </View>
-              )}
+              </View>
+
+              <View className="px-4 py-4">
+                {eventsError ? (
+                  <ErrorState
+                    body="We could not refresh city activity right now. Try again in a moment."
+                    compact
+                    title="Event activity unavailable"
+                    tone="inline"
+                  />
+                ) : selectedActivitySpot ? (
+                  <Pressable
+                    onPress={() => onOpenEvent?.(selectedActivitySpot.nextEvent.id)}
+                    accessibilityRole="button"
+                    className="flex-row items-center gap-3 active:opacity-70"
+                  >
+                    <View className="min-w-0 flex-1">
+                      <Text className="text-body font-inter-semibold text-ink" numberOfLines={1}>
+                        {selectedActivitySpot.name}
+                      </Text>
+                      <Text className="mt-0.5 text-caption text-muted" numberOfLines={1}>
+                        {selectedActivitySpot.nextEvent.title}
+                      </Text>
+                      <Text className="mt-1 text-caption text-muted" numberOfLines={1}>
+                        {selectedActivitySpot.interestedCount.toLocaleString()} interested ·{' '}
+                        {selectedActivitySpot.goingCount.toLocaleString()} going ·{' '}
+                        {selectedActivitySpot.attendedCount.toLocaleString()} attended
+                      </Text>
+                    </View>
+                    <ArrowRight size={16} color={Colors.light.textSecondary} />
+                  </Pressable>
+                ) : (
+                  <View>
+                    {eventsLoading ? (
+                      <LoadingState
+                        body="Loading approved organizer events for this city."
+                        compact
+                        title="Loading map activity"
+                        tone="inline"
+                      />
+                    ) : (
+                      <EmptyState
+                        body="The city map will light up once approved events have activity."
+                        compact
+                        icon={Globe}
+                        title="No live activity yet"
+                        tone="inline"
+                      />
+                    )}
+                  </View>
+                )}
+              </View>
             </View>
           </View>
         </View>
@@ -1177,7 +1178,7 @@ function getTimingWeight(hoursUntilStart: number, endTimestamp: number, now: num
 function getActivityMarkerColor(heatWeight: number) {
   if (heatWeight >= 0.65) return Colors.light.accentDeep;
   if (heatWeight >= 0.18) return Colors.light.accent;
-  return Colors.light.primary;
+  return Colors.light.success;
 }
 
 function formatNotificationDate(value: string) {
@@ -1273,3 +1274,9 @@ function getCityMapRegion(cityData: CultureCityData) {
     longitudeDelta: 0.048,
   };
 }
+
+const styles = StyleSheet.create({
+  mapCardShadow: {
+    boxShadow: '0 12px 28px rgba(30, 30, 36, 0.10), 0 2px 6px rgba(30, 30, 36, 0.05)',
+  },
+});

@@ -32,7 +32,7 @@ describe('Digital Passport university ranking awards', () => {
           unlocked: true,
         }),
         expect.objectContaining({
-          color: '#1F3A44',
+          color: '#6B818C',
           progress: '2027/2028 · 3rd place',
           title: 'Campus Bronze',
           unlocked: true,
