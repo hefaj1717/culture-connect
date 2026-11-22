@@ -740,11 +740,10 @@ export default function HomeScreen({
         </View>
 
         <View className="bg-canvas px-5 pb-8">
-          <View className="mb-3 flex-row items-center justify-between">
+          <View className="mb-3">
             <Text className="text-[11px] font-semibold uppercase tracking-wide text-muted">
               City activity
             </Text>
-            <Text className="text-[11px] font-semibold text-primary">Approved events only</Text>
           </View>
 
           <View
@@ -807,11 +806,6 @@ export default function HomeScreen({
                 className="absolute inset-0 bg-ink/5"
                 style={{ backgroundColor: `${Colors.light.ink}08` }}
               />
-              <View className="absolute left-5 top-5 rounded-full bg-white/85 px-3 py-1">
-                <Text className="text-[10px] font-bold text-primary">
-                  {activityHeatPoints.length > 0 ? 'Predicted activity' : 'Venue locations'}
-                </Text>
-              </View>
               <Pressable
                 onPress={() => setIsMapInteractive((current) => !current)}
                 className={`absolute bottom-3 right-3 h-11 flex-row items-center gap-2 rounded-full border px-4 active:opacity-80 ${
