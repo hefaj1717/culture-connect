@@ -507,7 +507,7 @@ export function CreateEventModal({
                       value={eventUpdateMessage}
                       onChangeText={onChangeEventUpdateMessage}
                       placeholder="For example: the time changed because the venue opens later."
-                      placeholderTextColor="#8B9BA4"
+                      placeholderTextColor={Colors.light.inputPlaceholder}
                       multiline
                       maxLength={textLimits.organizerNote}
                       className="mt-3 min-h-[76px] rounded-xl border border-line bg-white px-3 py-2 text-body leading-5 text-ink"

@@ -24,7 +24,7 @@ export function buildPassportAchievements(
   return [
     {
       category: 'status',
-      color: '#3E8989',
+      color: '#1F3A44',
       description: 'Joined CultureQuest during the founding beta period in 2026.',
       icon: Sparkles,
       id: 'beta-explorer',
@@ -47,7 +47,7 @@ export function buildPassportAchievements(
     ...questMilestones.map(([target, title, description]) =>
       createMilestoneBadge({
         category: 'quest',
-        color: '#3E8989',
+        color: '#1F3A44',
         current: progress.questsCompleted,
         description,
         icon: Route,
@@ -58,7 +58,7 @@ export function buildPassportAchievements(
     ),
     createMilestoneBadge({
       category: 'social',
-      color: '#6B818C',
+      color: '#1F3A44',
       current: progress.sameOrganizerEvents,
       description: 'Attend 5 verified events from the same organizer.',
       icon: HeartHandshake,
@@ -116,7 +116,7 @@ function getOrdinal(rank: 1 | 2 | 3) {
 }
 
 function getRankingAwardColor(rank: 1 | 2 | 3) {
-  if (rank === 1) return '#B8872E';
-  if (rank === 2) return '#71858E';
-  return '#A76E45';
+  if (rank === 1) return '#A63446';
+  if (rank === 2) return '#1F3A44';
+  return '#1F3A44';
 }

@@ -11,7 +11,14 @@ import {
 } from 'lucide-react-native';
 import { CameraView, type BarcodeScanningResult, useCameraPermissions } from 'expo-camera';
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
-import { Modal, Pressable, ScrollView, StyleSheet, useWindowDimensions, View } from 'react-native';
+import {
+  Modal,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  useWindowDimensions,
+  View,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
@@ -24,7 +31,7 @@ import Animated, {
 import { CardListSkeleton, EmptyState, ErrorState } from '@/components/async-state';
 import { BrandImage } from '@/components/brand-image';
 import { ScreenHeader } from '@/components/screen-header';
-import { CardStyles, Colors, Spacing } from '@/constants/theme';
+import { Colors, Spacing } from '@/constants/theme';
 import { type CultureCityData, getCultureCityData } from '@/data/culture';
 import { useResponsiveLayout } from '@/hooks/use-responsive-layout';
 import { useStableTopInset } from '@/hooks/use-stable-safe-area';
@@ -88,11 +95,10 @@ export default function QuestsScreen({
         showsVerticalScrollIndicator={false}
       >
         <View className="px-5" style={{ paddingTop: stableTopInset + Spacing.sm }}>
-          <ScreenHeader
-            subtitle={`Curated walking paths through ${cityData.name}. Finish every stop to earn XP.`}
-            title="Quests"
-          />
-          <Text className="mb-3 text-headline font-inter-semibold text-ink">Active paths</Text>
+          <ScreenHeader title="Quests" />
+          <Text className="mb-3 text-headline font-inter-semibold text-ink">
+            Active paths
+          </Text>
 
           {questsLoading ? (
             <CardListSkeleton count={3} style={{ marginBottom: 16 }} />
@@ -140,7 +146,6 @@ function QuestCard({ onPress, quest }: { onPress: () => void; quest: Quest }) {
     <Pressable
       onPress={onPress}
       className="overflow-hidden rounded-2xl border border-line bg-surface active:opacity-90"
-      style={CardStyles.compact}
     >
       <View className="bg-subtle" style={{ height: layout.isSmallPhone ? 126 : 142 }}>
         <BrandImage
@@ -149,9 +154,13 @@ function QuestCard({ onPress, quest }: { onPress: () => void; quest: Quest }) {
           style={StyleSheet.absoluteFill}
           withTextGradient
         >
-          <View className="absolute left-3 top-3 flex-row items-center gap-1.5 rounded-full bg-success px-2.5 py-1">
-            <Route size={12} color={Colors.light.onPrimary} strokeWidth={2.2} />
-            <Text className="text-caption font-inter-semibold text-white">{quest.theme}</Text>
+          <View
+            className="absolute left-3 top-3 flex-row items-center gap-1.5 rounded-full bg-white px-2.5 py-1"
+          >
+            <Route size={12} color={Colors.light.ink} strokeWidth={2.2} />
+            <Text className="text-caption font-inter-semibold text-ink">
+              {quest.theme}
+            </Text>
           </View>
           <View className="absolute bottom-4 left-4 right-4">
             <Text className="font-heading text-title2 text-white" numberOfLines={2}>
@@ -177,18 +186,9 @@ function QuestCard({ onPress, quest }: { onPress: () => void; quest: Quest }) {
           <Text className="text-footnote font-inter-medium text-ink">
             {quest.completedStops} of {totalStops} stops
           </Text>
-          <View className="flex-row items-center gap-1.5">
-            <View className="rounded-full bg-highlightSoft px-2 py-0.5">
-              <Text className="text-caption font-inter-semibold text-highlightDeep">
-                +{quest.totalXp} XP
-              </Text>
-            </View>
-            <View className="rounded-full bg-primarySoft px-2 py-0.5">
-              <Text className="text-caption font-inter-semibold text-primary">
-                +{quest.totalQc} QC
-              </Text>
-            </View>
-          </View>
+          <Text className="text-footnote font-inter-semibold text-ink">
+            +{quest.totalXp} XP · +{quest.totalQc} QC
+          </Text>
         </View>
 
         <View className="h-1.5 overflow-hidden rounded-full bg-progressTrack">
@@ -322,9 +322,9 @@ function QuestDetailModal({
   return (
     <Modal animationType="slide" transparent onRequestClose={closeWithAnimation} visible>
       <GestureDetector gesture={swipeGesture}>
-        <Animated.View className="flex-1 bg-canvas" style={swipeStyle}>
+        <Animated.View className="flex-1 bg-white" style={swipeStyle}>
           <ScrollView
-            className="flex-1 bg-canvas"
+            className="flex-1 bg-white"
             contentContainerStyle={{ paddingBottom: 32 }}
             showsVerticalScrollIndicator={false}
           >
@@ -360,8 +360,7 @@ function QuestDetailModal({
               <View className="mb-5 flex-row items-center justify-between rounded-2xl bg-primary/10 p-4">
                 <Text className="text-body font-inter-bold text-primary">
                   {quest.totalXp} XP total
-                  {' · '}
-                  {quest.totalQc} QC
+                  {' · '}{quest.totalQc} QC
                 </Text>
                 <Text className="text-footnote font-inter-semibold text-muted">
                   {quest.completedStops}/{quest.stops.length} stops
@@ -379,7 +378,9 @@ function QuestDetailModal({
                 />
               </View>
 
-              <Text className="mb-3 font-heading text-title2 text-ink">Trail stops</Text>
+              <Text className="mb-3 font-heading text-title2 text-ink">
+                Trail stops
+              </Text>
 
               <View className="gap-3">
                 {quest.stops.map((stop, index) => (
@@ -445,9 +446,7 @@ function QuestDetailModal({
                     onPress={requestPermission}
                     className="h-12 items-center justify-center rounded-xl bg-white px-5"
                   >
-                    <Text className="text-body font-inter-semibold text-ink">
-                      Allow camera access
-                    </Text>
+                    <Text className="text-body font-inter-semibold text-ink">Allow camera access</Text>
                   </Pressable>
                 </View>
               ) : (

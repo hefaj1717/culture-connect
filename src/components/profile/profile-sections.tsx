@@ -33,7 +33,7 @@ import { PassportBadge, type AchievementBadge } from '@/components/profile/badge
 import { OrganizerStatusCard, OrganizerVerifiedBadge } from '@/components/profile/organizer-status';
 import { RankAvatar } from '@/components/profile/profile-avatar';
 import { RewardPartnerRow } from '@/components/profile/reward-partner-row';
-import { CardStyles, Colors } from '@/constants/theme';
+import { CardStyles, Colors, GamificationColors } from '@/constants/theme';
 import { eventCategoryLabels, type CultureEvent, type RewardPartner } from '@/data/culture';
 import type { RedeemedRewardState } from '@/data/profile';
 import { getEventEngagement } from '@/lib/event-engagement';
@@ -158,29 +158,28 @@ export function ProfileRankCard({
         </View>
       </View>
 
-      <View
-        className="mb-4 rounded-2xl bg-primary p-4"
-        style={{ boxShadow: '0 10px 24px rgba(31, 58, 68, 0.28)' }}
-      >
+      <View className="mb-4 rounded-2xl border border-accent/15 bg-canvas p-4">
         <View className="mb-3 flex-row items-end justify-between gap-4">
           <View>
             <View className="mb-1">
-              <Text className="text-headline font-inter-semibold text-white/80">Total XP</Text>
+              <Text className="text-headline font-inter-semibold text-ink">
+                Total XP
+              </Text>
             </View>
-            <Text className="font-heading text-hero leading-[58px] text-white">
+            <Text className="font-heading text-hero leading-[58px] text-ink">
               {userXp.toLocaleString()}
             </Text>
-            <Text className="mt-1 text-body font-inter-bold text-highlight">
+            <Text className="mt-1 text-body font-inter-bold text-accent">
               {userQc.toLocaleString()} QC available
             </Text>
           </View>
           <View className="items-end">
-            <Text className="text-right text-caption font-inter-semibold leading-4 text-white/70">
+            <Text className="text-right text-caption font-inter-semibold leading-4 text-muted">
               {levelProgress.nextLevel
                 ? `${levelProgress.xpToNext.toLocaleString()} XP to ${levelProgress.nextLevel.name}`
                 : 'Top city rank reached'}
             </Text>
-            <Text className="mt-1 text-headline font-inter-bold text-white">
+            <Text className="mt-1 text-headline font-inter-bold text-accentDeep">
               {Math.round(levelProgress.progressPercent)}%
             </Text>
           </View>
@@ -230,7 +229,9 @@ export function UniversityAffiliationSection({
         </View>
         <View className="min-w-0 flex-1">
           <View className="mb-1 flex-row items-center gap-2">
-            <Text className="text-caption font-inter-bold text-primary">Campus ranking</Text>
+            <Text className="text-caption font-inter-bold text-primary">
+              Campus ranking
+            </Text>
             <View className="rounded-full bg-white px-2 py-0.5">
               <Text className="text-caption font-inter-bold text-muted">
                 {membership.status === 'verified' ? 'Verified' : 'Pending'}
@@ -258,8 +259,11 @@ function XpProgressBar({ progressPercent }: { progressPercent: number }) {
   const safeProgress = Math.min(100, Math.max(0, progressPercent));
 
   return (
-    <View className="relative h-4 overflow-hidden rounded-full bg-white/15">
-      <View className="h-full rounded-full bg-highlight" style={{ width: `${safeProgress}%` }} />
+    <View
+      className="relative h-4 overflow-hidden rounded-full"
+      style={{ backgroundColor: GamificationColors.progressTrack }}
+    >
+      <View className="h-full rounded-full bg-success" style={{ width: `${safeProgress}%` }} />
       {[25, 50, 75].map((tick) => (
         <View
           key={tick}
@@ -543,7 +547,9 @@ export function DigitalPassportSection({
         />
       ) : badges.length === 0 ? (
         <View className="mx-5 rounded-2xl bg-canvas p-4">
-          <Text className="text-body font-inter-bold text-ink">Your passport is waiting</Text>
+          <Text className="text-body font-inter-bold text-ink">
+            Your passport is waiting
+          </Text>
           <Text className="mt-1 text-caption leading-4 text-muted">
             Attend events and complete quests to collect your first badges.
           </Text>
@@ -763,7 +769,9 @@ export function AdminXpAuditModal({
               showsVerticalScrollIndicator={false}
             >
               <View className="mb-4 overflow-hidden rounded-2xl border border-line bg-surface p-5">
-                <Text className="text-caption font-inter-bold text-primary">Admin audit</Text>
+                <Text className="text-caption font-inter-bold text-primary">
+                  Admin audit
+                </Text>
                 <Text className="mt-2 font-heading text-largeTitle leading-[38px] text-ink">
                   XP ledger
                 </Text>
@@ -809,7 +817,9 @@ function AuditSummaryPill({ label, value }: { label: string; value: number }) {
   return (
     <View className="min-w-0 flex-1 rounded-2xl bg-canvas px-3 py-2">
       <Text className="text-caption font-inter-bold text-muted">{label}</Text>
-      <Text className="mt-0.5 font-heading text-title2 text-ink">{value.toLocaleString()}</Text>
+      <Text className="mt-0.5 font-heading text-title2 text-ink">
+        {value.toLocaleString()}
+      </Text>
     </View>
   );
 }
@@ -1395,9 +1405,7 @@ function HistoryFilterBar<T extends string>({
               active ? 'bg-primary' : 'border border-line bg-subtle'
             }`}
           >
-            <Text
-              className={`text-caption font-inter-semibold ${active ? 'text-white' : 'text-muted'}`}
-            >
+            <Text className={`text-caption font-inter-semibold ${active ? 'text-white' : 'text-muted'}`}>
               {filter.label}
             </Text>
           </Pressable>
@@ -1542,7 +1550,9 @@ function EventHistoryRow({
       </View>
       <View className="p-4">
         <View className="mb-2 flex-row items-center justify-between gap-3">
-          <Text className="text-headline font-inter-semibold text-ink">{event.date}</Text>
+          <Text className="text-headline font-inter-semibold text-ink">
+            {event.date}
+          </Text>
           <UserEventStatusPill status={status} />
         </View>
         <Text className="text-headline font-inter-bold text-ink" numberOfLines={2}>
@@ -1582,7 +1592,9 @@ function OrganizerEventRow({
       </View>
       <View className="p-4">
         <View className="mb-2 flex-row items-center justify-between gap-3">
-          <Text className="text-headline font-inter-semibold text-ink">{event.date}</Text>
+          <Text className="text-headline font-inter-semibold text-ink">
+            {event.date}
+          </Text>
           <OrganizerEventStatusPill status={event.reviewStatus} />
         </View>
         <Text className="text-headline font-inter-bold text-ink" numberOfLines={2}>
@@ -1628,19 +1640,16 @@ function OrganizerRewardRow({
               </Text>
               <OrganizerRewardStatusPill status={reward.reviewStatus} />
             </View>
-            <Text className="text-headline font-inter-bold leading-5 text-ink" numberOfLines={2}>
+            <Text
+              className="text-headline font-inter-bold leading-5 text-ink"
+              numberOfLines={2}
+            >
               {reward.discount}
             </Text>
-            <Text
-              className="mt-1 text-caption font-inter-medium leading-4 text-muted"
-              numberOfLines={1}
-            >
+            <Text className="mt-1 text-caption font-inter-medium leading-4 text-muted" numberOfLines={1}>
               {reward.name}
             </Text>
-            <Text
-              className="mt-1 text-caption font-inter-semibold leading-4 text-muted"
-              numberOfLines={1}
-            >
+            <Text className="mt-1 text-caption font-inter-semibold leading-4 text-muted" numberOfLines={1}>
               {formatRewardAvailability(reward)}
             </Text>
           </View>
@@ -1733,10 +1742,7 @@ function HistoryEventDetail({
 
         <View className="px-5 pt-5">
           <View className="mb-5 gap-3 rounded-2xl border border-line bg-white p-4">
-            <HistoryInfoRow
-              icon={<MapPin size={17} color={Colors.light.textSecondary} />}
-              label={event.venueName}
-            />
+            <HistoryInfoRow icon={<MapPin size={17} color={Colors.light.textSecondary} />} label={event.venueName} />
             <HistoryInfoRow
               icon={<Clock size={17} color={Colors.light.textSecondary} />}
               label={`${event.date}, ${formatEventTimeRange(event)}`}
@@ -1753,9 +1759,7 @@ function HistoryEventDetail({
                 value={getEventEngagement(event, status).going}
               />
               <HistoryStatPill
-                icon={
-                  <CheckCircle2 size={15} color={Colors.light.textSecondary} strokeWidth={2.4} />
-                }
+                icon={<CheckCircle2 size={15} color={Colors.light.textSecondary} strokeWidth={2.4} />}
                 label="Attended"
                 value={getEventEngagement(event, status).attended}
               />
@@ -1771,10 +1775,10 @@ function HistoryEventDetail({
           <Text className="mb-5 text-body leading-5 text-ink/75">{event.description}</Text>
 
           <View className="rounded-2xl border border-line bg-subtle p-4">
-            <Text className="text-caption font-inter-semibold text-muted">Organiser</Text>
-            <Text className="mt-1 text-body font-inter-semibold text-ink">
-              {event.organizerName}
+            <Text className="text-caption font-inter-semibold text-muted">
+              Organiser
             </Text>
+            <Text className="mt-1 text-body font-inter-semibold text-ink">{event.organizerName}</Text>
             {canShowOrganizerQr && (
               <Pressable
                 onPress={() => setQrPassOpen(true)}
@@ -2035,10 +2039,7 @@ function HistoryStatPill({
   return (
     <View className="min-w-0 flex-1 flex-row items-center gap-1.5 rounded-2xl bg-primary/5 px-2.5 py-2">
       {icon}
-      <Text
-        className="min-w-0 flex-1 text-caption font-inter-semibold text-ink/70"
-        numberOfLines={1}
-      >
+      <Text className="min-w-0 flex-1 text-caption font-inter-semibold text-ink/70" numberOfLines={1}>
         {value.toLocaleString()} {label}
       </Text>
     </View>
@@ -2078,9 +2079,7 @@ function OrganizerEventStatusPill({ status }: { status: OrganizerEventStatus }) 
 
   return (
     <View className={`rounded-full px-2.5 py-1 ${statusStyle.container}`}>
-      <Text className={`text-caption font-inter-bold ${statusStyle.text}`}>
-        {statusStyle.label}
-      </Text>
+      <Text className={`text-caption font-inter-bold ${statusStyle.text}`}>{statusStyle.label}</Text>
     </View>
   );
 }
@@ -2107,9 +2106,7 @@ function OrganizerRewardStatusPill({ status }: { status: OrganizerRewardStatus }
 
   return (
     <View className={`rounded-full px-2.5 py-1 ${statusStyle.container}`}>
-      <Text className={`text-caption font-inter-bold ${statusStyle.text}`}>
-        {statusStyle.label}
-      </Text>
+      <Text className={`text-caption font-inter-bold ${statusStyle.text}`}>{statusStyle.label}</Text>
     </View>
   );
 }
@@ -2267,10 +2264,10 @@ export function RewardsListModal({
                     <ArrowLeft size={21} color={Colors.light.textSecondary} strokeWidth={2.6} />
                   </Pressable>
                   <View className="min-w-0 flex-1">
-                    <Text className="font-heading text-title2 text-ink">Rewards</Text>
-                    <Text className="text-caption font-inter-semibold text-primary">
-                      {cityName}
+                    <Text className="font-heading text-title2 text-ink">
+                      Rewards
                     </Text>
+                    <Text className="text-caption font-inter-semibold text-primary">{cityName}</Text>
                   </View>
                 </View>
                 <View className="h-10 w-10" />

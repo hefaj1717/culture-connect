@@ -36,7 +36,7 @@ import { useResponsiveLayout } from '@/hooks/use-responsive-layout';
 import { useNetworkStatus } from '@/providers/network-provider';
 import { Text } from '@/components/ui/text';
 
-const ACTIVE = Colors.light.accent;
+const ACTIVE = Colors.light.primary;
 const INACTIVE = Colors.light.iconInactive;
 const TABS: { icon: LucideIcon; label: string }[] = [
   { icon: Home, label: 'Home' },
@@ -597,7 +597,7 @@ function TabButton({
       style={{ minWidth }}
     >
       <View
-        className={`h-8 w-14 items-center justify-center rounded-full ${active ? 'bg-accentSoft' : ''}`}
+        className={`h-8 w-14 items-center justify-center rounded-full ${active ? 'bg-primary/10' : ''}`}
       >
         <Icon size={22} color={color} strokeWidth={active ? 2.3 : 2} />
       </View>

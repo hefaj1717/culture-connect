@@ -26,13 +26,13 @@ describe('Digital Passport university ranking awards', () => {
     expect(badges).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          color: '#B8872E',
+          color: '#A63446',
           progress: '2026/2027 · 1st place',
           title: 'Campus Champions',
           unlocked: true,
         }),
         expect.objectContaining({
-          color: '#A76E45',
+          color: '#1F3A44',
           progress: '2027/2028 · 3rd place',
           title: 'Campus Bronze',
           unlocked: true,

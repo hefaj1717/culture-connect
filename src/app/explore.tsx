@@ -36,7 +36,7 @@ import { CardListSkeleton, EmptyState, ErrorState, LoadingState } from '@/compon
 import { BrandImage } from '@/components/brand-image';
 import { OrganizerAvatar, OrganizerProfileModal } from '@/components/organizer-profile-modal';
 import { ScreenHeader } from '@/components/screen-header';
-import { CardStyles, CategoryColors, Colors, Spacing } from '@/constants/theme';
+import { CardStyles, Colors, Spacing } from '@/constants/theme';
 import {
   type CultureEvent,
   type CultureCityData,
@@ -350,16 +350,12 @@ export default function ExploreScreen({
         keyboardShouldPersistTaps="handled"
       >
         <View className="mb-4 px-5" style={{ paddingTop: stableTopInset + Spacing.sm }}>
-          <ScreenHeader
-            subtitle={`What's on in ${cityData.name}`}
-            title="Discover"
-            style={{ marginBottom: Spacing.md }}
-          />
+          <ScreenHeader title="Discover" style={{ marginBottom: Spacing.md }} />
           <View
-            className="h-14 flex-row items-center gap-3.5 rounded-2xl border border-line bg-surface px-4"
-            style={CardStyles.soft}
+            className="h-14 flex-row items-center gap-3.5 rounded-2xl border border-line px-4"
+            style={{ backgroundColor: Colors.light.backgroundElement }}
           >
-            <Search size={20} color={Colors.light.accent} strokeWidth={2.4} />
+            <Search size={20} color={Colors.light.primary} strokeWidth={2.4} />
             <TextInput
               value={search}
               onChangeText={setSearch}
@@ -385,13 +381,11 @@ export default function ExploreScreen({
                   Keyboard.dismiss();
                   setTab(nextTab);
                 }}
-                accessibilityRole="tab"
-                accessibilityState={{ selected: active }}
-                className={`h-9 flex-1 items-center justify-center rounded-xl ${active ? 'bg-primary' : ''}`}
+                className={`h-9 flex-1 items-center justify-center rounded-xl ${active ? 'bg-surface' : ''}`}
                 style={active ? CardStyles.soft : undefined}
               >
                 <Text
-                  className={`text-footnote font-inter-semibold ${active ? 'text-white' : 'text-muted'}`}
+                  className={`text-footnote font-inter-semibold ${active ? 'text-ink' : 'text-muted'}`}
                 >
                   {tabLabel}
                 </Text>
@@ -417,9 +411,8 @@ export default function ExploreScreen({
                       Keyboard.dismiss();
                       setAudienceFilter(active ? 'all' : filter.key);
                     }}
-                    accessibilityRole="button"
-                    accessibilityState={{ selected: active }}
-                    className={`h-9 items-center justify-center rounded-full px-4 ${active ? 'bg-accent' : 'border border-line bg-surface'}`}
+                    className={`h-9 items-center justify-center rounded-full px-4 ${active ? 'bg-primary' : 'border border-line'}`}
+                    style={active ? undefined : { backgroundColor: Colors.light.backgroundElement }}
                   >
                     <Text
                       className={`text-footnote font-inter-medium ${active ? 'text-white' : 'text-muted'}`}
@@ -447,11 +440,9 @@ export default function ExploreScreen({
                       contentFit="cover"
                       style={StyleSheet.absoluteFill}
                     >
-                      <View className="absolute left-3 top-3 flex-row items-center gap-1.5 rounded-full bg-accent px-2.5 py-1">
-                        <View className="h-1.5 w-1.5 rounded-full bg-white" />
-                        <Text className="text-caption font-inter-semibold text-white">
-                          Live now
-                        </Text>
+                      <View className="absolute left-3 top-3 flex-row items-center gap-1.5 rounded-full bg-white px-2.5 py-1">
+                        <View className="h-1.5 w-1.5 rounded-full bg-accent" />
+                        <Text className="text-caption font-inter-semibold text-ink">Live now</Text>
                       </View>
                     </BrandImage>
                   </View>
@@ -521,7 +512,6 @@ export default function ExploreScreen({
                 <View className="gap-3">
                   {listedEvents.map((event) => {
                     const isLiveNow = getCheckInWindowState(event) === 'open';
-                    const categoryColors = CategoryColors[event.category] ?? CategoryColors.other;
 
                     return (
                       <Pressable
@@ -532,7 +522,6 @@ export default function ExploreScreen({
                           setSelectedEvent(event);
                         }}
                         className="flex-row items-center gap-3 rounded-2xl border border-line bg-surface p-3 active:opacity-90"
-                        style={CardStyles.soft}
                       >
                         <View
                           className="shrink-0 overflow-hidden rounded-xl bg-subtle"
@@ -564,21 +553,8 @@ export default function ExploreScreen({
                           <Text className="text-caption text-muted" numberOfLines={1}>
                             {formatEventTimeRange(event)} · {event.venueName}
                           </Text>
-                          <View className="mt-2 flex-row">
-                            <View
-                              className="rounded-full px-2 py-0.5"
-                              style={{ backgroundColor: categoryColors.background }}
-                            >
-                              <Text
-                                className="text-caption font-inter-semibold"
-                                style={{ color: categoryColors.foreground }}
-                              >
-                                {eventCategoryLabels[event.category] ?? 'Event'}
-                              </Text>
-                            </View>
-                          </View>
                         </View>
-                        <ChevronRight size={18} color={Colors.light.accent} />
+                        <ChevronRight size={18} color={Colors.light.iconInactive} />
                       </Pressable>
                     );
                   })}
@@ -616,7 +592,7 @@ export default function ExploreScreen({
                     setSelectedOrganizerProfile(profile);
                   }}
                   className="flex-row items-center gap-3 rounded-2xl p-3 active:opacity-80"
-                  style={[CardStyles.compact, { backgroundColor: Colors.light.surface }]}
+                  style={[CardStyles.compact, { backgroundColor: Colors.light.backgroundElement }]}
                 >
                   <OrganizerAvatar profile={profile} size={52} />
                   <View className="min-w-0 flex-1">
