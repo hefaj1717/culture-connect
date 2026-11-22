@@ -107,7 +107,7 @@ export function ErrorState({
           {onAction ? (
             <Pressable
               onPress={onAction}
-              className="mt-3 flex-row items-center self-start rounded-full bg-primary px-3.5 py-2 active:opacity-80"
+              className="mt-3 flex-row items-center self-start rounded-full bg-action px-3.5 py-2 active:opacity-80"
               accessibilityRole="button"
               accessibilityLabel={actionLabel ?? 'Try again'}
             >
@@ -157,7 +157,7 @@ export function EmptyState({
           {onAction ? (
             <Pressable
               onPress={onAction}
-              className="mt-3 self-start rounded-full bg-primary px-3.5 py-2 active:opacity-80"
+              className="mt-3 self-start rounded-full bg-action px-3.5 py-2 active:opacity-80"
             >
               <Text className="text-caption font-inter-bold text-white">{actionLabel}</Text>
             </Pressable>

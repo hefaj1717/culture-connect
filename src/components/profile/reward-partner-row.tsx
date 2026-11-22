@@ -97,7 +97,7 @@ export function RewardPartnerRow({
                 rowState === 'used'
                   ? 'bg-subtle'
                   : rowState === 'ready'
-                    ? 'bg-primary'
+                    ? 'bg-accent'
                     : 'bg-accent/15'
               }`}
             >

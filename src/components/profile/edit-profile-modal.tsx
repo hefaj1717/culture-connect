@@ -438,7 +438,7 @@ export function EditProfileModal({
                     onSave();
                   }}
                   disabled={savingProfile}
-                  className="h-[52px] items-center justify-center rounded-xl bg-primary active:opacity-85"
+                  className="h-[52px] items-center justify-center rounded-xl bg-action active:opacity-85"
                 >
                   {savingProfile ? (
                     <ActivityIndicator color="white" />

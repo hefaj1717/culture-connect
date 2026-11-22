@@ -211,7 +211,7 @@ export function OrganizerAnnouncementModal({
                 ) : null}
                 <Pressable
                   accessibilityLabel="Send announcement"
-                  className={`mt-5 h-12 flex-row items-center justify-center gap-2 rounded-xl bg-primary ${publishing ? 'opacity-60' : 'active:opacity-85'}`}
+                  className={`mt-5 h-12 flex-row items-center justify-center gap-2 rounded-xl bg-action ${publishing ? 'opacity-60' : 'active:opacity-85'}`}
                   disabled={publishing}
                   onPress={() => void submit()}
                 >

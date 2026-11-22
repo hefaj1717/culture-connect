@@ -328,7 +328,7 @@ export function RewardDetailModal({
                   testID="reward.redeem"
                   className="h-[54px] items-center justify-center rounded-2xl active:opacity-85"
                   style={{
-                    backgroundColor: redeemDisabled ? Colors.light.disabledSurface : Colors.light.primary,
+                    backgroundColor: redeemDisabled ? Colors.light.disabledSurface : Colors.light.accent,
                   }}
                 >
                   <Text

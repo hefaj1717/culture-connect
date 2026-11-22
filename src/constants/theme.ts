@@ -45,8 +45,8 @@ export const FontTokens = {
 } as const;
 
 export const GamificationColors = {
-  xp: Colors.light.success,
-  xpDeep: Colors.light.success,
+  xp: Colors.light.progress,
+  xpDeep: Colors.light.progress,
   progressTrack: Colors.light.progressTrack,
   badges: {
     quest: Colors.light.badgeQuest,

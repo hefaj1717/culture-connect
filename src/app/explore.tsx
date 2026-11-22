@@ -1239,7 +1239,7 @@ export function EventDetailModal({
                       onPress={openScanner}
                       disabled={checkingLocation || checkInWindowState !== 'open'}
                       testID="event.check-in.open-scanner"
-                      className="h-[52px] flex-row items-center justify-center gap-2 rounded-xl bg-primary active:opacity-85 disabled:opacity-60"
+                      className="h-[52px] flex-row items-center justify-center gap-2 rounded-xl bg-action active:opacity-85 disabled:opacity-60"
                     >
                       <QrCode size={19} color="white" strokeWidth={2.4} />
                       <Text className="text-body font-inter-semibold text-white">
@@ -1387,7 +1387,7 @@ function StatusButton({
       onPress={onPress}
       testID={testID}
       className={`h-11 flex-1 flex-row items-center justify-center gap-2 rounded-xl ${
-        active ? 'bg-primary' : ''
+        active ? 'bg-action' : ''
       } ${disabled ? 'opacity-55' : ''}`}
       style={active ? undefined : { backgroundColor: Colors.light.backgroundElement }}
     >

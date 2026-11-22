@@ -1030,7 +1030,7 @@ function AdminEventEditor({
         <Pressable
           disabled={saving}
           onPress={save}
-          className="h-[52px] flex-row items-center justify-center gap-2 rounded-2xl bg-primary active:opacity-85 disabled:opacity-60"
+          className="h-[52px] flex-row items-center justify-center gap-2 rounded-2xl bg-action active:opacity-85 disabled:opacity-60"
         >
           {saving ? (
             <ActivityIndicator color="white" size="small" />
@@ -1386,7 +1386,7 @@ function AdminRewardEditor({
         <Pressable
           disabled={saving}
           onPress={save}
-          className="h-[52px] flex-row items-center justify-center gap-2 rounded-2xl bg-primary active:opacity-85 disabled:opacity-60"
+          className="h-[52px] flex-row items-center justify-center gap-2 rounded-2xl bg-action active:opacity-85 disabled:opacity-60"
         >
           {saving ? (
             <ActivityIndicator color="white" size="small" />

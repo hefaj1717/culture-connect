@@ -29,7 +29,9 @@
       "iconInactive": "#6B818C",
       "borderSubtle": "#E9DFD3",
       "disabledSurface": "#E5E0EA",
-      "disabledIcon": "#9CA3AF"
+      "disabledIcon": "#9CA3AF",
+      "action": "#3E8989",
+      "progress": "#6B818C"
     },
     "dark": {
       "text": "#FFF8F0",
@@ -60,7 +62,9 @@
       "iconInactive": "#D9D0E3",
       "borderSubtle": "#5B5066",
       "disabledSurface": "#443354",
-      "disabledIcon": "#D9D0E3"
+      "disabledIcon": "#D9D0E3",
+      "action": "#69B9B9",
+      "progress": "#B6C6CB"
     }
   }
 }

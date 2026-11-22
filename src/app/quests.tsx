@@ -193,7 +193,7 @@ function QuestCard({ onPress, quest }: { onPress: () => void; quest: Quest }) {
 
         <View className="h-1.5 overflow-hidden rounded-full bg-progressTrack">
           <View
-            className="h-full rounded-full bg-success"
+            className="h-full rounded-full bg-progress"
             style={{ width: `${progressPercent}%` }}
           />
         </View>
@@ -396,7 +396,7 @@ function QuestDetailModal({
                 disabled={questCompleted || !questHasStops}
                 onPress={openCompletionScanner}
                 className={`mt-2 h-[52px] flex-row items-center justify-center gap-2 rounded-2xl ${
-                  questCompleted || !questHasStops ? 'bg-subtle' : 'bg-primary active:opacity-85'
+                  questCompleted || !questHasStops ? 'bg-subtle' : 'bg-action active:opacity-85'
                 }`}
               >
                 {questCompleted && (

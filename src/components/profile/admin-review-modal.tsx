@@ -489,7 +489,7 @@ function ReviewActions({
         <Pressable
           disabled={anyBusy}
           onPress={() => confirmAction('approved')}
-          className="h-11 flex-1 flex-row items-center justify-center gap-2 rounded-xl bg-primary active:opacity-85"
+          className="h-11 flex-1 flex-row items-center justify-center gap-2 rounded-xl bg-action active:opacity-85"
         >
           {busy ? (
             <ActivityIndicator color="white" size="small" />

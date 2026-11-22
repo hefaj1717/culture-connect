@@ -530,7 +530,7 @@ export function CreateEventModal({
                     onSubmit();
                   }}
                   disabled={creatingEvent}
-                  className="h-[52px] items-center justify-center rounded-xl bg-primary active:opacity-85 disabled:opacity-60"
+                  className="h-[52px] items-center justify-center rounded-xl bg-action active:opacity-85 disabled:opacity-60"
                 >
                   {creatingEvent ? (
                     <ActivityIndicator color="white" />

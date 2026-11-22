@@ -277,7 +277,7 @@ export function OrganizerProfileModal({
                         disabled={followLoading || isUpdatingFollow}
                         onPress={() => void toggleFollow()}
                         className={`flex-row items-center gap-1.5 rounded-full px-3 py-2 ${
-                          isFollowing ? 'bg-success/15' : 'bg-primary'
+                          isFollowing ? 'bg-success/15' : 'bg-action'
                         } ${followLoading || isUpdatingFollow ? 'opacity-55' : 'active:opacity-80'}`}
                       >
                         {isFollowing ? (

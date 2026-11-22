@@ -498,7 +498,7 @@ export default function HomeScreen({
               <Pressable
                 onPress={onOpenDiscover}
                 accessibilityRole="button"
-                className="h-12 flex-row items-center justify-center gap-2 rounded-xl bg-accent px-5 active:opacity-85"
+                className="h-12 flex-row items-center justify-center gap-2 rounded-xl bg-action px-5 active:opacity-85"
               >
                 <Text className="text-body font-inter-semibold text-white">Explore events</Text>
                 <ArrowRight size={16} color={Colors.light.onPrimary} />

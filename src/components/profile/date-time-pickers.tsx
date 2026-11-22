@@ -177,7 +177,7 @@ export function TimePickerModal({
 
         <Pressable
           onPress={onConfirm}
-          className="h-12 items-center justify-center rounded-xl bg-primary active:opacity-85"
+          className="h-12 items-center justify-center rounded-xl bg-action active:opacity-85"
         >
           <Text className="text-body font-inter-semibold text-white">Set time</Text>
         </Pressable>
