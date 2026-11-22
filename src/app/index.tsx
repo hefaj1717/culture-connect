@@ -808,10 +808,15 @@ export default function HomeScreen({
               />
               <Pressable
                 onPress={() => setIsMapInteractive((current) => !current)}
-                className={`absolute bottom-3 right-3 h-11 flex-row items-center gap-2 rounded-full border px-4 active:opacity-80 ${
+                className={`absolute bottom-3 right-3 h-11 w-11 items-center justify-center rounded-full border active:opacity-80 ${
                   isMapInteractive ? 'border-white/80 bg-white/95' : 'border-primary bg-primary'
                 }`}
                 accessibilityLabel={isMapInteractive ? 'Lock map' : 'Unlock map'}
+                accessibilityHint={
+                  isMapInteractive
+                    ? 'Prevents the map from moving while you scroll the page'
+                    : 'Allows you to move and zoom the map'
+                }
                 accessibilityRole="button"
                 hitSlop={8}
               >
@@ -820,13 +825,6 @@ export default function HomeScreen({
                 ) : (
                   <Move color={Colors.light.onPrimary} size={16} strokeWidth={2.5} />
                 )}
-                <Text
-                  className={`text-[12px] font-extrabold ${
-                    isMapInteractive ? 'text-ink' : 'text-white'
-                  }`}
-                >
-                  {isMapInteractive ? 'Lock map' : 'Move map'}
-                </Text>
               </Pressable>
             </View>
 
@@ -852,25 +850,11 @@ export default function HomeScreen({
                       {selectedActivitySpot.nextEvent.title}
                     </Text>
                   </Pressable>
-                  <View className="shrink-0 gap-1 rounded-xl bg-secondary/12 px-3 py-2">
-                    <View className="flex-row items-center gap-1.5">
-                      <Bell size={12} color={Colors.light.accent} strokeWidth={2.4} />
-                      <Text className="text-[11px] font-bold text-secondary">
-                        {selectedActivitySpot.interestedCount.toLocaleString()} interested
-                      </Text>
-                    </View>
-                    <View className="flex-row items-center gap-1.5">
-                      {isEventLiveNow(selectedActivitySpot.nextEvent) ? (
-                        <Users size={12} color={Colors.light.accent} strokeWidth={2.4} />
-                      ) : (
-                        <CheckCircle2 size={12} color={Colors.light.accent} strokeWidth={2.4} />
-                      )}
-                      <Text className="text-[11px] font-bold text-secondary">
-                        {isEventLiveNow(selectedActivitySpot.nextEvent)
-                          ? `${selectedActivitySpot.attendedCount.toLocaleString()} checked in`
-                          : `${selectedActivitySpot.goingCount.toLocaleString()} going`}
-                      </Text>
-                    </View>
+                  <View className="shrink-0 flex-row items-center gap-1.5 rounded-xl bg-secondary/12 px-3 py-2">
+                    <CheckCircle2 size={12} color={Colors.light.accent} strokeWidth={2.4} />
+                    <Text className="text-[11px] font-bold text-secondary">
+                      {selectedActivitySpot.goingCount.toLocaleString()} going
+                    </Text>
                   </View>
                 </View>
               ) : (
@@ -1301,10 +1285,10 @@ function groupNotificationsByAge(notifications: UserNotification[]): Notificatio
 function getCityMapRegion(cityData: CultureCityData) {
   if (cityData.id === 'lublin') {
     return {
-      latitude: 51.2487,
-      longitude: 22.5687,
-      latitudeDelta: 0.018,
-      longitudeDelta: 0.026,
+      latitude: 51.2504,
+      longitude: 22.5729,
+      latitudeDelta: 0.021,
+      longitudeDelta: 0.03,
     };
   }
 
@@ -1312,15 +1296,15 @@ function getCityMapRegion(cityData: CultureCityData) {
     return {
       latitude: 50.8792,
       longitude: 4.701,
-      latitudeDelta: 0.018,
-      longitudeDelta: 0.026,
+      latitudeDelta: 0.021,
+      longitudeDelta: 0.03,
     };
   }
 
   return {
     latitude: 50.8798,
     longitude: 4.7005,
-    latitudeDelta: 0.018,
-    longitudeDelta: 0.026,
+    latitudeDelta: 0.021,
+    longitudeDelta: 0.03,
   };
 }
